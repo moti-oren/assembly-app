@@ -4,7 +4,7 @@ export default class Mask {
   }
 
   static asHigh8Bit (value: number): number {
-    return value >> 8;
+    return (value >> 8) & 0xff;
   }
 
   static join8Bit (high: number, low: number): number {
@@ -16,7 +16,7 @@ export default class Mask {
   }
 
   static asHigh16Bit (value: number): number {
-    return value >> 16;
+    return (value >> 16) & 0xffff;
   }
 
   static join16Bit (high: number, low: number): number {
