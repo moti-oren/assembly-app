@@ -1,6 +1,6 @@
 import processor from '../cpu-components/processor';
 import Mask from './Mask';
-import { eventEmitter } from './EventEmitter';
+import { eventEmitterSingleton as eventEmitter } from './EventEmitter';
 
 type Size = 16;
 type SrcOperand = Register | number;

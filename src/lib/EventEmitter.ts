@@ -2,48 +2,73 @@ import { EventHandler } from '../types/event-emitter';
 import { Events } from '../types/event-emitter';
 import { EventEmitter as IEventEmitter } from '../types/event-emitter';
 
-export class EventEmitter implements IEventEmitter {
+export default class EventEmitter implements IEventEmitter {
   protected events: Events = {};
   protected maxListeners: number = 0;
+  protected readonly internalEvents = {
+    newListener: 'listener.new',
+    removeListener: 'listener.remove',
+    error: 'error'
+  };
 
   on (name: string, func: EventHandler) {
-    this.addHandler(name, func);
-    this.emit('newListener');
-
+    try {
+      const finalEvent = this.addHandler(name, func);
+      this.emit(this.internalEvents.newListener, finalEvent);
+    } catch (error) {
+      this.emit(this.internalEvents.error, error);
+    }
     return this;
   }
 
   once (name: string, func: EventHandler) {
-    this.addHandler(name, func, true);
-    this.emit('newListener');
-
+    try {
+      const finalEvent = this.addHandler(name, func, true);
+      this.emit(this.internalEvents.newListener, finalEvent);
+    } catch (error) {
+      this.emit(this.internalEvents.error, error);
+    }
     return this;
   }
 
   prependListener (name: string, func: EventHandler) {
-    this.addHandler(name, func, false, true);
-    this.emit('newListener');
-
+    try {
+      const finalEvent = this.addHandler(name, func, false, true);
+      this.emit(this.internalEvents.newListener, finalEvent);
+    } catch (error) {
+      this.emit(this.internalEvents.error, error);
+    }
     return this;
   }
 
   prependOnceListener (name: string, func: EventHandler) {
-    this.addHandler(name, func, true, true);
-    this.emit('newListener');
-
+    try {
+      const finalEvent = this.addHandler(name, func, true, true);
+      this.emit(this.internalEvents.newListener, finalEvent);
+    } catch (error) {
+      this.emit(this.internalEvents.error, error);
+    }
     return this;
   }
 
   off (name: string, func: EventHandler) {
-    this.removeHandler(name, func);
-    this.emit('removeListener');
+    try {
+      this.removeHandler(name, func);
+      this.emit(this.internalEvents.removeListener);
+    } catch (error) {
+      this.emit(this.internalEvents.error, error);
+    }
 
     return this;
   }
 
   offAll (name: string) {
-    this.removeEvent(name);
-    this.emit('removeListener');
+    try {
+      this.removeEvent(name);
+      this.emit(this.internalEvents.removeListener);
+    } catch (error) {
+      this.emit(this.internalEvents.error, error);
+    }
 
     return this;
   }
@@ -56,7 +81,11 @@ export class EventEmitter implements IEventEmitter {
     }
 
     targetEvent.forEach((eventHandler) => {
-      eventHandler.func(name, ...args); // TODO: Error handle
+      try {
+        eventHandler.func(name, ...args);
+      } catch (error) {
+        this.emit(this.internalEvents.error, error);
+      }
       if (eventHandler.once) {
         this.off(name, eventHandler.func);
       }
@@ -110,35 +139,41 @@ export class EventEmitter implements IEventEmitter {
   }
 
   protected addHandler (name: string, func: EventHandler, once: boolean = false, prepend: boolean = false) {
+    const finalEvent = { name, func, once };
+
     if (this.events[name]) {
       const targetEvent = this.getEvent(name);
       if (this.maxListeners && targetEvent.length >= this.maxListeners) {
-        return; // TODO
+        throw new Error('Max listeners reached');
       }
       targetEvent.push({ func, once });
-      return;
     }
+
     if (prepend) {
       this.events[name].unshift({ func, once });
     } else {
       this.events[name].push({ func, once });
     }
+
+    return finalEvent;
   }
 
   protected removeHandler (name: string, func: EventHandler) {
     if (!this.events[name]) {
-      return;
+      throw new Error('No such event');
     }
 
     this.events[name] = this.events[name].filter((eventHandler) => eventHandler.func !== func);
+    return true;
   }
 
   protected removeEvent (name: string) {
     if (!this.events[name]) {
-      return;
+      throw new Error('No such event');
     }
 
     delete this.events[name];
+    return true;
   }
 
   protected getEvent (name: string) {
@@ -146,6 +181,4 @@ export class EventEmitter implements IEventEmitter {
   }
 }
 
-export const eventEmitter = new EventEmitter();
-
-// TODO
+export const eventEmitterSingleton = new EventEmitter();
