@@ -1,35 +1,19 @@
 import Register from './Register';
-import SubRegister from './SubRegister';
 import Mask from './Mask';
 import { DataRegister as IDataRegister } from '../types/register';
+import { SubRegisters } from '../types/register';
 
 export default class DataRegister extends Register implements IDataRegister {
-  constructor(name: string, public high: SubRegister, public low: SubRegister) {
+  constructor(name: string, public subRegisters: SubRegisters) {
     super(name);
   }
 
   set decimal (value: number) {
-    this.high.decimal = Mask.asHigh8Bit(value);
-    this.low.decimal = Mask.asLow8Bit(value);
-  }
-
-  set hexadecimal (value: string) {
-    this.decimal = parseInt(value, 16);
-  }
-
-  set binary (value: string) {
-    this.decimal = parseInt(value, 2);
+    this.subRegisters.high.updateValueDirectly(Mask.asHigh8Bit(value));
+    this.subRegisters.low.updateValueDirectly(Mask.asLow8Bit(value));
   }
 
   get decimal (): number {
-    return Mask.join16Bit(this.high.decimal, this.low.decimal);
-  }
-
-  get hexadecimal (): string {
-    return this.decimal.toString(16);
-  }
-
-  get binary (): string {
-    return this.decimal.toString(2);
+    return Mask.join16Bit(this.subRegisters.high.decimal, this.subRegisters.low.decimal);
   }
 }

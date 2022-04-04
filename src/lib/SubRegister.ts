@@ -1,24 +1,29 @@
 import Mask from './Mask';
-import { SubRegister as ISubRegister } from '../types/register';
-
-type Size = 8;
+import { Register, SubRegister as ISubRegister } from '../types/register';
+import { SubRegisterSize as Size } from '../types/register';
 
 export default class SubRegister implements ISubRegister {
   private value: number = 0;
   public size: Size = 8; // TODO: size is public?
 
-  constructor(public name: string) { }
+  constructor(public name: string, private parent: Register) { }
 
-  set decimal (val: number) {
+  updateValueDirectly (val: number) { // TODO
     this.value = Mask.asLow8Bit(val);
   }
 
+  set decimal (val: number) {
+    const finalVal = Mask.asLow8Bit(val);
+    this.value = finalVal;
+    this.parent.updateValueDirectly(finalVal);
+  }
+
   set hexadecimal (val: string) {
-    this.value = Mask.asLow8Bit(parseInt(val, 16));
+    this.decimal = parseInt(val, 16);
   }
 
   set binary (val: string) {
-    this.value = Mask.asLow8Bit(parseInt(val, 2));
+    this.decimal = parseInt(val, 2);
   }
 
   get decimal (): number {

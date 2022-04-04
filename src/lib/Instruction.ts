@@ -40,3 +40,5 @@ export default class Instruction {
     return operation;
   }
 }
+
+// TODO: Handle only numeric operands

@@ -1,13 +1,10 @@
 import { Register } from './register';
 
-export interface Instruction {
-  perform(operands: Operands): Operation;
-}
+export type SrcOperand = Register | number;
+export type DstOperand = Register;
 
-export interface Operands {
-  dstOperand: Register;
-  srcOperand?: Register | number;
-}
+export type UnaryOperation = (dst: number) => number;
+export type BinaryOperation = (dst: number, src: number) => number;
 
 export interface Operation {
   src?: number;
@@ -15,10 +12,15 @@ export interface Operation {
   result: number;
 }
 
-export interface UnaryOperation {
-  (dst: number): number;
+export interface Operands {
+  dstOperand: DstOperand;
+  srcOperand?: SrcOperand;
 }
 
-export interface BinaryOperation {
-  (dst: number, src: number): number;
+export interface Instruction {
+  description: string;
+  opecode: string;
+  execute: UnaryOperation | BinaryOperation;
+  test (operands: Operands): Operation;
+  perform (operands: Operands): Operation; // TODO
 }
