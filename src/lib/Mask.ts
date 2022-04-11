@@ -4,11 +4,11 @@ export default class Mask {
   }
 
   static asHigh8Bit (value: number): number {
-    return (value >> 8) & 0xff;
+    return this.asLow8Bit(value >> 8);
   }
 
   static join8Bit (high: number, low: number): number {
-    return (high << 4) | low;
+    return this.asLow8Bit((high << 4) | low);
   }
 
   static asLow16Bit (value: number): number {
@@ -16,10 +16,10 @@ export default class Mask {
   }
 
   static asHigh16Bit (value: number): number {
-    return (value >> 16) & 0xffff;
+    return this.asLow16Bit(value >> 16);
   }
 
   static join16Bit (high: number, low: number): number {
-    return (high << 8) | low;
+    return this.asLow16Bit((high << 8) | low);
   }
 }
