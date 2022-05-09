@@ -1,26 +1,32 @@
-import { Register } from './register';
+export type NumericUnaryOperands = { dst: number };
+export type NumericBinaryOperands = { src: number } & NumericUnaryOperands;
 
-export type SrcOperand = Register | number;
-export type DstOperand = Register;
-
-export type UnaryOperation = (dst: number) => number;
-export type BinaryOperation = (dst: number, src: number) => number;
-
-export interface Operation {
-  src?: number;
-  dst: number;
+export type Result<NumericOperands extends NumericUnaryOperands> = {
+  operands: NumericOperands;
   result: number;
 }
 
-export interface Operands {
-  dstOperand: DstOperand;
-  srcOperand?: SrcOperand;
+export default interface Instruction<NumericOperands extends NumericUnaryOperands> {
+  name: string;
+  opcode: number;
+  description: string;
+  operate (operands: NumericOperands): Result<NumericOperands>;
 }
 
-export interface Instruction {
-  description: string;
-  opecode: string;
-  execute: UnaryOperation | BinaryOperation;
-  test (operands: Operands): Operation;
-  perform (operands: Operands): Operation; // TODO
+export enum Names {
+  mov = 'mov',
+  inc = 'inc',
+  dec = 'dec',
+  add = 'add',
+  sub = 'sub',
+  mul = 'mul',
+  imul = 'imul',
+  div = 'div',
+  idiv = 'idiv',
+  not = 'not',
+  and = 'and',
+  or = 'or',
+  xor = 'xor',
+  shr = 'shr',
+  shl = 'shl'
 }

@@ -1,18 +1,15 @@
 import processor from '../cpu-components/processor';
 import Mask from './Mask';
 import { eventEmitterSingleton as eventEmitter } from './EventEmitter';
-import {
-  Register as IRegister,
-  RegisterSize as Size
-} from '../types/register';
-import { SrcOperand } from '../types/instruction';
+import IRegister,{ Size } from '../types/register';
+import { SrcOperand } from '../types/operation';
 
 export default class Register implements IRegister {
   private value: number = 0;
-  public size: Size = 16;
+  public readonly size: Size = 16;
   public description: string = '';
 
-  constructor(public name: string) { } // TODO: size is public?
+  constructor(public name: string, subRegisters?: { high: Register, low: Register }) { } // TODO: size is public?
 
   updateValueDirectly (val: number) { // TODO
     this.value = Mask.asLow16Bit(val);
@@ -42,77 +39,63 @@ export default class Register implements IRegister {
     return this.decimal.toString(2);
   }
 
-  mov (src: SrcOperand): IRegister {
+  mov (src: SrcOperand) {
     return processor.mov(this, src);
   }
 
-  inc (): IRegister {
+  inc () {
     return processor.inc(this);
   }
 
-  dec (): IRegister {
+  dec () {
     return processor.dec(this);
   }
 
-  add (src: SrcOperand): IRegister {
+  add (src: SrcOperand) {
     return processor.add(this, src);
   }
 
-  sub (src: SrcOperand): IRegister {
+  sub (src: SrcOperand) {
     return processor.sub(this, src);
   }
 
-  mul (): Register {
-    const operation = processor.instructions['mul'].perform({ dstOperand: this }); // TODO
-    eventEmitter.emit('arithmetic.mul', operation);
-    return this;
+  mul () {
+    return processor.mul(this);
   }
 
-  imul (): Register {
-    const operation = processor.instructions['imul'].perform({ dstOperand: this }); // TODO
-    eventEmitter.emit('arithmetic.imul', operation);
-    return this;
+  imul () {
+    return processor.imul(this);
   }
 
-  div (): Register {
-    const operation = processor.instructions['div'].perform({ dstOperand: this }); // TODO
-    eventEmitter.emit('arithmetic.div', operation);
-    return this;
+  div () {
+    return processor.div(this);
   }
 
-  idiv (): Register {
-    const operation = processor.instructions['idiv'].perform({ dstOperand: this }); // TODO
-    eventEmitter.emit('arithmetic.idiv', operation);
-    return this;
+  idiv () {
+    return processor.idiv(this);
   }
 
-  not (): IRegister {
+  not () {
     return processor.not(this);
   }
 
-  and (src: SrcOperand): IRegister {
+  and (src: SrcOperand) {
     return processor.and(this, src);
   }
 
-  or (src: SrcOperand): IRegister {
+  or (src: SrcOperand) {
     return processor.or(this, src);
   }
 
-  xor (src: SrcOperand): IRegister {
+  xor (src: SrcOperand) {
     return processor.xor(this, src);
   }
 
-  shr (amount: number): Register { // TODO
-    const operation = processor.instructions['shr'].perform({ dstOperand: this, srcOperand: amount });
-    eventEmitter.emit('logic.shr', operation);
-    return this;
+  shr (amount: number) { // TODO
+    return processor.shr(this, amount);
   }
 
-  shl (amount: number): Register { // TODO
-    const operation = processor.instructions['shl'].perform({ dstOperand: this, srcOperand: amount });
-    eventEmitter.emit('logic.shl', operation);
-    return this;
+  shl (amount: number) { // TODO
+    return processor.shl(this, amount);
   }
 }
-
-// TODO

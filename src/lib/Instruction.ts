@@ -1,44 +1,23 @@
-import Register from './Register';
-import { Operands } from '../types/instruction';
-import { Operation } from '../types/instruction';
-import { UnaryOperation } from '../types/instruction';
-import { BinaryOperation } from '../types/instruction';
+import IInstruction, {
+  Result,
+  NumericUnaryOperands
+} from '../types/instruction';
 
-export default class Instruction {
+export default class Instruction<T extends NumericUnaryOperands> implements IInstruction<T> {
   public description: string = '';
 
   constructor(
-    public opcode: string,
-    public execute: UnaryOperation | BinaryOperation
+    public name: string,
+    public opcode: number,
+    protected operation: (operands: T) => number
   ) { }
 
-  private getOperation (operands: Operands, operationFunction: (dst: number) => number): Operation;
-  private getOperation (operands: Operands, operationFunction: (dst: number, src: number) => number): Operation;
+  operate (operands: T): Result<T> {
+    const result = this.operation(operands);
 
-  private getOperation (operands: Operands, operationFunction: Function): Operation {
-    const dst = operands.dstOperand.decimal;
-
-    let src;
-    if (typeof operands.srcOperand === 'number') {
-      src = operands.srcOperand;
-    } else if (operands.srcOperand instanceof Register) {
-      src = operands.srcOperand.decimal;
+    return {
+      operands,
+      result
     }
-
-    const result: number = operationFunction(dst, src);
-
-    return { src, dst, result };
-  }
-
-  test (operands: Operands): Operation {
-    return this.getOperation(operands, this.execute);
-  }
-
-  perform ({ dstOperand, srcOperand }: Operands): Operation {
-    const operation = this.getOperation({ dstOperand, srcOperand }, this.execute);
-    dstOperand.decimal = operation.result;
-    return operation;
   }
 }
-
-// TODO: Handle only numeric operands

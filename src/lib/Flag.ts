@@ -1,19 +1,24 @@
-export default class Flag {
+import IFlag from "../types/flag";
+
+export default class Flag implements IFlag {
   public description: string = '';
 
   constructor(public name: string, public value: boolean) { }
 
-  get binaryValue (): number {
-    return +this.value;
+  protected set (value: boolean) {
+    this.value = value;
+    return this;
+  }
+
+  toggle () {
+    return this.set(!this.value);
   }
 
   turnOn () {
-    this.value = true;
-    return this;
+    return this.set(true);
   }
 
   turnOff () {
-    this.value = false;
-    return this;
+    return this.set(false);
   }
 }

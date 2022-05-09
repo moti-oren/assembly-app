@@ -1,9 +1,12 @@
 import EventEmitter from './EventEmitter';
-import { Register } from '../types/register';
-import { Registers } from '../types/processor';
-import { Flags } from '../types/processor';
-import { Instructions } from '../types/processor';
-import { Instruction, Operands, SrcOperand } from '../types/instruction';
+import Instruction, { NumericUnaryOperands, NumericBinaryOperands } from '../types/instruction';
+import { DstOperand, SrcOperand } from '../types/operation';
+import {
+  Registers,
+  Flags,
+  Instructions,
+  Operands
+} from '../types/processor';
 
 export default class Processor {
   private eventEmitter = new EventEmitter();
@@ -19,77 +22,71 @@ export default class Processor {
     public instructions: Instructions
   ) { }
 
-  private perform (instruction: Instruction, operands: Operands, eventName: string) {
-    const operation = instruction.perform(operands);
-    this.eventEmitter.emit(eventName, operation);
-    return operands.dstOperand;
+  private perform<T extends NumericUnaryOperands> (instruction: Instruction<T>, operands: Operands<T extends NumericBinaryOperands ? 'dst' | 'src' : 'dst'>, eventName: string) {
+
   }
 
-  mov (dst: Register, src: SrcOperand) {
-    return this.perform(this.instructions.mov, { dstOperand: dst, srcOperand: src }, 'mov');
+  mov (dst: DstOperand, src: SrcOperand) {
+    return this.perform(this.instructions.mov, { dst, src }, 'mov');
   }
 
-  inc (dst: Register) {
-    return this.perform(this.instructions.inc, { dstOperand: dst }, this.events.arithmetic);
+  inc (dst: DstOperand) {
+    return this.perform(this.instructions.inc, { dst }, this.events.arithmetic);
   }
 
-  dec (dst: Register) {
-    return this.perform(this.instructions.dec, { dstOperand: dst }, this.events.arithmetic);
+  dec (dst: DstOperand) {
+    return this.perform(this.instructions.dec, { dst }, this.events.arithmetic);
   }
 
-  add (dst: Register, src: SrcOperand) {
-    return this.perform(this.instructions.add, { dstOperand: dst, srcOperand: src }, this.events.arithmetic);
+  add (dst: DstOperand, src: SrcOperand) {
+    return this.perform(this.instructions.add, { dst, src }, this.events.arithmetic);
   }
 
-  sub (dst: Register, src: SrcOperand) {
-    return this.perform(this.instructions.sub, { dstOperand: dst, srcOperand: src }, this.events.arithmetic);
+  sub (dst: DstOperand, src: SrcOperand) {
+    return this.perform(this.instructions.sub, { dst, src }, this.events.arithmetic);
   }
 
   mul (src: SrcOperand) { // TODO
-    const operation = this.instructions.mul.perform({ dstOperand: this.registers.eax, srcOperand: src });
-    this.eventEmitter.emit('arithmetic.mul', operation);
-    return src;
+    const dst = this.registers.ax;
+    return this.perform(this.instructions.mul, { dst, src }, this.events.arithmetic);
   }
 
   imul (src: SrcOperand) { // TODO
-    const operation = this.instructions.imul.perform({ dstOperand: this.registers.eax, srcOperand: src });
-    this.eventEmitter.emit('arithmetic.imul', operation);
-    return src;
+    const dst = this.registers.ax;
+    return this.perform(this.instructions.imul, { dst, src }, this.events.arithmetic);
   }
 
   div (src: SrcOperand) { // TODO
-    const operation = this.instructions.div.perform({ dstOperand: this.registers.eax, srcOperand: src });
-    this.eventEmitter.emit('arithmetic.div', operation);
-    return src;
+    const dst = this.registers.ax;
+    return this.perform(this.instructions.div, { dst, src }, this.events.arithmetic);
   }
 
   idiv (src: SrcOperand) { // TODO
-    const operation = this.instructions.idiv.perform({ dstOperand: this.registers.eax, srcOperand: src });
-    this.eventEmitter.emit('arithmetic.idiv', operation);
-    return src;
+    const dst = this.registers.ax;
+    return this.perform(this.instructions.idiv, { dst, src }, this.events.arithmetic);
   }
 
-  not (dst: Register) {
-    return this.perform(this.instructions.not, { dstOperand: dst }, this.events.logic);
+  not (dst: DstOperand) {
+    return this.perform(this.instructions.not, { dst }, this.events.logic);
   }
 
-  and (dst: Register, src: SrcOperand) {
-    return this.perform(this.instructions.and, { dstOperand: dst, srcOperand: src }, this.events.logic);
+  and (dst: DstOperand, src: SrcOperand) {
+    return this.perform(this.instructions.and, { dst, src }, this.events.logic);
   }
 
-  or (dst: Register, src: SrcOperand) {
-    return this.perform(this.instructions.or, { dstOperand: dst, srcOperand: src }, this.events.logic);
+  or (dst: DstOperand, src: SrcOperand) {
+    return this.perform(this.instructions.or, { dst, src }, this.events.logic);
   }
 
-  xor (dst: Register, src: SrcOperand) {
-    return this.perform(this.instructions.xor, { dstOperand: dst, srcOperand: src }, this.events.logic);
+  xor (dst: DstOperand, src: SrcOperand) {
+    return this.perform(this.instructions.xor, { dst, src }, this.events.logic);
   }
 
-  shl () {
-    // TODO
+  shl (dst: DstOperand) {
+    // TODO: srcOperand can be only cl or const
   }
 
-  shr () {
+  shr (dst: DstOperand) {
     // TODO
   }
 }

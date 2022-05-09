@@ -1,3 +1,20 @@
-export interface Flag { }
+export default interface Flag {
+  description: string;
+  name: string;
+  value: boolean;
+  toggle (): Flag;
+  turnOn (): Flag;
+  turnOff (): Flag;
+}
 
-// TODO
+export enum Names {
+  carry = 'carry',
+  zero = 'zero',
+  sign = 'sign',
+  parity = 'parity',
+  auxiliaryCarry = 'auxiliaryCarry',
+  overflow = 'overflow',
+  direction = 'direction',
+  interrupt = 'interrupt',
+  trace = 'trace'
+}
