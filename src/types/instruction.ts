@@ -1,16 +1,33 @@
-export type NumericUnaryOperands = { dst: number };
-export type NumericBinaryOperands = { src: number } & NumericUnaryOperands;
-
-export type Result<NumericOperands extends NumericUnaryOperands> = {
-  operands: NumericOperands;
-  result: number;
-}
-
-export default interface Instruction<NumericOperands extends NumericUnaryOperands> {
+export default interface Instruction {
   name: string;
   opcode: number;
   description: string;
-  operate (operands: NumericOperands): Result<NumericOperands>;
+}
+
+export type UnaryOperands = {
+  dst: number;
+}
+
+export type BinaryOperands = {
+  src: number;
+} & UnaryOperands;
+
+export type UnaryResult = {
+  operands: UnaryOperands;
+  result: number;
+}
+
+export type BinaryResult = {
+  operands: BinaryOperands;
+  result: number;
+}
+
+export interface UnaryInstruction extends Instruction {
+  operate: (operands: UnaryOperands) => UnaryResult;
+}
+
+export interface BinaryInstruction extends Instruction {
+  operate: (operands: BinaryOperands) => BinaryResult;
 }
 
 export enum Names {

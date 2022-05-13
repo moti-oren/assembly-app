@@ -1,7 +1,6 @@
 import { Names as FlagsNames } from './flag';
 import { Names as InstructionsNames } from './instruction';
 import Register, { Names as RegisterNames } from './register';
-import { Operands as IOperands } from './operation';
 
 import registers from '../cpu-components/registers';
 import flags from '../cpu-components/flags';
@@ -25,10 +24,6 @@ export type Instructions = {
 
 type Operations = {
   [I in keyof typeof InstructionsNames]: UnaryOperation | BinaryOperation | ShiftOperation;
-}
-
-export type Operands<T extends 'dst' | 'src'> = {
-  [P in T]: IOperands[P];
 }
 
 export default interface Processor extends Operations {

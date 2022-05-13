@@ -1,11 +1,20 @@
 import EventEmitter from './EventEmitter';
-import Instruction, { NumericUnaryOperands, NumericBinaryOperands } from '../types/instruction';
-import { DstOperand, SrcOperand } from '../types/operation';
+import { UnaryInstruction } from './Instruction';
+import Register from '../types/register';
+import {
+  UnaryOperands,
+  BinaryOperands,
+  DstOperand,
+  SrcOperand
+} from '../types/operation';
+import {
+  UnaryInstruction as IUnaryInstruction,
+  BinaryInstruction as IBinaryInstruction
+} from '../types/instruction';
 import {
   Registers,
   Flags,
-  Instructions,
-  Operands
+  Instructions
 } from '../types/processor';
 
 export default class Processor {
@@ -22,8 +31,29 @@ export default class Processor {
     public instructions: Instructions
   ) { }
 
-  private perform<T extends NumericUnaryOperands> (instruction: Instruction<T>, operands: Operands<T extends NumericBinaryOperands ? 'dst' | 'src' : 'dst'>, eventName: string) {
+  private perform (instruction: IUnaryInstruction, operands: UnaryOperands, event: string): Register;
+  private perform (instruction: IBinaryInstruction, operands: BinaryOperands, event: string): Register;
+  private perform (instruction: IUnaryInstruction | IBinaryInstruction, operands: UnaryOperands | BinaryOperands, event: string): Register {
+    if (instruction instanceof UnaryInstruction) {
+      const result = instruction.operate({ dst: operands.dst.decimal });
+      this.eventEmitter.emit(event, result);
+      return operands.dst;
+    }
 
+    if ('src' in operands) {
+      const result = instruction.operate({ dst: operands.dst.decimal, src: this.getValue(operands.src) });
+      this.eventEmitter.emit(event, result);
+      return operands.dst;
+    }
+
+    return operands.dst;
+  }
+
+  private getValue (src: SrcOperand) {
+    if (typeof src === 'number') {
+      return src;
+    }
+    return src.decimal;
   }
 
   mov (dst: DstOperand, src: SrcOperand) {
@@ -46,22 +76,22 @@ export default class Processor {
     return this.perform(this.instructions.sub, { dst, src }, this.events.arithmetic);
   }
 
-  mul (src: SrcOperand) { // TODO
-    const dst = this.registers.ax;
+  mul (src: SrcOperand) {
+    const dst = this.registers.ax; // TODO: handle by size of src
     return this.perform(this.instructions.mul, { dst, src }, this.events.arithmetic);
   }
 
-  imul (src: SrcOperand) { // TODO
+  imul (src: SrcOperand) {
     const dst = this.registers.ax;
     return this.perform(this.instructions.imul, { dst, src }, this.events.arithmetic);
   }
 
-  div (src: SrcOperand) { // TODO
+  div (src: SrcOperand) {
     const dst = this.registers.ax;
     return this.perform(this.instructions.div, { dst, src }, this.events.arithmetic);
   }
 
-  idiv (src: SrcOperand) { // TODO
+  idiv (src: SrcOperand) {
     const dst = this.registers.ax;
     return this.perform(this.instructions.idiv, { dst, src }, this.events.arithmetic);
   }
@@ -87,6 +117,6 @@ export default class Processor {
   }
 
   shr (dst: DstOperand) {
-    // TODO
+
   }
 }

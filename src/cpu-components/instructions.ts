@@ -1,62 +1,62 @@
-import Instruction from "../lib/Instruction";
+import { UnaryInstruction, BinaryInstruction } from "../lib/Instruction";
 
-export const mov = new Instruction('mov', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const mov = new BinaryInstruction('mov', 0, ({ dst, src }: { dst: number, src: number }) => {
   return src;
 });
 
-export const inc = new Instruction('inc', 0, ({ dst }: { dst: number }) => {
+export const inc = new UnaryInstruction('inc', 0, ({ dst }: { dst: number }) => {
   return dst + 1;
 });
 
-export const dec = new Instruction('dec', 0, ({ dst }: { dst: number }) => {
+export const dec = new UnaryInstruction('dec', 0, ({ dst }: { dst: number }) => {
   return dst - 1;
 });
 
-export const add = new Instruction('add', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const add = new BinaryInstruction('add', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst + src;
 });
 
-export const sub = new Instruction('sub', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const sub = new BinaryInstruction('sub', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst - src;
 });
 
-export const mul = new Instruction('mul', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const mul = new BinaryInstruction('mul', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst * src;
 });
 
-export const imul = new Instruction('imul', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const imul = new BinaryInstruction('imul', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst * src; // TODO: Unsigned multiplication
 });
 
-export const div = new Instruction('div', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const div = new BinaryInstruction('div', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst / src;
 });
 
-export const idiv = new Instruction('idiv', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const idiv = new BinaryInstruction('idiv', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst / src; // TODO: Unsigned division
 });
 
-export const not = new Instruction('not', 0, ({ dst }: { dst: number }) => {
+export const not = new UnaryInstruction('not', 0, ({ dst }: { dst: number }) => {
   return ~dst;
 });
 
-export const and = new Instruction('and', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const and = new BinaryInstruction('and', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst & src;
 });
 
-export const or = new Instruction('or', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const or = new BinaryInstruction('or', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst | src;
 });
 
-export const xor = new Instruction('xor', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const xor = new BinaryInstruction('xor', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst ^ src;
 });
 
-export const shr = new Instruction('shr', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const shr = new BinaryInstruction('shr', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst >> src;
 });
 
-export const shl = new Instruction('shl', 0, ({ dst, src }: { dst: number, src: number }) => {
+export const shl = new BinaryInstruction('shl', 0, ({ dst, src }: { dst: number, src: number }) => {
   return dst << src;
 });
 
