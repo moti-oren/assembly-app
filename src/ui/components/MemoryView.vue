@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useElementSize, useMediaQuery } from '@vueuse/core';
 import { Layers } from '@lucide/vue';
 import { formatHex, parseNumber } from '@/core/numbers';
 import type { SegmentRegister } from '@/core/registers';
 import { physicalAddress, type CpuState } from '@/core/state';
 import { HEAT_STEPS } from '@/ui/useCpu';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -26,12 +27,26 @@ const props = defineProps<{
   tick: number;
 }>();
 
-const ROWS = 8;
+const COMPACT_ROWS = 8;
 const COLUMNS = 16;
 const SEGMENTS: SegmentRegister[] = ['ds', 'es', 'ss', 'cs'];
 
 const segment = ref<SegmentRegister>('ds');
 const offsetText = ref('0000');
+
+const table = ref<HTMLElement | null>(null);
+const { height: tableHeight } = useElementSize(table);
+// Below the two-column layout the page scrolls, and the table's height follows its own rows.
+const fillsHeight = useMediaQuery('(min-width: 64rem)');
+
+/** On a wide screen the table takes whatever height is left, so it shows the rows that fit. */
+const rowCount = computed(() => {
+  if (!fillsHeight.value || tableHeight.value === 0) return COMPACT_ROWS;
+  const HEADER = 24;
+  const ROW = 20;
+  const PADDING = 14;
+  return Math.min(32, Math.max(2, Math.floor((tableHeight.value - HEADER - PADDING) / ROW)));
+});
 
 const startOffset = computed(() => {
   // The offset box is always read as hex, with or without a 0x prefix or h suffix.
@@ -45,7 +60,7 @@ const rows = computed(() => {
   const segmentValue = props.state.registers[segment.value];
   const memory = props.state.memory;
 
-  return Array.from({ length: ROWS }, (_, row) => {
+  return Array.from({ length: rowCount.value }, (_, row) => {
     const offset = (startOffset.value + row * COLUMNS) & 0xffff;
     const bytes = Array.from({ length: COLUMNS }, (_, column) => {
       const address = physicalAddress(segmentValue, offset + column);
@@ -66,7 +81,7 @@ function warmth(address: number): string | undefined {
 function showStackTop(): void {
   segment.value = 'ss';
   const rowOfSp = props.state.registers.sp & 0xfff0;
-  offsetText.value = formatHex(rowOfSp - (ROWS - 1) * COLUMNS, 16);
+  offsetText.value = formatHex(rowOfSp - (rowCount.value - 1) * COLUMNS, 16);
 }
 
 function ascii(value: number): string {
@@ -75,15 +90,10 @@ function ascii(value: number): string {
 </script>
 
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle>Memory</CardTitle>
-      <CardDescription
-        >{{ ROWS * COLUMNS }} bytes from {{ segment.toUpperCase() }}:offset</CardDescription
-      >
-    </CardHeader>
-    <CardContent class="flex flex-col gap-3">
+  <Card size="sm">
+    <CardContent class="flex flex-col gap-3 lg:min-h-0 lg:flex-1">
       <div class="flex flex-wrap items-center gap-2">
+        <CardTitle class="mr-1">Memory</CardTitle>
         <Select v-model="segment">
           <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
             <SelectValue />
@@ -114,7 +124,10 @@ function ascii(value: number): string {
         </Button>
       </div>
 
-      <div class="overflow-x-auto rounded-lg border bg-muted/30 px-2 py-1.5">
+      <div
+        ref="table"
+        class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5 lg:min-h-0 lg:flex-1"
+      >
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground/80">

@@ -60,6 +60,16 @@ const operands = ref<Operand[]>([]);
 const pendingMemory = ref<Size | null>(null);
 const filter = ref('');
 const input = ref<HTMLInputElement | null>(null);
+const card = ref<{ $el: HTMLElement } | null>(null);
+/** True while focus is inside the builder: the choices fold away when it is not in use. */
+const active = ref(false);
+
+function onFocusOut(): void {
+  // Focus moves between the input and the choices; only leaving the card counts.
+  setTimeout(() => {
+    active.value = card.value?.$el.contains(document.activeElement) ?? false;
+  });
+}
 /** The option under the pointer or keyboard focus; its hint is previewed below the input. */
 const hovered = ref<Option | null>(null);
 
@@ -340,12 +350,18 @@ function onBackspace(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <Card>
+  <!-- The floor keeps a few choices on show however short the window is. -->
+  <Card
+    ref="card"
+    :class="active && moreToChoose ? 'lg:min-h-80' : ''"
+    @focusin="active = true"
+    @focusout="onFocusOut"
+  >
     <CardHeader>
       <CardTitle>Instruction</CardTitle>
     </CardHeader>
 
-    <CardContent class="flex flex-col gap-3">
+    <CardContent class="flex flex-col gap-3 lg:min-h-0">
       <!-- The instruction so far, word by word, followed by the filter input. -->
       <div
         data-loc="builder"
@@ -408,7 +424,10 @@ function onBackspace(event: KeyboardEvent): void {
         <AlertDescription class="text-destructive/90">{{ error }}</AlertDescription>
       </Alert>
 
-      <div v-if="moreToChoose" class="-mx-1 h-72 overflow-y-auto px-1">
+      <div
+        v-if="moreToChoose && active"
+        class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-none lg:min-h-24"
+      >
         <div v-for="[group, options] in groups" :key="group" class="mb-3 last:mb-0">
           <h3 class="mb-1.5 text-xs text-muted-foreground">{{ group }}</h3>
           <div class="flex flex-wrap gap-1.5">
@@ -440,7 +459,7 @@ function onBackspace(event: KeyboardEvent): void {
         </div>
         <p v-if="groups.length === 0" class="text-sm text-muted-foreground">{{ typingHint }}</p>
       </div>
-      <div v-else class="grid h-72 place-items-center text-center text-sm text-muted-foreground">
+      <div v-else-if="!moreToChoose" class="text-sm text-muted-foreground">
         <p>
           Complete. Run it now, or add it to the program at line
           <span class="font-mono text-foreground">{{ formatLabel(insertLine) }}</span>.

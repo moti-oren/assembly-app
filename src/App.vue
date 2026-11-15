@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { formatInstruction } from '@/core/instructions';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppHeader from '@/ui/components/AppHeader.vue';
+import ChangeStrip from '@/ui/components/ChangeStrip.vue';
 import CpuDiagram from '@/ui/components/CpuDiagram.vue';
 import CommandPalette, { type PaletteCommand } from '@/ui/components/CommandPalette.vue';
 import FlagsPanel from '@/ui/components/FlagsPanel.vue';
@@ -12,6 +13,7 @@ import LastOperation from '@/ui/components/LastOperation.vue';
 import MemoryView from '@/ui/components/MemoryView.vue';
 import ProgramPanel from '@/ui/components/ProgramPanel.vue';
 import RegistersPanel from '@/ui/components/RegistersPanel.vue';
+import TransportBar from '@/ui/components/TransportBar.vue';
 import { EXAMPLE_PROGRAMS } from '@/core/program';
 import { RUN_SPEEDS, useCpu, type RunSpeed } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
@@ -45,6 +47,8 @@ watch(
 );
 
 const paletteOpen = ref(false);
+/** The full list of executed instructions; the timeline itself is always in the bar. */
+const historyShown = ref(false);
 
 const commands = computed<PaletteCommand[]>(() => [
   {
@@ -64,6 +68,13 @@ const commands = computed<PaletteCommand[]>(() => [
   },
   { group: 'History', label: 'Undo', disabled: history.value.length === 0, run: cpu.undoLast },
   { group: 'History', label: 'Redo', disabled: future.value.length === 0, run: cpu.redo },
+  {
+    group: 'History',
+    label: historyShown.value ? 'Hide the history list' : 'Show the history list',
+    run: () => {
+      historyShown.value = !historyShown.value;
+    }
+  },
   { group: 'History', label: 'Reset the CPU', run: cpu.reset },
   ...(Object.keys(RUN_SPEEDS) as RunSpeed[]).map((name) => ({
     group: 'Run speed',
@@ -102,71 +113,98 @@ const commands = computed<PaletteCommand[]>(() => [
 
 <template>
   <TooltipProvider :delay-duration="250">
-    <div class="app-surface min-h-svh bg-muted/40 dark:bg-background">
+    <!-- On a wide screen the app fills the window and never scrolls as a whole. -->
+    <div
+      class="app-surface flex min-h-svh flex-col bg-muted/40 lg:h-svh lg:overflow-hidden dark:bg-background"
+    >
       <AppHeader
         @reset="cpu.reset"
         @load-example="cpu.loadExample"
         @commands="paletteOpen = true"
       />
       <CommandPalette v-model:open="paletteOpen" :commands="commands" />
+      <ChangeStrip v-if="lastRecord" class="lg:hidden" :state="state" :record="lastRecord" />
 
       <!-- Left: what you write. Right: what the CPU holds. -->
       <main
-        class="mx-auto grid max-w-7xl gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:p-6"
+        class="mx-auto grid w-full max-w-7xl flex-1 gap-4 p-4 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:grid-rows-[minmax(0,1fr)] lg:px-6"
       >
-        <div class="flex min-w-0 flex-col gap-4">
+        <div class="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:p-px">
           <InstructionBuilder
+            class="lg:min-h-0 lg:shrink"
             :run="cpu.run"
             :add="cpu.addToProgram"
             :error="error"
             :program-lines="programLines"
             :insert-line="insertAt ?? program.length"
           />
-          <ProgramPanel
-            v-model:insert-at="insertAt"
-            v-model:speed="speed"
-            :program="program"
-            :ip="state.registers.ip"
-            :last-line="lastRecord?.line ?? null"
-            :finished="finished"
-            :running="running"
-            @step="cpu.stepProgram"
-            @run="cpu.runProgram"
-            @pause="cpu.pause"
-            @clear="cpu.clearProgram"
-            @remove="cpu.removeProgramLine"
-          />
-          <HistoryLog
-            :history="history"
-            :future="future"
-            @undo="cpu.undoLast"
-            @redo="cpu.redo"
-            @seek="cpu.seek"
-          />
+          <!-- The history list shares the program's space instead of squeezing the builder. -->
+          <div class="flex flex-col gap-4 sm:flex-row lg:min-h-44 lg:flex-1">
+            <ProgramPanel
+              v-model:insert-at="insertAt"
+              class="min-w-0 flex-1"
+              :program="program"
+              :ip="state.registers.ip"
+              :last-line="lastRecord?.line ?? null"
+              :finished="finished"
+              @clear="cpu.clearProgram"
+              @remove="cpu.removeProgramLine"
+            />
+            <HistoryLog
+              v-if="historyShown"
+              class="min-w-0 flex-1"
+              :history="history"
+              :future="future"
+              @seek="cpu.seek"
+            />
+          </div>
         </div>
-        <div class="flex min-w-0 flex-col gap-4">
+        <div class="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:p-px">
           <CpuDiagram
             v-if="cpuView === 'diagram'"
+            class="shrink-0"
             :state="state"
             :record="lastRecord"
             :tick="history.length"
           />
           <template v-else>
             <RegistersPanel
+              class="shrink-0"
               :state="state"
               :previous="lastRecord?.before.registers ?? null"
               :tick="history.length"
             />
-            <LastOperation :state="state" :record="lastRecord" />
+            <LastOperation class="shrink-0" :state="state" :record="lastRecord" />
             <FlagsPanel
+              class="shrink-0"
               :state="state"
               :previous="lastRecord?.before.flags ?? null"
               :tick="history.length"
             />
           </template>
-          <MemoryView :state="state" :heat="memoryHeat" :tick="history.length" />
+          <MemoryView
+            class="lg:min-h-36 lg:flex-1"
+            :state="state"
+            :heat="memoryHeat"
+            :tick="history.length"
+          />
         </div>
       </main>
+
+      <TransportBar
+        v-model:speed="speed"
+        v-model:history-shown="historyShown"
+        :finished="finished"
+        :running="running"
+        :executed="history.length"
+        :undone="future.length"
+        @step="cpu.stepProgram"
+        @run="cpu.runProgram"
+        @pause="cpu.pause"
+        @undo="cpu.undoLast"
+        @redo="cpu.redo"
+        @seek="cpu.seek"
+      />
     </div>
   </TooltipProvider>
 </template>
