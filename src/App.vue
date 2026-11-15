@@ -19,7 +19,7 @@ const programLines = computed(() => program.value.map(formatInstruction));
 
 <template>
   <TooltipProvider :delay-duration="250">
-    <div class="min-h-svh bg-muted/40 dark:bg-background">
+    <div class="app-surface min-h-svh bg-muted/40 dark:bg-background">
       <AppHeader @reset="cpu.reset" @load-example="cpu.loadExample" />
 
       <!-- Left: what you write. Right: what the CPU holds. -->

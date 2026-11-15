@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 @import 'tailwindcss';
 @import 'tw-animate-css';
@@ -6,8 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
   --color-changed: var(--changed);
   --color-changed-foreground: var(--changed-foreground);
   --color-pointer: var(--pointer);
@@ -58,6 +58,10 @@
   /* The two semantic accents: what just changed, and where execution is. */
   --changed: oklch(0.94 0.09 92);
   --changed-foreground: oklch(0.42 0.09 70);
+  /* The brief peak of the flash a value gives off as it changes. */
+  --changed-glow: oklch(0.86 0.16 90);
+  /* How long a value takes to travel between two places. Keep in sync with useDataFlow.ts. */
+  --flight: 420ms;
   --pointer: oklch(0.55 0.18 255);
   --pointer-foreground: oklch(0.985 0 0);
   --background: oklch(1 0 0);
@@ -93,42 +97,46 @@
   --sidebar-ring: oklch(0.705 0.015 286.067);
 }
 
+/* The purple-grey ceramic and gold lid of an early Intel C8086 package. */
 .dark {
-  --changed: oklch(0.42 0.08 80);
-  --changed-foreground: oklch(0.95 0.06 95);
-  --pointer: oklch(0.7 0.14 250);
+  color-scheme: dark;
+  scrollbar-color: oklch(0.95 0.03 300 / 22%) transparent;
+  --changed: oklch(0.36 0.07 80);
+  --changed-foreground: oklch(0.9 0.12 90);
+  --changed-glow: oklch(0.84 0.16 85);
+  --pointer: oklch(0.76 0.12 235);
   --pointer-foreground: oklch(0.18 0.02 260);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.16 0.02 305);
+  --foreground: oklch(0.95 0.012 90);
+  --card: oklch(0.2 0.024 305);
+  --card-foreground: oklch(0.95 0.012 90);
+  --popover: oklch(0.23 0.026 305);
+  --popover-foreground: oklch(0.95 0.012 90);
+  --primary: oklch(0.93 0.012 90);
+  --primary-foreground: oklch(0.2 0.024 305);
+  --secondary: oklch(0.27 0.03 305);
+  --secondary-foreground: oklch(0.95 0.012 90);
+  --muted: oklch(0.27 0.03 305);
+  --muted-foreground: oklch(0.72 0.03 300);
+  --accent: oklch(0.27 0.03 305);
+  --accent-foreground: oklch(0.95 0.012 90);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
+  --border: oklch(0.95 0.03 300 / 11%);
+  --input: oklch(0.95 0.03 300 / 16%);
+  --ring: oklch(0.6 0.05 300);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.2 0.024 305);
+  --sidebar-foreground: oklch(0.95 0.012 90);
   --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --sidebar-primary-foreground: oklch(0.95 0.012 90);
+  --sidebar-accent: oklch(0.27 0.03 305);
+  --sidebar-accent-foreground: oklch(0.95 0.012 90);
+  --sidebar-border: oklch(0.95 0.03 300 / 11%);
+  --sidebar-ring: oklch(0.6 0.05 300);
 }
 
 @layer base {
@@ -140,10 +148,22 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: 'cv11', 'ss01';
   }
   .font-mono {
     font-variant-ligatures: none;
     font-feature-settings: 'zero';
+  }
+}
+
+/* In the components layer so Tailwind utilities on the same element still win. */
+@layer components {
+  /* A faint pin grid behind the panels. */
+  .app-surface {
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklch, var(--foreground) 10%, transparent) 1px,
+      transparent 1.5px
+    );
+    background-size: 22px 22px;
   }
 }

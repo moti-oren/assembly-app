@@ -15,8 +15,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 
 defineEmits<{ reset: []; loadExample: [index: number] }>();
 
-/** Follows the system theme until the user picks one; the choice is remembered. */
-const isDark = useDark();
+/** Dark until the user picks a theme; the choice is remembered. */
+const isDark = useDark({ initialValue: 'dark' });
 const toggleDark = useToggle(isDark);
 </script>
 
