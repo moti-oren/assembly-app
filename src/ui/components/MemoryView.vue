@@ -4,6 +4,7 @@ import { Layers } from '@lucide/vue';
 import { formatHex, parseNumber } from '@/core/numbers';
 import type { SegmentRegister } from '@/core/registers';
 import { physicalAddress, type CpuState } from '@/core/state';
+import { HEAT_STEPS } from '@/ui/useCpu';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,8 +20,8 @@ import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
   state: CpuState;
-  /** Physical addresses written by the last instruction. */
-  highlight: Set<number>;
+  /** Recently written physical addresses, mapped to how many instructions ago (0 = the last). */
+  heat: Map<number, number>;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -53,6 +54,14 @@ const rows = computed(() => {
     return { offset, bytes };
   });
 });
+
+/** A write cools down over the next few instructions instead of vanishing at once. */
+function warmth(address: number): string | undefined {
+  const age = props.heat.get(address);
+  if (!age) return undefined;
+  const strength = Math.round((1 - age / HEAT_STEPS) * 70);
+  return `color-mix(in oklch, var(--changed) ${strength}%, transparent)`;
+}
 
 function showStackTop(): void {
   segment.value = 'ss';
@@ -134,11 +143,12 @@ function ascii(value: number): string {
                 :title="`Physical ${byte.address.toString(16).toUpperCase().padStart(5, '0')}h = ${byte.value}`"
               >
                 <ChangeMark
-                  :on="highlight.has(byte.address)"
+                  :on="heat.get(byte.address) === 0"
                   :tick="tick"
                   :data-loc="`mem:${byte.address}`"
+                  :style="{ backgroundColor: warmth(byte.address) }"
                   :class="
-                    highlight.has(byte.address)
+                    heat.get(byte.address) === 0
                       ? 'font-semibold'
                       : byte.value === 0
                         ? 'text-muted-foreground/50'

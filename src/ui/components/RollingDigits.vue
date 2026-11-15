@@ -8,6 +8,8 @@ const props = withDefaults(
     effect?: 'roll' | 'flip';
     /** Same length as `text`: a '1' marks the character at that position as changed. */
     marks?: string;
+    /** Shows 0s fainter than 1s, like unlit and lit lamps. */
+    dimZeros?: boolean;
   }>(),
   { effect: 'roll', marks: '' }
 );
@@ -47,7 +49,7 @@ function transitionName(place: number): string {
       v-for="cell in cells"
       :key="cell.place"
       class="digit"
-      :class="{ 'digit-marked': cell.marked }"
+      :class="{ 'digit-marked': cell.marked, 'digit-off': dimZeros && cell.char === '0' }"
       ><Transition :name="transitionName(cell.place)"
         ><span :key="cell.char" class="digit-glyph">{{ cell.char }}</span></Transition
       ></span

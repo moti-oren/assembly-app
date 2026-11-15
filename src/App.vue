@@ -6,6 +6,7 @@ import AppHeader from '@/ui/components/AppHeader.vue';
 import FlagsPanel from '@/ui/components/FlagsPanel.vue';
 import HistoryLog from '@/ui/components/HistoryLog.vue';
 import InstructionBuilder from '@/ui/components/InstructionBuilder.vue';
+import LastOperation from '@/ui/components/LastOperation.vue';
 import MemoryView from '@/ui/components/MemoryView.vue';
 import ProgramPanel from '@/ui/components/ProgramPanel.vue';
 import RegistersPanel from '@/ui/components/RegistersPanel.vue';
@@ -20,7 +21,8 @@ const {
   program,
   insertAt,
   lastRecord,
-  lastMemoryWrites,
+  future,
+  memoryHeat,
   finished,
   speed,
   running
@@ -62,7 +64,13 @@ const programLines = computed(() => program.value.map(formatInstruction));
             @clear="cpu.clearProgram"
             @remove="cpu.removeProgramLine"
           />
-          <HistoryLog :history="history" @undo="cpu.undoLast" />
+          <HistoryLog
+            :history="history"
+            :future="future"
+            @undo="cpu.undoLast"
+            @redo="cpu.redo"
+            @seek="cpu.seek"
+          />
         </div>
         <div class="flex min-w-0 flex-col gap-4">
           <RegistersPanel
@@ -70,12 +78,13 @@ const programLines = computed(() => program.value.map(formatInstruction));
             :previous="lastRecord?.before.registers ?? null"
             :tick="history.length"
           />
+          <LastOperation :state="state" :record="lastRecord" />
           <FlagsPanel
             :state="state"
             :previous="lastRecord?.before.flags ?? null"
             :tick="history.length"
           />
-          <MemoryView :state="state" :highlight="lastMemoryWrites" :tick="history.length" />
+          <MemoryView :state="state" :heat="memoryHeat" :tick="history.length" />
         </div>
       </main>
     </div>

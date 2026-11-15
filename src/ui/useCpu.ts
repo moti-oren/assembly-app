@@ -11,11 +11,21 @@ import {
   runToEnd,
   step
 } from '@/core/program';
+import type { WordRegister } from '@/core/registers';
 import { createCpuState, type CpuState } from '@/core/state';
 
 /** Delay between two program lines while running; `instant` runs to the end in one go. */
 export const RUN_SPEEDS = { slow: 1100, normal: 600, fast: 150, instant: 0 } as const;
 export type RunSpeed = keyof typeof RUN_SPEEDS;
+
+/** How many instructions back a memory write still shows as warm. */
+export const HEAT_STEPS = 6;
+
+/** An undone instruction, with the CPU as it left it, so it can be redone without re-running. */
+interface Undone {
+  record: ExecutionRecord;
+  after: { registers: Record<WordRegister, number>; flags: number };
+}
 
 /**
  * Wraps the framework-free CPU core in Vue reactivity. The core mutates `state` through the
@@ -24,6 +34,8 @@ export type RunSpeed = keyof typeof RUN_SPEEDS;
 export function useCpu() {
   const state = reactive(createCpuState()) as CpuState;
   const history = shallowRef<ExecutionRecord[]>([]);
+  /** Undone instructions, the most recently undone last. */
+  const undone = shallowRef<Undone[]>([]);
   const error = ref<string | null>(null);
   const program = shallowRef<Instruction[]>([]);
   /** Line that new program lines are inserted before; null means "append at the end". */
@@ -35,16 +47,27 @@ export function useCpu() {
 
   const lastRecord = computed(() => history.value.at(-1) ?? null);
 
-  /** Physical addresses written by the last instruction, for highlighting. */
-  const lastMemoryWrites = computed(
-    () => new Set(lastRecord.value?.memoryWrites.map((write) => write.address))
-  );
+  /** The undone instructions in the order they would run again. */
+  const future = computed(() => undone.value.map((entry) => entry.record).reverse());
+
+  /** Recently written physical addresses, mapped to how many instructions ago (0 = the last). */
+  const memoryHeat = computed(() => {
+    const heat = new Map<number, number>();
+    const recent = history.value.slice(-HEAT_STEPS);
+    recent.forEach((entry, i) => {
+      for (const write of entry.memoryWrites) {
+        heat.set(write.address, recent.length - 1 - i);
+      }
+    });
+    return heat;
+  });
 
   const finished = computed(() => isFinished(state, program.value));
 
   function record(records: ExecutionRecord[]): void {
     if (records.length > 0) {
       history.value = [...history.value, ...records];
+      undone.value = [];
     }
   }
 
@@ -100,6 +123,7 @@ export function useCpu() {
 
   function addToProgram(instruction: Instruction): void {
     const index = insertAt.value ?? program.value.length;
+    undone.value = [];
     program.value = insertLine(program.value, index, instruction);
     state.registers.ip = ipAfterInsert(state.registers.ip, index);
     if (insertAt.value !== null) {
@@ -108,6 +132,7 @@ export function useCpu() {
   }
 
   function removeProgramLine(index: number): void {
+    undone.value = [];
     program.value = removeLine(program.value, index);
     state.registers.ip = ipAfterRemove(state.registers.ip, index);
     if (insertAt.value !== null && insertAt.value > index) {
@@ -117,6 +142,7 @@ export function useCpu() {
 
   function clearProgram(): void {
     pause();
+    undone.value = [];
     program.value = [];
     insertAt.value = null;
     state.registers.ip = 0;
@@ -128,13 +154,40 @@ export function useCpu() {
     insertAt.value = null;
   }
 
-  function undoLast(): void {
+  /** Moves through time: undoes or redoes until exactly `position` instructions have run. */
+  function seek(position: number): void {
     pause();
-    const last = lastRecord.value;
-    if (!last) return;
-    undo(state, last);
-    history.value = history.value.slice(0, -1);
+    const past = [...history.value];
+    const ahead = [...undone.value];
+    while (past.length > position) {
+      const entry = past.pop()!;
+      const after = { registers: { ...state.registers }, flags: state.flags };
+      undo(state, entry);
+      ahead.push({ record: entry, after });
+    }
+    while (past.length < position && ahead.length > 0) {
+      const { record: entry, after } = ahead.pop()!;
+      Object.assign(state.registers, after.registers);
+      state.flags = after.flags;
+      for (const write of entry.memoryWrites) {
+        state.memory[write.address] = write.after;
+      }
+      if (entry.memoryWrites.length > 0) {
+        state.memoryVersion++;
+      }
+      past.push(entry);
+    }
+    history.value = past;
+    undone.value = ahead;
     error.value = null;
+  }
+
+  function undoLast(): void {
+    seek(history.value.length - 1);
+  }
+
+  function redo(): void {
+    seek(history.value.length + 1);
   }
 
   /** Resets registers, flags and memory. The program is kept, and IP goes back to L0. */
@@ -142,6 +195,7 @@ export function useCpu() {
     pause();
     Object.assign(state, createCpuState());
     history.value = [];
+    undone.value = [];
     error.value = null;
   }
 
@@ -154,7 +208,8 @@ export function useCpu() {
     program,
     insertAt,
     lastRecord,
-    lastMemoryWrites,
+    future,
+    memoryHeat,
     finished,
     speed,
     running,
@@ -167,6 +222,8 @@ export function useCpu() {
     clearProgram,
     loadExample,
     undoLast,
+    redo,
+    seek,
     reset
   };
 }

@@ -220,6 +220,9 @@
   .digit-glyph {
     display: inline-block;
   }
+  .digit-off {
+    opacity: 0.4;
+  }
   .roll-up-enter-active,
   .roll-up-leave-active,
   .roll-down-enter-active,

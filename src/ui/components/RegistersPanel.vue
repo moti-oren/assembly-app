@@ -123,9 +123,10 @@ function changedBits(name: WordRegister): number {
             <TableCell class="py-1 text-right text-muted-foreground tabular-nums">
               <RollingDigits :text="String(toSigned(value(name), 16))" />
             </TableCell>
-            <TableCell class="hidden py-1 pl-6 text-xs text-muted-foreground sm:table-cell">
+            <TableCell class="hidden py-1 pl-6 text-xs sm:table-cell">
               <RollingDigits
                 effect="flip"
+                dim-zeros
                 :text="formatBinary(value(name), 16)"
                 :marks="formatBinary(changedBits(name), 16)"
               />
