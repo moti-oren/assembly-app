@@ -251,7 +251,10 @@
     background: var(--changed-glow);
     color: var(--changed-glow);
   }
-  /* A pulse running along the wire in the direction the value travelled. */
+  /*
+   * A pulse running along the wire in the direction the value travelled. It takes as long as
+   * a packet's flight, so it reaches the far end just as the value there changes.
+   */
   .wire-dot {
     position: absolute;
     top: -2px;
@@ -262,7 +265,7 @@
     background: currentColor;
     box-shadow: 0 0 8px 1px currentColor;
     opacity: 0;
-    animation: wire-travel 650ms ease-in-out;
+    animation: wire-travel var(--flight) ease-in-out;
   }
   .wire[data-reverse] .wire-dot {
     animation-direction: reverse;

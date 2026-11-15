@@ -8,7 +8,12 @@ import { REGISTER_DESCRIPTIONS, WORD_REGISTERS, type WordRegister } from '@/core
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { describeEquation, describeMemoryAccess, registersRead } from '@/ui/describe';
+import {
+  describeEquation,
+  describeMemoryAccess,
+  registersRead,
+  registersWritten
+} from '@/ui/describe';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -27,7 +32,11 @@ const GROUP_STARTS: readonly WordRegister[] = ['si', 'cs', 'ip'];
 
 const equation = computed(() => props.record && describeEquation(props.state, props.record));
 const memory = computed(() => props.record && describeMemoryAccess(props.state, props.record));
-const read = computed(() => (props.record ? registersRead(props.record) : new Set()));
+const read = computed(() => (props.record ? registersRead(props.record) : new Set<WordRegister>()));
+
+const written = computed(() =>
+  props.record ? registersWritten(props.record) : new Set<WordRegister>()
+);
 
 function value(name: WordRegister): number {
   return props.state.registers[name];
@@ -39,7 +48,7 @@ function changedBits(name: WordRegister): number {
 
 /** A written register wins over a read one: `add ax, cx` reads AX but what matters is the write. */
 function role(name: WordRegister): 'read' | 'write' | undefined {
-  if (changedBits(name) !== 0) return 'write';
+  if (changedBits(name) !== 0 || written.value.has(name)) return 'write';
   return read.value.has(name) ? 'read' : undefined;
 }
 
@@ -57,7 +66,7 @@ function flagChanged(flag: FlagName): boolean {
 </script>
 
 <template>
-  <Card>
+  <Card size="sm">
     <CardHeader>
       <CardTitle>CPU</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
@@ -80,8 +89,8 @@ function flagChanged(flag: FlagName): boolean {
           <div
             v-for="name in WORD_REGISTERS"
             :key="name"
-            class="flex h-[26px] items-center gap-2.5"
-            :class="{ 'mt-2': GROUP_STARTS.includes(name) }"
+            class="flex h-5 items-center gap-2.5"
+            :class="{ 'mt-1.5': GROUP_STARTS.includes(name) }"
           >
             <Tooltip>
               <TooltipTrigger as-child>
@@ -169,7 +178,8 @@ function flagChanged(flag: FlagName): boolean {
                   <span v-if="equation && !equation.discarded" :key="tick" class="wire-dot" />
                 </span>
               </div>
-              <div class="min-w-0 flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
+              <!-- A fixed height, sized for the longest sum, so nothing below moves as the text changes. -->
+              <div class="h-36 min-w-0 flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
                 <div class="flex items-baseline justify-between gap-3">
                   <span class="text-sm font-medium">ALU</span>
                   <span class="truncate font-mono text-xs text-muted-foreground">{{

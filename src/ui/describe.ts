@@ -30,6 +30,9 @@ const OPERATORS: Partial<Record<Mnemonic, string>> = {
 /** Instructions that overwrite their first operand without reading it. */
 const OVERWRITES_FIRST_OPERAND = new Set<Mnemonic>(['mov', 'pop']);
 
+/** Instructions that only read their first operand. */
+const KEEPS_FIRST_OPERAND = new Set<Mnemonic>(['cmp', 'test', 'push']);
+
 /** The CPU with its registers as they were when `record` ran; memory operands resolve there. */
 function before(state: CpuState, record: ExecutionRecord): CpuState {
   return { ...state, registers: record.before.registers } as CpuState;
@@ -147,4 +150,21 @@ export function registersRead(record: ExecutionRecord): Set<WordRegister> {
     }
   });
   return read;
+}
+
+/**
+ * The registers an instruction names as a destination. They count as written even when the
+ * value happens to stay the same, e.g. `xor ax, ax` on an AX that is already 0.
+ */
+export function registersWritten(record: ExecutionRecord): Set<WordRegister> {
+  const written = new Set<WordRegister>();
+  const { mnemonic, operands } = record.instruction;
+  const add = (operand: Operand | undefined): void => {
+    if (operand?.type !== 'reg') return;
+    const { name } = operand;
+    written.add(isByteRegister(name) ? BYTE_REGISTER_LOCATION[name].parent : name);
+  };
+  if (!KEEPS_FIRST_OPERAND.has(mnemonic)) add(operands[0]);
+  if (mnemonic === 'xchg') add(operands[1]);
+  return written;
 }
