@@ -35,3 +35,56 @@ npm run lint
 - Memory operands are `byte`/`word` `[bx]`, `[si]`, `[di]`, `[bp]` or `[offset]`. `[bp]` uses SS
   and everything else uses DS.
 - Shift counts are `1` or `CL`, as on the 8086.
+
+---
+
+<div dir="rtl">
+
+# assembly-app (עברית)
+
+מגרש משחקים אינטראקטיבי ל-8086: בונים הוראה מילה אחר מילה, מריצים אותה, וצופים בשינויים
+ברגיסטרים, בדגלים ובזיכרון.
+
+## פקודות
+
+</div>
+
+```sh
+npm install
+npm run dev        # start the app
+npm test           # unit tests for the CPU core
+npm run typecheck  # vue-tsc
+npm run lint
+```
+
+<div dir="rtl">
+
+- `npm install`: התקנת התלויות.
+- `npm run dev`: הרצת האפליקציה.
+- `npm test`: בדיקות יחידה ללב ה-CPU.
+- `npm run typecheck`: בדיקת טיפוסים (vue-tsc).
+- `npm run lint`: בדיקת קוד עם ESLint.
+
+## מבנה הפרויקט
+
+- `src/core/`: ה-CPU, ללא תלות ב-Vue.
+  - `state.ts`: רגיסטרים (רגיסטרים של 8 סיביות הם תצוגות על AX..DX), FLAGS וזיכרון של 1MB.
+  - `instructions.ts`: סט ההוראות כנתונים. כל מנמוניק מפרט את צורות האופרנדים החוקיות שלו.
+  - `builder.ts`: בהינתן המילים שנבחרו עד כה, קובע אילו אופרנדים יכולים לבוא אחריהן.
+  - `execute.ts`: מריץ הוראה אחת, מחשב דגלים ומחזיר רשומת undo.
+  - `program.ts`: תוכנית (רשימת הוראות), צעידה והרצה שלה, ועריכות ששומרות על יעדי הקפיצה בשורות הנכונות.
+- `src/ui/`: רכיבי Vue ו-`useCpu`, שעוטף את הליבה בריאקטיביות של Vue.
+- `src/components/ui/`: רכיבי [shadcn-vue](https://www.shadcn-vue.com) (Tailwind CSS v4 + reka-ui).
+  הם נוצרים באמצעות `npx shadcn-vue add <name>`, ולכן אינם נבדקים ב-lint. משתני העיצוב, כולל שני
+  צבעי ההדגשה של האפליקציה (`--changed` ו-`--pointer`), נמצאים ב-`src/ui/styles.css`.
+
+## המודל
+
+- אפשר להריץ הוראה מיד (Enter) או להוסיף אותה לתוכנית (Shift+Enter).
+- הוראות אינן מקודדות לבתים, ולכן IP הוא האינדקס של שורת התוכנית הבאה (L0, L1, …), ויעדי
+  jump/call הם שורות. CALL דוחף את השורה הבאה למחסנית ו-RET שולף אותה.
+- אופרנדים של זיכרון הם `byte`/`word` מסוג `[bx]`, `[si]`, `[di]`, `[bp]` או `[offset]`.
+  `[bp]` משתמש ב-SS וכל האחרים משתמשים ב-DS.
+- ספירת הזזה היא `1` או `CL`, כמו ב-8086.
+
+</div>
