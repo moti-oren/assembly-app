@@ -5,11 +5,14 @@ import type { CpuState } from '@/core/state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
   state: CpuState;
   /** FLAGS before the last instruction, used to highlight what changed. */
   previous: number | null;
+  /** Number of instructions executed so far; replays the change flash. */
+  tick: number;
 }>();
 
 function isSet(flag: FlagName): boolean {
@@ -39,7 +42,7 @@ function changed(flag: FlagName): boolean {
           <TooltipTrigger as-child>
             <div
               tabindex="0"
-              class="flex cursor-help flex-col gap-0.5 rounded-md border px-2 py-1.5 xl:px-1.5 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              class="change-mark flex cursor-help flex-col gap-0.5 rounded-md border px-2 py-1.5 outline-none xl:px-1.5 focus-visible:ring-3 focus-visible:ring-ring/50"
               :class="[
                 changed(flag)
                   ? 'border-transparent bg-changed text-changed-foreground'
@@ -49,13 +52,14 @@ function changed(flag: FlagName): boolean {
               ]"
               :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}`"
             >
+              <span v-if="changed(flag)" :key="tick" class="change-flash" aria-hidden="true" />
               <div class="flex items-baseline justify-between font-mono">
                 <span class="text-sm font-semibold">{{ flag }}</span>
                 <span
                   class="text-sm"
                   :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground/70'"
-                  >{{ isSet(flag) ? 1 : 0 }}</span
-                >
+                  ><RollingDigits effect="flip" :text="isSet(flag) ? '1' : '0'"
+                /></span>
               </div>
               <span
                 class="truncate text-[11px] leading-tight tracking-tight"

@@ -348,6 +348,7 @@ function onBackspace(event: KeyboardEvent): void {
     <CardContent class="flex flex-col gap-3">
       <!-- The instruction so far, word by word, followed by the filter input. -->
       <div
+        data-loc="builder"
         class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-input bg-background px-2 py-1.5 font-mono text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30"
         @click="focusInput"
       >

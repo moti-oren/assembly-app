@@ -120,9 +120,9 @@ const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center ga
               "
               >{{ formatLabel(index) }}{{ targets.has(index) ? ':' : '' }}</span
             >
-            <span class="truncate" :class="{ 'font-semibold': lastLine === index }">{{
-              formatInstruction(instruction)
-            }}</span>
+            <span class="truncate" :class="{ 'font-semibold': lastLine === index }"
+              ><span :data-loc="`line:${index}`">{{ formatInstruction(instruction) }}</span></span
+            >
             <span
               class="flex opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100"
             >

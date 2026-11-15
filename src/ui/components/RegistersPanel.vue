@@ -12,11 +12,15 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import ChangeMark from './ChangeMark.vue';
+import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
   state: CpuState;
   /** Register values before the last instruction, used to highlight what changed. */
   previous: Record<WordRegister, number> | null;
+  /** Number of instructions executed so far; replays the change flash. */
+  tick: number;
 }>();
 
 const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
@@ -30,8 +34,6 @@ function value(name: WordRegister): number {
 function changedBits(name: WordRegister): number {
   return props.previous ? props.previous[name] ^ value(name) : 0;
 }
-
-const CHANGED = 'rounded-sm bg-changed text-changed-foreground';
 </script>
 
 <template>
@@ -82,34 +84,51 @@ const CHANGED = 'rounded-sm bg-changed text-changed-foreground';
               </Tooltip>
             </TableCell>
             <TableCell class="py-1">
-              <span v-if="SPLIT_REGISTERS.includes(name)" class="inline-flex gap-1">
-                <span
-                  class="px-0.5"
-                  :class="changedBits(name) & 0xff00 ? CHANGED : ''"
+              <span
+                v-if="SPLIT_REGISTERS.includes(name)"
+                class="inline-flex gap-1"
+                :data-loc="`reg:${name}`"
+              >
+                <ChangeMark
+                  :on="(changedBits(name) & 0xff00) !== 0"
+                  :tick="tick"
                   :title="`${name[0].toUpperCase()}H`"
-                  >{{ formatHex(value(name) >> 8, 8) }}</span
+                  :data-loc="`reg:${name[0]}h`"
                 >
-                <span
-                  class="px-0.5"
-                  :class="changedBits(name) & 0x00ff ? CHANGED : ''"
+                  <RollingDigits :text="formatHex(value(name) >> 8, 8)" />
+                </ChangeMark>
+                <ChangeMark
+                  :on="(changedBits(name) & 0x00ff) !== 0"
+                  :tick="tick"
                   :title="`${name[0].toUpperCase()}L`"
-                  >{{ formatHex(value(name), 8) }}</span
+                  :data-loc="`reg:${name[0]}l`"
                 >
+                  <RollingDigits :text="formatHex(value(name), 8)" />
+                </ChangeMark>
               </span>
-              <span v-else class="px-0.5" :class="changedBits(name) ? CHANGED : ''">{{
-                formatHex(value(name), 16)
-              }}</span>
+              <ChangeMark
+                v-else
+                :on="changedBits(name) !== 0"
+                :tick="tick"
+                :data-loc="`reg:${name}`"
+              >
+                <RollingDigits :text="formatHex(value(name), 16)" />
+              </ChangeMark>
             </TableCell>
             <TableCell class="py-1 text-right tabular-nums">
-              <span class="px-0.5" :class="changedBits(name) ? CHANGED : ''">{{
-                value(name)
-              }}</span>
+              <ChangeMark :on="changedBits(name) !== 0" :tick="tick">
+                <RollingDigits :text="String(value(name))" />
+              </ChangeMark>
             </TableCell>
             <TableCell class="py-1 text-right text-muted-foreground tabular-nums">
-              {{ toSigned(value(name), 16) }}
+              <RollingDigits :text="String(toSigned(value(name), 16))" />
             </TableCell>
             <TableCell class="hidden py-1 pl-6 text-xs text-muted-foreground sm:table-cell">
-              {{ formatBinary(value(name), 16) }}
+              <RollingDigits
+                effect="flip"
+                :text="formatBinary(value(name), 16)"
+                :marks="formatBinary(changedBits(name), 16)"
+              />
             </TableCell>
           </TableRow>
         </TableBody>

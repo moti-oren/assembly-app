@@ -10,9 +10,12 @@ import MemoryView from '@/ui/components/MemoryView.vue';
 import ProgramPanel from '@/ui/components/ProgramPanel.vue';
 import RegistersPanel from '@/ui/components/RegistersPanel.vue';
 import { useCpu } from '@/ui/useCpu';
+import { useDataFlow } from '@/ui/useDataFlow';
 
 const cpu = useCpu();
 const { state, history, error, program, insertAt, lastRecord, lastMemoryWrites, finished } = cpu;
+
+useDataFlow(state, history);
 
 const programLines = computed(() => program.value.map(formatInstruction));
 </script>
@@ -48,9 +51,17 @@ const programLines = computed(() => program.value.map(formatInstruction));
           <HistoryLog :history="history" @undo="cpu.undoLast" />
         </div>
         <div class="flex min-w-0 flex-col gap-4">
-          <RegistersPanel :state="state" :previous="lastRecord?.before.registers ?? null" />
-          <FlagsPanel :state="state" :previous="lastRecord?.before.flags ?? null" />
-          <MemoryView :state="state" :highlight="lastMemoryWrites" />
+          <RegistersPanel
+            :state="state"
+            :previous="lastRecord?.before.registers ?? null"
+            :tick="history.length"
+          />
+          <FlagsPanel
+            :state="state"
+            :previous="lastRecord?.before.flags ?? null"
+            :tick="history.length"
+          />
+          <MemoryView :state="state" :highlight="lastMemoryWrites" :tick="history.length" />
         </div>
       </main>
     </div>

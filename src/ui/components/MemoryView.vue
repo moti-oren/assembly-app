@@ -14,11 +14,15 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import ChangeMark from './ChangeMark.vue';
+import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
   state: CpuState;
   /** Physical addresses written by the last instruction. */
   highlight: Set<number>;
+  /** Number of instructions executed so far; replays the change flash. */
+  tick: number;
 }>();
 
 const ROWS = 8;
@@ -129,17 +133,20 @@ function ascii(value: number): string {
                 :class="{ 'pl-2.5': column === 8 }"
                 :title="`Physical ${byte.address.toString(16).toUpperCase().padStart(5, '0')}h = ${byte.value}`"
               >
-                <span
-                  class="rounded-sm px-0.5"
+                <ChangeMark
+                  :on="highlight.has(byte.address)"
+                  :tick="tick"
+                  :data-loc="`mem:${byte.address}`"
                   :class="
                     highlight.has(byte.address)
-                      ? 'bg-changed font-semibold text-changed-foreground'
+                      ? 'font-semibold'
                       : byte.value === 0
                         ? 'text-muted-foreground/50'
                         : ''
                   "
-                  >{{ formatHex(byte.value, 8) }}</span
                 >
+                  <RollingDigits :text="formatHex(byte.value, 8)" />
+                </ChangeMark>
               </td>
               <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
                 {{ row.bytes.map((byte) => ascii(byte.value)).join('') }}

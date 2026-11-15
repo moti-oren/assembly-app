@@ -166,4 +166,140 @@
     );
     background-size: 22px 22px;
   }
+
+  /* A value the last instruction changed: a resting tint, plus a flash each time it changes. */
+  .change-mark {
+    position: relative;
+    isolation: isolate;
+    display: inline-block;
+    border-radius: var(--radius-sm);
+    padding-inline: 0.125rem;
+    transition:
+      background-color 300ms,
+      color 300ms,
+      border-color 300ms;
+  }
+  .change-flash {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: var(--changed-glow);
+    animation: change-flash 1400ms ease-out;
+  }
+  @keyframes change-flash {
+    from {
+      opacity: 0.6;
+      box-shadow:
+        0 0 0 2px var(--changed-glow),
+        0 0 16px 3px var(--changed-glow);
+    }
+    to {
+      opacity: 0;
+      box-shadow:
+        0 0 0 0 var(--changed-glow),
+        0 0 0 0 var(--changed-glow);
+    }
+  }
+
+  /* One character of a number; see RollingDigits.vue. */
+  .digit {
+    position: relative;
+    display: inline-block;
+    height: 1lh;
+    overflow: hidden;
+    vertical-align: bottom;
+    white-space: pre;
+  }
+  .digit-marked {
+    color: var(--changed-foreground);
+    font-weight: 600;
+  }
+  .digit-glyph {
+    display: inline-block;
+  }
+  .roll-up-enter-active,
+  .roll-up-leave-active,
+  .roll-down-enter-active,
+  .roll-down-leave-active {
+    transition: transform 340ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .roll-up-leave-active,
+  .roll-down-leave-active,
+  .flip-leave-active {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .roll-up-enter-from,
+  .roll-down-leave-to {
+    transform: translateY(100%);
+  }
+  .roll-up-leave-to,
+  .roll-down-enter-from {
+    transform: translateY(-100%);
+  }
+  .flip-enter-active {
+    animation: bit-flip 420ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  /* The old bit stays put until the new one starts turning, then goes at once. */
+  .flip-leave-active {
+    transition: opacity 1ms;
+  }
+  .flip-leave-to {
+    opacity: 0;
+  }
+  @keyframes bit-flip {
+    from {
+      transform: rotateX(90deg);
+      color: var(--changed-glow);
+    }
+    60% {
+      transform: rotateX(-14deg);
+    }
+    to {
+      transform: rotateX(0);
+    }
+  }
+
+  /* While a value is in flight (useDataFlow.ts), its destination waits for it to land. */
+  :root[data-flight] :is(.change-mark, .digit-glyph) {
+    transition-delay: var(--flight);
+  }
+  :root[data-flight] :is(.change-flash, .digit-glyph) {
+    animation-delay: var(--flight);
+  }
+
+  .data-flow-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .data-packet {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: var(--radius-sm);
+    padding: 0.0625rem 0.3125rem;
+    background: var(--changed-glow);
+    color: oklch(0.25 0.05 70);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-feature-settings: 'zero';
+    box-shadow: 0 0 14px 1px var(--changed-glow);
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .change-flash,
+    .digit-glyph {
+      animation: none;
+      transition: none;
+    }
+  }
 }
