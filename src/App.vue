@@ -1,5 +1,58 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { formatInstruction } from '@/core/instructions';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import AppHeader from '@/ui/components/AppHeader.vue';
+import FlagsPanel from '@/ui/components/FlagsPanel.vue';
+import HistoryLog from '@/ui/components/HistoryLog.vue';
+import InstructionBuilder from '@/ui/components/InstructionBuilder.vue';
+import MemoryView from '@/ui/components/MemoryView.vue';
+import ProgramPanel from '@/ui/components/ProgramPanel.vue';
+import RegistersPanel from '@/ui/components/RegistersPanel.vue';
+import { useCpu } from '@/ui/useCpu';
+
+const cpu = useCpu();
+const { state, history, error, program, insertAt, lastRecord, lastMemoryWrites, finished } = cpu;
+
+const programLines = computed(() => program.value.map(formatInstruction));
+</script>
+
 <template>
-  <div class="app">
-    <router-view />
-  </div>
+  <TooltipProvider :delay-duration="250">
+    <div class="min-h-svh bg-muted/40 dark:bg-background">
+      <AppHeader @reset="cpu.reset" @load-example="cpu.loadExample" />
+
+      <!-- Left: what you write. Right: what the CPU holds. -->
+      <main
+        class="mx-auto grid max-w-7xl gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:p-6"
+      >
+        <div class="flex min-w-0 flex-col gap-4">
+          <InstructionBuilder
+            :run="cpu.run"
+            :add="cpu.addToProgram"
+            :error="error"
+            :program-lines="programLines"
+            :insert-line="insertAt ?? program.length"
+          />
+          <ProgramPanel
+            v-model:insert-at="insertAt"
+            :program="program"
+            :ip="state.registers.ip"
+            :last-line="lastRecord?.line ?? null"
+            :finished="finished"
+            @step="cpu.stepProgram"
+            @run="cpu.runProgram"
+            @clear="cpu.clearProgram"
+            @remove="cpu.removeProgramLine"
+          />
+          <HistoryLog :history="history" @undo="cpu.undoLast" />
+        </div>
+        <div class="flex min-w-0 flex-col gap-4">
+          <RegistersPanel :state="state" :previous="lastRecord?.before.registers ?? null" />
+          <FlagsPanel :state="state" :previous="lastRecord?.before.flags ?? null" />
+          <MemoryView :state="state" :highlight="lastMemoryWrites" />
+        </div>
+      </main>
+    </div>
+  </TooltipProvider>
 </template>
