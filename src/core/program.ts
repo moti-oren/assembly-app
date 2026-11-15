@@ -1,0 +1,151 @@
+import { CpuError, execute, type ExecutionRecord } from './execute';
+import type { Instruction, Mnemonic } from './instructions';
+import type { Operand } from './operands';
+import type { CpuState } from './state';
+
+/**
+ * A program is a list of instructions. Instructions are not encoded into bytes, so IP holds
+ * the index of the next line to run (L0, L1, ...), and jump targets are line indexes.
+ * IP = program.length means the program has finished.
+ */
+export type Program = readonly Instruction[];
+
+/** Stops runaway loops when running a whole program. */
+export const MAX_STEPS = 10_000;
+
+function mapTargets(instruction: Instruction, map: (target: number) => number): Instruction {
+  if (!instruction.operands.some((operand) => operand.type === 'label')) {
+    return instruction;
+  }
+  return {
+    ...instruction,
+    operands: instruction.operands.map(
+      (operand): Operand =>
+        operand.type === 'label' ? { type: 'label', target: map(operand.target) } : operand
+    )
+  };
+}
+
+/**
+ * Inserts `instruction` before line `index`. Labels pointing at `index` or later keep pointing
+ * at the same instructions (they shift down by one), so existing jumps stay correct. The new
+ * instruction's own labels refer to the program as it was before the insert, and shift the same way.
+ */
+export function insertLine(program: Program, index: number, instruction: Instruction): Instruction[] {
+  const shift = (target: number) => (target >= index ? target + 1 : target);
+  const shifted = program.map((line) => mapTargets(line, shift));
+  return [...shifted.slice(0, index), mapTargets(instruction, shift), ...shifted.slice(index)];
+}
+
+/** Removes line `index`. Jumps that pointed at it now point at the line that took its place. */
+export function removeLine(program: Program, index: number): Instruction[] {
+  return program
+    .filter((_, i) => i !== index)
+    .map((line) => mapTargets(line, (target) => (target > index ? target - 1 : target)));
+}
+
+/** Where IP should point after inserting a line, so the same instruction still runs next. */
+export function ipAfterInsert(ip: number, index: number): number {
+  return ip > index ? ip + 1 : ip;
+}
+
+export function ipAfterRemove(ip: number, index: number): number {
+  return ip > index ? ip - 1 : ip;
+}
+
+export function isFinished(state: CpuState, program: Program): boolean {
+  return state.registers.ip >= program.length;
+}
+
+/** Runs the line IP points at. */
+export function step(state: CpuState, program: Program): ExecutionRecord {
+  const line = state.registers.ip;
+  if (line >= program.length) {
+    throw new CpuError('End of program: there is no line at IP');
+  }
+  return execute(state, program[line], line);
+}
+
+/**
+ * Runs from IP to the end of the program. Returns the records of every executed line, even
+ * when it stops early because of an error (`error`) or because it hit MAX_STEPS.
+ */
+export function runToEnd(
+  state: CpuState,
+  program: Program,
+  maxSteps = MAX_STEPS
+): { records: ExecutionRecord[]; error: CpuError | null } {
+  const records: ExecutionRecord[] = [];
+  while (!isFinished(state, program)) {
+    if (records.length >= maxSteps) {
+      return {
+        records,
+        error: new CpuError(`Stopped after ${maxSteps} steps: is there an endless loop?`)
+      };
+    }
+    try {
+      records.push(step(state, program));
+    } catch (caught) {
+      if (caught instanceof CpuError) {
+        return { records, error: caught };
+      }
+      throw caught;
+    }
+  }
+  return { records, error: null };
+}
+
+const reg = (name: Extract<Operand, { type: 'reg' }>['name']): Operand => ({ type: 'reg', name });
+const imm = (value: number): Operand => ({ type: 'imm', value });
+const label = (target: number): Operand => ({ type: 'label', target });
+const line = (mnemonic: Mnemonic, ...operands: Operand[]): Instruction => ({ mnemonic, operands });
+
+export const EXAMPLE_PROGRAMS: { name: string; description: string; program: Program }[] = [
+  {
+    name: 'Sum 1..10',
+    description: 'LOOP counts CX down; AX ends up as 55',
+    program: [
+      line('mov', reg('cx'), imm(10)),
+      line('xor', reg('ax'), reg('ax')),
+      line('add', reg('ax'), reg('cx')),
+      line('loop', label(2))
+    ]
+  },
+  {
+    name: 'Max of AX, BX',
+    description: 'CMP + a signed conditional jump; DX ends up as the larger value',
+    program: [
+      line('mov', reg('ax'), imm(-5)),
+      line('mov', reg('bx'), imm(3)),
+      line('mov', reg('dx'), reg('ax')),
+      line('cmp', reg('ax'), reg('bx')),
+      line('jge', label(6)),
+      line('mov', reg('dx'), reg('bx')),
+      line('nop')
+    ]
+  },
+  {
+    name: 'Call a subroutine',
+    description: 'CALL pushes the return line, RET pops it back into IP',
+    program: [
+      line('mov', reg('ax'), imm(7)),
+      line('call', label(3)),
+      line('jmp', label(5)),
+      line('shl', reg('ax'), imm(1)),
+      line('ret'),
+      line('nop')
+    ]
+  },
+  {
+    name: 'Swap with the stack',
+    description: 'PUSH/POP in reverse order swaps AX and BX',
+    program: [
+      line('mov', reg('ax'), imm(0x1111)),
+      line('mov', reg('bx'), imm(0x2222)),
+      line('push', reg('ax')),
+      line('push', reg('bx')),
+      line('pop', reg('ax')),
+      line('pop', reg('bx'))
+    ]
+  }
+];
