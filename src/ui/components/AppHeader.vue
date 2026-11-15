@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Moon, RotateCcw, Sun } from '@lucide/vue';
-import { useDark, useToggle } from '@vueuse/core';
+import { BookOpen, Moon, RotateCcw, Search, Sun, Volume2, VolumeX } from '@lucide/vue';
 import { EXAMPLE_PROGRAMS } from '@/core/program';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,13 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePreferences } from '@/ui/usePreferences';
 
-defineEmits<{ reset: []; loadExample: [index: number] }>();
+defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
 
-/** Dark until the user picks a theme; the choice is remembered. */
-const isDark = useDark({ initialValue: 'dark' });
-const toggleDark = useToggle(isDark);
+const { isDark, soundOn, toggleTheme } = usePreferences();
 </script>
 
 <template>
@@ -37,6 +36,16 @@ const toggleDark = useToggle(isDark);
       </p>
 
       <div class="ml-auto flex items-center gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          class="mr-1 text-muted-foreground"
+          @click="$emit('commands')"
+        >
+          <Search />
+          <span class="hidden sm:inline">Commands</span>
+          <Kbd class="hidden sm:inline-flex">Ctrl K</Kbd>
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="sm">
@@ -76,8 +85,24 @@ const toggleDark = useToggle(isDark);
             <Button
               variant="ghost"
               size="icon-sm"
+              :aria-label="soundOn ? 'Turn sound off' : 'Turn sound on'"
+              :aria-pressed="soundOn"
+              @click="soundOn = !soundOn"
+            >
+              <Volume2 v-if="soundOn" />
+              <VolumeX v-else />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{{ soundOn ? 'Sound on' : 'Sound off' }}</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="icon-sm"
               :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
-              @click="toggleDark()"
+              @click="toggleTheme"
             >
               <Sun v-if="isDark" />
               <Moon v-else />
