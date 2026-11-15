@@ -1,4 +1,4 @@
-import { computed, reactive, ref, shallowRef } from 'vue';
+import { computed, onScopeDispose, reactive, ref, shallowRef } from 'vue';
 import { CpuError, execute, undo, type ExecutionRecord } from '@/core/execute';
 import type { Instruction } from '@/core/instructions';
 import {
@@ -13,6 +13,10 @@ import {
 } from '@/core/program';
 import { createCpuState, type CpuState } from '@/core/state';
 
+/** Delay between two program lines while running; `instant` runs to the end in one go. */
+export const RUN_SPEEDS = { slow: 1100, normal: 600, fast: 150, instant: 0 } as const;
+export type RunSpeed = keyof typeof RUN_SPEEDS;
+
 /**
  * Wraps the framework-free CPU core in Vue reactivity. The core mutates `state` through the
  * reactive proxy, so every panel re-renders by itself; nothing needs to emit events.
@@ -24,6 +28,10 @@ export function useCpu() {
   const program = shallowRef<Instruction[]>([]);
   /** Line that new program lines are inserted before; null means "append at the end". */
   const insertAt = ref<number | null>(null);
+  const speed = ref<RunSpeed>('normal');
+  /** True while the program is running line by line on a timer. */
+  const running = ref(false);
+  let runTimer: number | undefined;
 
   const lastRecord = computed(() => history.value.at(-1) ?? null);
 
@@ -60,13 +68,34 @@ export function useCpu() {
   }
 
   function stepProgram(): void {
+    pause();
     attempt(() => record([step(state, program.value)]));
   }
 
+  function pause(): void {
+    running.value = false;
+    window.clearTimeout(runTimer);
+  }
+
+  function runNextLine(): void {
+    const stepped = !finished.value && attempt(() => record([step(state, program.value)]));
+    if (!stepped || finished.value) {
+      pause();
+      return;
+    }
+    runTimer = window.setTimeout(runNextLine, RUN_SPEEDS[speed.value]);
+  }
+
   function runProgram(): void {
-    const result = runToEnd(state, program.value);
-    record(result.records);
-    error.value = result.error?.message ?? null;
+    pause();
+    if (speed.value === 'instant') {
+      const result = runToEnd(state, program.value);
+      record(result.records);
+      error.value = result.error?.message ?? null;
+      return;
+    }
+    running.value = true;
+    runNextLine();
   }
 
   function addToProgram(instruction: Instruction): void {
@@ -87,6 +116,7 @@ export function useCpu() {
   }
 
   function clearProgram(): void {
+    pause();
     program.value = [];
     insertAt.value = null;
     state.registers.ip = 0;
@@ -99,6 +129,7 @@ export function useCpu() {
   }
 
   function undoLast(): void {
+    pause();
     const last = lastRecord.value;
     if (!last) return;
     undo(state, last);
@@ -108,10 +139,13 @@ export function useCpu() {
 
   /** Resets registers, flags and memory. The program is kept, and IP goes back to L0. */
   function reset(): void {
+    pause();
     Object.assign(state, createCpuState());
     history.value = [];
     error.value = null;
   }
+
+  onScopeDispose(pause);
 
   return {
     state,
@@ -122,6 +156,9 @@ export function useCpu() {
     lastRecord,
     lastMemoryWrites,
     finished,
+    speed,
+    running,
+    pause,
     run,
     stepProgram,
     runProgram,

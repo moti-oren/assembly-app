@@ -8,6 +8,9 @@ import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core
 /** Keep in sync with --flight in styles.css: the panels wait this long before they update. */
 const FLIGHT_MS = 420;
 
+/** Executions closer together than this (a fast run) skip the flight: packets would pile up. */
+const MIN_GAP_MS = 500;
+
 /** Instructions whose second operand's value ends up in (or is combined into) the first. */
 const WRITES_FIRST_OPERAND = new Set<Mnemonic>([
   'mov',
@@ -45,6 +48,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let timer: number | undefined;
+  let lastExecution = -Infinity;
 
   function plan(record: ExecutionRecord): Flight[] {
     const { instruction, before, line, memoryWrites } = record;
@@ -134,7 +138,10 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       window.clearTimeout(timer);
       const record = history.value.at(-1);
       const single = record !== undefined && length === previous + 1;
-      if (single && !reducedMotion.matches && launch(plan(record))) {
+      const now = performance.now();
+      const unhurried = now - lastExecution >= MIN_GAP_MS;
+      lastExecution = now;
+      if (single && unhurried && !reducedMotion.matches && launch(plan(record))) {
         root.dataset.flight = '';
         timer = window.setTimeout(() => delete root.dataset.flight, 2000);
       } else {

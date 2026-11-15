@@ -13,7 +13,18 @@ import { useCpu } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
 
 const cpu = useCpu();
-const { state, history, error, program, insertAt, lastRecord, lastMemoryWrites, finished } = cpu;
+const {
+  state,
+  history,
+  error,
+  program,
+  insertAt,
+  lastRecord,
+  lastMemoryWrites,
+  finished,
+  speed,
+  running
+} = cpu;
 
 useDataFlow(state, history);
 
@@ -39,12 +50,15 @@ const programLines = computed(() => program.value.map(formatInstruction));
           />
           <ProgramPanel
             v-model:insert-at="insertAt"
+            v-model:speed="speed"
             :program="program"
             :ip="state.registers.ip"
             :last-line="lastRecord?.line ?? null"
             :finished="finished"
+            :running="running"
             @step="cpu.stepProgram"
             @run="cpu.runProgram"
+            @pause="cpu.pause"
             @clear="cpu.clearProgram"
             @remove="cpu.removeProgramLine"
           />

@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { ArrowUpToLine, ChevronRight, FastForward, StepForward, Trash2, X } from '@lucide/vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import {
+  ArrowUpToLine,
+  ChevronRight,
+  FastForward,
+  Pause,
+  StepForward,
+  Trash2,
+  X
+} from '@lucide/vue';
 import { formatInstruction, type Instruction } from '@/core/instructions';
 import { formatLabel } from '@/core/operands';
 import { Button } from '@/components/ui/button';
@@ -13,7 +21,15 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { RunSpeed } from '@/ui/useCpu';
 
 const props = defineProps<{
   program: Instruction[];
@@ -23,11 +39,16 @@ const props = defineProps<{
   /** The program line executed last, if the last instruction came from the program. */
   lastLine: number | null;
   finished: boolean;
+  /** True while the program is running line by line. */
+  running: boolean;
+  speed: RunSpeed;
 }>();
 
 const emit = defineEmits<{
   step: [];
   run: [];
+  pause: [];
+  'update:speed': [speed: RunSpeed];
   clear: [];
   remove: [index: number];
   'update:insertAt': [index: number | null];
@@ -44,6 +65,41 @@ const targets = computed(() => {
     }
   }
   return set;
+});
+
+const SPEED_LABELS: Record<RunSpeed, string> = {
+  slow: 'Slow',
+  normal: 'Normal',
+  fast: 'Fast',
+  instant: 'Instant'
+};
+
+const list = ref<HTMLElement | null>(null);
+/** Where the IP marker sits inside the list; it slides there instead of jumping. */
+const marker = ref<{ top: number; height: number } | null>(null);
+
+function placeMarker(): void {
+  const lines = list.value;
+  const row = lines?.querySelector<HTMLElement>(
+    `[data-row="${props.finished ? 'end' : props.ip}"]`
+  );
+  if (!lines || !row) {
+    marker.value = null;
+    return;
+  }
+  marker.value = { top: row.offsetTop, height: row.offsetHeight };
+
+  const bottom = row.offsetTop + row.offsetHeight;
+  if (row.offsetTop < lines.scrollTop) {
+    lines.scrollTo({ top: row.offsetTop - 4, behavior: 'smooth' });
+  } else if (bottom > lines.scrollTop + lines.clientHeight) {
+    lines.scrollTo({ top: bottom - lines.clientHeight + 4, behavior: 'smooth' });
+  }
+}
+
+onMounted(placeMarker);
+watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMarker, {
+  flush: 'post'
 });
 
 const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center gap-1 pr-1 pl-2';
@@ -73,7 +129,21 @@ const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center ga
           </TooltipTrigger>
           <TooltipContent>Clear the program</TooltipContent>
         </Tooltip>
-        <Button variant="outline" size="sm" :disabled="finished" @click="emit('run')">
+        <Select :model-value="speed" @update:model-value="emit('update:speed', $event as RunSpeed)">
+          <SelectTrigger size="sm" class="w-26" aria-label="Run speed">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="(label, value) in SPEED_LABELS" :key="value" :value="value">
+              {{ label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Button v-if="running" variant="outline" size="sm" @click="emit('pause')">
+          <Pause />
+          Pause
+        </Button>
+        <Button v-else variant="outline" size="sm" :disabled="finished" @click="emit('run')">
           <FastForward />
           Run
         </Button>
@@ -86,9 +156,18 @@ const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center ga
 
     <CardContent>
       <ol
-        class="max-h-80 overflow-y-auto rounded-lg border bg-muted/30 py-1 font-mono text-[13px]"
+        ref="list"
+        class="relative max-h-80 overflow-y-auto rounded-lg border bg-muted/30 py-1 font-mono text-[13px]"
         aria-label="Program lines"
       >
+        <li
+          v-if="marker"
+          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/10 pl-2 shadow-[inset_2px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out motion-reduce:transition-none"
+          :style="{ translate: `0 ${marker.top}px`, height: `${marker.height}px` }"
+          aria-hidden="true"
+        >
+          <ChevronRight class="size-4 text-pointer" />
+        </li>
         <template v-for="(instruction, index) in program" :key="index">
           <li v-if="insertionPoint === index && insertAt !== null" class="px-2">
             <button
@@ -103,16 +182,11 @@ const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center ga
             </button>
           </li>
           <li
-            :class="[
-              ROW,
-              ip === index
-                ? 'bg-pointer/10 shadow-[inset_2px_0_0_var(--pointer)]'
-                : 'hover:bg-muted/60'
-            ]"
+            :class="[ROW, ip === index ? '' : 'hover:bg-muted/60']"
+            :data-row="index"
             :aria-current="ip === index ? 'step' : undefined"
           >
-            <ChevronRight v-if="ip === index" class="size-4 text-pointer" aria-label="IP" />
-            <span v-else />
+            <span />
             <span
               class="text-xs"
               :class="
@@ -148,9 +222,8 @@ const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center ga
             </span>
           </li>
         </template>
-        <li :class="[ROW, finished ? 'bg-pointer/10 shadow-[inset_2px_0_0_var(--pointer)]' : '']">
-          <ChevronRight v-if="finished" class="size-4 text-pointer" aria-label="IP" />
-          <span v-else />
+        <li :class="ROW" data-row="end" :aria-current="finished ? 'step' : undefined">
+          <span />
           <span
             class="text-xs"
             :class="
