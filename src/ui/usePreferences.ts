@@ -6,6 +6,8 @@ export const usePreferences = createGlobalState(() => {
   /** Dark until the user picks a theme. */
   const isDark = useDark({ initialValue: 'dark' });
   const soundOn = useLocalStorage('8086-sound', false);
+  /** The CPU's state as one wired diagram, or as the separate register and flag tables. */
+  const cpuView = useLocalStorage<'diagram' | 'table'>('8086-cpu-view', 'diagram');
 
   function toggleTheme(): void {
     const flip = async (): Promise<void> => {
@@ -39,5 +41,5 @@ export const usePreferences = createGlobalState(() => {
     oscillator.stop(now + 0.07);
   }
 
-  return { isDark, soundOn, toggleTheme, tick };
+  return { isDark, soundOn, cpuView, toggleTheme, tick };
 });

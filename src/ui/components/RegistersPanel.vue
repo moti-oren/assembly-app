@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import ChangeMark from './ChangeMark.vue';
+import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
@@ -40,9 +41,12 @@ function changedBits(name: WordRegister): number {
   <Card>
     <CardHeader>
       <CardTitle>Registers</CardTitle>
-      <CardAction class="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
-        changed by the last instruction
+      <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
+        <span class="hidden items-center gap-1.5 sm:flex">
+          <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
+          changed by the last instruction
+        </span>
+        <CpuViewToggle />
       </CardAction>
     </CardHeader>
     <CardContent>

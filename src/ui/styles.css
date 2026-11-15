@@ -10,6 +10,7 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
   --color-changed: var(--changed);
   --color-changed-foreground: var(--changed-foreground);
+  --color-changed-glow: var(--changed-glow);
   --color-pointer: var(--pointer);
   --color-pointer-foreground: var(--pointer-foreground);
   --font-heading: var(--font-sans);
@@ -234,6 +235,49 @@
     }
   }
 
+  /* A connection in the CPU diagram; it lights up when the last instruction used it. */
+  .wire {
+    position: relative;
+    height: 2px;
+    border-radius: 1px;
+    background: color-mix(in oklch, var(--foreground) 15%, transparent);
+    transition: background-color 300ms;
+  }
+  .wire[data-role='read'] {
+    background: var(--pointer);
+    color: var(--pointer);
+  }
+  .wire[data-role='write'] {
+    background: var(--changed-glow);
+    color: var(--changed-glow);
+  }
+  /* A pulse running along the wire in the direction the value travelled. */
+  .wire-dot {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px 1px currentColor;
+    opacity: 0;
+    animation: wire-travel 650ms ease-in-out;
+  }
+  .wire[data-reverse] .wire-dot {
+    animation-direction: reverse;
+  }
+  @keyframes wire-travel {
+    from {
+      left: 0;
+      opacity: 1;
+    }
+    to {
+      left: calc(100% - 6px);
+      opacity: 1;
+    }
+  }
+
   /* One character of a number; see RollingDigits.vue. */
   .digit {
     position: relative;
@@ -330,6 +374,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .change-flash,
+    .wire-dot,
     .digit-glyph {
       animation: none;
       transition: none;

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { formatInstruction } from '@/core/instructions';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppHeader from '@/ui/components/AppHeader.vue';
+import CpuDiagram from '@/ui/components/CpuDiagram.vue';
 import CommandPalette, { type PaletteCommand } from '@/ui/components/CommandPalette.vue';
 import FlagsPanel from '@/ui/components/FlagsPanel.vue';
 import HistoryLog from '@/ui/components/HistoryLog.vue';
@@ -35,7 +36,7 @@ useDataFlow(state, history);
 
 const programLines = computed(() => program.value.map(formatInstruction));
 
-const { isDark, soundOn, toggleTheme, tick } = usePreferences();
+const { isDark, soundOn, cpuView, toggleTheme, tick } = usePreferences();
 
 // Forward in time ticks high, backward ticks low.
 watch(
@@ -81,6 +82,13 @@ const commands = computed<PaletteCommand[]>(() => [
     group: 'Preferences',
     label: isDark.value ? 'Switch to light theme' : 'Switch to dark theme',
     run: toggleTheme
+  },
+  {
+    group: 'Preferences',
+    label: cpuView.value === 'diagram' ? 'Show the CPU as tables' : 'Show the CPU as a diagram',
+    run: () => {
+      cpuView.value = cpuView.value === 'diagram' ? 'table' : 'diagram';
+    }
   },
   {
     group: 'Preferences',
@@ -137,17 +145,25 @@ const commands = computed<PaletteCommand[]>(() => [
           />
         </div>
         <div class="flex min-w-0 flex-col gap-4">
-          <RegistersPanel
+          <CpuDiagram
+            v-if="cpuView === 'diagram'"
             :state="state"
-            :previous="lastRecord?.before.registers ?? null"
+            :record="lastRecord"
             :tick="history.length"
           />
-          <LastOperation :state="state" :record="lastRecord" />
-          <FlagsPanel
-            :state="state"
-            :previous="lastRecord?.before.flags ?? null"
-            :tick="history.length"
-          />
+          <template v-else>
+            <RegistersPanel
+              :state="state"
+              :previous="lastRecord?.before.registers ?? null"
+              :tick="history.length"
+            />
+            <LastOperation :state="state" :record="lastRecord" />
+            <FlagsPanel
+              :state="state"
+              :previous="lastRecord?.before.flags ?? null"
+              :tick="history.length"
+            />
+          </template>
           <MemoryView :state="state" :heat="memoryHeat" :tick="history.length" />
         </div>
       </main>
