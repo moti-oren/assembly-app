@@ -7,6 +7,7 @@ import AppHeader from '@/ui/components/AppHeader.vue';
 import ChangeStrip from '@/ui/components/ChangeStrip.vue';
 import CpuCycle from '@/ui/components/CpuCycle.vue';
 import CpuDiagram from '@/ui/components/CpuDiagram.vue';
+import DevicesPanel from '@/ui/components/DevicesPanel.vue';
 import CommandPalette, { type PaletteCommand } from '@/ui/components/CommandPalette.vue';
 import FlagsPanel from '@/ui/components/FlagsPanel.vue';
 import HistoryLog from '@/ui/components/HistoryLog.vue';
@@ -69,6 +70,13 @@ watch(
 const paletteOpen = ref(false);
 /** The full list of executed instructions; the timeline itself is always in the bar. */
 const historyShown = ref(false);
+/** The LEDs, switches, digits and terminal. They open by themselves when a program uses a port. */
+const devicesShown = ref(false);
+const usesPort = (mnemonic: string): boolean => mnemonic === 'in' || mnemonic === 'out';
+watch([program, lastRecord], ([lines, record]) => {
+  const inProgram = lines.some((instruction) => usesPort(instruction.mnemonic));
+  if (inProgram || (record && usesPort(record.instruction.mnemonic))) devicesShown.value = true;
+});
 
 const commands = computed<PaletteCommand[]>(() => [
   {
@@ -102,6 +110,13 @@ const commands = computed<PaletteCommand[]>(() => [
     }
   },
   { group: 'History', label: 'Reset the CPU', run: cpu.reset },
+  {
+    group: 'Devices',
+    label: devicesShown.value ? 'Hide the I/O devices' : 'Show the I/O devices',
+    run: () => {
+      devicesShown.value = !devicesShown.value;
+    }
+  },
   ...(Object.keys(RUN_SPEEDS) as RunSpeed[]).map((name) => ({
     group: 'Run speed',
     label: name[0].toUpperCase() + name.slice(1),
@@ -184,6 +199,7 @@ const commands = computed<PaletteCommand[]>(() => [
               @seek="cpu.seek"
             />
           </div>
+          <DevicesPanel v-if="devicesShown" class="shrink-0" :state="state" @input="cpu.setInput" />
         </div>
         <div class="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:p-px">
           <CpuDiagram
@@ -228,6 +244,7 @@ const commands = computed<PaletteCommand[]>(() => [
       <TransportBar
         v-model:speed="speed"
         v-model:history-shown="historyShown"
+        v-model:devices-shown="devicesShown"
         :finished="finished"
         :running="running"
         :phase="pending?.phase ?? null"

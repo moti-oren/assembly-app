@@ -49,11 +49,13 @@ function describeDecode(decoded: Decoded): string {
   const reads = list([
     ...names(decoded.reads),
     decoded.memory.read && 'memory',
+    decoded.port === 'read' && 'an I/O port',
     decoded.readsFlags && 'the flags'
   ]);
   const writes = list([
     ...names(decoded.writes),
     decoded.memory.write && 'memory',
+    decoded.port === 'write' && 'an I/O port',
     decoded.writesFlags && 'the flags'
   ]);
   return [
@@ -73,6 +75,7 @@ function describeExecute(record: ExecutionRecord): string {
       (name) => name !== 'ip' && registers[name] !== record.before.registers[name]
     ).map((name) => name.toUpperCase()),
     record.memoryWrites.length > 0 && 'memory',
+    record.portWrites.length > 0 && 'an I/O port',
     flags !== record.before.flags && 'the flags'
   ]);
   const effect = changed ? `It changed ${changed}.` : 'It changed no register, flag or memory.';

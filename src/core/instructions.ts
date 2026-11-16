@@ -1,5 +1,11 @@
 import type { Size } from './numbers';
-import { formatOperand, matchesKind, type Operand, type OperandKind } from './operands';
+import {
+  formatOperand,
+  matchesKind,
+  operandSize,
+  type Operand,
+  type OperandKind
+} from './operands';
 
 /**
  * The instruction set as data. Every legal combination of operands is listed as a "form",
@@ -51,6 +57,21 @@ const SHIFT_FORMS: Form[] = [
   ['m16', 'cl']
 ];
 
+/** The port is an 8-bit number or DX; the data always goes through AL or AX. */
+const IN_FORMS: Form[] = [
+  ['al', 'imm8'],
+  ['al', 'dx'],
+  ['ax', 'imm8'],
+  ['ax', 'dx']
+];
+
+const OUT_FORMS: Form[] = [
+  ['imm8', 'al'],
+  ['imm8', 'ax'],
+  ['dx', 'al'],
+  ['dx', 'ax']
+];
+
 const NO_OPERANDS: Form[] = [[]];
 
 const LABEL_FORMS: Form[] = [['label']];
@@ -61,6 +82,7 @@ export type Category =
   | 'logic'
   | 'shift'
   | 'string'
+  | 'io'
   | 'control'
   | 'flags';
 
@@ -70,6 +92,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   logic: 'Logic',
   shift: 'Shift & rotate',
   string: 'String',
+  io: 'Input & output',
   control: 'Jumps & calls',
   flags: 'Flag control'
 };
@@ -125,6 +148,9 @@ export const INSTRUCTIONS = {
   scasw: { category: 'string', description: 'Set flags as for AX - the word at ES:DI, then step DI', forms: NO_OPERANDS, size: 16 },
   cmpsb: { category: 'string', description: 'Set flags as for the byte at DS:SI - the byte at ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 8 },
   cmpsw: { category: 'string', description: 'Set flags as for the word at DS:SI - the word at ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 16 },
+
+  in: { category: 'io', description: 'Read AL or AX from an I/O port', forms: IN_FORMS },
+  out: { category: 'io', description: 'Write AL or AX to an I/O port', forms: OUT_FORMS },
 
   jmp: { category: 'control', description: 'Always jump', forms: LABEL_FORMS },
   je: { category: 'control', description: 'Jump if equal (ZF = 1)', forms: LABEL_FORMS },
@@ -212,6 +238,18 @@ export function matchingForms(mnemonic: Mnemonic, operands: readonly Operand[]):
 
 export function isComplete(mnemonic: Mnemonic, operands: readonly Operand[]): boolean {
   return matchingForms(mnemonic, operands).some((form) => form.length === operands.length);
+}
+
+/**
+ * The operand size of an instruction: fixed by the mnemonic, or that of its first register or
+ * memory operand. Null when nothing has a size (jumps, flag control).
+ */
+export function instructionSize({ mnemonic, operands }: Instruction): Size | null {
+  const fixed = getSpec(mnemonic).size;
+  if (fixed) return fixed;
+  // In `out dx, al` DX is only the port number: the data is the second operand.
+  const sized = mnemonic === 'out' ? operands.slice(1) : operands;
+  return sized.map(operandSize).find((size) => size !== null) ?? null;
 }
 
 /** True when the operands form a legal instruction and the prefix, if any, fits the mnemonic. */

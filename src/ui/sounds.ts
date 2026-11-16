@@ -45,7 +45,7 @@ export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSoun
   }
   if (mnemonic === 'push') return 'push';
   if (mnemonic === 'pop') return 'pop';
-  if (record.memoryWrites.length > 0) return 'memory';
+  if (record.memoryWrites.length > 0 || record.portWrites.length > 0) return 'memory';
 
   const registers = Object.keys(before.registers) as WordRegister[];
   if (registers.some((name) => name !== 'ip' && before.registers[name] !== after.registers[name])) {

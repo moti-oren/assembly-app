@@ -12,7 +12,7 @@ import {
   step
 } from '@/core/program';
 import type { WordRegister } from '@/core/registers';
-import { createCpuState, type CpuState } from '@/core/state';
+import { createCpuState, redoPortWrite, setInputPort, type CpuState } from '@/core/state';
 
 /** Delay between two program lines while running; `instant` runs to the end in one go. */
 export const RUN_SPEEDS = { slow: 1100, normal: 600, fast: 150, instant: 0 } as const;
@@ -215,6 +215,7 @@ export function useCpu() {
       if (entry.memoryWrites.length > 0) {
         state.memoryVersion++;
       }
+      entry.portWrites.forEach((write) => redoPortWrite(state, write));
       past.push(entry);
     }
     history.value = past;
@@ -230,10 +231,20 @@ export function useCpu() {
     seek(history.value.length + 1);
   }
 
-  /** Resets registers, flags and memory. The program is kept, and IP goes back to L0. */
+  /** Flips a switch or otherwise changes what a device presents on an input port. */
+  function setInput(port: number, value: number): void {
+    setInputPort(state, port, value);
+  }
+
+  /**
+   * Resets registers, flags, memory and the output devices. The program is kept, IP goes back
+   * to L0, and the input devices stay as set: resetting a CPU does not flip its switches.
+   */
   function reset(): void {
     pause();
+    const inputs = state.io.in;
     Object.assign(state, createCpuState());
+    state.io.in = inputs;
     history.value = [];
     undone.value = [];
     error.value = null;
@@ -266,6 +277,7 @@ export function useCpu() {
     undoLast,
     redo,
     seek,
+    setInput,
     reset
   };
 }
