@@ -37,6 +37,8 @@ npm run lint
 - Memory operands are `byte`/`word` `[bx]`, `[si]`, `[di]`, `[bp]` or `[offset]`. `[bp]` uses SS
   and everything else uses DS.
 - Shift counts are `1` or `CL`, as on the 8086.
+- Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
+  instruction's own numbers (e.g. `7Fh + 01h` overflows as signed, so OF = 1).
 
 ---
 
@@ -90,5 +92,7 @@ npm run lint
 - אופרנדים של זיכרון הם `byte`/`word` מסוג `[bx]`, `[si]`, `[di]`, `[bp]` או `[offset]`.
   `[bp]` משתמש ב-SS וכל האחרים משתמשים ב-DS.
 - ספירת הזזה היא `1` או `CL`, כמו ב-8086.
+- מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
+  אותה הוראה (למשל `7Fh + 01h` גולש כמספר מסומן, ולכן OF = 1).
 
 </div>

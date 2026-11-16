@@ -1,16 +1,20 @@
 <script setup lang="ts">
+import type { ExecutionRecord } from '@/core/execute';
 import { FLAG_BITS, FLAG_INFO, FLAG_NAMES, type FlagName } from '@/core/flags';
 import { formatHex } from '@/core/numbers';
 import type { CpuState } from '@/core/state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
   state: CpuState;
   /** FLAGS before the last instruction, used to highlight what changed. */
   previous: number | null;
+  /** The last executed instruction: each flag's tooltip explains what it did to the flag. */
+  record: ExecutionRecord | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -68,7 +72,7 @@ function changed(flag: FlagName): boolean {
               >
             </div>
           </TooltipTrigger>
-          <TooltipContent>{{ FLAG_INFO[flag].description }}</TooltipContent>
+          <TooltipContent><FlagReason :flag="flag" :record="record" /></TooltipContent>
         </Tooltip>
       </div>
     </CardContent>

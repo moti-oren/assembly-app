@@ -196,6 +196,7 @@ const commands = computed<PaletteCommand[]>(() => [
               class="shrink-0"
               :state="state"
               :previous="lastRecord?.before.flags ?? null"
+              :record="lastRecord"
               :tick="history.length"
             />
           </template>
