@@ -27,8 +27,11 @@ const ALU_FORMS: Form[] = [
   ['m16', 'imm16']
 ];
 
+/** A label as a source is the number of that program line: how a handler's address is stored. */
 const MOV_FORMS: Form[] = [
   ...ALU_FORMS,
+  ['r16', 'label'],
+  ['m16', 'label'],
   ['sregw', 'r16'],
   ['sregw', 'm16'],
   ['r16', 'sreg'],
@@ -84,6 +87,7 @@ export type Category =
   | 'string'
   | 'io'
   | 'control'
+  | 'interrupt'
   | 'flags';
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -94,6 +98,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   string: 'String',
   io: 'Input & output',
   control: 'Jumps & calls',
+  interrupt: 'Interrupts',
   flags: 'Flag control'
 };
 
@@ -180,6 +185,12 @@ export const INSTRUCTIONS = {
   call: { category: 'control', description: 'Push IP (the next line), then jump', forms: LABEL_FORMS },
   ret: { category: 'control', description: 'Pop IP: return to the line after the CALL', forms: NO_OPERANDS },
 
+  int: { category: 'interrupt', description: 'Push FLAGS, CS and IP, then jump to the handler in vector n (at 0000:n×4)', forms: [['imm8']] },
+  into: { category: 'interrupt', description: 'Interrupt 4 if OF = 1, otherwise do nothing', forms: NO_OPERANDS },
+  iret: { category: 'interrupt', description: 'Pop IP, CS and FLAGS: return from an interrupt handler', forms: NO_OPERANDS },
+
+  pushf: { category: 'flags', description: 'Push FLAGS onto the stack', forms: NO_OPERANDS },
+  popf: { category: 'flags', description: 'Pop FLAGS off the stack', forms: NO_OPERANDS },
   clc: { category: 'flags', description: 'CF = 0', forms: NO_OPERANDS },
   stc: { category: 'flags', description: 'CF = 1', forms: NO_OPERANDS },
   cmc: { category: 'flags', description: 'CF = NOT CF', forms: NO_OPERANDS },

@@ -34,8 +34,8 @@ export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSoun
   const { mnemonic } = record.instruction;
   const { before } = record;
 
-  if (mnemonic === 'call') return 'call';
-  if (mnemonic === 'ret') return 'ret';
+  if (mnemonic === 'call' || record.interrupt !== null) return 'call';
+  if (mnemonic === 'ret' || mnemonic === 'iret') return 'ret';
   if (INSTRUCTIONS[mnemonic].category === 'control') {
     // A line run directly leaves IP alone, so "not taken" means IP did not move.
     const from = record.line ?? before.registers.ip;

@@ -169,6 +169,25 @@ describe('decode', () => {
     expect(decode(line('nop')).port).toBeNull();
   });
 
+  it('decodes the interrupt instructions', () => {
+    const enter = decode(line('int', imm(0x21)));
+    expect(enter.operands).toEqual([{ text: '0x21', kind: 'imm8', role: 'vector' }]);
+    expect(enter).toMatchObject({
+      reads: ['sp', 'cs', 'ss', 'ip'],
+      writes: ['sp', 'cs', 'ip'],
+      memory: { read: true, write: true },
+      readsFlags: true,
+      writesFlags: true
+    });
+    expect(decode(line('iret'))).toMatchObject({
+      writes: ['sp', 'cs', 'ip'],
+      memory: { read: true, write: false },
+      writesFlags: true
+    });
+    expect(decode(line('pushf'))).toMatchObject({ readsFlags: true, writesFlags: false });
+    expect(decode(line('popf')).writesFlags).toBe(true);
+  });
+
   it('refuses an instruction whose operands do not form a legal instruction', () => {
     expect(() => decode(line('add', reg('ax')))).toThrow('Cannot decode');
     expect(() => decode(line('mov', reg('al'), reg('bx')))).toThrow('Cannot decode');

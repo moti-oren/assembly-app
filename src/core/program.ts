@@ -1,5 +1,5 @@
 import { PORTS } from './devices';
-import { CpuError, execute, type ExecutionRecord } from './execute';
+import { CpuError, VECTOR_SIZE, execute, type ExecutionRecord } from './execute';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
 import type { CpuState } from './state';
@@ -187,6 +187,22 @@ export const EXAMPLE_PROGRAMS: { name: string; description: string; program: Pro
       line('out', port(PORTS.terminal), reg('al')),
       line('mov', reg('al'), imm(0x49)),
       line('out', port(PORTS.terminal), reg('al'))
+    ]
+  },
+  {
+    name: 'Software interrupt',
+    description: 'Installs a handler in vector 21h, then INT 21h prints AL on the terminal twice',
+    program: [
+      line('xor', reg('ax'), reg('ax')),
+      line('mov', reg('ds'), reg('ax')),
+      line('mov', { type: 'mem', size: 16, base: null, displacement: 0x21 * VECTOR_SIZE }, label(8)),
+      line('mov', reg('al'), imm(0x41)),
+      line('int', imm(0x21)),
+      line('mov', reg('al'), imm(0x42)),
+      line('int', imm(0x21)),
+      line('jmp', label(10)),
+      line('out', port(PORTS.terminal), reg('al')),
+      line('iret')
     ]
   }
 ];

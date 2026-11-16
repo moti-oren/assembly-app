@@ -128,7 +128,7 @@ describe('loops and calls', () => {
 
 describe('runToEnd', () => {
   it('runs the examples', () => {
-    const [sum, max, call, swap, fill, light, devices] = EXAMPLE_PROGRAMS.map(
+    const [sum, max, call, swap, fill, light, devices, interrupt] = EXAMPLE_PROGRAMS.map(
       (example) => example.program
     );
 
@@ -164,6 +164,11 @@ describe('runToEnd', () => {
     expect(cpu.io.out[0x10]).toBe(0x06);
     expect(cpu.io.out[0x12]).toBe(0x06);
     expect(cpu.io.terminal).toEqual([0x48, 0x49]);
+
+    cpu = createCpuState();
+    expect(runToEnd(cpu, interrupt).error).toBeNull();
+    expect(cpu.io.terminal).toEqual([0x41, 0x42]);
+    expect(readRegister(cpu, 'sp')).toBe(0xfffe);
   });
 
   it('stops endless loops', () => {

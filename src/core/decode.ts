@@ -41,7 +41,7 @@ export const OPERAND_KIND_LABELS: Record<OperandKind, string> = {
 };
 
 /** What an operand is to its instruction. `operand` is one that is neither: CMP, TEST, XCHG. */
-export type OperandRole = 'destination' | 'source' | 'count' | 'target' | 'operand';
+export type OperandRole = 'destination' | 'source' | 'count' | 'target' | 'vector' | 'operand';
 
 export interface DecodedOperand {
   text: string;
@@ -75,6 +75,8 @@ const OVERWRITES_FIRST = new Set<Mnemonic>(['mov', 'pop', 'in']);
 const KEEPS_FIRST = new Set<Mnemonic>(['cmp', 'test', 'push', 'mul', 'imul', 'div', 'idiv', 'out']);
 
 const STACK = { reads: ['sp', 'ss'], writes: ['sp'] } as const;
+/** Entering an interrupt saves CS:IP on the stack and replaces them from the vector. */
+const INTERRUPT_ENTRY = { reads: ['sp', 'cs', 'ss', 'ip'], writes: ['sp', 'cs', 'ip'] } as const;
 const COUNTED_JUMP = { reads: ['cx'], writes: ['cx', 'ip'] } as const;
 
 /** Registers used without being written in the instruction. MUL and DIV depend on the size. */
@@ -89,6 +91,11 @@ const IMPLICIT: Partial<
   loope: COUNTED_JUMP,
   loopne: COUNTED_JUMP,
   jcxz: { reads: ['cx'], writes: ['ip'] },
+  int: INTERRUPT_ENTRY,
+  into: INTERRUPT_ENTRY,
+  iret: { reads: ['sp', 'ss'], writes: ['sp', 'cs', 'ip'] },
+  pushf: STACK,
+  popf: STACK,
   movsb: { reads: ['si', 'di', 'ds', 'es'], writes: ['si', 'di'] },
   movsw: { reads: ['si', 'di', 'ds', 'es'], writes: ['si', 'di'] },
   stosb: { reads: ['ax', 'di', 'es'], writes: ['di'] },
@@ -113,12 +120,29 @@ const STRING_READS_MEMORY = new Set<Mnemonic>([
 ]);
 const STRING_WRITES_MEMORY = new Set<Mnemonic>(['movsb', 'movsw', 'stosb', 'stosw']);
 
-const READS_FLAGS = new Set<Mnemonic>(['adc', 'sbb', 'rcl', 'rcr', 'cmc', 'loope', 'loopne']);
+const STACK_WRITERS = new Set<Mnemonic>(['push', 'call', 'int', 'into', 'pushf']);
+const STACK_READERS = new Set<Mnemonic>(['pop', 'ret', 'iret', 'popf']);
+
+const READS_FLAGS = new Set<Mnemonic>([
+  'adc',
+  'sbb',
+  'rcl',
+  'rcr',
+  'cmc',
+  'loope',
+  'loopne',
+  'int',
+  'into',
+  'pushf'
+]);
+/** Outside the ALU and the flag-control group, these still change FLAGS. */
+const WRITES_FLAGS = new Set<Mnemonic>(['int', 'into', 'iret']);
 const JUMPS_WITHOUT_FLAGS = new Set<Mnemonic>(['jmp', 'jcxz', 'loop', 'call', 'ret']);
-const KEEPS_FLAGS = new Set<Mnemonic>(['not', 'div', 'idiv', 'nop']);
+const KEEPS_FLAGS = new Set<Mnemonic>(['not', 'div', 'idiv', 'nop', 'pushf']);
 
 function roles(mnemonic: Mnemonic, category: Category, count: number): OperandRole[] {
   if (category === 'control') return ['target'];
+  if (mnemonic === 'int') return ['vector'];
   if (category === 'shift') return ['destination', 'count'];
   if (mnemonic === 'cmp' || mnemonic === 'test' || mnemonic === 'xchg') {
     return ['operand', 'operand'];
@@ -168,8 +192,10 @@ export function decode(instruction: Instruction): Decoded {
   implicit?.reads.forEach((name) => reads.add(name));
   implicit?.writes.forEach((name) => writes.add(name));
   if (category === 'control' && !implicit) writes.add('ip');
-  if (mnemonic === 'push' || mnemonic === 'call') memory.write = true;
-  if (mnemonic === 'pop' || mnemonic === 'ret') memory.read = true;
+  if (STACK_WRITERS.has(mnemonic)) memory.write = true;
+  if (STACK_READERS.has(mnemonic)) memory.read = true;
+  // The handler's address is read out of the vector table.
+  if (mnemonic === 'int' || mnemonic === 'into') memory.read = true;
   if (STRING_READS_MEMORY.has(mnemonic)) memory.read = true;
   if (STRING_WRITES_MEMORY.has(mnemonic)) memory.write = true;
   if (prefix) {
@@ -210,7 +236,9 @@ export function decode(instruction: Instruction): Decoded {
       READS_FLAGS.has(mnemonic) ||
       category === 'string' ||
       (category === 'control' && !JUMPS_WITHOUT_FLAGS.has(mnemonic)),
-    writesFlags: (usesAlu || category === 'flags') && !KEEPS_FLAGS.has(mnemonic),
+    writesFlags:
+      WRITES_FLAGS.has(mnemonic) ||
+      ((usesAlu || category === 'flags') && !KEEPS_FLAGS.has(mnemonic)),
     usesAlu
   };
 }

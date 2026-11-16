@@ -144,6 +144,25 @@ describe('explainFlag', () => {
     });
   });
 
+  it('explains the flags an interrupt clears and the ones POPF loads', () => {
+    cpu.memory[0x21 * 4] = 5;
+    run('sti');
+    const enter = run('int', imm(0x21));
+    expect(explainFlag(enter, 'IF').value).toBe(false);
+    expect(explainFlag(enter, 'CF')).toEqual({
+      value: null,
+      text: 'INT does not change the flags.'
+    });
+
+    run('stc');
+    run('pushf');
+    run('clc');
+    expect(explainFlag(run('popf'), 'CF')).toEqual({
+      value: true,
+      text: 'POPF loads every flag from the FLAGS word it pops off the stack.'
+    });
+  });
+
   it('never disagrees with the flags the CPU actually computed', () => {
     const cases: [Mnemonic, number, number][] = [];
     const values = [0x00, 0x01, 0x0f, 0x10, 0x7f, 0x80, 0xff, 0x7fff, 0x8000, 0xffff];

@@ -9,6 +9,7 @@ import {
 } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { CATEGORY_LABELS, formatInstruction } from '@/core/instructions';
+import { formatHex } from '@/core/numbers';
 import { formatLabel } from '@/core/operands';
 import { WORD_REGISTERS } from '@/core/registers';
 import type { CpuState } from '@/core/state';
@@ -78,7 +79,10 @@ function describeExecute(record: ExecutionRecord): string {
     record.portWrites.length > 0 && 'an I/O port',
     flags !== record.before.flags && 'the flags'
   ]);
-  const effect = changed ? `It changed ${changed}.` : 'It changed no register, flag or memory.';
+  const interrupt =
+    record.interrupt === null ? '' : ` It entered interrupt ${formatHex(record.interrupt, 8)}h.`;
+  const effect =
+    (changed ? `It changed ${changed}.` : 'It changed no register, flag or memory.') + interrupt;
   if (record.line === null) {
     return `Run directly, so nothing was fetched from the program. ${effect}`;
   }
