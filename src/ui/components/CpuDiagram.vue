@@ -207,7 +207,7 @@ function flagChanged(flag: FlagName): boolean {
     <CardContent class="flex flex-col gap-4">
       <CpuCycle :state="state" :record="record" :pending="pending" />
 
-      <div>
+      <div class="@container">
         <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
         <div
           class="grid gap-y-5 rounded-xl border border-foreground/20 bg-muted/20 p-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
@@ -272,7 +272,7 @@ function flagChanged(flag: FlagName): boolean {
                   <RollingDigits :text="String(value(name))" />
                 </span>
 
-                <span class="hidden text-[11px] sm:inline">
+                <span class="hidden text-[11px] @min-[36rem]:inline">
                   <RollingDigits
                     effect="flip"
                     dim-zeros
@@ -391,7 +391,11 @@ function flagChanged(flag: FlagName): boolean {
             title="Internal bus"
           />
 
-          <section class="flex flex-col sm:w-60" aria-label="Bus interface unit">
+          <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->
+          <section
+            class="flex flex-col sm:w-60 @min-[40rem]:w-[18.5rem]"
+            aria-label="Bus interface unit"
+          >
             <h3 class="unit-title sm:pl-7">Bus interface unit <span>BIU</span></h3>
             <div class="flex flex-col font-mono text-[13px]">
               <div
@@ -421,6 +425,15 @@ function flagChanged(flag: FlagName): boolean {
                   :title="`${value(name)} unsigned, ${toSigned(value(name), 16)} signed`"
                 >
                   <RollingDigits :text="String(value(name))" />
+                </span>
+                <!-- Only where both units fit their bits side by side; the EU's bits come first. -->
+                <span class="hidden text-[11px] @min-[40rem]:inline">
+                  <RollingDigits
+                    effect="flip"
+                    dim-zeros
+                    :text="formatBinary(value(name), 16)"
+                    :marks="formatBinary(changedBits(name), 16)"
+                  />
                 </span>
               </div>
             </div>
@@ -470,7 +483,7 @@ function flagChanged(flag: FlagName): boolean {
           </p>
           <!-- Starts at the adder, so it crosses the edge of the package like a pin. -->
           <DiagramWire
-            class="-mt-[11px] mr-[calc(6.875rem+11px)] hidden h-9 w-0.5 shrink-0 sm:block"
+            class="-mt-[11px] mr-[calc(6.875rem+11px)] hidden h-9 @min-[40rem]:mr-[calc(8.625rem+11px)] w-0.5 shrink-0 sm:block"
             :kind="busKind"
             :tick="pulse"
           />
