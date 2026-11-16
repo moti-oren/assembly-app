@@ -3,6 +3,8 @@
 An interactive 8086 playground: build an instruction word by word, run it, and watch the
 registers, flags and memory change.
 
+Live version: https://moti-oren.github.io/assembly-app/
+
 ## Commands
 
 ```sh
@@ -44,6 +46,8 @@ npm run lint
 
 מגרש משחקים אינטראקטיבי ל-8086: בונים הוראה מילה אחר מילה, מריצים אותה, וצופים בשינויים
 ברגיסטרים, בדגלים ובזיכרון.
+
+גרסה חיה: https://moti-oren.github.io/assembly-app/
 
 ## פקודות
 
