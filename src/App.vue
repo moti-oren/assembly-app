@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { formatInstruction } from '@/core/instructions';
+import { computed, ref, shallowRef, watch } from 'vue';
+import { assemble, encode } from '@/core/encode';
+import { formatInstruction, type Instruction } from '@/core/instructions';
+import { formatLabel } from '@/core/operands';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppHeader from '@/ui/components/AppHeader.vue';
@@ -8,6 +10,7 @@ import ChangeStrip from '@/ui/components/ChangeStrip.vue';
 import CpuCycle from '@/ui/components/CpuCycle.vue';
 import CpuDiagram from '@/ui/components/CpuDiagram.vue';
 import DevicesPanel from '@/ui/components/DevicesPanel.vue';
+import EncodingPanel from '@/ui/components/EncodingPanel.vue';
 import CommandPalette, { type PaletteCommand } from '@/ui/components/CommandPalette.vue';
 import FlagsPanel from '@/ui/components/FlagsPanel.vue';
 import HistoryLog from '@/ui/components/HistoryLog.vue';
@@ -67,6 +70,55 @@ watch(
   (length, previous) => length === previous + 1 && play('punch')
 );
 
+/** The machine code of every program line; the program itself is never run from these bytes. */
+const assembled = computed(() => assemble(program.value));
+const bytesShown = ref(false);
+/** The complete instruction sitting in the builder, if any. */
+const draft = shallowRef<Instruction | null>(null);
+/** A program line whose bytes were clicked; it stays on show until the program moves on. */
+const inspectedLine = ref<number | null>(null);
+watch([() => history.value.length, program], () => {
+  inspectedLine.value = null;
+});
+
+function inspect(line: number): void {
+  inspectedLine.value = line;
+  bytesShown.value = true;
+}
+
+/** What the machine code panel takes apart: the draft, else a program line, else the last run. */
+const encodingShown = computed(() => {
+  const { lines } = assembled.value;
+  if (draft.value) {
+    return {
+      instruction: draft.value,
+      assembled: encode(draft.value, program.value),
+      where: 'as the next line of the program'
+    };
+  }
+  const line = inspectedLine.value ?? (finished.value ? null : state.registers.ip);
+  if (line !== null && lines[line]) {
+    return {
+      instruction: program.value[line],
+      assembled: lines[line],
+      where: `line ${formatLabel(line)}`
+    };
+  }
+  const record = lastRecord.value;
+  if (!record) return null;
+  return record.line !== null && lines[record.line]
+    ? {
+        instruction: program.value[record.line],
+        assembled: lines[record.line],
+        where: `line ${formatLabel(record.line)}, the last one run`
+      }
+    : {
+        instruction: record.instruction,
+        assembled: encode(record.instruction, program.value),
+        where: 'the last instruction run'
+      };
+});
+
 const paletteOpen = ref(false);
 /** The full list of executed instructions; the timeline itself is always in the bar. */
 const historyShown = ref(false);
@@ -110,6 +162,13 @@ const commands = computed<PaletteCommand[]>(() => [
     }
   },
   { group: 'History', label: 'Reset the CPU', run: cpu.reset },
+  {
+    group: 'Program',
+    label: bytesShown.value ? 'Hide the machine code' : 'Show the machine code',
+    run: () => {
+      bytesShown.value = !bytesShown.value;
+    }
+  },
   {
     group: 'Devices',
     label: devicesShown.value ? 'Hide the I/O devices' : 'Show the I/O devices',
@@ -178,6 +237,7 @@ const commands = computed<PaletteCommand[]>(() => [
             :error="error"
             :program-lines="programLines"
             :insert-line="insertAt ?? program.length"
+            @draft="draft = $event"
           />
           <!-- The history list shares the program's space instead of squeezing the builder. -->
           <div class="flex flex-col gap-4 sm:flex-row lg:min-h-44 lg:flex-1">
@@ -185,11 +245,13 @@ const commands = computed<PaletteCommand[]>(() => [
               v-model:insert-at="insertAt"
               class="min-w-0 flex-1"
               :program="program"
+              :assembled="assembled.lines"
               :ip="state.registers.ip"
               :last-line="lastRecord?.line ?? null"
               :finished="finished"
               @clear="cpu.clearProgram"
               @remove="cpu.removeProgramLine"
+              @inspect="inspect"
             />
             <HistoryLog
               v-if="historyShown"
@@ -199,6 +261,7 @@ const commands = computed<PaletteCommand[]>(() => [
               @seek="cpu.seek"
             />
           </div>
+          <EncodingPanel v-if="bytesShown" class="shrink-0" :shown="encodingShown" />
           <DevicesPanel v-if="devicesShown" class="shrink-0" :state="state" @input="cpu.setInput" />
         </div>
         <div class="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:p-px">
@@ -245,6 +308,7 @@ const commands = computed<PaletteCommand[]>(() => [
         v-model:speed="speed"
         v-model:history-shown="historyShown"
         v-model:devices-shown="devicesShown"
+        v-model:bytes-shown="bytesShown"
         :finished="finished"
         :running="running"
         :phase="pending?.phase ?? null"

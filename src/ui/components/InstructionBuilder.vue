@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { hasMoreOperands, operandChoices } from '@/core/builder';
 import {
   CATEGORY_LABELS,
@@ -39,6 +39,11 @@ const props = defineProps<{
   /** The program, formatted, so jumps can offer its lines as targets. */
   programLines: string[];
   insertLine: number;
+}>();
+
+const emit = defineEmits<{
+  /** The instruction as built so far, once it is complete; null while it is not. */
+  draft: [instruction: Instruction | null];
 }>();
 
 type MemoryOperand = Extract<Operand, { type: 'mem' }>;
@@ -366,11 +371,19 @@ function clear(): void {
   focusInput();
 }
 
-/** Runs the instruction now, or adds it to the program. */
-function submit(toProgram: boolean): void {
-  if (!complete.value || mnemonic.value === null) return;
+const built = computed<Instruction | null>(() => {
+  if (!complete.value || mnemonic.value === null) return null;
   const instruction: Instruction = { mnemonic: mnemonic.value, operands: operands.value };
   if (prefix.value) instruction.prefix = prefix.value;
+  return instruction;
+});
+
+watch(built, (instruction) => emit('draft', instruction));
+
+/** Runs the instruction now, or adds it to the program. */
+function submit(toProgram: boolean): void {
+  const instruction = built.value;
+  if (!instruction) return;
   if (toProgram) {
     props.add(instruction);
     clear();
