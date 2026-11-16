@@ -1,3 +1,4 @@
+import { PORTS } from './devices';
 import { FLAG_BITS, FLAGS_RESERVED, type FlagName } from './flags';
 import { truncate, type Size } from './numbers';
 import {
@@ -10,6 +11,18 @@ import {
 /** 1MB: the 8086 has a 20-bit address bus. */
 export const MEMORY_SIZE = 0x100000;
 
+/** The 8086 addresses 64K I/O ports, separate from memory. */
+export const PORT_COUNT = 0x10000;
+
+export interface IoState {
+  /** The last byte OUT wrote to each port. */
+  out: Uint8Array;
+  /** The byte each port presents to IN; devices such as the switches set it. */
+  in: Uint8Array;
+  /** Every byte written to the terminal port, in order. */
+  terminal: number[];
+}
+
 export interface CpuState {
   /** The single source of truth for every register; 8-bit registers are views into it. */
   registers: Record<WordRegister, number>;
@@ -17,10 +30,20 @@ export interface CpuState {
   memory: Uint8Array;
   /** Bumped on every memory write so UI frameworks can track changes to `memory`. */
   memoryVersion: number;
+  io: IoState;
+  /** Bumped on every port change, for the same reason as `memoryVersion`. */
+  ioVersion: number;
 }
 
 export interface MemoryWrite {
   address: number;
+  before: number;
+  after: number;
+}
+
+/** One byte written to an output port. */
+export interface PortWrite {
+  port: number;
   before: number;
   after: number;
 }
@@ -44,7 +67,9 @@ export function createCpuState(): CpuState {
     },
     flags: FLAGS_RESERVED,
     memory: new Uint8Array(MEMORY_SIZE),
-    memoryVersion: 0
+    memoryVersion: 0,
+    io: { out: new Uint8Array(PORT_COUNT), in: new Uint8Array(PORT_COUNT), terminal: [] },
+    ioVersion: 0
   };
 }
 
@@ -107,4 +132,35 @@ export function writeMemory(
   });
   state.memoryVersion++;
   return writes;
+}
+
+/** The byte a device presents on an input port. Ports with no device read as 0. */
+export function readPort(state: CpuState, port: number): number {
+  return state.io.in[port % PORT_COUNT];
+}
+
+/** Sets what an input port presents, e.g. when a switch is flipped. Not an instruction: no undo. */
+export function setInputPort(state: CpuState, port: number, value: number): void {
+  state.io.in[port % PORT_COUNT] = value;
+  state.ioVersion++;
+}
+
+/** Latches a byte into an output port. Returns what changed, for undo. */
+export function writePort(state: CpuState, port: number, value: number): PortWrite {
+  const target = port % PORT_COUNT;
+  const write = { port: target, before: state.io.out[target], after: value & 0xff };
+  redoPortWrite(state, write);
+  return write;
+}
+
+export function redoPortWrite(state: CpuState, write: PortWrite): void {
+  state.io.out[write.port] = write.after;
+  if (write.port === PORTS.terminal) state.io.terminal.push(write.after);
+  state.ioVersion++;
+}
+
+export function undoPortWrite(state: CpuState, write: PortWrite): void {
+  state.io.out[write.port] = write.before;
+  if (write.port === PORTS.terminal) state.io.terminal.pop();
+  state.ioVersion++;
 }

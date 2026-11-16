@@ -1,25 +1,29 @@
 import type { FlagName } from './flags';
 import {
   formatInstruction,
-  getSpec,
+  instructionSize,
   isValid,
   type Instruction,
   type Mnemonic,
   type RepeatPrefix
 } from './instructions';
 import { hasEvenParity, mask, signBit, toSigned, truncate, type Size } from './numbers';
-import { effectiveAddress, operandSize, type Operand } from './operands';
+import { effectiveAddress, type Operand } from './operands';
 import type { SegmentRegister, WordRegister } from './registers';
 import {
   getFlag,
   physicalAddress,
   readMemory,
+  readPort,
   readRegister,
   setFlag,
+  undoPortWrite,
   writeMemory,
+  writePort,
   writeRegister,
   type CpuState,
-  type MemoryWrite
+  type MemoryWrite,
+  type PortWrite
 } from './state';
 
 /** An error the CPU itself would raise (e.g. divide error), or an invalid instruction. */
@@ -51,12 +55,15 @@ export interface ExecutionRecord {
   line: number | null;
   before: { registers: Record<WordRegister, number>; flags: number };
   memoryWrites: MemoryWrite[];
+  /** Bytes OUT latched into I/O ports. */
+  portWrites: PortWrite[];
   /** Null when the instruction computed nothing in the ALU, e.g. MOV, a jump, or a shift by 0. */
   alu: AluTrace | null;
 }
 
 class ExecutionContext {
   readonly memoryWrites: MemoryWrite[] = [];
+  readonly portWrites: PortWrite[] = [];
   alu: AluTrace | null = null;
 
   constructor(
@@ -368,6 +375,11 @@ function repeat(ctx: ExecutionContext, prefix: RepeatPrefix, step: () => void): 
   }
 }
 
+/** The port of IN and OUT: an 8-bit number in the instruction, or whatever DX holds. */
+function portNumber(ctx: ExecutionContext, operand: Operand): number {
+  return operand.type === 'imm' ? operand.value & 0xff : readRegister(ctx.state, 'dx');
+}
+
 const signedLess = (ctx: ExecutionContext) => ctx.flag('SF') !== ctx.flag('OF');
 
 function divideError(reason: string): never {
@@ -484,6 +496,19 @@ const HANDLERS: Record<Mnemonic, Handler> = {
   cmpsb: stringStep('cmps'),
   cmpsw: stringStep('cmps'),
 
+  // A word uses two neighbouring ports, low byte first, like a word in memory.
+  in: (ctx, [dst, source]) => {
+    const port = portNumber(ctx, source);
+    const low = readPort(ctx.state, port);
+    ctx.write(dst, ctx.size === 8 ? low : low | (readPort(ctx.state, port + 1) << 8));
+  },
+  out: (ctx, [target, src]) => {
+    const port = portNumber(ctx, target);
+    const value = ctx.read(src);
+    ctx.portWrites.push(writePort(ctx.state, port, value));
+    if (ctx.size === 16) ctx.portWrites.push(writePort(ctx.state, port + 1, value >> 8));
+  },
+
   jmp: jumpIf(() => true),
   je: jumpIf((ctx) => ctx.flag('ZF')),
   jz: jumpIf((ctx) => ctx.flag('ZF')),
@@ -526,16 +551,6 @@ const HANDLERS: Record<Mnemonic, Handler> = {
   nop: () => {}
 };
 
-function instructionSize({ mnemonic, operands }: Instruction): Size {
-  const fixed = getSpec(mnemonic).size;
-  if (fixed) return fixed;
-  for (const operand of operands) {
-    const size = operandSize(operand);
-    if (size) return size;
-  }
-  return 16;
-}
-
 /**
  * Runs one instruction against `state`. Either the whole instruction takes effect or,
  * if it raises a CpuError, the state is left exactly as it was.
@@ -553,12 +568,13 @@ export function execute(
     throw new CpuError(`Invalid instruction: ${formatInstruction(instruction)}`);
   }
 
-  const ctx = new ExecutionContext(state, instructionSize(instruction));
+  const ctx = new ExecutionContext(state, instructionSize(instruction) ?? 16);
   const record: ExecutionRecord = {
     instruction,
     line,
     before: { registers: { ...state.registers }, flags: state.flags },
     memoryWrites: ctx.memoryWrites,
+    portWrites: ctx.portWrites,
     alu: null
   };
 
@@ -590,5 +606,8 @@ export function undo(state: CpuState, record: ExecutionRecord): void {
   }
   if (record.memoryWrites.length > 0) {
     state.memoryVersion++;
+  }
+  for (let i = record.portWrites.length - 1; i >= 0; i--) {
+    undoPortWrite(state, record.portWrites[i]);
   }
 }

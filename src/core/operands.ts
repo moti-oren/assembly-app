@@ -23,6 +23,7 @@ export type Operand =
  * The operand categories an instruction form can ask for.
  * - `sregw` is a segment register that may be written (everything except CS).
  * - `one` is the literal 1 and `cl` is the CL register: the only shift counts the 8086 allows.
+ * - `al`, `ax` and `dx` are those registers alone: IN and OUT accept no others.
  */
 export type OperandKind =
   | 'r8'
@@ -30,6 +31,9 @@ export type OperandKind =
   | 'sreg'
   | 'sregw'
   | 'cl'
+  | 'al'
+  | 'ax'
+  | 'dx'
   | 'one'
   | 'imm8'
   | 'imm16'
@@ -51,7 +55,10 @@ export function matchesKind(kind: OperandKind, operand: Operand): boolean {
         case 'sregw':
           return isSegmentRegister(name) && name !== 'cs';
         case 'cl':
-          return name === 'cl';
+        case 'al':
+        case 'ax':
+        case 'dx':
+          return name === kind;
         default:
           return false;
       }

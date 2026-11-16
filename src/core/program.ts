@@ -1,3 +1,4 @@
+import { PORTS } from './devices';
 import { CpuError, execute, type ExecutionRecord } from './execute';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
@@ -99,6 +100,7 @@ const reg = (name: Extract<Operand, { type: 'reg' }>['name']): Operand => ({ typ
 const imm = (value: number): Operand => ({ type: 'imm', value });
 const label = (target: number): Operand => ({ type: 'label', target });
 const line = (mnemonic: Mnemonic, ...operands: Operand[]): Instruction => ({ mnemonic, operands });
+const port = imm;
 const rep = (mnemonic: Mnemonic): Instruction => ({ prefix: 'rep', mnemonic, operands: [] });
 
 export const EXAMPLE_PROGRAMS: { name: string; description: string; program: Program }[] = [
@@ -161,6 +163,30 @@ export const EXAMPLE_PROGRAMS: { name: string; description: string; program: Pro
       line('mov', reg('di'), imm(0x10)),
       line('mov', reg('cx'), imm(8)),
       rep('movsb')
+    ]
+  },
+  {
+    name: 'Running light',
+    description: 'OUT sends a single 1 bit to the LEDs on port 10h, shifted left 8 times',
+    program: [
+      line('mov', reg('al'), imm(1)),
+      line('mov', reg('cx'), imm(8)),
+      line('out', port(PORTS.leds), reg('al')),
+      line('shl', reg('al'), imm(1)),
+      line('loop', label(2))
+    ]
+  },
+  {
+    name: 'Switches, digits and terminal',
+    description: 'IN reads the switches; OUT copies them to the LEDs and a digit, then prints HI',
+    program: [
+      line('in', reg('al'), port(PORTS.switches)),
+      line('out', port(PORTS.leds), reg('al')),
+      line('out', port(PORTS.digits), reg('al')),
+      line('mov', reg('al'), imm(0x48)),
+      line('out', port(PORTS.terminal), reg('al')),
+      line('mov', reg('al'), imm(0x49)),
+      line('out', port(PORTS.terminal), reg('al'))
     ]
   }
 ];

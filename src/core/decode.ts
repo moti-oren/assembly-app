@@ -2,6 +2,7 @@ import {
   formatInstruction,
   REPEAT_PREFIXES,
   getSpec,
+  instructionSize,
   isStringCompare,
   matchingForms,
   type Category,
@@ -9,7 +10,7 @@ import {
   type Mnemonic
 } from './instructions';
 import type { Size } from './numbers';
-import { formatOperand, memorySegment, operandSize, type OperandKind } from './operands';
+import { formatOperand, memorySegment, type OperandKind } from './operands';
 import {
   BYTE_REGISTER_LOCATION,
   WORD_REGISTERS,
@@ -28,6 +29,9 @@ export const OPERAND_KIND_LABELS: Record<OperandKind, string> = {
   sreg: 'segment register',
   sregw: 'segment register',
   cl: 'shift count in CL',
+  al: '8-bit data register',
+  ax: '16-bit data register',
+  dx: 'port number in DX',
   one: 'shift count of 1',
   imm8: '8-bit immediate',
   imm16: '16-bit immediate',
@@ -57,16 +61,18 @@ export interface Decoded {
   reads: WordRegister[];
   writes: WordRegister[];
   memory: { read: boolean; write: boolean };
+  /** Whether it reads or writes an I/O port (IN, OUT). */
+  port: 'read' | 'write' | null;
   readsFlags: boolean;
   writesFlags: boolean;
   usesAlu: boolean;
 }
 
 /** Instructions that overwrite their first operand without reading it. */
-const OVERWRITES_FIRST = new Set<Mnemonic>(['mov', 'pop']);
+const OVERWRITES_FIRST = new Set<Mnemonic>(['mov', 'pop', 'in']);
 
 /** Instructions that only read their first operand. */
-const KEEPS_FIRST = new Set<Mnemonic>(['cmp', 'test', 'push', 'mul', 'imul', 'div', 'idiv']);
+const KEEPS_FIRST = new Set<Mnemonic>(['cmp', 'test', 'push', 'mul', 'imul', 'div', 'idiv', 'out']);
 
 const STACK = { reads: ['sp', 'ss'], writes: ['sp'] } as const;
 const COUNTED_JUMP = { reads: ['cx'], writes: ['cx', 'ip'] } as const;
@@ -135,7 +141,7 @@ export function decode(instruction: Instruction): Decoded {
   const spec = getSpec(mnemonic);
   const { category } = spec;
   const compares = isStringCompare(mnemonic);
-  const size = spec.size ?? operands.map(operandSize).find((found) => found !== null) ?? null;
+  const size = instructionSize(instruction);
   const operandRoles = roles(mnemonic, category, operands.length);
 
   const reads = new Set<WordRegister>();
@@ -198,6 +204,7 @@ export function decode(instruction: Instruction): Decoded {
     reads: inOrder(reads),
     writes: inOrder(writes),
     memory,
+    port: mnemonic === 'in' ? 'read' : mnemonic === 'out' ? 'write' : null,
     // Every string instruction reads DF for its direction; REPE and REPNE also test ZF.
     readsFlags:
       READS_FLAGS.has(mnemonic) ||

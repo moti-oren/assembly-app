@@ -12,7 +12,13 @@ import {
   type Program
 } from './program';
 import type { RegisterName } from './registers';
-import { createCpuState, readRegister, writeRegister, type CpuState } from './state';
+import {
+  createCpuState,
+  readRegister,
+  setInputPort,
+  writeRegister,
+  type CpuState
+} from './state';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -122,7 +128,9 @@ describe('loops and calls', () => {
 
 describe('runToEnd', () => {
   it('runs the examples', () => {
-    const [sum, max, call, swap, fill] = EXAMPLE_PROGRAMS.map((example) => example.program);
+    const [sum, max, call, swap, fill, light, devices] = EXAMPLE_PROGRAMS.map(
+      (example) => example.program
+    );
 
     expect(runToEnd(cpu, sum).error).toBeNull();
     expect(readRegister(cpu, 'ax')).toBe(55);
@@ -145,6 +153,17 @@ describe('runToEnd', () => {
     expect(runToEnd(cpu, fill).error).toBeNull();
     const copied = cpu.registers.ds * 16 + 0x10;
     expect([...cpu.memory.slice(copied, copied + 9)]).toEqual([...Array(8).fill(0x2a), 0]);
+
+    cpu = createCpuState();
+    expect(runToEnd(cpu, light).error).toBeNull();
+    expect(cpu.io.out[0x10]).toBe(0x80);
+
+    cpu = createCpuState();
+    setInputPort(cpu, 0x11, 0x06);
+    runToEnd(cpu, devices);
+    expect(cpu.io.out[0x10]).toBe(0x06);
+    expect(cpu.io.out[0x12]).toBe(0x06);
+    expect(cpu.io.terminal).toEqual([0x48, 0x49]);
   });
 
   it('stops endless loops', () => {

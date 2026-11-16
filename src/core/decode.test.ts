@@ -159,6 +159,16 @@ describe('decode', () => {
     expect(decoded.description).toBe('Repeat CX times: Store AL at ES:DI, then step DI');
   });
 
+  it('decodes the port instructions, sizing OUT by its data and not by DX', () => {
+    const output = decode(line('out', reg('dx'), reg('al')));
+    expect(output).toMatchObject({ size: 8, reads: ['ax', 'dx'], writes: [], port: 'write' });
+    expect(output.operands.map((operand) => operand.kind)).toEqual(['dx', 'al']);
+
+    const input = decode(line('in', reg('ax'), imm(0x11)));
+    expect(input).toMatchObject({ size: 16, reads: [], writes: ['ax'], port: 'read' });
+    expect(decode(line('nop')).port).toBeNull();
+  });
+
   it('refuses an instruction whose operands do not form a legal instruction', () => {
     expect(() => decode(line('add', reg('ax')))).toThrow('Cannot decode');
     expect(() => decode(line('mov', reg('al'), reg('bx')))).toThrow('Cannot decode');

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { PORTS, terminalText } from './devices';
 import { CpuError, execute, undo } from './execute';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
@@ -10,6 +11,7 @@ import {
   readMemory,
   readRegister,
   setFlag,
+  setInputPort,
   writeMemory,
   writeRegister,
   type CpuState
@@ -457,5 +459,75 @@ describe('string instructions', () => {
     expect(() => execute(cpu, { prefix: 'rep', mnemonic: 'nop', operands: [] })).toThrow(CpuError);
     expect(() => repeated('rep', 'cmpsb')).toThrow(CpuError);
     expect(() => repeated('repe', 'movsb')).toThrow(CpuError);
+  });
+});
+
+describe('i/o ports', () => {
+  it('out latches AL into a port chosen by number or by DX', () => {
+    writeRegister(cpu, 'al', 0xa5);
+    const record = run('out', imm(PORTS.leds), reg('al'));
+    expect(cpu.io.out[PORTS.leds]).toBe(0xa5);
+    expect(record.portWrites).toEqual([{ port: PORTS.leds, before: 0, after: 0xa5 }]);
+
+    writeRegister(cpu, 'dx', 0x1234);
+    run('out', reg('dx'), reg('al'));
+    expect(cpu.io.out[0x1234]).toBe(0xa5);
+  });
+
+  it('out with AX writes two neighbouring ports, low byte first', () => {
+    writeRegister(cpu, 'ax', 0x5b3f);
+    run('out', imm(PORTS.digits), reg('ax'));
+    expect(cpu.io.out[PORTS.digits]).toBe(0x3f);
+    expect(cpu.io.out[PORTS.digits + 1]).toBe(0x5b);
+  });
+
+  it('in reads what a device presents, not what was written to the port', () => {
+    setInputPort(cpu, PORTS.switches, 0x81);
+    writeRegister(cpu, 'ax', 0xff00);
+    run('out', imm(PORTS.switches), reg('al'));
+    run('in', reg('al'), imm(PORTS.switches));
+    expect(readRegister(cpu, 'ax')).toBe(0xff81);
+
+    setInputPort(cpu, 0x300, 0x34);
+    setInputPort(cpu, 0x301, 0x12);
+    writeRegister(cpu, 'dx', 0x300);
+    run('in', reg('ax'), reg('dx'));
+    expect(readRegister(cpu, 'ax')).toBe(0x1234);
+  });
+
+  it('leaves the flags alone', () => {
+    setFlag(cpu, 'CF', true);
+    const flagsBefore = cpu.flags;
+    run('in', reg('al'), imm(PORTS.switches));
+    run('out', imm(PORTS.leds), reg('al'));
+    expect(cpu.flags).toBe(flagsBefore);
+  });
+
+  it('prints every byte written to the terminal port, and unprints on undo', () => {
+    const records = [0x48, 0x49].map((character) => {
+      writeRegister(cpu, 'al', character);
+      return run('out', imm(PORTS.terminal), reg('al'));
+    });
+    expect(terminalText(cpu.io.terminal)).toBe('HI');
+
+    undo(cpu, records[1]);
+    expect(terminalText(cpu.io.terminal)).toBe('H');
+    expect(cpu.io.out[PORTS.terminal]).toBe(0x48);
+  });
+
+  it('undo restores a port to the byte it held before', () => {
+    writeRegister(cpu, 'al', 1);
+    run('out', imm(PORTS.leds), reg('al'));
+    writeRegister(cpu, 'ax', 0xffff);
+    const record = run('out', imm(PORTS.leds), reg('ax'));
+    undo(cpu, record);
+    expect(cpu.io.out[PORTS.leds]).toBe(1);
+    expect(cpu.io.out[PORTS.leds + 1]).toBe(0);
+  });
+
+  it('accepts only AL or AX as data and only a byte or DX as the port', () => {
+    expect(() => run('in', reg('bl'), imm(1))).toThrow(CpuError);
+    expect(() => run('out', reg('bx'), reg('al'))).toThrow(CpuError);
+    expect(() => run('out', imm(0x100), reg('al'))).toThrow(CpuError);
   });
 });
