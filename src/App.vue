@@ -225,7 +225,7 @@ const commands = computed<PaletteCommand[]>(() => [
 
       <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
       <main
-        class="mx-auto grid w-full max-w-7xl flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:px-6"
+        class="mx-auto grid w-full max-w-7xl flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
       >
         <div class="flex min-w-0 flex-col gap-4">
           <InstructionBuilder
