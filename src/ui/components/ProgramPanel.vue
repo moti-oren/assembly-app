@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { ArrowUpToLine, ChevronRight, Trash2, X } from '@lucide/vue';
+import type { AssembledLine } from '@/core/encode';
 import { formatInstruction, type Instruction } from '@/core/instructions';
+import { formatHex } from '@/core/numbers';
 import { formatLabel } from '@/core/operands';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +19,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 
 const props = defineProps<{
   program: Instruction[];
+  /** The machine code of each line, shown beside it. */
+  assembled: AssembledLine[];
   ip: number;
   /** Line new instructions are inserted before; null = the end. */
   insertAt: number | null;
@@ -28,6 +32,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   clear: [];
   remove: [index: number];
+  /** Asks for the machine code of a line to be taken apart. */
+  inspect: [index: number];
   'update:insertAt': [index: number | null];
 }>();
 
@@ -72,7 +78,12 @@ watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMark
   flush: 'post'
 });
 
-const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center gap-1 pr-1 pl-2';
+const ROW =
+  'group grid h-7 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pr-1 pl-2';
+
+function machineCode(index: number): string {
+  return props.assembled[index].encoding.bytes.map((byte) => formatHex(byte, 8)).join(' ');
+}
 </script>
 
 <template>
@@ -145,6 +156,17 @@ const ROW = 'group grid h-7 grid-cols-[1.25rem_2.75rem_1fr_auto] items-center ga
             <span class="truncate" :class="{ 'font-semibold': lastLine === index }"
               ><span :data-loc="`line:${index}`">{{ formatInstruction(instruction) }}</span></span
             >
+            <button
+              v-if="assembled[index]"
+              type="button"
+              class="hidden max-w-36 truncate rounded-sm px-1 text-[11px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
+              :class="{ 'text-destructive': assembled[index].encoding.problem }"
+              :title="`Machine code at offset ${formatHex(assembled[index].offset, 16)}h. Click to take it apart.`"
+              @click="emit('inspect', index)"
+            >
+              {{ machineCode(index) }}
+            </button>
+            <span v-else />
             <span
               class="flex opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100"
             >

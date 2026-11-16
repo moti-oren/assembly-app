@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import {
+  Binary,
   Cable,
   FastForward,
   Footprints,
@@ -33,6 +34,7 @@ const props = defineProps<{
   undone: number;
   historyShown: boolean;
   devicesShown: boolean;
+  bytesShown: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -46,6 +48,7 @@ const emit = defineEmits<{
   'update:speed': [speed: RunSpeed];
   'update:historyShown': [shown: boolean];
   'update:devicesShown': [shown: boolean];
+  'update:bytesShown': [shown: boolean];
 }>();
 
 const SPEED_LABELS: Record<RunSpeed, string> = {
@@ -176,6 +179,16 @@ const total = computed(() => props.executed + props.undone);
         >
           <Cable />
           <span class="hidden sm:inline">I/O</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          :class="bytesShown ? 'bg-secondary' : ''"
+          :aria-pressed="bytesShown"
+          @click="emit('update:bytesShown', !bytesShown)"
+        >
+          <Binary />
+          <span class="hidden sm:inline">Bytes</span>
         </Button>
       </div>
     </div>
