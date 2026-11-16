@@ -213,10 +213,8 @@ const commands = computed<PaletteCommand[]>(() => [
 
 <template>
   <TooltipProvider :delay-duration="250">
-    <!-- On a wide screen the app fills the window and never scrolls as a whole. -->
-    <div
-      class="app-surface flex min-h-svh flex-col bg-muted/40 lg:h-svh lg:overflow-hidden dark:bg-background"
-    >
+    <!-- The page scrolls as a whole: every panel keeps its own height instead of sharing one window. -->
+    <div class="app-surface flex min-h-svh flex-col bg-muted/40 dark:bg-background">
       <AppHeader
         @reset="cpu.reset"
         @load-example="cpu.loadExample"
@@ -227,11 +225,10 @@ const commands = computed<PaletteCommand[]>(() => [
 
       <!-- Left: what you write. Right: what the CPU holds. -->
       <main
-        class="mx-auto grid w-full max-w-7xl flex-1 gap-4 p-4 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:grid-rows-[minmax(0,1fr)] lg:px-6"
+        class="mx-auto grid w-full max-w-7xl flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:px-6"
       >
-        <div class="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:p-px">
+        <div class="flex min-w-0 flex-col gap-4">
           <InstructionBuilder
-            class="lg:min-h-0 lg:shrink"
             :run="cpu.run"
             :add="cpu.addToProgram"
             :error="error"
@@ -239,8 +236,8 @@ const commands = computed<PaletteCommand[]>(() => [
             :insert-line="insertAt ?? program.length"
             @draft="draft = $event"
           />
-          <!-- The history list shares the program's space instead of squeezing the builder. -->
-          <div class="flex flex-col gap-4 sm:flex-row lg:min-h-44 lg:flex-1">
+          <!-- Side by side only where one column spans the page; a half-width column is too narrow. -->
+          <div class="flex flex-col gap-4 sm:flex-row lg:flex-col">
             <ProgramPanel
               v-model:insert-at="insertAt"
               class="min-w-0 flex-1"
@@ -261,33 +258,30 @@ const commands = computed<PaletteCommand[]>(() => [
               @seek="cpu.seek"
             />
           </div>
-          <EncodingPanel v-if="bytesShown" class="shrink-0" :shown="encodingShown" />
-          <DevicesPanel v-if="devicesShown" class="shrink-0" :state="state" @input="cpu.setInput" />
+          <EncodingPanel v-if="bytesShown" :shown="encodingShown" />
+          <DevicesPanel v-if="devicesShown" :state="state" @input="cpu.setInput" />
         </div>
-        <div class="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:p-px">
+        <div class="flex min-w-0 flex-col gap-4">
           <CpuDiagram
             v-if="cpuView === 'diagram'"
-            class="shrink-0"
             :state="state"
             :record="lastRecord"
             :pending="pending"
             :tick="history.length"
           />
           <template v-else>
-            <Card size="sm" class="shrink-0">
+            <Card size="sm">
               <CardContent>
                 <CpuCycle :state="state" :record="lastRecord" :pending="pending" />
               </CardContent>
             </Card>
             <RegistersPanel
-              class="shrink-0"
               :state="state"
               :previous="lastRecord?.before.registers ?? null"
               :tick="history.length"
             />
-            <LastOperation class="shrink-0" :state="state" :record="lastRecord" />
+            <LastOperation :state="state" :record="lastRecord" />
             <FlagsPanel
-              class="shrink-0"
               :state="state"
               :previous="lastRecord?.before.flags ?? null"
               :record="lastRecord"
@@ -295,7 +289,6 @@ const commands = computed<PaletteCommand[]>(() => [
             />
           </template>
           <MemoryView
-            class="lg:min-h-36 lg:flex-1"
             :state="state"
             :heat="memoryHeat"
             :record="lastRecord"

@@ -123,7 +123,11 @@ function mnemonicOptions(): Option[] {
   for (const name of MNEMONICS) {
     const category = INSTRUCTIONS[name].category as Category;
     // The prefixes sit right after the string instructions they repeat.
-    if (!prefixesOffered && options.at(-1)?.group === CATEGORY_LABELS.string && category !== 'string') {
+    if (
+      !prefixesOffered &&
+      options.at(-1)?.group === CATEGORY_LABELS.string &&
+      category !== 'string'
+    ) {
       offerPrefixes();
     }
     if (chosen && !prefixAllows(chosen, name)) continue;
@@ -410,18 +414,12 @@ function onBackspace(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <!-- The floor keeps a few choices on show however short the window is. -->
-  <Card
-    ref="card"
-    :class="active && moreToChoose ? 'lg:min-h-80' : ''"
-    @focusin="active = true"
-    @focusout="onFocusOut"
-  >
+  <Card ref="card" @focusin="active = true" @focusout="onFocusOut">
     <CardHeader>
       <CardTitle>Instruction</CardTitle>
     </CardHeader>
 
-    <CardContent class="flex flex-col gap-3 lg:min-h-0">
+    <CardContent class="flex flex-col gap-3">
       <!-- The instruction so far, word by word, followed by the filter input. -->
       <div
         data-loc="builder"
@@ -484,10 +482,7 @@ function onBackspace(event: KeyboardEvent): void {
         <AlertDescription class="text-destructive/90">{{ error }}</AlertDescription>
       </Alert>
 
-      <div
-        v-if="moreToChoose && active"
-        class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-none lg:min-h-24"
-      >
+      <div v-if="moreToChoose && active" class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80">
         <div v-for="[group, options] in groups" :key="group" class="mb-3 last:mb-0">
           <h3 class="mb-1.5 text-xs text-muted-foreground">{{ group }}</h3>
           <div class="flex flex-wrap gap-1.5">
