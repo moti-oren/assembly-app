@@ -40,6 +40,13 @@ npm run lint
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
   fetch, decode, then execute. Fetch and decode show what is about to happen in the CPU panel's
   **Cycle** box and on the wires; the registers, flags and memory change only at execute.
+- The CPU diagram is laid out like the 8086 itself. The **execution unit** (EU) holds the data,
+  pointer and index registers, the ALU and the flags; the **bus interface unit** (BIU) holds the
+  segment registers, IP and the **address adder**, which shows `segment × 10h + offset` for the
+  last memory access. An internal bus joins the two units, and one external address/data bus
+  leaves the adder for the memory and the I/O ports. Each wire lights up as read or written. A
+  port number skips the adder, and fetching a line forms no address, because the program is not
+  stored in memory.
 - Instructions are not run from bytes, so IP is the index of the next program line (L0, L1, …),
   and jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it.
 - The Program panel still shows the machine code each line would assemble to on a real 8086.
@@ -122,6 +129,12 @@ npm run lint
 - אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
   fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בתיבת **Cycle** שבחלונית
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.
+- דיאגרמת ה-CPU בנויה כמו ה-8086 עצמו. **יחידת הביצוע** (EU) מחזיקה את רגיסטרי הנתונים,
+  המצביעים והאינדקסים, את ה-ALU ואת הדגלים; **יחידת ממשק ה-bus** (BIU) מחזיקה את רגיסטרי
+  הסגמנט, את IP ואת **מחבר הכתובות** (Address adder), שמציג את `segment × 10h + offset` של
+  הגישה האחרונה לזיכרון. bus פנימי מחבר בין שתי היחידות, ו-bus חיצוני אחד של כתובות ונתונים
+  יוצא מהמחבר אל הזיכרון ואל פורטי ה-I/O. כל חיווט נדלק כקריאה או ככתיבה. מספר פורט מדלג על
+  המחבר, ושליפת שורה אינה יוצרת כתובת, כי התוכנית אינה שמורה בזיכרון.
 - הוראות אינן מורצות מתוך בתים, ולכן IP הוא האינדקס של שורת התוכנית הבאה (L0, L1, …), ויעדי
   jump/call הם שורות. CALL דוחף את השורה הבאה למחסנית ו-RET שולף אותה.
 - חלונית התוכנית מציגה בכל זאת את קוד המכונה שכל שורה הייתה מתורגמת אליו ב-8086 אמיתי. כפתור
