@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import {
+  Cable,
   FastForward,
   Footprints,
   ListOrdered,
@@ -31,6 +32,7 @@ const props = defineProps<{
   executed: number;
   undone: number;
   historyShown: boolean;
+  devicesShown: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -43,6 +45,7 @@ const emit = defineEmits<{
   seek: [position: number];
   'update:speed': [speed: RunSpeed];
   'update:historyShown': [shown: boolean];
+  'update:devicesShown': [shown: boolean];
 }>();
 
 const SPEED_LABELS: Record<RunSpeed, string> = {
@@ -163,6 +166,16 @@ const total = computed(() => props.executed + props.undone);
         >
           <ListOrdered />
           <span class="hidden sm:inline">History</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          :class="devicesShown ? 'bg-secondary' : ''"
+          :aria-pressed="devicesShown"
+          @click="emit('update:devicesShown', !devicesShown)"
+        >
+          <Cable />
+          <span class="hidden sm:inline">I/O</span>
         </Button>
       </div>
     </div>

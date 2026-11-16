@@ -46,6 +46,10 @@ npm run lint
 - String instructions (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) read from DS:SI, write to ES:DI and step by DF. Pick `rep`, `repe` or `repne`
   first to repeat one while CX ≠ 0; the whole repeat runs as a single step.
+- `in` and `out` move AL or AX to and from I/O ports; the port is an 8-bit number or DX. The
+  **I/O** button in the bottom bar shows the devices: LEDs (out 10h), switches (in 11h), two
+  7-segment digits (out 12h and 13h, one bit per segment) and a terminal that prints every byte
+  written to it (out 20h). The panel opens by itself when a program uses a port.
 - Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
   instruction's own numbers (e.g. `7Fh + 01h` overflows as signed, so OF = 1).
 
@@ -110,6 +114,10 @@ npm run lint
 - פקודות המחרוזת (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) קוראות מ-DS:SI, כותבות ל-ES:DI ומתקדמות לפי DF. בוחרים קודם `rep`, `repe` או
   `repne` כדי לחזור על פקודה כל עוד CX ≠ 0; החזרה כולה רצה כצעד אחד.
+- `in` ו-`out` מעבירות את AL או AX אל פורטי I/O ומהם; הפורט הוא מספר של 8 סיביות או DX. כפתור
+  **I/O** בסרגל התחתון מציג את ההתקנים: נורות LED (out 10h), מתגים (in 11h), שתי ספרות
+  7 מקטעים (out 12h ו-13h, סיבית לכל מקטע) ומסוף שמדפיס כל בית שנכתב אליו (out 20h). החלונית
+  נפתחת מעצמה כשתוכנית משתמשת בפורט.
 - מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
   אותה הוראה (למשל `7Fh + 01h` גולש כמספר מסומן, ולכן OF = 1).
 
