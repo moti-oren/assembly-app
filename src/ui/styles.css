@@ -235,49 +235,37 @@
     }
   }
 
-  /* A connection in the CPU diagram; it lights up when the last instruction used it. */
+  /*
+   * A connection in the CPU diagram. When the last instruction used it, it lights up in the
+   * colour of that use: a short glow, then a steady light until the next instruction.
+   */
   .wire {
     position: relative;
     height: 2px;
     border-radius: 1px;
     background: color-mix(in oklch, var(--foreground) 15%, transparent);
-    transition: background-color 300ms;
   }
-  .wire[data-role='read'] {
-    background: var(--pointer);
-    color: var(--pointer);
-  }
-  .wire[data-role='write'] {
-    background: var(--changed-glow);
-    color: var(--changed-glow);
-  }
-  /*
-   * A pulse running along the wire in the direction the value travelled. It takes as long as
-   * a packet's flight, so it reaches the far end just as the value there changes.
-   */
-  .wire-dot {
+  .wire-lit {
+    --kind-color: var(--pointer);
     position: absolute;
-    top: -2px;
-    left: 0;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    box-shadow: 0 0 8px 1px currentColor;
-    opacity: 0;
-    animation: wire-travel var(--flight) ease-in-out;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--kind-color);
+    animation: wire-light 700ms ease-out;
   }
-  .wire[data-reverse] .wire-dot {
-    animation-direction: reverse;
+  .wire-lit[data-kind='write'] {
+    --kind-color: var(--changed-glow);
   }
-  @keyframes wire-travel {
+  @keyframes wire-light {
     from {
-      left: 0;
+      opacity: 0;
+    }
+    30% {
       opacity: 1;
+      box-shadow: 0 0 10px 2px var(--kind-color);
     }
     to {
-      left: calc(100% - 6px);
-      opacity: 1;
+      box-shadow: 0 0 0 0 var(--kind-color);
     }
   }
 
@@ -377,7 +365,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .change-flash,
-    .wire-dot,
+    .wire-lit,
     .digit-glyph {
       animation: none;
       transition: none;
