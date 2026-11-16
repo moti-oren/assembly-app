@@ -195,7 +195,10 @@ function operandOptions(current: Mnemonic): Option[] {
       options.push({
         key: `label${target}`,
         label: formatLabel(target),
-        group: 'Jump to program line',
+        group:
+          INSTRUCTIONS[current].category === 'control'
+            ? 'Jump to program line'
+            : 'Number of a program line',
         hint: props.programLines[target] ?? 'end of program',
         matchesNumber: (value) => value === target,
         apply: () => addOperand({ type: 'label', target })

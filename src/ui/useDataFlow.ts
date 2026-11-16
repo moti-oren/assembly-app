@@ -69,7 +69,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       if (operand.type === 'mem') {
         return formatHex(readMemory(state, effectiveAddress(stateBefore, operand), size), size);
       }
-      return operand.type === 'imm' ? formatHex(operand.value, size) : '';
+      return formatHex(operand.type === 'imm' ? operand.value : operand.target, size);
     };
 
     if (second && WRITES_FIRST_OPERAND.has(instruction.mnemonic)) {

@@ -2,7 +2,7 @@ import { explainOffset, type OffsetBreakdown } from '@/core/address';
 import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { getSpec, isStringCompare, type Mnemonic } from '@/core/instructions';
-import { formatHex, truncate, type Size } from '@/core/numbers';
+import { formatHex, truncate } from '@/core/numbers';
 import {
   effectiveAddress,
   effectiveOffset,
@@ -28,6 +28,9 @@ const OPERATORS: Partial<Record<Mnemonic, string>> = {
   or: 'OR',
   xor: 'XOR'
 };
+
+/** Instructions whose memory access is a read at the top of the stack. */
+const POPS_THE_STACK = new Set<Mnemonic>(['pop', 'ret', 'iret', 'popf']);
 
 /** Instructions that compute a result only to set the flags, then throw it away. */
 function discardsResult(mnemonic: Mnemonic): boolean {
@@ -181,15 +184,12 @@ export function describeMemoryAccess(
   }
   // No memory operand, so anything written went onto the stack (PUSH, CALL).
   if (memoryWrites.length > 0) {
-    const value = memoryWrites.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
-    return access(
-      'ss',
-      memoryWrites[0].address - (registers.ss << 4),
-      formatHex(value, (memoryWrites.length * 8) as Size),
-      true
-    );
+    // An interrupt pushes three words; the one on show is the last, now on top of the stack.
+    const top = memoryWrites.slice(-2);
+    const value = top.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
+    return access('ss', top[0].address - (registers.ss << 4), formatHex(value, 16), true);
   }
-  if (instruction.mnemonic === 'pop' || instruction.mnemonic === 'ret') {
+  if (POPS_THE_STACK.has(instruction.mnemonic)) {
     const top = physicalAddress(registers.ss, registers.sp);
     return access('ss', registers.sp, formatHex(readMemory(state, top, 16), 16), false);
   }
