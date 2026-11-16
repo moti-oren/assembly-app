@@ -9,6 +9,7 @@ import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
+  aluUse,
   describeEquation,
   describeMemoryAccess,
   registersRead,
@@ -16,6 +17,7 @@ import {
 } from '@/ui/describe';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
+import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
@@ -31,6 +33,7 @@ const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
 const GROUP_STARTS: readonly WordRegister[] = ['si', 'cs', 'ip'];
 
 const equation = computed(() => props.record && describeEquation(props.state, props.record));
+const alu = computed(() => (props.record ? aluUse(props.record) : { input: false, output: false }));
 const memory = computed(() => props.record && describeMemoryAccess(props.state, props.record));
 const read = computed(() => (props.record ? registersRead(props.record) : new Set<WordRegister>()));
 
@@ -47,7 +50,7 @@ function changedBits(name: WordRegister): number {
 }
 
 /** A written register wins over a read one: `add ax, cx` reads AX but what matters is the write. */
-function role(name: WordRegister): 'read' | 'write' | undefined {
+function use(name: WordRegister): 'read' | 'write' | undefined {
   if (changedBits(name) !== 0 || written.value.has(name)) return 'write';
   return read.value.has(name) ? 'read' : undefined;
 }
@@ -152,14 +155,7 @@ function flagChanged(flag: FlagName): boolean {
               />
             </span>
 
-            <span
-              class="wire hidden min-w-5 flex-1 sm:block"
-              :data-role="role(name)"
-              :data-reverse="role(name) === 'write' ? '' : undefined"
-              aria-hidden="true"
-            >
-              <span v-if="role(name)" :key="tick" class="wire-dot" />
-            </span>
+            <DiagramWire class="hidden min-w-5 flex-1 sm:block" :kind="use(name)" :tick="tick" />
           </div>
         </div>
 
@@ -167,16 +163,8 @@ function flagChanged(flag: FlagName): boolean {
           <div class="flex flex-col">
             <div class="flex items-stretch">
               <div class="hidden w-5 flex-col justify-center gap-4 sm:flex" aria-hidden="true">
-                <span class="wire" :data-role="equation ? 'read' : undefined">
-                  <span v-if="equation" :key="tick" class="wire-dot" />
-                </span>
-                <span
-                  class="wire"
-                  data-reverse
-                  :data-role="equation && !equation.discarded ? 'write' : undefined"
-                >
-                  <span v-if="equation && !equation.discarded" :key="tick" class="wire-dot" />
-                </span>
+                <DiagramWire :kind="alu.input ? 'read' : undefined" :tick="tick" />
+                <DiagramWire :kind="alu.output ? 'write' : undefined" :tick="tick" />
               </div>
               <!-- A fixed height, sized for the longest sum, so nothing below moves as the text changes. -->
               <div class="h-36 min-w-0 flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
@@ -223,9 +211,11 @@ function flagChanged(flag: FlagName): boolean {
                 </div>
                 <p v-else class="mt-2 text-xs text-muted-foreground">
                   {{
-                    record
-                      ? `Nothing to add up for ${record.instruction.mnemonic}.`
-                      : 'Run an instruction to see how its result is computed.'
+                    !record
+                      ? 'Run an instruction to see how its result is computed.'
+                      : alu.input
+                        ? 'Computed here. The result is in the highlighted registers.'
+                        : `Not used by ${record.instruction.mnemonic}.`
                   }}
                 </p>
               </div>
@@ -274,14 +264,11 @@ function flagChanged(flag: FlagName): boolean {
           </div>
 
           <div class="flex items-center">
-            <span
-              class="wire hidden w-5 sm:block"
-              :data-role="memory ? (memory.write ? 'write' : 'read') : undefined"
-              :data-reverse="memory && !memory.write ? '' : undefined"
-              aria-hidden="true"
-            >
-              <span v-if="memory" :key="tick" class="wire-dot" />
-            </span>
+            <DiagramWire
+              class="hidden w-5 sm:block"
+              :kind="memory ? (memory.write ? 'write' : 'read') : undefined"
+              :tick="tick"
+            />
             <div
               class="flex min-w-0 flex-1 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
             >

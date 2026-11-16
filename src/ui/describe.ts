@@ -1,5 +1,5 @@
 import type { ExecutionRecord } from '@/core/execute';
-import type { Mnemonic } from '@/core/instructions';
+import { getSpec, type Category, type Mnemonic } from '@/core/instructions';
 import { formatHex, truncate, type Size } from '@/core/numbers';
 import {
   effectiveAddress,
@@ -26,6 +26,19 @@ const OPERATORS: Partial<Record<Mnemonic, string>> = {
   or: 'OR',
   xor: 'XOR'
 };
+
+/**
+ * Whether the instruction went through the ALU, and whether a result came back out of it.
+ * Decided by the instruction's kind, not by whether the ALU panel can show it as a sum:
+ * NEG, MUL or a shift use the ALU just as much as ADD does. CMP and TEST keep only the flags.
+ */
+export function aluUse(record: ExecutionRecord): { input: boolean; output: boolean } {
+  const { mnemonic } = record.instruction;
+  const input = ALU_CATEGORIES.has(getSpec(mnemonic).category);
+  return { input, output: input && mnemonic !== 'cmp' && mnemonic !== 'test' };
+}
+
+const ALU_CATEGORIES = new Set<Category>(['arithmetic', 'logic', 'shift']);
 
 /** Instructions that overwrite their first operand without reading it. */
 const OVERWRITES_FIRST_OPERAND = new Set<Mnemonic>(['mov', 'pop']);
