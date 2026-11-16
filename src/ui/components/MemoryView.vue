@@ -143,7 +143,13 @@ function ascii(value: number): string {
         <CardTitle class="mr-1">Memory</CardTitle>
         <Select v-model="segment">
           <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
-            <SelectValue />
+            <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
+            <SelectValue>
+              {{ segment.toUpperCase() }}
+              <span class="text-muted-foreground">{{
+                formatHex(state.registers[segment], 16)
+              }}</span>
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="name in SEGMENTS" :key="name" :value="name" class="font-mono">
