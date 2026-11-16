@@ -26,20 +26,28 @@ Style: Prettier with single quotes, semicolons, no trailing commas, 100 columns.
 Two layers; keep them separate.
 
 - `src/core/` is the CPU and **must not depend on Vue**. All logic is tested here.
-  - `state.ts`: registers (8-bit registers are views into AX..DX), FLAGS, 1MB memory.
+  - `state.ts`: registers (8-bit registers are views into AX..DX), FLAGS, 1MB memory, and the I/O ports (`io`).
   - `instructions.ts`: the instruction set expressed as data; each mnemonic lists its legal operand forms. Adding an instruction starts here.
   - `builder.ts`: given the words chosen so far, computes which operands may come next (drives the UI's word-by-word builder).
   - `execute.ts`: runs one instruction, computes flags, and returns an **undo record** (history/undo depends on this).
-  - `program.ts`: a program is a list of instructions; stepping, running, and edits that keep jump targets on the right lines.
+  - `program.ts`: a program is a list of instructions; stepping, running, and edits that keep jump targets on the right lines. Also holds the example programs.
+  - `decode.ts`: what an instruction reads and writes (registers, memory, ports, flags, ALU), including registers it uses without naming them. The diagram and the fetch/decode/execute view are driven by it.
+  - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …). **Display only**; nothing executes these bytes.
+  - `devices.ts`: the port numbers of the I/O devices (LEDs, switches, 7-segment digits, terminal) and how their bytes are shown.
+  - `address.ts` and `flagReasons.ts`: explanations for the UI, worked out from state and the undo record: how segment:offset becomes a 20-bit address, and why each flag got its value.
 - `src/ui/`: Vue components in `ui/components/` and `useCpu.ts`, which wraps the core in Vue reactivity. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
 - `src/components/ui/`: shadcn-vue components (Tailwind v4 + reka-ui), generated with `npx shadcn-vue add <name>`. They are excluded from ESLint; don't hand-edit them casually. Config in `components.json`.
 
 ## Execution model (non-obvious)
 
-- Instructions are **not encoded into bytes**. IP is the index of the next program line (L0, L1, …); jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it.
+- Instructions **run as data, not as bytes**. IP is the index of the next program line (L0, L1, …); jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it. The machine code from `encode.ts` is shown beside the program but never executed, and it is not written into memory.
+- A label used as a value (`mov word [0x84], L8`) is the **line number** at run time, while `encode.ts` shows it as the byte offset of that line. Keep both in mind when touching either side.
 - An instruction runs immediately (Enter) or is appended to the program (Shift+Enter).
 - Memory operands are `byte`/`word` `[bx]`, `[si]`, `[di]`, `[bp]` or `[offset]`. `[bp]` uses SS; all others use DS.
 - Shift counts are `1` or `CL`, as on the 8086.
+- String instructions read DS:SI and write ES:DI. A `rep`/`repe`/`repne` repetition runs to the end as **one step** with one undo record.
+- Interrupts go through the vector table at `0000:n×4`, where the offset word holds a handler's line number. An **empty vector is a `CpuError`** rather than a jump to line 0, so L0 cannot be a handler. A divide error enters INT 0 only if that vector is installed.
+- I/O ports are separate from memory, with separate input and output bytes per port. Output port writes are part of the undo record (`portWrites`); the input ports are set by the devices panel and survive Reset.
 
 ## Git
 
@@ -73,8 +81,10 @@ Two layers; keep them separate.
 ## Conventions
 
 - **`core` stays framework-free:** never import `vue` or anything from `@/ui` / `@/components` inside `src/core/`.
-- **Adding an instruction:** define it in `instructions.ts`, implement it in `execute.ts`, then add tests in `execute.test.ts`. If it touches flags, test the flags too.
-- **Undo is a contract:** every path in `execute.ts` must return a complete undo record (registers, flags, memory writes and IP). A new path without one breaks history.
+- **Adding an instruction:** define it in `instructions.ts`, implement it in `execute.ts`, then add tests in `execute.test.ts`. If it touches flags, test the flags too. Then give it an encoding in `encode.ts` (it throws for a mnemonic it does not know, and a test encodes every example program), and list any registers it uses implicitly in `decode.ts`.
+- **Undo is a contract:** every path in `execute.ts` must return a complete undo record (registers, flags, memory writes, port writes and IP). A new path without one breaks history.
+- **Encodings follow NASM:** where the 8086 allows two encodings of one instruction, `encode.ts` produces the one NASM picks (checked against NASM 3.02 with `bits 16` / `cpu 8086`). Two deliberate exceptions: `int 3` is the one-byte `CC`, and a conditional jump out of short range is reported as a problem instead of being rewritten as an inverted jump over a `jmp`.
+- **Typed arrays are not reactive:** memory and port bytes live in `Uint8Array`s, so the UI depends on `memoryVersion` / `ioVersion`. Bump them on every write path.
 - **8086 fidelity:** flag behavior (AF, OF, CF, etc.) follows real 8086 semantics, not whatever is convenient. When unsure, check the 8086 reference instead of guessing.
 - **UI changes:** `typecheck` and `test` do not cover the UI. Verify it in the browser via `npm run dev` before reporting it done.
 - **README on UI changes:** whenever the UI changes (new or changed controls, shortcuts, panels, behavior the user sees), check whether `README.md` should change too (commands, layout, model, usage). If so, update it in the same change.
