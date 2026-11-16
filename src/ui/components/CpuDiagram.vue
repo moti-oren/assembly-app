@@ -215,6 +215,13 @@ function flagChanged(flag: FlagName): boolean {
           <section class="min-w-0" aria-label="Execution unit">
             <h3 class="unit-title">Execution unit <span>EU</span></h3>
             <div class="flex flex-col font-mono text-[13px]">
+              <!-- The number system of each column, as in the register table. -->
+              <div class="flex h-5 items-center gap-2.5 font-sans text-xs text-muted-foreground">
+                <span class="w-6" />
+                <span class="w-14">Hex</span>
+                <span class="flex w-11 justify-end whitespace-nowrap">Unsigned</span>
+                <span class="hidden @min-[36rem]:inline">Binary</span>
+              </div>
               <div
                 v-for="name in EU_REGISTERS"
                 :key="name"
@@ -398,6 +405,13 @@ function flagChanged(flag: FlagName): boolean {
           >
             <h3 class="unit-title sm:pl-7">Bus interface unit <span>BIU</span></h3>
             <div class="flex flex-col font-mono text-[13px]">
+              <div class="flex h-5 items-center gap-2.5 font-sans text-xs text-muted-foreground">
+                <span class="-mr-0.5 hidden w-5 sm:block" />
+                <span class="w-6" />
+                <span class="w-10">Hex</span>
+                <span class="flex w-11 justify-end whitespace-nowrap">Unsigned</span>
+                <span class="hidden @min-[40rem]:inline">Binary</span>
+              </div>
               <div
                 v-for="name in BIU_REGISTERS"
                 :key="name"
