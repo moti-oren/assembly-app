@@ -20,6 +20,23 @@ export class CpuError extends Error {
   override name = 'CpuError';
 }
 
+/** What the ALU computed, kept so the flags it produced can be explained afterwards. */
+export type AluTrace =
+  | {
+      kind: 'add' | 'subtract';
+      size: Size;
+      a: number;
+      b: number;
+      /** CF going in (ADC, SBB), otherwise 0. */
+      carryIn: number;
+      result: number;
+      /** False for INC and DEC, which leave CF alone. */
+      updatesCarry: boolean;
+    }
+  | { kind: 'logic'; size: Size; result: number }
+  | { kind: 'shift'; size: Size; original: number; count: number; result: number; carry: boolean }
+  | { kind: 'multiply'; size: Size; signed: boolean; product: number; overflow: boolean };
+
 /** Everything needed to undo one executed instruction. */
 export interface ExecutionRecord {
   instruction: Instruction;
@@ -27,10 +44,13 @@ export interface ExecutionRecord {
   line: number | null;
   before: { registers: Record<WordRegister, number>; flags: number };
   memoryWrites: MemoryWrite[];
+  /** Null when the instruction computed nothing in the ALU, e.g. MOV, a jump, or a shift by 0. */
+  alu: AluTrace | null;
 }
 
 class ExecutionContext {
   readonly memoryWrites: MemoryWrite[] = [];
+  alu: AluTrace | null = null;
 
   constructor(
     readonly state: CpuState,
@@ -98,6 +118,7 @@ class ExecutionContext {
     this.setFlag('OF', ((a ^ result) & (b ^ result) & signBit(this.size)) !== 0);
     this.setFlag('AF', ((a ^ b ^ result) & 0x10) !== 0);
     this.setResultFlags(result);
+    this.alu = { kind: 'add', size: this.size, a, b, carryIn, result, updatesCarry: updateCarry };
     return result;
   }
 
@@ -110,6 +131,15 @@ class ExecutionContext {
     this.setFlag('OF', ((a ^ b) & (a ^ result) & signBit(this.size)) !== 0);
     this.setFlag('AF', ((a ^ b ^ result) & 0x10) !== 0);
     this.setResultFlags(result);
+    this.alu = {
+      kind: 'subtract',
+      size: this.size,
+      a,
+      b,
+      carryIn: borrowIn,
+      result,
+      updatesCarry: updateCarry
+    };
     return result;
   }
 
@@ -118,7 +148,15 @@ class ExecutionContext {
     this.setFlag('OF', false);
     this.setFlag('AF', false);
     this.setResultFlags(result);
+    this.alu = { kind: 'logic', size: this.size, result: truncate(result, this.size) };
     return truncate(result, this.size);
+  }
+
+  /** MUL and IMUL: CF and OF both say whether the upper half of the product is significant. */
+  setProductFlags(product: number, signed: boolean, overflow: boolean): void {
+    this.setFlag('CF', overflow);
+    this.setFlag('OF', overflow);
+    this.alu = { kind: 'multiply', size: this.size, signed, product, overflow };
   }
 
   push(value: number): void {
@@ -213,6 +251,7 @@ const shift =
 
     ctx.write(dst, value);
     ctx.setFlag('CF', carry);
+    ctx.alu = { kind: 'shift', size: ctx.size, original, count, result: value, carry };
 
     // OF is only defined for single-bit shifts and rotates.
     if (count === 1) {
@@ -294,14 +333,12 @@ const HANDLERS: Record<Mnemonic, Handler> = {
     if (ctx.size === 8) {
       const product = readRegister(ctx.state, 'al') * factor;
       writeRegister(ctx.state, 'ax', product);
-      ctx.setFlag('CF', product > 0xff);
-      ctx.setFlag('OF', product > 0xff);
+      ctx.setProductFlags(product, false, product > 0xff);
     } else {
       const product = readRegister(ctx.state, 'ax') * factor;
       writeRegister(ctx.state, 'ax', product % 0x10000);
       writeRegister(ctx.state, 'dx', Math.floor(product / 0x10000));
-      ctx.setFlag('CF', product > 0xffff);
-      ctx.setFlag('OF', product > 0xffff);
+      ctx.setProductFlags(product, false, product > 0xffff);
     }
   },
   imul: (ctx, [src]) => {
@@ -309,16 +346,12 @@ const HANDLERS: Record<Mnemonic, Handler> = {
     if (ctx.size === 8) {
       const product = toSigned(readRegister(ctx.state, 'al'), 8) * factor;
       writeRegister(ctx.state, 'ax', product);
-      const overflow = product < -0x80 || product > 0x7f;
-      ctx.setFlag('CF', overflow);
-      ctx.setFlag('OF', overflow);
+      ctx.setProductFlags(product, true, product < -0x80 || product > 0x7f);
     } else {
       const product = toSigned(readRegister(ctx.state, 'ax'), 16) * factor;
       writeRegister(ctx.state, 'ax', product);
       writeRegister(ctx.state, 'dx', product >> 16);
-      const overflow = product < -0x8000 || product > 0x7fff;
-      ctx.setFlag('CF', overflow);
-      ctx.setFlag('OF', overflow);
+      ctx.setProductFlags(product, true, product < -0x8000 || product > 0x7fff);
     }
   },
   div: (ctx, [src]) => {
@@ -446,7 +479,8 @@ export function execute(
     instruction,
     line,
     before: { registers: { ...state.registers }, flags: state.flags },
-    memoryWrites: ctx.memoryWrites
+    memoryWrites: ctx.memoryWrites,
+    alu: null
   };
 
   try {
@@ -454,6 +488,7 @@ export function execute(
       writeRegister(state, 'ip', line + 1);
     }
     HANDLERS[instruction.mnemonic](ctx, instruction.operands);
+    record.alu = ctx.alu;
   } catch (error) {
     undo(state, record);
     throw error;

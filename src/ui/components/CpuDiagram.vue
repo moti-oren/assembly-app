@@ -18,6 +18,7 @@ import {
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import DiagramWire from './DiagramWire.vue';
+import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
@@ -257,7 +258,7 @@ function flagChanged(flag: FlagName): boolean {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {{ FLAG_INFO[flag].label }}: {{ FLAG_INFO[flag].description }}
+                  <FlagReason :flag="flag" :record="record" />
                 </TooltipContent>
               </Tooltip>
             </div>
