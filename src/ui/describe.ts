@@ -196,6 +196,36 @@ export function describeMemoryAccess(
   return null;
 }
 
+export interface PortAccess {
+  /** The port number in hex, e.g. `10` or `03F8`. */
+  port: string;
+  value: string;
+  write: boolean;
+}
+
+/** The I/O port an IN or OUT went through, and the byte or word that crossed the bus. */
+export function describePortAccess(state: CpuState, record: ExecutionRecord): PortAccess | null {
+  const { instruction, portWrites } = record;
+  const name = (port: number): string => formatHex(port, port > 0xff ? 16 : 8);
+  if (instruction.mnemonic === 'out' && portWrites.length > 0) {
+    const value = portWrites.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
+    const size = portWrites.length === 2 ? 16 : 8;
+    return { port: name(portWrites[0].port), value: formatHex(value, size), write: true };
+  }
+  if (instruction.mnemonic === 'in') {
+    const [destination, source] = instruction.operands;
+    if (destination?.type !== 'reg' || !source) return null;
+    const port = source.type === 'imm' ? source.value & 0xff : record.before.registers.dx;
+    const size = operandSize(destination) ?? 8;
+    return {
+      port: name(port),
+      value: formatHex(readRegister(state, destination.name), size),
+      write: false
+    };
+  }
+  return null;
+}
+
 /**
  * The registers an instruction read: its sources, the parts of a memory address, and the ones
  * it uses without naming (SP for PUSH, SI and DI for the string instructions).

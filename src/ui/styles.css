@@ -269,6 +269,25 @@
     }
   }
 
+  /* The name of one of the two units inside the CPU diagram. */
+  .unit-title {
+    margin-bottom: 0.5rem;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .unit-title > span {
+    margin-left: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 0.25rem;
+    color: var(--foreground);
+    font-family: var(--font-mono);
+    letter-spacing: 0;
+  }
+
   /* One character of a number; see RollingDigits.vue. */
   .digit {
     position: relative;

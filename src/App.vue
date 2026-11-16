@@ -223,9 +223,9 @@ const commands = computed<PaletteCommand[]>(() => [
       <CommandPalette v-model:open="paletteOpen" :commands="commands" />
       <ChangeStrip v-if="lastRecord" class="lg:hidden" :state="state" :record="lastRecord" />
 
-      <!-- Left: what you write. Right: what the CPU holds. -->
+      <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
       <main
-        class="mx-auto grid w-full max-w-7xl flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:px-6"
+        class="mx-auto grid w-full max-w-7xl flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
       >
         <div class="flex min-w-0 flex-col gap-4">
           <InstructionBuilder
@@ -259,7 +259,6 @@ const commands = computed<PaletteCommand[]>(() => [
             />
           </div>
           <EncodingPanel v-if="bytesShown" :shown="encodingShown" />
-          <DevicesPanel v-if="devicesShown" :state="state" @input="cpu.setInput" />
         </div>
         <div class="flex min-w-0 flex-col gap-4">
           <CpuDiagram
@@ -288,6 +287,8 @@ const commands = computed<PaletteCommand[]>(() => [
               :tick="history.length"
             />
           </template>
+          <!-- The devices sit by the CPU whose bus they hang off, in sight while a program runs. -->
+          <DevicesPanel v-if="devicesShown" :state="state" @input="cpu.setInput" />
           <MemoryView
             :state="state"
             :heat="memoryHeat"
