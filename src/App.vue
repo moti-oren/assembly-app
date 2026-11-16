@@ -203,6 +203,7 @@ const commands = computed<PaletteCommand[]>(() => [
             class="lg:min-h-36 lg:flex-1"
             :state="state"
             :heat="memoryHeat"
+            :record="lastRecord"
             :tick="history.length"
           />
         </div>
