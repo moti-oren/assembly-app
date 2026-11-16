@@ -18,6 +18,7 @@ import { EXAMPLE_PROGRAMS } from '@/core/program';
 import { RUN_SPEEDS, useCpu, type RunSpeed } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
 import { usePreferences } from '@/ui/usePreferences';
+import { raisedOverflow, stepSound } from '@/ui/sounds';
 
 const cpu = useCpu();
 const {
@@ -38,12 +39,28 @@ useDataFlow(state, history);
 
 const programLines = computed(() => program.value.map(formatInstruction));
 
-const { isDark, soundOn, cpuView, toggleTheme, tick } = usePreferences();
+const { isDark, soundOn, cpuView, toggleTheme, play } = usePreferences();
 
-// Forward in time ticks high, backward ticks low.
+// One instruction forward sounds like what it did; anything bigger is a single ratchet.
 watch(
   () => history.value.length,
-  (length, previous) => tick(length > previous ? 660 : 440)
+  (length, previous) => {
+    const record = lastRecord.value;
+    if (length === previous + 1 && record) {
+      play(stepSound(record, state));
+      if (raisedOverflow(record, state)) play('overflow', 0.03);
+      if (record.line !== null && finished.value) play('halt', 0.12);
+    } else if (length === previous - 1) {
+      play('undo');
+    } else {
+      play('ratchet');
+    }
+  }
+);
+watch(error, (message) => message && play('error'));
+watch(
+  () => program.value.length,
+  (length, previous) => length === previous + 1 && play('punch')
 );
 
 const paletteOpen = ref(false);

@@ -1,5 +1,7 @@
 import { nextTick } from 'vue';
 import { createGlobalState, useDark, useLocalStorage } from '@vueuse/core';
+import type { SoundKind } from './sounds';
+import { playSound } from './synth';
 
 /** Theme and sound, shared by the header and the command palette. Both are remembered. */
 export const usePreferences = createGlobalState(() => {
@@ -23,23 +25,10 @@ export const usePreferences = createGlobalState(() => {
     }
   }
 
-  let audio: AudioContext | undefined;
-
-  /** A short, quiet tick. Does nothing while sound is off. */
-  function tick(frequency: number): void {
-    if (!soundOn.value) return;
-    audio ??= new AudioContext();
-    const now = audio.currentTime;
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-    oscillator.type = 'triangle';
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.05, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
-    oscillator.connect(gain).connect(audio.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.07);
+  /** Does nothing while sound is off. */
+  function play(kind: SoundKind, delay = 0): void {
+    if (soundOn.value) playSound(kind, delay);
   }
 
-  return { isDark, soundOn, cpuView, toggleTheme, tick };
+  return { isDark, soundOn, cpuView, toggleTheme, play };
 });
