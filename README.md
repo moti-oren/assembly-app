@@ -32,6 +32,9 @@ npm run lint
 ## Model
 
 - An instruction can run immediately (Enter) or be added to the program (Shift+Enter).
+- A program line can also be stepped one phase at a time with the phase button next to **Step**:
+  fetch, decode, then execute. Fetch and decode show what is about to happen in the CPU panel's
+  **Cycle** box and on the wires; the registers, flags and memory change only at execute.
 - Instructions are not encoded into bytes, so IP is the index of the next program line (L0, L1, …),
   and jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it.
 - Memory operands are `byte`/`word` `[bx]`, `[si]`, `[di]`, `[bp]` or `[offset]`. `[bp]` uses SS
@@ -85,6 +88,9 @@ npm run lint
 ## המודל
 
 - אפשר להריץ הוראה מיד (Enter) או להוסיף אותה לתוכנית (Shift+Enter).
+- אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
+  fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בתיבת **Cycle** שבחלונית
+  ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.
 - הוראות אינן מקודדות לבתים, ולכן IP הוא האינדקס של שורת התוכנית הבאה (L0, L1, …), ויעדי
   jump/call הם שורות. CALL דוחף את השורה הבאה למחסנית ו-RET שולף אותה.
 - אופרנדים של זיכרון הם `byte`/`word` מסוג `[bx]`, `[si]`, `[di]`, `[bp]` או `[offset]`.

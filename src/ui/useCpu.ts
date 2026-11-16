@@ -1,4 +1,4 @@
-import { computed, onScopeDispose, reactive, ref, shallowRef } from 'vue';
+import { computed, onScopeDispose, reactive, ref, shallowRef, watch } from 'vue';
 import { CpuError, execute, undo, type ExecutionRecord } from '@/core/execute';
 import type { Instruction } from '@/core/instructions';
 import {
@@ -20,6 +20,13 @@ export type RunSpeed = keyof typeof RUN_SPEEDS;
 
 /** How many instructions back a memory write still shows as warm. */
 export const HEAT_STEPS = 6;
+
+/** A program line that is being stepped one phase at a time and has not been executed yet. */
+export interface PendingInstruction {
+  phase: 'fetch' | 'decode';
+  line: number;
+  instruction: Instruction;
+}
 
 /** An undone instruction, with the CPU as it left it, so it can be redone without re-running. */
 interface Undone {
@@ -44,6 +51,11 @@ export function useCpu() {
   /** True while the program is running line by line on a timer. */
   const running = ref(false);
   let runTimer: number | undefined;
+  /**
+   * How far the line at IP has got when stepping by phase. Fetch and decode only show what is
+   * about to happen: the CPU itself changes at execute, exactly as with a whole step.
+   */
+  const phase = ref<PendingInstruction['phase'] | null>(null);
 
   const lastRecord = computed(() => history.value.at(-1) ?? null);
 
@@ -63,6 +75,21 @@ export function useCpu() {
   });
 
   const finished = computed(() => isFinished(state, program.value));
+
+  const pending = computed<PendingInstruction | null>(() => {
+    const line = state.registers.ip;
+    const instruction = program.value[line];
+    return phase.value && instruction ? { phase: phase.value, line, instruction } : null;
+  });
+
+  // Running an instruction, moving through history or editing the program starts the cycle over.
+  watch(
+    [() => history.value.length, program, () => state.registers.ip],
+    () => {
+      phase.value = null;
+    },
+    { flush: 'sync' }
+  );
 
   function record(records: ExecutionRecord[]): void {
     if (records.length > 0) {
@@ -93,6 +120,19 @@ export function useCpu() {
   function stepProgram(): void {
     pause();
     attempt(() => record([step(state, program.value)]));
+  }
+
+  /** Moves the line at IP one phase on: fetch, decode, then execute, which really runs it. */
+  function stepPhase(): void {
+    pause();
+    if (finished.value) return;
+    if (phase.value === null) {
+      phase.value = 'fetch';
+    } else if (phase.value === 'fetch') {
+      phase.value = 'decode';
+    } else {
+      stepProgram();
+    }
   }
 
   function pause(): void {
@@ -211,11 +251,13 @@ export function useCpu() {
     future,
     memoryHeat,
     finished,
+    pending,
     speed,
     running,
     pause,
     run,
     stepProgram,
+    stepPhase,
     runProgram,
     addToProgram,
     removeProgramLine,
