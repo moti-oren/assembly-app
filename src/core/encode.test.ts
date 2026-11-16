@@ -100,7 +100,9 @@ describe('encode', () => {
     expect(hex(line('push', mem(16, 'bx')))).toBe('FF 37');
     expect(hex(line('pop', mem(16, 'si')))).toBe('8F 04');
     expect(hex(line('xchg', reg('ax'), reg('bx')))).toBe('93');
-    expect(hex(line('xchg', reg('bx'), reg('cx')))).toBe('87 CB');
+    expect(hex(line('xchg', reg('bx'), reg('cx')))).toBe('87 D9');
+    expect(hex(line('xchg', reg('al'), reg('cl')))).toBe('86 C1');
+    expect(hex(line('xchg', mem(16, 'bx'), reg('cx')))).toBe('87 0F');
     expect(hex(line('xchg', reg('al'), mem(8, 'bx')))).toBe('86 07');
   });
 

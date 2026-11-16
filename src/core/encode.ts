@@ -421,6 +421,13 @@ function encodeBody(instruction: Instruction, place: Placement): EncodedField[] 
           )
         ];
       }
+      // Swapping is symmetric, so either register could go in `reg`; assemblers put the first there.
+      if (first.type === 'reg' && second.type === 'reg') {
+        return [
+          opcode(0x86 | w, `XCHG r${size}, r/m${size}`),
+          ...modRm(registerField(first), second)
+        ];
+      }
       return registerAndRm(0x86, 0x86);
     }
     case 'test': {
