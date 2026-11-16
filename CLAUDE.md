@@ -58,11 +58,11 @@ Two layers; keep them separate.
   1. Make sure you are on the right branch (create it per the rules above if the task is new).
   2. Run `npm run typecheck`, `npm run lint` and `npm test`; fix failures first.
   3. Split the changes into atomic commits per the rules above and commit them.
-  4. Verify `git status` is clean and report the branch and commits to the user.
+  4. Verify `git status` is clean and report the branch and commits to the user, **in Hebrew** (see "Language with the user").
   - **Partial work is exempt:** if the task is only partly done (blocked, failing, waiting for a user decision, or the user stopped midway), do **not** commit or create a branch. Leave the changes uncommitted and say what remains.
   - Do not commit unrelated pre-existing changes the user left in the tree; stage only files that belong to this task.
 - **Still needs an explicit request:** `git push`, merging into `main`, amending, and rewriting history (rebase, `reset --hard`, force-push). Prefer a new commit over amending.
-- **Language:** commit messages, code and code comments are in English, even when the conversation is in Hebrew.
+- **Language of the commits themselves:** the text stored in git (commit subjects and bodies, branch names, code and code comments) is in English.
 - **Destructive commands:** before `git reset`, `git checkout -- <path>`, `git clean` or `git stash drop`, inspect what will be lost (`git status`, `git diff`). Uncommitted work may be the user's.
 - **Large moves:** commit deletions, moves/renames and new content separately, so `git log --follow` and blame keep working.
 - **Lockfile:** `package-lock.json` changes go in the same commit as the `package.json` change that caused them.
@@ -84,4 +84,4 @@ Two layers; keep them separate.
 - **Dependencies:** don't add new packages without asking.
 - **Comments:** only where the *why* is not obvious. No comments that restate what the line does.
 - **`graphify-out/`:** generated output (git-ignored). Don't edit it by hand.
-- **Language with the user:** reply in Hebrew; code, comments and commit messages stay in English.
+- **Language with the user:** everything addressed to the user is in Hebrew: replies, explanations, questions and all git reports (which branch was created, which commits were made, what each one contains, what was skipped and why). Only the artifacts stay in English: code, comments, commit messages and branch names. When quoting a commit message or branch name in a Hebrew report, keep it verbatim in English and write the surrounding explanation in Hebrew.
