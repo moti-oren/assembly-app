@@ -5,10 +5,13 @@ import {
   CATEGORY_LABELS,
   INSTRUCTIONS,
   MNEMONICS,
+  REPEAT_PREFIXES,
   isComplete,
+  prefixAllows,
   type Category,
   type Instruction,
-  type Mnemonic
+  type Mnemonic,
+  type RepeatPrefix
 } from '@/core/instructions';
 import { fitsIn, formatHex, parseNumber, type Size } from '@/core/numbers';
 import {
@@ -54,6 +57,8 @@ const anyNumber = () => true;
 
 const READY_HINT = 'Enter: run now · Shift+Enter: add to the program';
 
+/** A repeat prefix chosen before the mnemonic; it narrows the mnemonics to the ones it fits. */
+const prefix = ref<RepeatPrefix | null>(null);
 const mnemonic = ref<Mnemonic | null>(null);
 const operands = ref<Operand[]>([]);
 /** Set after choosing "byte [ ]" / "word [ ]", until the address inside the brackets is chosen. */
@@ -92,15 +97,42 @@ function memoryOperand(base: MemoryBase | null, displacement: number): MemoryOpe
 }
 
 function mnemonicOptions(): Option[] {
-  return MNEMONICS.map((name) => ({
-    key: name,
-    label: name,
-    group: CATEGORY_LABELS[INSTRUCTIONS[name].category as Category],
-    hint: INSTRUCTIONS[name].description,
-    apply: () => {
-      mnemonic.value = name;
+  const chosen = prefix.value;
+  const options: Option[] = [];
+  let prefixesOffered = chosen !== null;
+  const offerPrefixes = (): void => {
+    prefixesOffered = true;
+    for (const name of Object.keys(REPEAT_PREFIXES) as RepeatPrefix[]) {
+      options.push({
+        key: `prefix-${name}`,
+        label: name,
+        group: 'Repeat prefix',
+        hint: `${REPEAT_PREFIXES[name]}. Pick the string instruction next.`,
+        apply: () => {
+          prefix.value = name;
+        }
+      });
     }
-  }));
+  };
+
+  for (const name of MNEMONICS) {
+    const category = INSTRUCTIONS[name].category as Category;
+    // The prefixes sit right after the string instructions they repeat.
+    if (!prefixesOffered && options.at(-1)?.group === CATEGORY_LABELS.string && category !== 'string') {
+      offerPrefixes();
+    }
+    if (chosen && !prefixAllows(chosen, name)) continue;
+    options.push({
+      key: name,
+      label: name,
+      group: CATEGORY_LABELS[category],
+      hint: INSTRUCTIONS[name].description,
+      apply: () => {
+        mnemonic.value = name;
+      }
+    });
+  }
+  return options;
 }
 
 function memoryAddressOptions(): Option[] {
@@ -228,7 +260,9 @@ const groups = computed(() => {
 
 /** Hint for values that are typed rather than picked. */
 const typingHint = computed(() => {
-  if (mnemonic.value === null) return 'Type to filter instructions';
+  if (mnemonic.value === null) {
+    return prefix.value ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
+  }
   if (pendingMemory.value !== null) return 'Pick a register or type an offset (e.g. 0x10)';
   const choices = operandChoices(mnemonic.value, operands.value);
   if (choices.immediate !== null) {
@@ -270,8 +304,9 @@ const preview = computed<{ label: string; text: string } | null>(() => {
 });
 
 const tokens = computed(() => {
-  const list: { label: string; pending?: boolean }[] = [];
-  if (mnemonic.value) list.push({ label: mnemonic.value });
+  const list: { label: string; pending?: boolean; head?: boolean }[] = [];
+  if (prefix.value) list.push({ label: prefix.value, head: true });
+  if (mnemonic.value) list.push({ label: mnemonic.value, head: true });
   operands.value.forEach((operand) => list.push({ label: formatOperand(operand) }));
   if (pendingMemory.value !== null) {
     list.push({ label: `${pendingMemory.value === 8 ? 'byte' : 'word'} [ ? ]`, pending: true });
@@ -298,7 +333,14 @@ function truncateTo(index: number): void {
     clear();
     return;
   }
-  const keep = index - 1;
+  if (prefix.value && index === 1) {
+    mnemonic.value = null;
+    operands.value = [];
+    pendingMemory.value = null;
+    focusInput();
+    return;
+  }
+  const keep = index - (prefix.value ? 2 : 1);
   if (keep < operands.value.length) {
     operands.value = operands.value.slice(0, keep);
     pendingMemory.value = null;
@@ -313,6 +355,7 @@ function back(): void {
 }
 
 function clear(): void {
+  prefix.value = null;
   mnemonic.value = null;
   operands.value = [];
   pendingMemory.value = null;
@@ -324,6 +367,7 @@ function clear(): void {
 function submit(toProgram: boolean): void {
   if (!complete.value || mnemonic.value === null) return;
   const instruction: Instruction = { mnemonic: mnemonic.value, operands: operands.value };
+  if (prefix.value) instruction.prefix = prefix.value;
   if (toProgram) {
     props.add(instruction);
     clear();
@@ -374,7 +418,7 @@ function onBackspace(event: KeyboardEvent): void {
           type="button"
           class="inline-flex h-7 items-center rounded-md px-2 transition-colors hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           :class="[
-            index === 0 ? 'bg-foreground font-semibold text-background' : 'bg-secondary',
+            token.head ? 'bg-foreground font-semibold text-background' : 'bg-secondary',
             token.pending ? 'border border-dashed border-foreground/40 bg-transparent' : ''
           ]"
           title="Remove this word and the ones after it"

@@ -1,8 +1,15 @@
 import type { FlagName } from './flags';
-import { formatInstruction, isComplete, type Instruction, type Mnemonic } from './instructions';
+import {
+  formatInstruction,
+  getSpec,
+  isValid,
+  type Instruction,
+  type Mnemonic,
+  type RepeatPrefix
+} from './instructions';
 import { hasEvenParity, mask, signBit, toSigned, truncate, type Size } from './numbers';
 import { effectiveAddress, operandSize, type Operand } from './operands';
-import type { WordRegister } from './registers';
+import type { SegmentRegister, WordRegister } from './registers';
 import {
   getFlag,
   physicalAddress,
@@ -85,6 +92,17 @@ class ExecutionContext {
       case 'label':
         throw new CpuError(`Cannot write to ${operand.type === 'imm' ? 'an immediate value' : 'a label'}`);
     }
+  }
+
+  /** Memory at segment:offset, for instructions that address it without a memory operand. */
+  readAt(segment: SegmentRegister, offset: number): number {
+    const address = physicalAddress(readRegister(this.state, segment), offset);
+    return readMemory(this.state, address, this.size);
+  }
+
+  writeAt(segment: SegmentRegister, offset: number, value: number): void {
+    const address = physicalAddress(readRegister(this.state, segment), offset);
+    this.memoryWrites.push(...writeMemory(this.state, address, this.size, value));
   }
 
   jump(target: Operand): void {
@@ -302,6 +320,54 @@ const loopIf =
     }
   };
 
+type StringOperation = 'movs' | 'stos' | 'lods' | 'scas' | 'cmps';
+
+/** One element of a string instruction: the source is DS:SI, the destination is ES:DI. */
+const stringStep =
+  (operation: StringOperation): Handler =>
+  (ctx) => {
+    const accumulator = ctx.size === 8 ? 'al' : 'ax';
+    const si = readRegister(ctx.state, 'si');
+    const di = readRegister(ctx.state, 'di');
+    // DF picks the direction: up through memory when clear, down when set.
+    const delta = (ctx.flag('DF') ? -1 : 1) * (ctx.size / 8);
+    const usesSource = operation === 'movs' || operation === 'lods' || operation === 'cmps';
+
+    switch (operation) {
+      case 'movs':
+        ctx.writeAt('es', di, ctx.readAt('ds', si));
+        break;
+      case 'stos':
+        ctx.writeAt('es', di, readRegister(ctx.state, accumulator));
+        break;
+      case 'lods':
+        writeRegister(ctx.state, accumulator, ctx.readAt('ds', si));
+        break;
+      case 'scas':
+        ctx.subtract(readRegister(ctx.state, accumulator), ctx.readAt('es', di), 0);
+        break;
+      case 'cmps':
+        ctx.subtract(ctx.readAt('ds', si), ctx.readAt('es', di), 0);
+        break;
+    }
+
+    if (usesSource) writeRegister(ctx.state, 'si', si + delta);
+    if (operation !== 'lods') writeRegister(ctx.state, 'di', di + delta);
+  };
+
+/**
+ * A repeat prefix: runs `step` while CX ≠ 0, counting CX down without touching the flags.
+ * CX is tested first, so CX = 0 runs nothing. REPE and REPNE also stop on the compare's ZF.
+ */
+function repeat(ctx: ExecutionContext, prefix: RepeatPrefix, step: () => void): void {
+  while (readRegister(ctx.state, 'cx') !== 0) {
+    step();
+    writeRegister(ctx.state, 'cx', readRegister(ctx.state, 'cx') - 1);
+    if (prefix === 'repe' && !ctx.flag('ZF')) return;
+    if (prefix === 'repne' && ctx.flag('ZF')) return;
+  }
+}
+
 const signedLess = (ctx: ExecutionContext) => ctx.flag('SF') !== ctx.flag('OF');
 
 function divideError(reason: string): never {
@@ -407,6 +473,17 @@ const HANDLERS: Record<Mnemonic, Handler> = {
   rcl: shift('rcl'),
   rcr: shift('rcr'),
 
+  movsb: stringStep('movs'),
+  movsw: stringStep('movs'),
+  stosb: stringStep('stos'),
+  stosw: stringStep('stos'),
+  lodsb: stringStep('lods'),
+  lodsw: stringStep('lods'),
+  scasb: stringStep('scas'),
+  scasw: stringStep('scas'),
+  cmpsb: stringStep('cmps'),
+  cmpsw: stringStep('cmps'),
+
   jmp: jumpIf(() => true),
   je: jumpIf((ctx) => ctx.flag('ZF')),
   jz: jumpIf((ctx) => ctx.flag('ZF')),
@@ -449,7 +526,9 @@ const HANDLERS: Record<Mnemonic, Handler> = {
   nop: () => {}
 };
 
-function instructionSize(operands: readonly Operand[]): Size {
+function instructionSize({ mnemonic, operands }: Instruction): Size {
+  const fixed = getSpec(mnemonic).size;
+  if (fixed) return fixed;
   for (const operand of operands) {
     const size = operandSize(operand);
     if (size) return size;
@@ -470,11 +549,11 @@ export function execute(
   instruction: Instruction,
   line: number | null = null
 ): ExecutionRecord {
-  if (!isComplete(instruction.mnemonic, instruction.operands)) {
-    throw new CpuError(`Invalid operands: ${formatInstruction(instruction)}`);
+  if (!isValid(instruction)) {
+    throw new CpuError(`Invalid instruction: ${formatInstruction(instruction)}`);
   }
 
-  const ctx = new ExecutionContext(state, instructionSize(instruction.operands));
+  const ctx = new ExecutionContext(state, instructionSize(instruction));
   const record: ExecutionRecord = {
     instruction,
     line,
@@ -487,7 +566,12 @@ export function execute(
     if (line !== null) {
       writeRegister(state, 'ip', line + 1);
     }
-    HANDLERS[instruction.mnemonic](ctx, instruction.operands);
+    const handler = HANDLERS[instruction.mnemonic];
+    if (instruction.prefix) {
+      repeat(ctx, instruction.prefix, () => handler(ctx, instruction.operands));
+    } else {
+      handler(ctx, instruction.operands);
+    }
     record.alu = ctx.alu;
   } catch (error) {
     undo(state, record);

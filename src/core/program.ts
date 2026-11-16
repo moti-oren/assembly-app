@@ -99,6 +99,7 @@ const reg = (name: Extract<Operand, { type: 'reg' }>['name']): Operand => ({ typ
 const imm = (value: number): Operand => ({ type: 'imm', value });
 const label = (target: number): Operand => ({ type: 'label', target });
 const line = (mnemonic: Mnemonic, ...operands: Operand[]): Instruction => ({ mnemonic, operands });
+const rep = (mnemonic: Mnemonic): Instruction => ({ prefix: 'rep', mnemonic, operands: [] });
 
 export const EXAMPLE_PROGRAMS: { name: string; description: string; program: Program }[] = [
   {
@@ -146,6 +147,20 @@ export const EXAMPLE_PROGRAMS: { name: string; description: string; program: Pro
       line('push', reg('bx')),
       line('pop', reg('ax')),
       line('pop', reg('bx'))
+    ]
+  },
+  {
+    name: 'Fill and copy a string',
+    description: 'REP STOSB fills 8 bytes at DS:0000, REP MOVSB copies them to DS:0010',
+    program: [
+      line('mov', reg('al'), imm(0x2a)),
+      line('mov', reg('di'), imm(0)),
+      line('mov', reg('cx'), imm(8)),
+      rep('stosb'),
+      line('mov', reg('si'), imm(0)),
+      line('mov', reg('di'), imm(0x10)),
+      line('mov', reg('cx'), imm(8)),
+      rep('movsb')
     ]
   }
 ];

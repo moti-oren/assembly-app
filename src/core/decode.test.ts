@@ -129,6 +129,36 @@ describe('decode', () => {
     }
   });
 
+  it('knows the registers and memory the string instructions use without naming', () => {
+    expect(decode(line('movsb'))).toMatchObject({
+      size: 8,
+      reads: ['si', 'di', 'ds', 'es'],
+      writes: ['si', 'di'],
+      memory: { read: true, write: true },
+      readsFlags: true,
+      writesFlags: false,
+      usesAlu: false
+    });
+    expect(decode(line('lodsw'))).toMatchObject({
+      size: 16,
+      reads: ['si', 'ds'],
+      writes: ['ax', 'si']
+    });
+    expect(decode(line('scasb'))).toMatchObject({
+      reads: ['ax', 'di', 'es'],
+      memory: { read: true, write: false },
+      writesFlags: true,
+      usesAlu: true
+    });
+  });
+
+  it('adds CX to an instruction with a repeat prefix', () => {
+    const decoded = decode({ prefix: 'rep', mnemonic: 'stosb', operands: [] });
+    expect(decoded.reads).toEqual(['ax', 'cx', 'di', 'es']);
+    expect(decoded.writes).toEqual(['cx', 'di']);
+    expect(decoded.description).toBe('Repeat CX times: Store AL at ES:DI, then step DI');
+  });
+
   it('refuses an instruction whose operands do not form a legal instruction', () => {
     expect(() => decode(line('add', reg('ax')))).toThrow('Cannot decode');
     expect(() => decode(line('mov', reg('al'), reg('bx')))).toThrow('Cannot decode');

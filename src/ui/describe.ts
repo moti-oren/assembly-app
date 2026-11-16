@@ -1,6 +1,7 @@
 import { explainOffset, type OffsetBreakdown } from '@/core/address';
+import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
-import { getSpec, type Category, type Mnemonic } from '@/core/instructions';
+import { getSpec, isStringCompare, type Mnemonic } from '@/core/instructions';
 import { formatHex, truncate, type Size } from '@/core/numbers';
 import {
   effectiveAddress,
@@ -10,7 +11,7 @@ import {
   operandSize,
   type Operand
 } from '@/core/operands';
-import { BYTE_REGISTER_LOCATION, isByteRegister, type WordRegister } from '@/core/registers';
+import type { WordRegister } from '@/core/registers';
 import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/state';
 
 /** Instructions whose result can be shown as `a <operator> b = result`. */
@@ -28,24 +29,20 @@ const OPERATORS: Partial<Record<Mnemonic, string>> = {
   xor: 'XOR'
 };
 
+/** Instructions that compute a result only to set the flags, then throw it away. */
+function discardsResult(mnemonic: Mnemonic): boolean {
+  return mnemonic === 'cmp' || mnemonic === 'test' || isStringCompare(mnemonic);
+}
+
 /**
  * Whether the instruction went through the ALU, and whether a result came back out of it.
  * Decided by the instruction's kind, not by whether the ALU panel can show it as a sum:
- * NEG, MUL or a shift use the ALU just as much as ADD does. CMP and TEST keep only the flags.
+ * NEG, MUL or a shift use the ALU just as much as ADD does.
  */
 export function aluUse(record: ExecutionRecord): { input: boolean; output: boolean } {
-  const { mnemonic } = record.instruction;
-  const input = ALU_CATEGORIES.has(getSpec(mnemonic).category);
-  return { input, output: input && mnemonic !== 'cmp' && mnemonic !== 'test' };
+  const input = decode(record.instruction).usesAlu;
+  return { input, output: input && !discardsResult(record.instruction.mnemonic) };
 }
-
-const ALU_CATEGORIES = new Set<Category>(['arithmetic', 'logic', 'shift']);
-
-/** Instructions that overwrite their first operand without reading it. */
-const OVERWRITES_FIRST_OPERAND = new Set<Mnemonic>(['mov', 'pop']);
-
-/** Instructions that only read their first operand. */
-const KEEPS_FIRST_OPERAND = new Set<Mnemonic>(['cmp', 'test', 'push']);
 
 /** The CPU with its registers as they were when `record` ran; memory operands resolve there. */
 function before(state: CpuState, record: ExecutionRecord): CpuState {
@@ -68,6 +65,21 @@ export function describeEquation(state: CpuState, record: ExecutionRecord): Equa
   const { instruction, memoryWrites } = record;
   const { mnemonic } = instruction;
   const [destination, source] = instruction.operands;
+
+  // SCAS and CMPS have no operands to read back; the ALU's own record has what they compared.
+  if (isStringCompare(mnemonic) && record.alu?.kind === 'subtract') {
+    const { a, b, result, size } = record.alu;
+    return {
+      destination: '',
+      left: formatHex(a, size),
+      operator: '−',
+      right: formatHex(b, size),
+      carry: null,
+      result: formatHex(result, size),
+      discarded: true
+    };
+  }
+
   const operator = OPERATORS[mnemonic];
   if (!operator || !destination) return null;
 
@@ -110,10 +122,10 @@ export interface MemoryAccess {
   value: string;
   write: boolean;
   /** The segment register the access went through, as it was when the instruction ran. */
-  segment: 'ds' | 'ss';
+  segment: 'ds' | 'es' | 'ss';
   segmentValue: number;
   offset: number;
-  /** How a memory operand formed its offset; null for the stack, where the offset is SP. */
+  /** How a memory operand formed its offset; null when a register alone is the offset. */
   offsetParts: OffsetBreakdown | null;
 }
 
@@ -124,7 +136,7 @@ export function describeMemoryAccess(
   const { instruction, memoryWrites } = record;
   const registers = record.before.registers;
   const access = (
-    segment: 'ds' | 'ss',
+    segment: 'ds' | 'es' | 'ss',
     offset: number,
     value: string,
     write: boolean,
@@ -151,6 +163,22 @@ export function describeMemoryAccess(
       explainOffset(stateBefore, operand)
     );
   }
+  if (getSpec(instruction.mnemonic).category === 'string') {
+    const size = getSpec(instruction.mnemonic).size ?? 8;
+    // A repeated store or copy shows the last element it wrote, at ES:DI.
+    if (memoryWrites.length > 0) {
+      const last = memoryWrites.slice(-size / 8);
+      const value = last.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
+      return access('es', last[0].address - (registers.es << 4), formatHex(value, size), true);
+    }
+    // With CX = 0 a repeat touches no memory at all.
+    if (instruction.prefix && registers.cx === 0) return null;
+    const fromSource = decode(instruction).reads.includes('si');
+    const segment = fromSource ? 'ds' : 'es';
+    const offset = fromSource ? registers.si : registers.di;
+    const value = readMemory(state, physicalAddress(registers[segment], offset), size);
+    return access(segment, offset, formatHex(value, size), false);
+  }
   // No memory operand, so anything written went onto the stack (PUSH, CALL).
   if (memoryWrites.length > 0) {
     const value = memoryWrites.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
@@ -168,35 +196,18 @@ export function describeMemoryAccess(
   return null;
 }
 
-/** The registers an instruction's operands read: sources, and the parts of a memory address. */
+/**
+ * The registers an instruction read: its sources, the parts of a memory address, and the ones
+ * it uses without naming (SP for PUSH, SI and DI for the string instructions).
+ */
 export function registersRead(record: ExecutionRecord): Set<WordRegister> {
-  const read = new Set<WordRegister>();
-  record.instruction.operands.forEach((operand, index) => {
-    if (operand.type === 'reg') {
-      if (index === 0 && OVERWRITES_FIRST_OPERAND.has(record.instruction.mnemonic)) return;
-      const { name } = operand;
-      read.add(isByteRegister(name) ? BYTE_REGISTER_LOCATION[name].parent : name);
-    } else if (operand.type === 'mem') {
-      read.add(memorySegment(operand));
-      if (operand.base) read.add(operand.base);
-    }
-  });
-  return read;
+  return new Set(decode(record.instruction).reads);
 }
 
 /**
- * The registers an instruction names as a destination. They count as written even when the
- * value happens to stay the same, e.g. `xor ax, ax` on an AX that is already 0.
+ * The registers an instruction writes. They count as written even when the value happens to
+ * stay the same, e.g. `xor ax, ax` on an AX that is already 0.
  */
 export function registersWritten(record: ExecutionRecord): Set<WordRegister> {
-  const written = new Set<WordRegister>();
-  const { mnemonic, operands } = record.instruction;
-  const add = (operand: Operand | undefined): void => {
-    if (operand?.type !== 'reg') return;
-    const { name } = operand;
-    written.add(isByteRegister(name) ? BYTE_REGISTER_LOCATION[name].parent : name);
-  };
-  if (!KEEPS_FIRST_OPERAND.has(mnemonic)) add(operands[0]);
-  if (mnemonic === 'xchg') add(operands[1]);
-  return written;
+  return new Set(decode(record.instruction).writes);
 }

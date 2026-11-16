@@ -1,6 +1,6 @@
 import type { AluTrace, ExecutionRecord } from './execute';
 import type { FlagName } from './flags';
-import { getSpec, type Mnemonic } from './instructions';
+import { getSpec, isStringCompare, type Mnemonic } from './instructions';
 import { formatBinary, formatHex, mask, signBit, toSigned, type Size } from './numbers';
 
 /** Why one flag holds the value it does after an instruction. */
@@ -243,6 +243,9 @@ export function explainFlag(record: ExecutionRecord, flag: FlagName): FlagReason
       return kept(
         `${name} leaves the flags undefined on a real 8086; here they keep their old values.`
       );
+    }
+    if (isStringCompare(mnemonic)) {
+      return kept('CX was 0, so the repeat compared nothing and the flags were left alone.');
     }
     if (getSpec(mnemonic).category === 'shift') {
       return kept('A count of 0 changes nothing, the flags included.');
