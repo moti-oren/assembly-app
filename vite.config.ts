@@ -4,6 +4,8 @@ import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  // GitHub Pages serves the site from /assembly-app/
+  base: '/assembly-app/',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
