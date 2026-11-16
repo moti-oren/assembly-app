@@ -531,3 +531,97 @@ describe('i/o ports', () => {
     expect(() => run('out', imm(0x100), reg('al'))).toThrow(CpuError);
   });
 });
+
+describe('interrupts', () => {
+  const label = (target: number): Operand => ({ type: 'label', target });
+  /** Vectors live in segment 0, so the default DS cannot reach them through a memory operand. */
+  const install = (type: number, line: number, cs = 0) => {
+    writeMemory(cpu, type * 4, 16, line);
+    writeMemory(cpu, type * 4 + 2, 16, cs);
+  };
+  const stackWord = (offset: number) => readMemory(cpu, physicalAddress(0x2000, offset), 16);
+
+  it('int pushes FLAGS, CS and IP, clears IF and TF, and loads CS:IP from the vector', () => {
+    install(0x21, 7, 0x0100);
+    run('sti');
+    setFlag(cpu, 'CF', true);
+    const flagsBefore = cpu.flags;
+    const record = execute(cpu, { mnemonic: 'int', operands: [imm(0x21)] }, 3);
+
+    expect(readRegister(cpu, 'ip')).toBe(7);
+    expect(readRegister(cpu, 'cs')).toBe(0x0100);
+    expect(readRegister(cpu, 'sp')).toBe(0xfff8);
+    expect(stackWord(0xfffc)).toBe(flagsBefore);
+    expect(stackWord(0xfffa)).toBe(0);
+    expect(stackWord(0xfff8)).toBe(4);
+    expect(getFlag(cpu, 'IF')).toBe(false);
+    expect(getFlag(cpu, 'CF')).toBe(true);
+    expect(record.interrupt).toBe(0x21);
+  });
+
+  it('iret returns to the line after the int with the flags as they were', () => {
+    install(0x21, 7, 0x0100);
+    run('sti');
+    const flagsBefore = cpu.flags;
+    execute(cpu, { mnemonic: 'int', operands: [imm(0x21)] }, 3);
+    run('stc');
+    run('iret');
+
+    expect(readRegister(cpu, 'ip')).toBe(4);
+    expect(readRegister(cpu, 'cs')).toBe(0);
+    expect(readRegister(cpu, 'sp')).toBe(0xfffe);
+    expect(cpu.flags).toBe(flagsBefore);
+  });
+
+  it('refuses an interrupt whose vector is empty and changes nothing', () => {
+    const sp = readRegister(cpu, 'sp');
+    expect(() => run('int', imm(5))).toThrow('vector at 0000:0014 is empty');
+    expect(readRegister(cpu, 'sp')).toBe(sp);
+  });
+
+  it('into interrupts through vector 4 only when OF is set', () => {
+    install(4, 9);
+    expect(run('into').interrupt).toBeNull();
+    expect(readRegister(cpu, 'sp')).toBe(0xfffe);
+
+    setFlag(cpu, 'OF', true);
+    expect(run('into').interrupt).toBe(4);
+    expect(readRegister(cpu, 'ip')).toBe(9);
+  });
+
+  it('a divide error enters interrupt 0 when it has a handler, and is an error otherwise', () => {
+    writeRegister(cpu, 'ax', 100);
+    expect(() => run('div', reg('bl'))).toThrow(CpuError);
+
+    install(0, 6);
+    const record = execute(cpu, { mnemonic: 'div', operands: [reg('bl')] }, 2);
+    expect(record.interrupt).toBe(0);
+    expect(readRegister(cpu, 'ip')).toBe(6);
+    expect(readRegister(cpu, 'ax')).toBe(100);
+    expect(stackWord(0xfff8)).toBe(3);
+
+    undo(cpu, record);
+    expect(readRegister(cpu, 'sp')).toBe(0xfffe);
+    expect(readRegister(cpu, 'ip')).toBe(0);
+  });
+
+  it('pushf and popf move FLAGS through the stack, keeping only real flag bits', () => {
+    run('stc');
+    run('pushf');
+    run('clc');
+    run('popf');
+    expect(getFlag(cpu, 'CF')).toBe(true);
+
+    writeRegister(cpu, 'ax', 0xffff);
+    run('push', reg('ax'));
+    run('popf');
+    expect(cpu.flags).toBe(0x0fd7);
+  });
+
+  it('mov stores the number of a program line, which is how a vector is filled', () => {
+    run('mov', wordAt(0x84), label(8));
+    expect(readMemory(cpu, physicalAddress(0x1000, 0x84), 16)).toBe(8);
+    run('mov', reg('bx'), label(3));
+    expect(readRegister(cpu, 'bx')).toBe(3);
+  });
+});

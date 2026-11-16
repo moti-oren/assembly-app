@@ -1,5 +1,5 @@
 import type { AluTrace, ExecutionRecord } from './execute';
-import type { FlagName } from './flags';
+import { FLAG_BITS, type FlagName } from './flags';
 import { getSpec, isStringCompare, type Mnemonic } from './instructions';
 import { formatBinary, formatHex, mask, signBit, toSigned, type Size } from './numbers';
 
@@ -238,6 +238,12 @@ export function explainFlag(record: ExecutionRecord, flag: FlagName): FlagReason
   }
 
   const { alu } = record;
+  if (record.interrupt !== null && (flag === 'IF' || flag === 'TF')) {
+    return set(
+      false,
+      `Entering an interrupt clears ${flag}, so the handler is not itself interrupted.`
+    );
+  }
   if (!alu) {
     if (mnemonic === 'div' || mnemonic === 'idiv') {
       return kept(
@@ -270,5 +276,10 @@ export function explainFlag(record: ExecutionRecord, flag: FlagName): FlagReason
       return shiftFlag(alu, flag, mnemonic, name);
     case 'multiply':
       return multiplyFlag(alu, flag, name);
+    case 'restore':
+      return set(
+        (alu.flags & (1 << FLAG_BITS[flag])) !== 0,
+        `${name} loads every flag from the FLAGS word it pops off the stack.`
+      );
   }
 }

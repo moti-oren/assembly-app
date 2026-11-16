@@ -18,6 +18,9 @@ export const FLAG_NAMES = Object.keys(FLAG_BITS) as FlagName[];
 /** Bit 1 of FLAGS is reserved and always reads as 1 on the 8086. */
 export const FLAGS_RESERVED = 0x0002;
 
+/** The bits of FLAGS that are real flags; POPF and IRET can load no others. */
+export const FLAGS_MASK = FLAG_NAMES.reduce((bits, name) => bits | (1 << FLAG_BITS[name]), 0);
+
 export const FLAG_INFO: Record<FlagName, { label: string; description: string }> = {
   CF: { label: 'Carry', description: 'Unsigned overflow: a carry out of, or a borrow into, the top bit' },
   PF: { label: 'Parity', description: 'The low byte of the result has an even number of 1 bits' },

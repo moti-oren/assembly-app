@@ -1,4 +1,4 @@
-import type { FlagName } from './flags';
+import { FLAGS_MASK, FLAGS_RESERVED, type FlagName } from './flags';
 import {
   formatInstruction,
   instructionSize,
@@ -7,7 +7,7 @@ import {
   type Mnemonic,
   type RepeatPrefix
 } from './instructions';
-import { hasEvenParity, mask, signBit, toSigned, truncate, type Size } from './numbers';
+import { formatHex, hasEvenParity, mask, signBit, toSigned, truncate, type Size } from './numbers';
 import { effectiveAddress, type Operand } from './operands';
 import type { SegmentRegister, WordRegister } from './registers';
 import {
@@ -46,7 +46,17 @@ export type AluTrace =
     }
   | { kind: 'logic'; size: Size; result: number }
   | { kind: 'shift'; size: Size; original: number; count: number; result: number; carry: boolean }
-  | { kind: 'multiply'; size: Size; signed: boolean; product: number; overflow: boolean };
+  | { kind: 'multiply'; size: Size; signed: boolean; product: number; overflow: boolean }
+  /** POPF and IRET: nothing is computed, FLAGS is loaded whole from the stack. */
+  | { kind: 'restore'; flags: number };
+
+/** A divide error is interrupt 0; it only surfaces as an error when no handler is installed. */
+class DivideError extends CpuError {}
+
+/** Each interrupt vector is 4 bytes at the bottom of memory: the handler's IP, then its CS. */
+export const VECTOR_SIZE = 4;
+export const DIVIDE_ERROR_INTERRUPT = 0;
+export const OVERFLOW_INTERRUPT = 4;
 
 /** Everything needed to undo one executed instruction. */
 export interface ExecutionRecord {
@@ -59,12 +69,15 @@ export interface ExecutionRecord {
   portWrites: PortWrite[];
   /** Null when the instruction computed nothing in the ALU, e.g. MOV, a jump, or a shift by 0. */
   alu: AluTrace | null;
+  /** The interrupt the instruction entered (INT n, INTO, a divide error), or null. */
+  interrupt: number | null;
 }
 
 class ExecutionContext {
   readonly memoryWrites: MemoryWrite[] = [];
   readonly portWrites: PortWrite[] = [];
   alu: AluTrace | null = null;
+  interrupted: number | null = null;
 
   constructor(
     readonly state: CpuState,
@@ -81,7 +94,8 @@ class ExecutionContext {
       case 'mem':
         return readMemory(this.state, effectiveAddress(this.state, operand), this.size);
       case 'label':
-        throw new CpuError('A label is a jump target, not a value');
+        // As a value, a label is the number of its program line.
+        return operand.target;
     }
   }
 
@@ -196,6 +210,43 @@ class ExecutionContext {
     const value = readMemory(this.state, physicalAddress(readRegister(this.state, 'ss'), sp), 16);
     writeRegister(this.state, 'sp', sp + 2);
     return value;
+  }
+
+  /** The handler of interrupt `type` as its vector holds it, or null while the vector is empty. */
+  handler(type: number): { ip: number; cs: number } | null {
+    const vector = type * VECTOR_SIZE;
+    const ip = readMemory(this.state, vector, 16);
+    const cs = readMemory(this.state, vector + 2, 16);
+    return ip === 0 && cs === 0 ? null : { ip, cs };
+  }
+
+  /**
+   * Enters interrupt `type`: pushes FLAGS, CS and IP, clears IF and TF so the handler is not
+   * itself interrupted, and loads CS:IP from the vector. IP is a program line, as everywhere.
+   * A real 8086 would jump to 0000:0000 through an empty vector; here that is an error.
+   */
+  interrupt(type: number): void {
+    const handler = this.handler(type);
+    if (!handler) {
+      const vector = formatHex(type * VECTOR_SIZE, 16);
+      throw new CpuError(
+        `Interrupt ${formatHex(type, 8)}h has no handler: its vector at 0000:${vector} is empty`
+      );
+    }
+    this.push(this.state.flags);
+    this.setFlag('IF', false);
+    this.setFlag('TF', false);
+    this.push(readRegister(this.state, 'cs'));
+    this.push(readRegister(this.state, 'ip'));
+    writeRegister(this.state, 'cs', handler.cs);
+    writeRegister(this.state, 'ip', handler.ip);
+    this.interrupted = type;
+  }
+
+  /** Loads FLAGS from a word off the stack. Only the real flag bits can change. */
+  restoreFlags(value: number): void {
+    this.state.flags = (value & FLAGS_MASK) | FLAGS_RESERVED;
+    this.alu = { kind: 'restore', flags: this.state.flags };
   }
 }
 
@@ -383,7 +434,7 @@ function portNumber(ctx: ExecutionContext, operand: Operand): number {
 const signedLess = (ctx: ExecutionContext) => ctx.flag('SF') !== ctx.flag('OF');
 
 function divideError(reason: string): never {
-  throw new CpuError(`Divide error (#DE): ${reason}`);
+  throw new DivideError(`Divide error (#DE): ${reason}`);
 }
 
 const HANDLERS: Record<Mnemonic, Handler> = {
@@ -541,6 +592,18 @@ const HANDLERS: Record<Mnemonic, Handler> = {
   },
   ret: (ctx) => writeRegister(ctx.state, 'ip', ctx.pop()),
 
+  int: (ctx, [type]) => ctx.interrupt(ctx.read(type) & 0xff),
+  into: (ctx) => {
+    if (ctx.flag('OF')) ctx.interrupt(OVERFLOW_INTERRUPT);
+  },
+  iret: (ctx) => {
+    writeRegister(ctx.state, 'ip', ctx.pop());
+    writeRegister(ctx.state, 'cs', ctx.pop());
+    ctx.restoreFlags(ctx.pop());
+  },
+
+  pushf: (ctx) => ctx.push(ctx.state.flags),
+  popf: (ctx) => ctx.restoreFlags(ctx.pop()),
   clc: setFlagTo('CF', () => false),
   stc: setFlagTo('CF', () => true),
   cmc: setFlagTo('CF', (ctx) => !ctx.flag('CF')),
@@ -575,7 +638,8 @@ export function execute(
     before: { registers: { ...state.registers }, flags: state.flags },
     memoryWrites: ctx.memoryWrites,
     portWrites: ctx.portWrites,
-    alu: null
+    alu: null,
+    interrupt: null
   };
 
   try {
@@ -583,11 +647,19 @@ export function execute(
       writeRegister(state, 'ip', line + 1);
     }
     const handler = HANDLERS[instruction.mnemonic];
-    if (instruction.prefix) {
-      repeat(ctx, instruction.prefix, () => handler(ctx, instruction.operands));
-    } else {
-      handler(ctx, instruction.operands);
+    try {
+      if (instruction.prefix) {
+        repeat(ctx, instruction.prefix, () => handler(ctx, instruction.operands));
+      } else {
+        handler(ctx, instruction.operands);
+      }
+    } catch (error) {
+      // DIV and IDIV raise the error before changing anything, so the interrupt starts clean.
+      const handled = error instanceof DivideError && ctx.handler(DIVIDE_ERROR_INTERRUPT);
+      if (!handled) throw error;
+      ctx.interrupt(DIVIDE_ERROR_INTERRUPT);
     }
+    record.interrupt = ctx.interrupted;
     record.alu = ctx.alu;
   } catch (error) {
     undo(state, record);
