@@ -2,9 +2,12 @@
 import { computed, ref } from 'vue';
 import { useElementSize, useMediaQuery } from '@vueuse/core';
 import { Layers } from '@lucide/vue';
+import { explainAddress } from '@/core/address';
+import type { ExecutionRecord } from '@/core/execute';
 import { formatHex, parseNumber } from '@/core/numbers';
 import type { SegmentRegister } from '@/core/registers';
 import { physicalAddress, type CpuState } from '@/core/state';
+import { describeMemoryAccess } from '@/ui/describe';
 import { HEAT_STEPS } from '@/ui/useCpu';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -23,6 +26,8 @@ const props = defineProps<{
   state: CpuState;
   /** Recently written physical addresses, mapped to how many instructions ago (0 = the last). */
   heat: Map<number, number>;
+  /** The last executed instruction: its memory access is the address worked out by default. */
+  record: ExecutionRecord | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -78,6 +83,57 @@ function warmth(address: number): string | undefined {
   return `color-mix(in oklch, var(--changed) ${strength}%, transparent)`;
 }
 
+const lastAccess = computed(() => {
+  void props.state.memoryVersion;
+  return props.record && describeMemoryAccess(props.state, props.record);
+});
+
+/** Offset of the byte under the mouse, in the segment on show. */
+const pointed = ref<number | null>(null);
+
+/** The address being worked out: the pointed byte, or else the last instruction's access. */
+const worked = computed(() => {
+  if (pointed.value !== null) {
+    return {
+      label: 'This byte',
+      segment: segment.value,
+      sum: explainAddress(props.state.registers[segment.value], pointed.value),
+      offsetParts: null,
+      isLastAccess: false
+    };
+  }
+  const access = lastAccess.value;
+  if (!access) return null;
+  return {
+    label: access.write ? 'Last write' : 'Last read',
+    segment: access.segment,
+    sum: explainAddress(access.segmentValue, access.offset),
+    offsetParts: access.offsetParts,
+    isLastAccess: true
+  };
+});
+
+/** Where the offset came from, when a register supplied it. */
+const offsetNote = computed(() => {
+  const parts = worked.value?.offsetParts;
+  if (!parts?.base) return null;
+  const base = parts.base.toUpperCase();
+  if (parts.displacement === 0) return `offset = ${base}`;
+  const sum = `offset = ${base} ${formatHex(parts.baseValue, 16)}h + ${formatHex(parts.displacement, 16)}h`;
+  return parts.wrapped ? `${sum}, wraps at 64K` : sum;
+});
+
+function hex20(value: number): string {
+  return value.toString(16).toUpperCase().padStart(5, '0');
+}
+
+function showLastAccess(): void {
+  const access = lastAccess.value;
+  if (!access) return;
+  segment.value = access.segment;
+  offsetText.value = formatHex(access.offset & 0xfff0, 16);
+}
+
 function showStackTop(): void {
   segment.value = 'ss';
   const rowOfSp = props.state.registers.sp & 0xfff0;
@@ -124,6 +180,53 @@ function ascii(value: number): string {
         </Button>
       </div>
 
+      <!-- segment:offset worked out into the 20-bit address that goes onto the bus. -->
+      <p
+        class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 font-mono text-xs lg:h-5 lg:flex-nowrap lg:overflow-hidden lg:whitespace-nowrap"
+      >
+        <template v-if="worked">
+          <span
+            class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 lg:shrink-0 lg:flex-nowrap"
+          >
+            <span class="font-sans text-muted-foreground">{{ worked.label }}</span>
+            <span class="font-semibold"
+              >{{ worked.segment.toUpperCase() }}:{{ formatHex(worked.sum.offset, 16) }}</span
+            >
+            <span class="text-muted-foreground">=</span>
+            <span :title="`${worked.segment.toUpperCase()} shifted left by 4 bits`"
+              >{{ formatHex(worked.sum.segment, 16) }}h × 10h</span
+            >
+            <span class="text-muted-foreground">+</span>
+            <span>{{ formatHex(worked.sum.offset, 16) }}h</span>
+            <span class="text-muted-foreground">=</span>
+            <template v-if="worked.sum.wrapped">
+              <span class="text-muted-foreground line-through decoration-1"
+                >{{ hex20(worked.sum.sum) }}h</span
+              >
+              <span class="font-sans text-muted-foreground">wraps past 1MB to</span>
+            </template>
+            <span class="font-semibold text-pointer">{{ hex20(worked.sum.physical) }}h</span>
+          </span>
+          <span
+            v-if="offsetNote"
+            class="font-sans text-muted-foreground lg:min-w-0 lg:truncate"
+            :title="offsetNote"
+            >· {{ offsetNote }}</span
+          >
+          <button
+            v-if="worked.isLastAccess"
+            type="button"
+            class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            @click="showLastAccess"
+          >
+            Show
+          </button>
+        </template>
+        <span v-else class="font-sans text-muted-foreground">
+          Point at a byte, or run an instruction that uses memory, to see how its address is formed.
+        </span>
+      </p>
+
       <div
         ref="table"
         class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5 lg:min-h-0 lg:flex-1"
@@ -143,7 +246,7 @@ function ascii(value: number): string {
               <th class="py-1 pl-3 text-left font-normal">ascii</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody @mouseleave="pointed = null">
             <tr v-for="row in rows" :key="row.offset">
               <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
                 {{ formatHex(row.offset, 16) }}
@@ -153,7 +256,8 @@ function ascii(value: number): string {
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
                 :class="{ 'pl-2.5': column === 8 }"
-                :title="`Physical ${byte.address.toString(16).toUpperCase().padStart(5, '0')}h = ${byte.value}`"
+                :title="`Physical ${hex20(byte.address)}h = ${byte.value}`"
+                @mouseenter="pointed = (row.offset + column) & 0xffff"
               >
                 <ChangeMark
                   :on="heat.get(byte.address) === 0"

@@ -1,3 +1,4 @@
+import { explainOffset, type OffsetBreakdown } from '@/core/address';
 import type { ExecutionRecord } from '@/core/execute';
 import { getSpec, type Category, type Mnemonic } from '@/core/instructions';
 import { formatHex, truncate, type Size } from '@/core/numbers';
@@ -108,6 +109,12 @@ export interface MemoryAccess {
   address: string;
   value: string;
   write: boolean;
+  /** The segment register the access went through, as it was when the instruction ran. */
+  segment: 'ds' | 'ss';
+  segmentValue: number;
+  offset: number;
+  /** How a memory operand formed its offset; null for the stack, where the offset is SP. */
+  offsetParts: OffsetBreakdown | null;
 }
 
 export function describeMemoryAccess(
@@ -116,35 +123,47 @@ export function describeMemoryAccess(
 ): MemoryAccess | null {
   const { instruction, memoryWrites } = record;
   const registers = record.before.registers;
-  const at = (segment: string, offset: number): string =>
-    `${segment.toUpperCase()}:${formatHex(offset, 16)}`;
+  const access = (
+    segment: 'ds' | 'ss',
+    offset: number,
+    value: string,
+    write: boolean,
+    offsetParts: OffsetBreakdown | null = null
+  ): MemoryAccess => ({
+    address: `${segment.toUpperCase()}:${formatHex(offset, 16)}`,
+    value,
+    write,
+    segment,
+    segmentValue: registers[segment],
+    offset: truncate(offset, 16),
+    offsetParts
+  });
 
   const operand = instruction.operands.find((candidate) => candidate.type === 'mem');
   if (operand) {
     const stateBefore = before(state, record);
     const value = readMemory(state, effectiveAddress(stateBefore, operand), operand.size);
-    return {
-      address: at(memorySegment(operand), effectiveOffset(stateBefore, operand)),
-      value: formatHex(value, operand.size),
-      write: memoryWrites.length > 0
-    };
+    return access(
+      memorySegment(operand),
+      effectiveOffset(stateBefore, operand),
+      formatHex(value, operand.size),
+      memoryWrites.length > 0,
+      explainOffset(stateBefore, operand)
+    );
   }
   // No memory operand, so anything written went onto the stack (PUSH, CALL).
   if (memoryWrites.length > 0) {
     const value = memoryWrites.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
-    return {
-      address: at('ss', memoryWrites[0].address - (registers.ss << 4)),
-      value: formatHex(value, (memoryWrites.length * 8) as Size),
-      write: true
-    };
+    return access(
+      'ss',
+      memoryWrites[0].address - (registers.ss << 4),
+      formatHex(value, (memoryWrites.length * 8) as Size),
+      true
+    );
   }
   if (instruction.mnemonic === 'pop' || instruction.mnemonic === 'ret') {
     const top = physicalAddress(registers.ss, registers.sp);
-    return {
-      address: at('ss', registers.sp),
-      value: formatHex(readMemory(state, top, 16), 16),
-      write: false
-    };
+    return access('ss', registers.sp, formatHex(readMemory(state, top, 16), 16), false);
   }
   return null;
 }

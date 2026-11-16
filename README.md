@@ -36,6 +36,9 @@ npm run lint
   and jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it.
 - Memory operands are `byte`/`word` `[bx]`, `[si]`, `[di]`, `[bp]` or `[offset]`. `[bp]` uses SS
   and everything else uses DS.
+- The Memory panel works out how `segment:offset` becomes a 20-bit physical address
+  (`segment × 10h + offset`, wrapping past 1MB) for the last memory access, or for any byte you
+  point at. **Show** scrolls the table to the last access.
 - Shift counts are `1` or `CL`, as on the 8086.
 
 ---
@@ -89,6 +92,9 @@ npm run lint
   jump/call הם שורות. CALL דוחף את השורה הבאה למחסנית ו-RET שולף אותה.
 - אופרנדים של זיכרון הם `byte`/`word` מסוג `[bx]`, `[si]`, `[di]`, `[bp]` או `[offset]`.
   `[bp]` משתמש ב-SS וכל האחרים משתמשים ב-DS.
+- חלונית הזיכרון מפרטת איך `segment:offset` הופך לכתובת פיזית של 20 סיביות
+  (`segment × 10h + offset`, עם גלישה מעבר ל-1MB) עבור הגישה האחרונה לזיכרון, או עבור כל בית
+  שמצביעים עליו. **Show** גולל את הטבלה אל הגישה האחרונה.
 - ספירת הזזה היא `1` או `CL`, כמו ב-8086.
 
 </div>
