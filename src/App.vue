@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { formatInstruction } from '@/core/instructions';
+import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppHeader from '@/ui/components/AppHeader.vue';
 import ChangeStrip from '@/ui/components/ChangeStrip.vue';
+import CpuCycle from '@/ui/components/CpuCycle.vue';
 import CpuDiagram from '@/ui/components/CpuDiagram.vue';
 import CommandPalette, { type PaletteCommand } from '@/ui/components/CommandPalette.vue';
 import FlagsPanel from '@/ui/components/FlagsPanel.vue';
@@ -31,6 +33,7 @@ const {
   future,
   memoryHeat,
   finished,
+  pending,
   speed,
   running
 } = cpu;
@@ -73,6 +76,12 @@ const commands = computed<PaletteCommand[]>(() => [
     label: 'Step one line',
     disabled: finished.value,
     run: cpu.stepProgram
+  },
+  {
+    group: 'Program',
+    label: 'Step one phase (fetch, decode, execute)',
+    disabled: finished.value,
+    run: cpu.stepPhase
   },
   running.value
     ? { group: 'Program', label: 'Pause', run: cpu.pause }
@@ -182,9 +191,15 @@ const commands = computed<PaletteCommand[]>(() => [
             class="shrink-0"
             :state="state"
             :record="lastRecord"
+            :pending="pending"
             :tick="history.length"
           />
           <template v-else>
+            <Card size="sm" class="shrink-0">
+              <CardContent>
+                <CpuCycle :state="state" :record="lastRecord" :pending="pending" />
+              </CardContent>
+            </Card>
             <RegistersPanel
               class="shrink-0"
               :state="state"
@@ -215,9 +230,11 @@ const commands = computed<PaletteCommand[]>(() => [
         v-model:history-shown="historyShown"
         :finished="finished"
         :running="running"
+        :phase="pending?.phase ?? null"
         :executed="history.length"
         :undone="future.length"
         @step="cpu.stepProgram"
+        @phase="cpu.stepPhase"
         @run="cpu.runProgram"
         @pause="cpu.pause"
         @undo="cpu.undoLast"

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { FastForward, ListOrdered, Pause, Redo2, StepForward, Undo2 } from '@lucide/vue';
+import {
+  FastForward,
+  Footprints,
+  ListOrdered,
+  Pause,
+  Redo2,
+  StepForward,
+  Undo2
+} from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,12 +18,14 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { RunSpeed } from '@/ui/useCpu';
+import type { PendingInstruction, RunSpeed } from '@/ui/useCpu';
 
 const props = defineProps<{
   finished: boolean;
   /** True while the program is running line by line. */
   running: boolean;
+  /** The phase the line at IP has reached when stepping by phase; null between instructions. */
+  phase: PendingInstruction['phase'] | null;
   speed: RunSpeed;
   /** How many instructions have run, and how many undone ones could run again. */
   executed: number;
@@ -25,6 +35,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   step: [];
+  phase: [];
   run: [];
   pause: [];
   undo: [];
@@ -40,6 +51,11 @@ const SPEED_LABELS: Record<RunSpeed, string> = {
   fast: 'Fast',
   instant: 'Instant'
 };
+
+/** The phase button names what pressing it does next. */
+const nextPhase = computed(() =>
+  props.phase === null ? 'Fetch' : props.phase === 'fetch' ? 'Decode' : 'Execute'
+);
 
 const total = computed(() => props.executed + props.undone);
 </script>
@@ -57,6 +73,23 @@ const total = computed(() => props.executed + props.undone);
           <StepForward />
           Step
         </Button>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="outline"
+              size="sm"
+              class="w-24 justify-start"
+              :disabled="finished"
+              @click="emit('phase')"
+            >
+              <Footprints />
+              {{ nextPhase }}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Step one phase of the next line: fetch, decode, then execute
+          </TooltipContent>
+        </Tooltip>
         <Button v-if="running" variant="outline" size="sm" @click="emit('pause')">
           <Pause />
           Pause

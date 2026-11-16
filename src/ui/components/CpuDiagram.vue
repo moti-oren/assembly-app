@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { FLAG_BITS, FLAG_INFO, FLAG_NAMES, type FlagName } from '@/core/flags';
 import { formatInstruction } from '@/core/instructions';
@@ -15,7 +16,9 @@ import {
   registersRead,
   registersWritten
 } from '@/ui/describe';
+import type { PendingInstruction } from '@/ui/useCpu';
 import ChangeMark from './ChangeMark.vue';
+import CpuCycle from './CpuCycle.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import DiagramWire from './DiagramWire.vue';
 import FlagReason from './FlagReason.vue';
@@ -25,6 +28,8 @@ const props = defineProps<{
   state: CpuState;
   /** The last executed instruction: it decides which wires light up. */
   record: ExecutionRecord | null;
+  /** A program line being stepped by phase: until it executes, the wires show its plan. */
+  pending: PendingInstruction | null;
   /** Number of instructions executed so far; replays the flashes and the wire pulses. */
   tick: number;
 }>();
@@ -33,21 +38,61 @@ const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
 /** Rows that start a new group: index/pointer, segment, and IP. */
 const GROUP_STARTS: readonly WordRegister[] = ['si', 'cs', 'ip'];
 
-const equation = computed(() => props.record && describeEquation(props.state, props.record));
-const alu = computed(() => (props.record ? aluUse(props.record) : { input: false, output: false }));
-const memory = computed(() => props.record && describeMemoryAccess(props.state, props.record));
-const read = computed(() => (props.record ? registersRead(props.record) : new Set<WordRegister>()));
+/** While a line is part-way through its cycle nothing has run yet, so no change is on show. */
+const shown = computed(() => (props.pending ? null : props.record));
+const decoded = computed(() =>
+  props.pending?.phase === 'decode' ? decode(props.pending.instruction) : null
+);
+/** Changes with every phase as well as every execution, so each one lights the wires afresh. */
+const pulse = computed(() => {
+  const phaseStep = props.pending ? (props.pending.phase === 'fetch' ? 1 : 2) : 0;
+  return props.tick * 3 + phaseStep;
+});
+
+const equation = computed(() => shown.value && describeEquation(props.state, shown.value));
+const alu = computed(() => {
+  if (decoded.value) return { input: decoded.value.usesAlu, output: false };
+  return shown.value ? aluUse(shown.value) : { input: false, output: false };
+});
+const memory = computed(() => shown.value && describeMemoryAccess(props.state, shown.value));
+const read = computed(() => {
+  // Fetch only looks at IP; decode selects the registers the instruction is going to read.
+  if (props.pending?.phase === 'fetch') return new Set<WordRegister>(['ip']);
+  if (decoded.value) return new Set<WordRegister>(decoded.value.reads);
+  return shown.value ? registersRead(shown.value) : new Set<WordRegister>();
+});
 
 const written = computed(() =>
-  props.record ? registersWritten(props.record) : new Set<WordRegister>()
+  shown.value ? registersWritten(shown.value) : new Set<WordRegister>()
 );
+
+const aluNote = computed(() => {
+  const { pending, record } = props;
+  if (pending?.phase === 'fetch') return 'Waiting: the instruction is still being fetched.';
+  if (decoded.value) {
+    return decoded.value.usesAlu
+      ? 'Selected. The operands go in when the instruction executes.'
+      : `Not needed by ${decoded.value.mnemonic}.`;
+  }
+  if (!record) return 'Run an instruction to see how its result is computed.';
+  return alu.value.input
+    ? 'Computed here. The result is in the highlighted registers.'
+    : `Not used by ${record.instruction.mnemonic}.`;
+});
+
+const memoryNote = computed(() => {
+  const plan = decoded.value?.memory;
+  if (!plan || (!plan.read && !plan.write)) return 'not used';
+  if (plan.read && plan.write) return 'will be read and written';
+  return plan.write ? 'will be written' : 'will be read';
+});
 
 function value(name: WordRegister): number {
   return props.state.registers[name];
 }
 
 function changedBits(name: WordRegister): number {
-  return props.record ? props.record.before.registers[name] ^ value(name) : 0;
+  return shown.value ? shown.value.before.registers[name] ^ value(name) : 0;
 }
 
 /** A written register wins over a read one: `add ax, cx` reads AX but what matters is the write. */
@@ -57,7 +102,7 @@ function use(name: WordRegister): 'read' | 'write' | undefined {
 }
 
 const changedFlags = computed(() =>
-  props.record ? props.record.before.flags ^ props.state.flags : 0
+  shown.value ? shown.value.before.flags ^ props.state.flags : 0
 );
 
 function isSet(flag: FlagName): boolean {
@@ -86,7 +131,8 @@ function flagChanged(flag: FlagName): boolean {
       </CardAction>
     </CardHeader>
 
-    <CardContent>
+    <CardContent class="flex flex-col gap-4">
+      <CpuCycle :state="state" :record="record" :pending="pending" />
       <!-- Registers on the left, the bus between, and what the bus feeds on the right. -->
       <div class="grid gap-y-4 sm:grid-cols-[auto_minmax(0,1fr)]">
         <div class="flex flex-col font-mono text-[13px] sm:border-r-2 sm:border-foreground/15">
@@ -156,7 +202,7 @@ function flagChanged(flag: FlagName): boolean {
               />
             </span>
 
-            <DiagramWire class="hidden min-w-5 flex-1 sm:block" :kind="use(name)" :tick="tick" />
+            <DiagramWire class="hidden min-w-5 flex-1 sm:block" :kind="use(name)" :tick="pulse" />
           </div>
         </div>
 
@@ -164,15 +210,15 @@ function flagChanged(flag: FlagName): boolean {
           <div class="flex flex-col">
             <div class="flex items-stretch">
               <div class="hidden w-5 flex-col justify-center gap-4 sm:flex" aria-hidden="true">
-                <DiagramWire :kind="alu.input ? 'read' : undefined" :tick="tick" />
-                <DiagramWire :kind="alu.output ? 'write' : undefined" :tick="tick" />
+                <DiagramWire :kind="alu.input ? 'read' : undefined" :tick="pulse" />
+                <DiagramWire :kind="alu.output ? 'write' : undefined" :tick="pulse" />
               </div>
               <!-- A fixed height, sized for the longest sum, so nothing below moves as the text changes. -->
               <div class="h-36 min-w-0 flex-1 rounded-lg border bg-muted/30 px-3 py-2.5">
                 <div class="flex items-baseline justify-between gap-3">
                   <span class="text-sm font-medium">ALU</span>
                   <span class="truncate font-mono text-xs text-muted-foreground">{{
-                    record ? formatInstruction(record.instruction) : 'idle'
+                    shown ? formatInstruction(shown.instruction) : pending ? pending.phase : 'idle'
                   }}</span>
                 </div>
                 <div
@@ -210,15 +256,7 @@ function flagChanged(flag: FlagName): boolean {
                     }}
                   </span>
                 </div>
-                <p v-else class="mt-2 text-xs text-muted-foreground">
-                  {{
-                    !record
-                      ? 'Run an instruction to see how its result is computed.'
-                      : alu.input
-                        ? 'Computed here. The result is in the highlighted registers.'
-                        : `Not used by ${record.instruction.mnemonic}.`
-                  }}
-                </p>
+                <p v-else class="mt-2 text-xs text-muted-foreground">{{ aluNote }}</p>
               </div>
             </div>
 
@@ -268,7 +306,7 @@ function flagChanged(flag: FlagName): boolean {
             <DiagramWire
               class="hidden w-5 sm:block"
               :kind="memory ? (memory.write ? 'write' : 'read') : undefined"
-              :tick="tick"
+              :tick="pulse"
             />
             <div
               class="flex min-w-0 flex-1 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
@@ -288,7 +326,7 @@ function flagChanged(flag: FlagName): boolean {
                 </span>
                 {{ memory.address }}
               </span>
-              <span v-else class="text-xs text-muted-foreground">not used</span>
+              <span v-else class="text-xs text-muted-foreground">{{ memoryNote }}</span>
             </div>
           </div>
         </div>
