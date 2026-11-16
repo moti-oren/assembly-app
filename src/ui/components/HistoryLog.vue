@@ -56,14 +56,14 @@ watch(
         <template v-else>At {{ history.length }} of {{ total }}</template>
       </CardDescription>
     </CardHeader>
-    <CardContent class="flex flex-col lg:min-h-0 lg:flex-1">
+    <CardContent>
       <p v-if="total === 0" class="text-sm text-muted-foreground">
         Every instruction you run appears here. Pick one to go back to the moment after it ran.
       </p>
       <div
         v-else
         ref="list"
-        class="relative max-h-56 overflow-y-auto rounded-lg border bg-muted/30 py-1 lg:max-h-none lg:min-h-0 lg:flex-1"
+        class="relative max-h-56 overflow-y-auto rounded-lg border bg-muted/30 py-1 lg:max-h-80"
       >
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
           {{ history.length - SHOWN }} earlier instructions are not shown.

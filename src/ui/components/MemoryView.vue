@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useElementSize, useMediaQuery } from '@vueuse/core';
+import { useMediaQuery } from '@vueuse/core';
 import { Layers } from '@lucide/vue';
 import { explainAddress } from '@/core/address';
 import type { ExecutionRecord } from '@/core/execute';
@@ -33,25 +33,16 @@ const props = defineProps<{
 }>();
 
 const COMPACT_ROWS = 8;
+/** One 256-byte page. */
+const WIDE_ROWS = 16;
 const COLUMNS = 16;
 const SEGMENTS: SegmentRegister[] = ['ds', 'es', 'ss', 'cs'];
 
 const segment = ref<SegmentRegister>('ds');
 const offsetText = ref('0000');
 
-const table = ref<HTMLElement | null>(null);
-const { height: tableHeight } = useElementSize(table);
-// Below the two-column layout the page scrolls, and the table's height follows its own rows.
-const fillsHeight = useMediaQuery('(min-width: 64rem)');
-
-/** On a wide screen the table takes whatever height is left, so it shows the rows that fit. */
-const rowCount = computed(() => {
-  if (!fillsHeight.value || tableHeight.value === 0) return COMPACT_ROWS;
-  const HEADER = 24;
-  const ROW = 20;
-  const PADDING = 14;
-  return Math.min(32, Math.max(2, Math.floor((tableHeight.value - HEADER - PADDING) / ROW)));
-});
+const twoColumns = useMediaQuery('(min-width: 64rem)');
+const rowCount = computed(() => (twoColumns.value ? WIDE_ROWS : COMPACT_ROWS));
 
 const startOffset = computed(() => {
   // The offset box is always read as hex, with or without a 0x prefix or h suffix.
@@ -147,7 +138,7 @@ function ascii(value: number): string {
 
 <template>
   <Card size="sm">
-    <CardContent class="flex flex-col gap-3 lg:min-h-0 lg:flex-1">
+    <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
         <CardTitle class="mr-1">Memory</CardTitle>
         <Select v-model="segment">
@@ -227,10 +218,7 @@ function ascii(value: number): string {
         </span>
       </p>
 
-      <div
-        ref="table"
-        class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5 lg:min-h-0 lg:flex-1"
-      >
+      <div class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground/80">

@@ -113,10 +113,10 @@ function machineCode(index: number): string {
       </CardAction>
     </CardHeader>
 
-    <CardContent class="flex flex-col lg:min-h-0 lg:flex-1">
+    <CardContent>
       <ol
         ref="list"
-        class="relative max-h-80 overflow-y-auto rounded-lg lg:max-h-none lg:min-h-0 lg:flex-1 border bg-muted/30 py-1 font-mono text-[13px]"
+        class="relative max-h-80 overflow-y-auto rounded-lg border lg:max-h-112 bg-muted/30 py-1 font-mono text-[13px]"
         aria-label="Program lines"
       >
         <li
