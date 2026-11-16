@@ -1,6 +1,8 @@
 import {
   formatInstruction,
+  REPEAT_PREFIXES,
   getSpec,
+  isStringCompare,
   matchingForms,
   type Category,
   type Instruction,
@@ -80,8 +82,30 @@ const IMPLICIT: Partial<
   loop: COUNTED_JUMP,
   loope: COUNTED_JUMP,
   loopne: COUNTED_JUMP,
-  jcxz: { reads: ['cx'], writes: ['ip'] }
+  jcxz: { reads: ['cx'], writes: ['ip'] },
+  movsb: { reads: ['si', 'di', 'ds', 'es'], writes: ['si', 'di'] },
+  movsw: { reads: ['si', 'di', 'ds', 'es'], writes: ['si', 'di'] },
+  stosb: { reads: ['ax', 'di', 'es'], writes: ['di'] },
+  stosw: { reads: ['ax', 'di', 'es'], writes: ['di'] },
+  lodsb: { reads: ['si', 'ds'], writes: ['ax', 'si'] },
+  lodsw: { reads: ['si', 'ds'], writes: ['ax', 'si'] },
+  scasb: { reads: ['ax', 'di', 'es'], writes: ['di'] },
+  scasw: { reads: ['ax', 'di', 'es'], writes: ['di'] },
+  cmpsb: { reads: ['si', 'di', 'ds', 'es'], writes: ['si', 'di'] },
+  cmpsw: { reads: ['si', 'di', 'ds', 'es'], writes: ['si', 'di'] }
 };
+
+const STRING_READS_MEMORY = new Set<Mnemonic>([
+  'movsb',
+  'movsw',
+  'lodsb',
+  'lodsw',
+  'scasb',
+  'scasw',
+  'cmpsb',
+  'cmpsw'
+]);
+const STRING_WRITES_MEMORY = new Set<Mnemonic>(['movsb', 'movsw', 'stosb', 'stosw']);
 
 const READS_FLAGS = new Set<Mnemonic>(['adc', 'sbb', 'rcl', 'rcr', 'cmc', 'loope', 'loopne']);
 const JUMPS_WITHOUT_FLAGS = new Set<Mnemonic>(['jmp', 'jcxz', 'loop', 'call', 'ret']);
@@ -102,14 +126,16 @@ function parent(name: RegisterName): WordRegister {
 }
 
 export function decode(instruction: Instruction): Decoded {
-  const { mnemonic, operands } = instruction;
+  const { prefix, mnemonic, operands } = instruction;
   const form = matchingForms(mnemonic, operands).find((kinds) => kinds.length === operands.length);
   if (!form) {
     throw new Error(`Cannot decode an incomplete instruction: ${formatInstruction(instruction)}`);
   }
 
-  const { category, description } = getSpec(mnemonic);
-  const size = operands.map(operandSize).find((found) => found !== null) ?? null;
+  const spec = getSpec(mnemonic);
+  const { category } = spec;
+  const compares = isStringCompare(mnemonic);
+  const size = spec.size ?? operands.map(operandSize).find((found) => found !== null) ?? null;
   const operandRoles = roles(mnemonic, category, operands.length);
 
   const reads = new Set<WordRegister>();
@@ -138,6 +164,12 @@ export function decode(instruction: Instruction): Decoded {
   if (category === 'control' && !implicit) writes.add('ip');
   if (mnemonic === 'push' || mnemonic === 'call') memory.write = true;
   if (mnemonic === 'pop' || mnemonic === 'ret') memory.read = true;
+  if (STRING_READS_MEMORY.has(mnemonic)) memory.read = true;
+  if (STRING_WRITES_MEMORY.has(mnemonic)) memory.write = true;
+  if (prefix) {
+    reads.add('cx');
+    writes.add('cx');
+  }
 
   if (mnemonic === 'mul' || mnemonic === 'imul' || mnemonic === 'div' || mnemonic === 'idiv') {
     // 8-bit: everything stays inside AX. 16-bit: DX holds the upper half or the remainder.
@@ -150,12 +182,13 @@ export function decode(instruction: Instruction): Decoded {
   }
 
   const inOrder = (names: Set<WordRegister>) => WORD_REGISTERS.filter((name) => names.has(name));
-  const usesAlu = category === 'arithmetic' || category === 'logic' || category === 'shift';
+  const usesAlu =
+    category === 'arithmetic' || category === 'logic' || category === 'shift' || compares;
 
   return {
     mnemonic,
     category,
-    description,
+    description: prefix ? `${REPEAT_PREFIXES[prefix]}: ${spec.description}` : spec.description,
     size,
     operands: operands.map((operand, index) => ({
       text: formatOperand(operand),
@@ -165,8 +198,11 @@ export function decode(instruction: Instruction): Decoded {
     reads: inOrder(reads),
     writes: inOrder(writes),
     memory,
+    // Every string instruction reads DF for its direction; REPE and REPNE also test ZF.
     readsFlags:
-      READS_FLAGS.has(mnemonic) || (category === 'control' && !JUMPS_WITHOUT_FLAGS.has(mnemonic)),
+      READS_FLAGS.has(mnemonic) ||
+      category === 'string' ||
+      (category === 'control' && !JUMPS_WITHOUT_FLAGS.has(mnemonic)),
     writesFlags: (usesAlu || category === 'flags') && !KEEPS_FLAGS.has(mnemonic),
     usesAlu
   };

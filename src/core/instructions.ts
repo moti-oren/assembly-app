@@ -1,3 +1,4 @@
+import type { Size } from './numbers';
 import { formatOperand, matchesKind, type Operand, type OperandKind } from './operands';
 
 /**
@@ -54,13 +55,21 @@ const NO_OPERANDS: Form[] = [[]];
 
 const LABEL_FORMS: Form[] = [['label']];
 
-export type Category = 'transfer' | 'arithmetic' | 'logic' | 'shift' | 'control' | 'flags';
+export type Category =
+  | 'transfer'
+  | 'arithmetic'
+  | 'logic'
+  | 'shift'
+  | 'string'
+  | 'control'
+  | 'flags';
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   transfer: 'Data transfer',
   arithmetic: 'Arithmetic',
   logic: 'Logic',
   shift: 'Shift & rotate',
+  string: 'String',
   control: 'Jumps & calls',
   flags: 'Flag control'
 };
@@ -69,6 +78,8 @@ export interface InstructionSpec {
   category: Category;
   description: string;
   forms: readonly Form[];
+  /** The operand size, for mnemonics that carry it in their name (MOVSB, MOVSW). */
+  size?: Size;
 }
 
 export const INSTRUCTIONS = {
@@ -103,6 +114,17 @@ export const INSTRUCTIONS = {
   ror: { category: 'shift', description: 'Rotate right', forms: SHIFT_FORMS },
   rcl: { category: 'shift', description: 'Rotate left through CF', forms: SHIFT_FORMS },
   rcr: { category: 'shift', description: 'Rotate right through CF', forms: SHIFT_FORMS },
+
+  movsb: { category: 'string', description: 'Copy the byte at DS:SI to ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 8 },
+  movsw: { category: 'string', description: 'Copy the word at DS:SI to ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 16 },
+  stosb: { category: 'string', description: 'Store AL at ES:DI, then step DI', forms: NO_OPERANDS, size: 8 },
+  stosw: { category: 'string', description: 'Store AX at ES:DI, then step DI', forms: NO_OPERANDS, size: 16 },
+  lodsb: { category: 'string', description: 'Load the byte at DS:SI into AL, then step SI', forms: NO_OPERANDS, size: 8 },
+  lodsw: { category: 'string', description: 'Load the word at DS:SI into AX, then step SI', forms: NO_OPERANDS, size: 16 },
+  scasb: { category: 'string', description: 'Set flags as for AL - the byte at ES:DI, then step DI', forms: NO_OPERANDS, size: 8 },
+  scasw: { category: 'string', description: 'Set flags as for AX - the word at ES:DI, then step DI', forms: NO_OPERANDS, size: 16 },
+  cmpsb: { category: 'string', description: 'Set flags as for the byte at DS:SI - the byte at ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 8 },
+  cmpsw: { category: 'string', description: 'Set flags as for the word at DS:SI - the word at ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 16 },
 
   jmp: { category: 'control', description: 'Always jump', forms: LABEL_FORMS },
   je: { category: 'control', description: 'Jump if equal (ZF = 1)', forms: LABEL_FORMS },
@@ -146,7 +168,31 @@ export type Mnemonic = keyof typeof INSTRUCTIONS;
 
 export const MNEMONICS = Object.keys(INSTRUCTIONS) as Mnemonic[];
 
+/** String instructions that compare, and so are the ones REPE and REPNE can stop early. */
+const STRING_COMPARES: readonly Mnemonic[] = ['scasb', 'scasw', 'cmpsb', 'cmpsw'];
+
+export function isStringCompare(mnemonic: Mnemonic): boolean {
+  return STRING_COMPARES.includes(mnemonic);
+}
+
+/** Prefixes that repeat a string instruction, counting CX down to 0. */
+export const REPEAT_PREFIXES = {
+  rep: 'Repeat CX times',
+  repe: 'Repeat while CX ≠ 0 and the compared values are equal (ZF = 1)',
+  repne: 'Repeat while CX ≠ 0 and the compared values differ (ZF = 0)'
+} as const;
+
+export type RepeatPrefix = keyof typeof REPEAT_PREFIXES;
+
+/** REP goes with the string instructions that move data, REPE and REPNE with the ones that compare. */
+export function prefixAllows(prefix: RepeatPrefix, mnemonic: Mnemonic): boolean {
+  if (INSTRUCTIONS[mnemonic].category !== 'string') return false;
+  return (prefix === 'rep') !== isStringCompare(mnemonic);
+}
+
 export interface Instruction {
+  /** Only string instructions take a prefix. */
+  prefix?: RepeatPrefix;
   mnemonic: Mnemonic;
   operands: Operand[];
 }
@@ -168,7 +214,14 @@ export function isComplete(mnemonic: Mnemonic, operands: readonly Operand[]): bo
   return matchingForms(mnemonic, operands).some((form) => form.length === operands.length);
 }
 
+/** True when the operands form a legal instruction and the prefix, if any, fits the mnemonic. */
+export function isValid(instruction: Instruction): boolean {
+  const { prefix, mnemonic, operands } = instruction;
+  return isComplete(mnemonic, operands) && (!prefix || prefixAllows(prefix, mnemonic));
+}
+
 export function formatInstruction(instruction: Instruction): string {
   const operands = instruction.operands.map(formatOperand).join(', ');
-  return operands ? `${instruction.mnemonic} ${operands}` : instruction.mnemonic;
+  const body = operands ? `${instruction.mnemonic} ${operands}` : instruction.mnemonic;
+  return instruction.prefix ? `${instruction.prefix} ${body}` : body;
 }

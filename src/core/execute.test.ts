@@ -9,6 +9,8 @@ import {
   physicalAddress,
   readMemory,
   readRegister,
+  setFlag,
+  writeMemory,
   writeRegister,
   type CpuState
 } from './state';
@@ -325,5 +327,135 @@ describe('undo', () => {
     undo(cpu, record);
     expect(readRegister(cpu, 'sp')).toBe(0xfffe);
     expect(readMemory(cpu, physicalAddress(readRegister(cpu, 'ss'), 0xfffc), 16)).toBe(0);
+  });
+});
+
+describe('string instructions', () => {
+  /** DS and ES both start at 1000h, so offsets below address the same segment. */
+  const data = (offset: number) => physicalAddress(0x1000, offset);
+  const bytes = (offset: number, count: number) =>
+    Array.from({ length: count }, (_, i) => cpu.memory[data(offset + i)]);
+  const repeated = (prefix: 'rep' | 'repe' | 'repne', mnemonic: Mnemonic) =>
+    execute(cpu, { prefix, mnemonic, operands: [] });
+
+  it('movsb copies DS:SI to ES:DI and steps both up', () => {
+    writeMemory(cpu, data(0x10), 8, 0xab);
+    writeRegister(cpu, 'si', 0x10);
+    writeRegister(cpu, 'di', 0x20);
+    run('movsb');
+    expect(cpu.memory[data(0x20)]).toBe(0xab);
+    expect(readRegister(cpu, 'si')).toBe(0x11);
+    expect(readRegister(cpu, 'di')).toBe(0x21);
+  });
+
+  it('word forms step by 2, and DF = 1 steps down', () => {
+    writeRegister(cpu, 'ax', 0x1234);
+    writeRegister(cpu, 'di', 0x30);
+    run('stosw');
+    expect(readMemory(cpu, data(0x30), 16)).toBe(0x1234);
+    expect(readRegister(cpu, 'di')).toBe(0x32);
+
+    run('std');
+    run('stosw');
+    expect(readMemory(cpu, data(0x32), 16)).toBe(0x1234);
+    expect(readRegister(cpu, 'di')).toBe(0x30);
+  });
+
+  it('uses ES for the destination and DS for the source', () => {
+    writeRegister(cpu, 'es', 0x3000);
+    writeRegister(cpu, 'al', 0x7e);
+    run('stosb');
+    expect(cpu.memory[physicalAddress(0x3000, 0)]).toBe(0x7e);
+    expect(cpu.memory[data(0)]).toBe(0);
+  });
+
+  it('lodsb loads AL from DS:SI and leaves DI alone', () => {
+    writeMemory(cpu, data(5), 8, 0x99);
+    writeRegister(cpu, 'si', 5);
+    writeRegister(cpu, 'di', 0x40);
+    run('lodsb');
+    expect(readRegister(cpu, 'al')).toBe(0x99);
+    expect(readRegister(cpu, 'si')).toBe(6);
+    expect(readRegister(cpu, 'di')).toBe(0x40);
+  });
+
+  it('scasb and cmpsb set the flags like CMP and store nothing', () => {
+    writeMemory(cpu, data(0), 8, 5);
+    writeRegister(cpu, 'al', 5);
+    const scan = run('scasb');
+    expect(flags()).toMatchObject({ ZF: true, CF: false });
+    expect(scan.memoryWrites).toHaveLength(0);
+    expect(readRegister(cpu, 'di')).toBe(1);
+
+    writeMemory(cpu, data(0x10), 8, 1);
+    writeMemory(cpu, data(0x20), 8, 2);
+    writeRegister(cpu, 'si', 0x10);
+    writeRegister(cpu, 'di', 0x20);
+    run('cmpsb');
+    expect(flags()).toMatchObject({ ZF: false, CF: true, SF: true });
+  });
+
+  it('rep stosb fills CX bytes and leaves CX at 0 without touching the flags', () => {
+    writeRegister(cpu, 'al', 0x2a);
+    writeRegister(cpu, 'cx', 4);
+    setFlag(cpu, 'ZF', true);
+    const flagsBefore = cpu.flags;
+    repeated('rep', 'stosb');
+    expect(bytes(0, 5)).toEqual([0x2a, 0x2a, 0x2a, 0x2a, 0]);
+    expect(readRegister(cpu, 'cx')).toBe(0);
+    expect(readRegister(cpu, 'di')).toBe(4);
+    expect(cpu.flags).toBe(flagsBefore);
+  });
+
+  it('a repeat with CX = 0 does nothing at all', () => {
+    writeRegister(cpu, 'al', 0xff);
+    const record = repeated('rep', 'stosb');
+    expect(record.memoryWrites).toHaveLength(0);
+    expect(readRegister(cpu, 'di')).toBe(0);
+    expect(record.alu).toBeNull();
+  });
+
+  it('repne scasb stops on the first match, with DI one past it', () => {
+    [0x61, 0x62, 0x63, 0x64].forEach((value, i) => writeMemory(cpu, data(i), 8, value));
+    writeRegister(cpu, 'al', 0x63);
+    writeRegister(cpu, 'cx', 10);
+    repeated('repne', 'scasb');
+    expect(getFlag(cpu, 'ZF')).toBe(true);
+    expect(readRegister(cpu, 'di')).toBe(3);
+    expect(readRegister(cpu, 'cx')).toBe(7);
+  });
+
+  it('repe cmpsb stops on the first difference, or when CX runs out', () => {
+    [1, 2, 3].forEach((value, i) => writeMemory(cpu, data(i), 8, value));
+    [1, 2, 9].forEach((value, i) => writeMemory(cpu, data(0x10 + i), 8, value));
+    writeRegister(cpu, 'di', 0x10);
+    writeRegister(cpu, 'cx', 3);
+    repeated('repe', 'cmpsb');
+    expect(getFlag(cpu, 'ZF')).toBe(false);
+    expect(readRegister(cpu, 'cx')).toBe(0);
+
+    writeRegister(cpu, 'si', 0);
+    writeRegister(cpu, 'di', 0x10);
+    writeRegister(cpu, 'cx', 2);
+    repeated('repe', 'cmpsb');
+    expect(getFlag(cpu, 'ZF')).toBe(true);
+    expect(readRegister(cpu, 'cx')).toBe(0);
+  });
+
+  it('undoes every byte a repeat wrote', () => {
+    writeMemory(cpu, data(1), 8, 0x55);
+    writeRegister(cpu, 'al', 0x2a);
+    writeRegister(cpu, 'cx', 3);
+    const record = repeated('rep', 'stosb');
+    undo(cpu, record);
+    expect(bytes(0, 3)).toEqual([0, 0x55, 0]);
+    expect(readRegister(cpu, 'cx')).toBe(3);
+    expect(readRegister(cpu, 'di')).toBe(0);
+  });
+
+  it('rejects a prefix on an instruction it does not fit', () => {
+    expect(() => execute(cpu, { prefix: 'rep', mnemonic: 'nop', operands: [] })).toThrow(CpuError);
+    expect(() => repeated('rep', 'cmpsb')).toThrow(CpuError);
+    expect(() => repeated('repe', 'movsb')).toThrow(CpuError);
   });
 });

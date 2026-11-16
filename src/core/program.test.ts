@@ -122,7 +122,7 @@ describe('loops and calls', () => {
 
 describe('runToEnd', () => {
   it('runs the examples', () => {
-    const [sum, max, call, swap] = EXAMPLE_PROGRAMS.map((example) => example.program);
+    const [sum, max, call, swap, fill] = EXAMPLE_PROGRAMS.map((example) => example.program);
 
     expect(runToEnd(cpu, sum).error).toBeNull();
     expect(readRegister(cpu, 'ax')).toBe(55);
@@ -140,6 +140,11 @@ describe('runToEnd', () => {
     runToEnd(cpu, swap);
     expect(readRegister(cpu, 'ax')).toBe(0x2222);
     expect(readRegister(cpu, 'bx')).toBe(0x1111);
+
+    cpu = createCpuState();
+    expect(runToEnd(cpu, fill).error).toBeNull();
+    const copied = cpu.registers.ds * 16 + 0x10;
+    expect([...cpu.memory.slice(copied, copied + 9)]).toEqual([...Array(8).fill(0x2a), 0]);
   });
 
   it('stops endless loops', () => {
