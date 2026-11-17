@@ -195,7 +195,7 @@ const toggles = computed(() => [
           @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
         />
         <span
-          class="w-16 text-right font-mono text-xs text-muted-foreground tabular-nums"
+          class="min-w-16 shrink-0 text-right font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums"
           :title="positionText"
         >
           <span aria-hidden="true">{{ executed }} / {{ total }}</span>
