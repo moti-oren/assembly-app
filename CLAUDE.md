@@ -75,8 +75,9 @@ Two layers; keep them separate.
 - **After a merge, push and clean up:** when you merge a branch into `main` (only when the user asked for the merge), finish the job without asking again:
   1. On the merged `main`, run `npm run typecheck`, `npm run lint` and `npm test`. If anything fails, stop: do not push and do not delete the branch; report it.
   2. `git push origin main`. Never force-push. If the push is rejected or fails, stop, keep the branch, and report why.
-  3. Only after the push succeeded, delete the branch locally with `git branch -d <branch>` (the safe form, which refuses an unmerged branch; never `-D`) and on the remote with `git push origin --delete <branch>` if it exists there.
-  4. Report in Hebrew what was merged, pushed and deleted.
+  3. Only after the push succeeded, delete the branch **locally only**, with `git branch -d <branch>` (the safe form, which refuses an unmerged branch; never `-D`).
+  4. **Never delete the branch on the remote (GitHub)**: no `git push origin --delete <branch>` and no `git push origin :<branch>`, even if the branch exists there and even though it is merged. Remote branches are removed only when the user explicitly asks.
+  5. Report in Hebrew what was merged, pushed and deleted locally, and mention if a copy of the branch is still on the remote.
   - This applies only to a merge that Claude performs. Pushing a branch that is not being merged still needs an explicit request.
 - **Language of the commits themselves:** the text stored in git (commit subjects and bodies, branch names, code and code comments) is in English.
 - **Destructive commands:** before `git reset`, `git checkout -- <path>`, `git clean` or `git stash drop`, inspect what will be lost (`git status`, `git diff`). Uncommitted work may be the user's.
