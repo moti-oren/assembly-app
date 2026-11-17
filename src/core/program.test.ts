@@ -177,6 +177,19 @@ describe('runToEnd', () => {
     expect(result.error?.message).toContain('50 steps');
   });
 
+  it('stops a loop that writes too much memory, long before the step limit', () => {
+    const fill: Program = [
+      line('mov', reg('cx'), imm(100)),
+      { prefix: 'rep', mnemonic: 'stosb', operands: [] },
+      line('jmp', label(0))
+    ];
+    const result = runToEnd(cpu, fill, 1000, 250);
+    // Three REPs of 100 bytes pass the limit of 250; the run stops before the next step.
+    expect(result.records.length).toBe(8);
+    expect(result.records.reduce((sum, record) => sum + record.memoryWrites.length, 0)).toBe(300);
+    expect(result.error?.message).toContain('250 memory writes');
+  });
+
   it('stops at the first error and keeps what ran before it', () => {
     const result = runToEnd(cpu, [line('inc', reg('ax')), line('div', reg('bl')), line('inc', reg('ax'))]);
     expect(result.records.length).toBe(1);

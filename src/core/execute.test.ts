@@ -444,6 +444,26 @@ describe('string instructions', () => {
     expect(readRegister(cpu, 'cx')).toBe(0);
   });
 
+  it('repe cmpsb that stops early leaves the uncounted rest in CX', () => {
+    [1, 7, 3, 4].forEach((value, i) => writeMemory(cpu, data(i), 8, value));
+    [1, 2, 3, 4].forEach((value, i) => writeMemory(cpu, data(0x10 + i), 8, value));
+    writeRegister(cpu, 'di', 0x10);
+    writeRegister(cpu, 'cx', 4);
+    repeated('repe', 'cmpsb');
+    expect(getFlag(cpu, 'ZF')).toBe(false);
+    expect(readRegister(cpu, 'cx')).toBe(2);
+    expect(readRegister(cpu, 'si')).toBe(2);
+  });
+
+  it('rep stosb with CX = FFFFh writes 65535 bytes and ends with CX at 0', () => {
+    writeRegister(cpu, 'al', 0x11);
+    writeRegister(cpu, 'cx', 0xffff);
+    const record = repeated('rep', 'stosb');
+    expect(record.memoryWrites).toHaveLength(0xffff);
+    expect(readRegister(cpu, 'cx')).toBe(0);
+    expect(readRegister(cpu, 'di')).toBe(0xffff);
+  });
+
   it('undoes every byte a repeat wrote', () => {
     writeMemory(cpu, data(1), 8, 0x55);
     writeRegister(cpu, 'al', 0x2a);
