@@ -128,7 +128,10 @@ const moreToChoose = computed(
     hasMoreOperands(mnemonic.value, operands.value)
 );
 
-/** Index of the option the arrow keys moved to; Enter picks it. */
+/** The options in the order they appear on screen (grouped), which the arrow keys walk through. */
+const orderedOptions = computed(() => groups.value.flatMap(([, options]) => options));
+
+/** Index into `orderedOptions` of the option the arrow keys moved to; Enter picks it. */
 const selectedIndex = ref(0);
 
 // A new list of options (typing, or a word chosen) starts again from the first one.
@@ -140,16 +143,53 @@ watch(visibleOptions, () => {
 const enterOption = computed(() =>
   complete.value && !filter.value.trim()
     ? null
-    : (visibleOptions.value[selectedIndex.value] ?? null)
+    : (orderedOptions.value[selectedIndex.value] ?? null)
 );
 
-function onArrow(event: KeyboardEvent, step: 1 | -1): void {
-  const count = visibleOptions.value.length;
+/** The index of the button on the next row up or down, in the column nearest to `from`. */
+function rowNeighbour(buttons: HTMLElement[], from: number, down: boolean): number {
+  const current = buttons[from].getBoundingClientRect();
+  const centre = current.left + current.width / 2;
+  let rowTop: number | null = null;
+  for (const button of buttons) {
+    const top = button.getBoundingClientRect().top;
+    const beyond = down ? top > current.top + 1 : top < current.top - 1;
+    if (beyond && (rowTop === null || (down ? top < rowTop : top > rowTop))) rowTop = top;
+  }
+  if (rowTop === null) return from;
+  let best = from;
+  let distance = Infinity;
+  buttons.forEach((button, index) => {
+    const rect = button.getBoundingClientRect();
+    if (Math.abs(rect.top - rowTop) > 1) return;
+    const gap = Math.abs(rect.left + rect.width / 2 - centre);
+    if (gap < distance) {
+      distance = gap;
+      best = index;
+    }
+  });
+  return best;
+}
+
+/**
+ * Arrows walk the options: Left/Right one at a time, Up/Down by row. While there is text to
+ * edit, the plain arrows stay with the input and only Alt+arrow navigates.
+ */
+function onArrow(event: KeyboardEvent): void {
+  const count = orderedOptions.value.length;
   if (enterOption.value === null || count === 0) return;
-  // Left and Right keep moving the caret while there is text to edit.
-  if ((event.key === 'ArrowLeft' || event.key === 'ArrowRight') && filter.value !== '') return;
+  if (filter.value !== '' && !event.altKey) return;
   event.preventDefault();
-  selectedIndex.value = (selectedIndex.value + step + count) % count;
+  const vertical = event.key === 'ArrowUp' || event.key === 'ArrowDown';
+  const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight';
+  if (vertical) {
+    const buttons = [...(card.value?.$el.querySelectorAll<HTMLElement>('[data-option]') ?? [])];
+    if (buttons.length === count) {
+      selectedIndex.value = rowNeighbour(buttons, selectedIndex.value, forward);
+    }
+  } else {
+    selectedIndex.value = (selectedIndex.value + (forward ? 1 : -1) + count) % count;
+  }
   nextTick(() => {
     card.value?.$el.querySelector('[data-selected="true"]')?.scrollIntoView({ block: 'nearest' });
   });
@@ -314,10 +354,10 @@ function onBackspace(event: KeyboardEvent): void {
           autocomplete="off"
           autofocus
           @keydown.enter.prevent="onEnter"
-          @keydown.down="onArrow($event, 1)"
-          @keydown.right="onArrow($event, 1)"
-          @keydown.up="onArrow($event, -1)"
-          @keydown.left="onArrow($event, -1)"
+          @keydown.down="onArrow"
+          @keydown.right="onArrow"
+          @keydown.up="onArrow"
+          @keydown.left="onArrow"
           @keydown.backspace="onBackspace"
           @keydown.esc="clear"
         />
@@ -360,6 +400,7 @@ function onBackspace(event: KeyboardEvent): void {
               size="sm"
               class="font-mono"
               :data-selected="option === enterOption"
+              data-option
               :class="
                 option === enterOption
                   ? 'border-foreground/50 bg-secondary dark:border-foreground/40'
