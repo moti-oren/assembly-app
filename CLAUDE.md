@@ -19,6 +19,8 @@ npm run lint         # eslint . (flat config)
 npm run format       # prettier --write src
 ```
 
+When a change adds, renames or removes a command (an npm script in `package.json`, or a command developers now run), update this list in the same change. Also update the commands in `README.md`, in both languages.
+
 Style: Prettier with single quotes, semicolons, no trailing commas, 100 columns. Path alias `@` → `src`.
 
 ## Architecture
@@ -35,7 +37,7 @@ Two layers; keep them separate.
   - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …). **Display only**; nothing executes these bytes.
   - `devices.ts`: the port numbers of the I/O devices (LEDs, switches, 7-segment digits, terminal) and how their bytes are shown.
   - `address.ts` and `flagReasons.ts`: explanations for the UI, worked out from state and the undo record: how segment:offset becomes a 20-bit address, and why each flag got its value.
-- `src/ui/`: Vue components in `ui/components/` and `useCpu.ts`, which wraps the core in Vue reactivity. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
+- `src/ui/`: Vue components in `ui/components/` and `useCpu.ts`, which wraps the core in Vue reactivity. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
 - `src/components/ui/`: shadcn-vue components (Tailwind v4 + reka-ui), generated with `npx shadcn-vue add <name>`. They are excluded from ESLint; don't hand-edit them casually. Config in `components.json`.
 
 ## Execution model (non-obvious)
@@ -69,7 +71,13 @@ Two layers; keep them separate.
   4. Verify `git status` is clean and report the branch and commits to the user, **in Hebrew** (see "Language with the user").
   - **Partial work is exempt:** if the task is only partly done (blocked, failing, waiting for a user decision, or the user stopped midway), do **not** commit or create a branch. Leave the changes uncommitted and say what remains.
   - Do not commit unrelated pre-existing changes the user left in the tree; stage only files that belong to this task.
-- **Still needs an explicit request:** `git push`, merging into `main`, amending, and rewriting history (rebase, `reset --hard`, force-push). Prefer a new commit over amending.
+- **Still needs an explicit request:** merging into `main`, amending, and rewriting history (rebase, `reset --hard`, force-push). Prefer a new commit over amending. A `git push` also needs a request, except the push that follows a merge (next rule).
+- **After a merge, push and clean up:** when you merge a branch into `main` (only when the user asked for the merge), finish the job without asking again:
+  1. On the merged `main`, run `npm run typecheck`, `npm run lint` and `npm test`. If anything fails, stop: do not push and do not delete the branch; report it.
+  2. `git push origin main`. Never force-push. If the push is rejected or fails, stop, keep the branch, and report why.
+  3. Only after the push succeeded, delete the branch locally with `git branch -d <branch>` (the safe form, which refuses an unmerged branch; never `-D`) and on the remote with `git push origin --delete <branch>` if it exists there.
+  4. Report in Hebrew what was merged, pushed and deleted.
+  - This applies only to a merge that Claude performs. Pushing a branch that is not being merged still needs an explicit request.
 - **Language of the commits themselves:** the text stored in git (commit subjects and bodies, branch names, code and code comments) is in English.
 - **Destructive commands:** before `git reset`, `git checkout -- <path>`, `git clean` or `git stash drop`, inspect what will be lost (`git status`, `git diff`). Uncommitted work may be the user's.
 - **Large moves:** commit deletions, moves/renames and new content separately, so `git log --follow` and blame keep working.
@@ -87,6 +95,7 @@ Two layers; keep them separate.
 - **Typed arrays are not reactive:** memory and port bytes live in `Uint8Array`s, so the UI depends on `memoryVersion` / `ioVersion`. Bump them on every write path.
 - **8086 fidelity:** flag behavior (AF, OF, CF, etc.) follows real 8086 semantics, not whatever is convenient. When unsure, check the 8086 reference instead of guessing.
 - **UI changes:** `typecheck` and `test` do not cover the UI. Verify it in the browser via `npm run dev` before reporting it done.
+- **Command palette (Ctrl+K) stays in sync:** the app's command palette lists what the user can do (program, history, devices, run speed, examples, preferences). Its commands are built in `src/ui/useCommands.ts` and shown by `CommandPalette.vue`. Whenever a change adds a user-facing action (a new toggle, panel, preference, run option, or anything the user could reasonably look for in the palette), add the matching command in the same change; when an action is renamed or removed, update or remove its command. Toggles use a label that reflects the current state (`Show …` / `Hide …`). Not every control belongs there; skip purely internal or purely contextual ones.
 - **README on UI changes:** whenever the UI changes (new or changed controls, shortcuts, panels, behavior the user sees), check whether `README.md` should change too (commands, layout, model, usage). If so, update it in the same change.
 - **README is bilingual:** `README.md` has the full guide in English at the top and the same guide in Hebrew (RTL) at the bottom. Any README edit must be applied to both halves so they stay equivalent.
 - **shadcn components:** add them with `npx shadcn-vue add <name>`, never by hand-writing files in `src/components/ui/`.
