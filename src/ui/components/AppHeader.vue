@@ -15,6 +15,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { usePreferences } from '@/ui/usePreferences';
 
 defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
+/** The examples menu, which the empty program panel can also open. */
+const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
 const { isDark, soundOn, toggleTheme } = usePreferences();
 
@@ -53,7 +55,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
           <span class="hidden sm:inline">Commands</span>
           <Kbd class="hidden sm:inline-flex">{{ shortcut }}</Kbd>
         </Button>
-        <DropdownMenu>
+        <DropdownMenu v-model:open="examplesOpen">
           <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="sm" aria-label="Examples">
               <BookOpen />

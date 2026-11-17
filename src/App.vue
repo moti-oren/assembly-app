@@ -64,6 +64,7 @@ const commands = useCommands(cpu, panels, {
   showLastAccess: () => memoryView.value?.showLastAccess()
 });
 const paletteOpen = ref(false);
+const examplesOpen = ref(false);
 
 const programLines = computed(() => program.value.map(formatInstruction));
 
@@ -89,6 +90,7 @@ const encodingShown = computed(() =>
     <!-- The page scrolls as a whole: every panel keeps its own height instead of sharing one window. -->
     <div class="app-surface flex min-h-svh flex-col bg-muted/40 dark:bg-background">
       <AppHeader
+        v-model:examples-open="examplesOpen"
         @reset="cpu.reset"
         @load-example="cpu.loadExample"
         @commands="paletteOpen = true"
@@ -128,6 +130,7 @@ const encodingShown = computed(() =>
               @clear="clearAsked = true"
               @remove="cpu.removeProgramLine"
               @inspect="inspect"
+              @examples="examplesOpen = true"
             />
             <HistoryLog
               v-if="historyShown"

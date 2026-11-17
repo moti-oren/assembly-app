@@ -34,6 +34,8 @@ const emit = defineEmits<{
   remove: [index: number];
   /** Asks for the machine code of a line to be taken apart. */
   inspect: [index: number];
+  /** Asks for the examples menu, from the empty program's prompt. */
+  examples: [];
   'update:insertAt': [index: number | null];
 }>();
 
@@ -91,7 +93,7 @@ function machineCode(index: number): string {
     <CardHeader>
       <CardTitle>Program</CardTitle>
       <CardDescription>
-        <template v-if="program.length === 0">Empty</template>
+        <template v-if="program.length === 0">No lines yet</template>
         <template v-else-if="finished">Finished</template>
         <template v-else>Next: {{ formatLabel(ip) }}</template>
       </CardDescription>
@@ -132,12 +134,11 @@ function machineCode(index: number): string {
             <button
               type="button"
               class="flex w-full items-center gap-2 py-0.5 font-sans text-[11px] text-muted-foreground hover:text-foreground"
-              title="Click to add new lines at the end instead"
               @click="emit('update:insertAt', null)"
             >
               <span class="h-px flex-1 border-t border-dashed border-foreground/40" />
-              new lines go here
-              <X class="size-3" />
+              new lines go here ·
+              <span class="underline underline-offset-2">add at the end instead</span>
             </button>
           </li>
           <li
@@ -208,9 +209,12 @@ function machineCode(index: number): string {
       </ol>
 
       <p v-if="program.length === 0" class="mt-3 text-sm text-muted-foreground">
-        Build an instruction above and press
+        Build an instruction and press
         <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup>
-        to add it here, or open <span class="font-medium text-foreground">Examples</span>.
+        to add it as a line, or
+        <Button variant="link" size="sm" class="h-auto p-0" @click="emit('examples')"
+          >start from an example</Button
+        >.
       </p>
     </CardContent>
   </Card>
