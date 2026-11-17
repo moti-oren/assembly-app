@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, useTemplateRef } from 'vue';
+import { computed, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { assemble } from '@/core/encode';
 import { formatInstruction, type Instruction } from '@/core/instructions';
 import { Card, CardContent } from '@/components/ui/card';
@@ -67,6 +67,12 @@ const commands = useCommands(cpu, panels, {
   showStackTop: () => memoryView.value?.showStackTop(),
   showLastAccess: () => memoryView.value?.showLastAccess()
 });
+// Stepping the program folds the builder's choices, so the line at IP stays in view below it.
+watch([() => history.value.length, () => pending.value?.phase], () => {
+  const fromProgram = pending.value !== null || (lastRecord.value?.line ?? null) !== null;
+  if (fromProgram) builder.value?.fold();
+});
+
 const paletteOpen = ref(false);
 const examplesOpen = ref(false);
 

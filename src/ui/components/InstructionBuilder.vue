@@ -54,11 +54,33 @@ const card = ref<{ $el: HTMLElement } | null>(null);
 /** True while focus is inside the builder. */
 const active = ref(false);
 /**
- * With two columns the choices always stay open: folding them away would move every panel
- * below the builder each time focus came and went. In one column they fold away when the
- * builder is not in use, so the CPU panels are not pushed off screen.
+ * With two columns the choices do not follow focus: folding them away would move every panel
+ * below the builder each time focus came and went, under a pointer that is about to click. In
+ * one column they fold away when the builder is not in use, so the CPU panels are not pushed
+ * off screen.
  */
 const twoColumns = useMediaQuery('(min-width: 64rem)');
+/**
+ * With two columns, set while the program is being stepped, so the program below moves up and
+ * the line at IP stays in view. Only working in the builder opens them again: a click, a key or
+ * typing. Focus alone does not, since the command palette hands focus back as it closes.
+ */
+const folded = ref(false);
+const choicesShown = computed(() => (twoColumns.value ? !folded.value : active.value));
+
+/** Folds the choices, unless someone is using the builder right now. */
+function fold(): void {
+  if (!card.value?.$el.contains(document.activeElement)) folded.value = true;
+}
+
+function unfold(): void {
+  folded.value = false;
+}
+
+/** Ctrl+K and other shortcuts reach the builder too, but they are not work in it. */
+function onKeydown(event: KeyboardEvent): void {
+  if (!event.ctrlKey && !event.metaKey) unfold();
+}
 
 function onFocusOut(): void {
   // Focus moves between the input and the choices; only leaving the card counts.
@@ -233,7 +255,13 @@ onMounted(() => {
   if (!window.matchMedia('(pointer: coarse)').matches) focusInput();
 });
 
-defineExpose({ focus: focusInput });
+defineExpose({
+  focus: () => {
+    unfold();
+    focusInput();
+  },
+  fold
+});
 
 function apply(action: OptionAction): void {
   switch (action.kind) {
@@ -327,7 +355,13 @@ function onBackspace(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <Card ref="card" @focusin="active = true" @focusout="onFocusOut">
+  <Card
+    ref="card"
+    @focusin="active = true"
+    @focusout="onFocusOut"
+    @pointerdown="unfold"
+    @keydown="onKeydown"
+  >
     <CardHeader>
       <CardTitle>Instruction</CardTitle>
     </CardHeader>
@@ -403,7 +437,7 @@ function onBackspace(event: KeyboardEvent): void {
       </Alert>
 
       <div
-        v-if="moreToChoose && (active || twoColumns)"
+        v-if="moreToChoose && choicesShown"
         class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80"
       >
         <div v-for="[group, options] in groups" :key="group" class="mb-3 last:mb-0">
@@ -446,6 +480,15 @@ function onBackspace(event: KeyboardEvent): void {
           <template v-else>{{ typingHint }}</template>
         </p>
       </div>
+      <!-- Takes the place of the choices, so the program below stays where the fold left it. -->
+      <button
+        v-else-if="moreToChoose && twoColumns"
+        type="button"
+        class="self-start rounded-sm text-sm text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        @click="unfold"
+      >
+        Show the choices
+      </button>
       <div v-else-if="!moreToChoose" class="text-sm text-muted-foreground">
         <p>
           Complete. Run it now, or add it to the program at line
