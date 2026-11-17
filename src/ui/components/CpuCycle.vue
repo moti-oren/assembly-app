@@ -135,13 +135,13 @@ const detail = computed(() => {
         instruction ? formatInstruction(instruction) : 'idle'
       }}</span>
     </div>
-    <!-- Three lines, whatever the text, so the panels below never move. -->
-    <p
-      class="mt-2 line-clamp-3 h-12 text-xs leading-4 text-muted-foreground"
-      :title="detail"
-      aria-live="polite"
-    >
-      {{ detail }}
-    </p>
+    <!-- Three lines, whatever the text, so the panels below never move until it is opened. -->
+    <details class="group mt-2 text-xs leading-4 text-muted-foreground">
+      <summary
+        class="line-clamp-3 h-12 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
+      >
+        <span aria-live="polite">{{ detail }}</span>
+      </summary>
+    </details>
   </div>
 </template>
