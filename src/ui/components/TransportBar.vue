@@ -63,6 +63,8 @@ const nextPhase = computed(() =>
 
 const total = computed(() => props.executed + props.undone);
 
+const positionText = computed(() => `${props.executed} of ${total.value} instructions run`);
+
 const toggles = computed(() => [
   {
     label: 'History',
@@ -104,6 +106,7 @@ const toggles = computed(() => [
               variant="outline"
               size="sm"
               class="w-24 justify-start"
+              :aria-label="`Step: ${nextPhase}`"
               :disabled="finished"
               @click="emit('phase')"
             >
@@ -124,8 +127,11 @@ const toggles = computed(() => [
           Run program
         </Button>
         <Select :model-value="speed" @update:model-value="setSpeed">
-          <SelectTrigger size="sm" class="w-26" aria-label="Run speed">
-            <SelectValue />
+          <SelectTrigger size="sm" class="w-34" aria-label="Run speed">
+            <!-- The value alone ("Fast") does not say what it is the value of. -->
+            <SelectValue>
+              <span class="text-muted-foreground">Speed:</span> {{ SPEED_LABELS[speed] }}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="(label, value) in SPEED_LABELS" :key="value" :value="value">
@@ -176,8 +182,12 @@ const toggles = computed(() => [
           aria-label="Move through the executed instructions"
           @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
         />
-        <span class="w-16 text-right font-mono text-xs text-muted-foreground tabular-nums">
-          {{ executed }} / {{ total }}
+        <span
+          class="w-16 text-right font-mono text-xs text-muted-foreground tabular-nums"
+          :title="positionText"
+        >
+          <span aria-hidden="true">{{ executed }} / {{ total }}</span>
+          <span class="sr-only">{{ positionText }}</span>
         </span>
         <!-- Icons only on a narrow screen, so the name moves into the label and a tooltip. -->
         <Tooltip v-for="toggle in toggles" :key="toggle.label">
