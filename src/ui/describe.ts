@@ -29,9 +29,6 @@ const OPERATORS: Partial<Record<Mnemonic, string>> = {
   xor: 'XOR'
 };
 
-/** Instructions whose memory access is a read at the top of the stack. */
-const POPS_THE_STACK = new Set<Mnemonic>(['pop', 'ret', 'iret', 'popf']);
-
 /** Instructions that compute a result only to set the flags, then throw it away. */
 function discardsResult(mnemonic: Mnemonic): boolean {
   return mnemonic === 'cmp' || mnemonic === 'test' || isStringCompare(mnemonic);
@@ -189,7 +186,7 @@ export function describeMemoryAccess(
     const value = top.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
     return access('ss', top[0].address - (registers.ss << 4), formatHex(value, 16), true);
   }
-  if (POPS_THE_STACK.has(instruction.mnemonic)) {
+  if (decode(instruction).stack === 'pop') {
     const top = physicalAddress(registers.ss, registers.sp);
     return access('ss', registers.sp, formatHex(readMemory(state, top, 16), 16), false);
   }

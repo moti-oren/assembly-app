@@ -1,3 +1,4 @@
+import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { FLAG_BITS } from '@/core/flags';
 import { INSTRUCTIONS } from '@/core/instructions';
@@ -39,8 +40,8 @@ export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSoun
     if (after.registers.ip === fallThrough) return 'no-jump';
     return after.registers.ip > from ? 'jump-forward' : 'jump-back';
   }
-  if (mnemonic === 'push') return 'push';
-  if (mnemonic === 'pop') return 'pop';
+  const { stack } = decode(record.instruction);
+  if (stack) return stack;
   if (record.memoryWrites.length > 0 || record.portWrites.length > 0) return 'memory';
 
   const registers = Object.keys(before.registers) as WordRegister[];

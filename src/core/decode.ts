@@ -63,6 +63,8 @@ export interface Decoded {
   memory: { read: boolean; write: boolean };
   /** Whether it reads or writes an I/O port (IN, OUT). */
   port: 'read' | 'write' | null;
+  /** Whether it pushes words below SS:SP or pops them from there. */
+  stack: 'push' | 'pop' | null;
   readsFlags: boolean;
   writesFlags: boolean;
   usesAlu: boolean;
@@ -231,6 +233,7 @@ export function decode(instruction: Instruction): Decoded {
     writes: inOrder(writes),
     memory,
     port: mnemonic === 'in' ? 'read' : mnemonic === 'out' ? 'write' : null,
+    stack: STACK_WRITERS.has(mnemonic) ? 'push' : STACK_READERS.has(mnemonic) ? 'pop' : null,
     // Every string instruction reads DF for its direction; REPE and REPNE also test ZF.
     readsFlags:
       READS_FLAGS.has(mnemonic) ||

@@ -1,6 +1,6 @@
 import { onScopeDispose, watch, type ShallowRef } from 'vue';
+import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
-import type { Mnemonic } from '@/core/instructions';
 import { formatHex } from '@/core/numbers';
 import { effectiveAddress, operandSize, type Operand } from '@/core/operands';
 import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/state';
@@ -10,19 +10,6 @@ const FLIGHT_MS = 420;
 
 /** Executions closer together than this (a fast run) skip the flight: packets would pile up. */
 const MIN_GAP_MS = 500;
-
-/** Instructions whose second operand's value ends up in (or is combined into) the first. */
-const WRITES_FIRST_OPERAND = new Set<Mnemonic>([
-  'mov',
-  'xchg',
-  'add',
-  'adc',
-  'sub',
-  'sbb',
-  'and',
-  'or',
-  'xor'
-]);
 
 interface Flight {
   from: string | null;
@@ -72,7 +59,14 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       return formatHex(operand.type === 'imm' ? operand.value : operand.target, size);
     };
 
-    if (second && WRITES_FIRST_OPERAND.has(instruction.mnemonic)) {
+    const decoded = decode(instruction);
+    const [firstRole, secondRole] = decoded.operands.map((operand) => operand.role);
+    // The source's value ends up in (or is combined into) the destination. A port number is
+    // only an address, and XCHG moves both ways.
+    const moves =
+      (firstRole === 'destination' && secondRole === 'source' && decoded.port === null) ||
+      instruction.mnemonic === 'xchg';
+    if (second && moves) {
       // An immediate has no home in the CPU: it comes out of the code that was just run.
       const from = locate(second) ?? at(line === null ? 'builder' : `line:${line}`);
       const to = locate(first);
@@ -84,10 +78,10 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       }
       return [{ from, to, text: read(second) }];
     }
-    if (instruction.mnemonic === 'push' && memoryWrites.length > 0) {
+    if (decoded.stack === 'push' && memoryWrites.length > 0) {
       return [{ from: locate(first), to: at(`mem:${memoryWrites[0].address}`), text: read(first) }];
     }
-    if (instruction.mnemonic === 'pop') {
+    if (decoded.stack === 'pop') {
       const top = physicalAddress(before.registers.ss, before.registers.sp);
       return [{ from: at(`mem:${top}`), to: locate(first), text: read(first) }];
     }

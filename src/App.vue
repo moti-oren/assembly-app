@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from 'vue';
+import { decode } from '@/core/decode';
 import { assemble, encode } from '@/core/encode';
 import { formatInstruction, type Instruction } from '@/core/instructions';
 import { formatLabel } from '@/core/operands';
@@ -124,10 +125,10 @@ const paletteOpen = ref(false);
 const historyShown = ref(false);
 /** The LEDs, switches, digits and terminal. They open by themselves when a program uses a port. */
 const devicesShown = ref(false);
-const usesPort = (mnemonic: string): boolean => mnemonic === 'in' || mnemonic === 'out';
+const usesPort = (instruction: Instruction): boolean => decode(instruction).port !== null;
 watch([program, lastRecord], ([lines, record]) => {
-  const inProgram = lines.some((instruction) => usesPort(instruction.mnemonic));
-  if (inProgram || (record && usesPort(record.instruction.mnemonic))) devicesShown.value = true;
+  const inProgram = lines.some(usesPort);
+  if (inProgram || (record && usesPort(record.instruction))) devicesShown.value = true;
 });
 
 const commands = computed<PaletteCommand[]>(() => [
