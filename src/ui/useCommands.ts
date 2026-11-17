@@ -12,6 +12,8 @@ export interface PageActions {
   focusBuilder: () => void;
   /** Opens the confirmation; clearing cannot be undone. */
   askClearProgram: () => void;
+  /** Resets, asking first when the history would be lost. */
+  askReset: () => void;
   showStackTop: () => void;
   showLastAccess: () => void;
 }
@@ -103,7 +105,7 @@ export function useCommands(
         historyShown.value = !historyShown.value;
       }
     },
-    { group: 'CPU', label: 'Reset the CPU and clear the history', run: cpu.reset },
+    { group: 'CPU', label: 'Reset the CPU and clear the history', run: page.askReset },
     {
       group: 'CPU',
       label: 'Show the top of the stack in memory',
