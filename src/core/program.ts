@@ -21,7 +21,9 @@ const MAX_STEPS = 10_000;
 export const MAX_RUN_WRITES = 1_000_000;
 
 export function tooManyWrites(maxWrites = MAX_RUN_WRITES): CpuError {
-  return new CpuError(`Stopped after ${maxWrites} memory writes: is there an endless loop?`);
+  return new CpuError(
+    `Stopped after ${maxWrites} memory writes, which usually means an endless loop. Use Step to see which jump keeps repeating.`
+  );
 }
 
 function mapTargets(instruction: Instruction, map: (target: number) => number): Instruction {
@@ -97,7 +99,9 @@ export function runToEnd(
     if (records.length >= maxSteps) {
       return {
         records,
-        error: new CpuError(`Stopped after ${maxSteps} steps: is there an endless loop?`)
+        error: new CpuError(
+          `Stopped after ${maxSteps} steps, which usually means an endless loop. Use Step to see which jump keeps repeating.`
+        )
       };
     }
     if (writes >= maxWrites) {

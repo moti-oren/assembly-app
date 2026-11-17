@@ -267,7 +267,7 @@ function relative(place: Placement, target: number, size: Size, opcodeBytes: num
     note: `The distance to jump, counted from the next instruction: ${sum}, so ${distance < 0 ? `−${-distance}` : `+${distance}`}`
   };
   if (size === 8 && (distance < -128 || distance > 127)) {
-    field.problem = `Out of range: this jump reaches only −128 to +127 bytes, and ${formatLabel(target)} is ${distance} away`;
+    field.problem = `Too far for a conditional jump: it reaches −128 to +127 bytes and ${formatLabel(target)} is ${distance} away. Jump on the opposite condition over a JMP to the target.`;
   }
   return field;
 }
