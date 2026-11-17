@@ -76,6 +76,10 @@ npm run lint
 - Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
   instruction's own numbers (e.g. `7Fh + 01h` overflows as signed, so OF = 1). Hover or focus a register's
   name to see what it is for.
+- The cards in each column can be put in any order: drag the grip on a card's top edge, or focus
+  it and use the arrow keys (Home and End move it to the top or bottom). A card stays in its own
+  column. The order is remembered, separately for the CPU diagram and the tables, and **Reset the
+  card order** in the command palette (Ctrl+K) puts it back.
 
 ---
 
@@ -165,5 +169,9 @@ npm run lint
 - מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
   אותה הוראה (למשל `7Fh + 01h` גולש כמספר מסומן, ולכן OF = 1). מעבר עם העכבר או מיקוד על שם של רגיסטר מסביר
   למה הוא משמש.
+- אפשר לסדר את הכרטיסיות בכל עמודה בכל סדר: גוררים את הידית שבקצה העליון של הכרטיסייה, או ממקדים
+  אותה ומשתמשים במקשי החיצים (Home ו-End מעבירים אותה לראש העמודה או לסופה). כרטיסייה נשארת בעמודה
+  שלה. הסדר נשמר, בנפרד לדיאגרמת ה-CPU ולטבלאות, והפקודה **Reset the card order** בפלטת הפקודות
+  (Ctrl+K) מחזירה אותו לברירת המחדל.
 
 </div>

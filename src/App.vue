@@ -20,11 +20,14 @@ import LastOperation from '@/ui/components/LastOperation.vue';
 import MemoryView from '@/ui/components/MemoryView.vue';
 import ProgramPanel from '@/ui/components/ProgramPanel.vue';
 import RegistersPanel from '@/ui/components/RegistersPanel.vue';
+import SortableColumn from '@/ui/components/SortableColumn.vue';
 import TransportBar from '@/ui/components/TransportBar.vue';
 import { chooseEncoding } from '@/ui/encodingShown';
 import { useCommands } from '@/ui/useCommands';
 import { useCpu } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
+import { moveAmongVisible } from '@/ui/reorder';
+import { PANEL_LABELS, usePanelOrder, type Column, type PanelKey } from '@/ui/usePanelOrder';
 import { usePanels } from '@/ui/usePanels';
 import { usePreferences } from '@/ui/usePreferences';
 import { useSoundEffects } from '@/ui/useSoundEffects';
@@ -74,6 +77,25 @@ const assembled = computed(() => assemble(program.value));
 /** The complete instruction sitting in the builder, if any. */
 const draft = shallowRef<Instruction | null>(null);
 
+const { orders, setOrder } = usePanelOrder();
+/** The cards that can be hidden, and whether each one is on show. */
+const hidden = computed<Partial<Record<PanelKey, boolean>>>(() => ({
+  history: !historyShown.value,
+  encoding: !bytesShown.value,
+  devices: !devicesShown.value
+}));
+const rightColumn = computed<Column>(() => (cpuView.value === 'diagram' ? 'diagram' : 'table'));
+
+function visible(column: Column): PanelKey[] {
+  return orders.value[column].filter((key) => !hidden.value[key]);
+}
+const leftKeys = computed(() => visible('left'));
+const rightKeys = computed(() => visible(rightColumn.value));
+
+function move(column: Column, key: PanelKey, to: number): void {
+  setOrder(column, moveAmongVisible(orders.value[column], visible(column), key, to));
+}
+
 const encodingShown = computed(() =>
   chooseEncoding({
     program: program.value,
@@ -109,21 +131,26 @@ const encodingShown = computed(() =>
       <main
         class="mx-auto grid w-full max-w-7xl flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
       >
-        <div class="flex min-w-0 flex-col gap-4">
-          <InstructionBuilder
-            ref="builder"
-            :run="cpu.run"
-            :add="cpu.addToProgram"
-            :error="errorFrom === 'builder' ? error : null"
-            :program-lines="programLines"
-            :insert-line="insertAt ?? program.length"
-            @draft="draft = $event"
-          />
-          <!-- Side by side only where one column spans the page; a half-width column is too narrow. -->
-          <div class="flex flex-col gap-4 sm:flex-row lg:flex-col">
+        <!-- Each column's cards can be dragged into any order, but never into the other column. -->
+        <SortableColumn
+          :keys="leftKeys"
+          :labels="PANEL_LABELS"
+          @move="(key, to) => move('left', key, to)"
+        >
+          <template #builder>
+            <InstructionBuilder
+              ref="builder"
+              :run="cpu.run"
+              :add="cpu.addToProgram"
+              :error="errorFrom === 'builder' ? error : null"
+              :program-lines="programLines"
+              :insert-line="insertAt ?? program.length"
+              @draft="draft = $event"
+            />
+          </template>
+          <template #program>
             <ProgramPanel
               v-model:insert-at="insertAt"
-              class="min-w-0 flex-1"
               :program="program"
               :assembled="assembled.lines"
               :ip="state.registers.ip"
@@ -134,36 +161,46 @@ const encodingShown = computed(() =>
               @inspect="inspect"
               @examples="examplesOpen = true"
             />
-            <HistoryLog
-              v-if="historyShown"
-              class="min-w-0 flex-1"
-              :history="history"
-              :future="future"
-              @seek="cpu.seek"
+          </template>
+          <template #history>
+            <HistoryLog :history="history" :future="future" @seek="cpu.seek" />
+          </template>
+          <template #encoding>
+            <EncodingPanel :shown="encodingShown" />
+          </template>
+        </SortableColumn>
+
+        <SortableColumn
+          :keys="rightKeys"
+          :labels="PANEL_LABELS"
+          @move="(key, to) => move(rightColumn, key, to)"
+        >
+          <template #cpu>
+            <CpuDiagram
+              :state="state"
+              :record="lastRecord"
+              :pending="pending"
+              :tick="history.length"
             />
-          </div>
-          <EncodingPanel v-if="bytesShown" :shown="encodingShown" />
-        </div>
-        <div class="flex min-w-0 flex-col gap-4">
-          <CpuDiagram
-            v-if="cpuView === 'diagram'"
-            :state="state"
-            :record="lastRecord"
-            :pending="pending"
-            :tick="history.length"
-          />
-          <template v-else>
+          </template>
+          <template #cycle>
             <Card size="sm">
               <CardContent>
                 <CpuCycle :state="state" :record="lastRecord" :pending="pending" />
               </CardContent>
             </Card>
+          </template>
+          <template #registers>
             <RegistersPanel
               :state="state"
               :previous="lastRecord?.before.registers ?? null"
               :tick="history.length"
             />
+          </template>
+          <template #operation>
             <LastOperation :state="state" :record="lastRecord" />
+          </template>
+          <template #flags>
             <FlagsPanel
               :state="state"
               :previous="lastRecord?.before.flags ?? null"
@@ -171,16 +208,19 @@ const encodingShown = computed(() =>
               :tick="history.length"
             />
           </template>
-          <!-- The devices sit by the CPU whose bus they hang off, in sight while a program runs. -->
-          <DevicesPanel v-if="devicesShown" :state="state" @input="cpu.setInput" />
-          <MemoryView
-            ref="memoryView"
-            :state="state"
-            :heat="memoryHeat"
-            :record="lastRecord"
-            :tick="history.length"
-          />
-        </div>
+          <template #devices>
+            <DevicesPanel :state="state" @input="cpu.setInput" />
+          </template>
+          <template #memory>
+            <MemoryView
+              ref="memoryView"
+              :state="state"
+              :heat="memoryHeat"
+              :record="lastRecord"
+              :tick="history.length"
+            />
+          </template>
+        </SortableColumn>
       </main>
 
       <TransportBar
