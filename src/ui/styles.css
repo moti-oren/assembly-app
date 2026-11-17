@@ -416,6 +416,7 @@
     filter: drop-shadow(0 0 2px var(--changed-glow));
   }
   .device-switch {
+    position: relative;
     display: flex;
     align-items: flex-end;
     width: 1rem;
@@ -428,6 +429,14 @@
     transition:
       background-color 200ms,
       border-color 200ms;
+  }
+  /* A finger needs more than the drawn 16×28: the hit area (36×44) reaches into the wider gap. */
+  @media (pointer: coarse) {
+    .device-switch::after {
+      content: '';
+      position: absolute;
+      inset: -0.5rem -0.625rem;
+    }
   }
   .device-switch:focus-visible {
     box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
