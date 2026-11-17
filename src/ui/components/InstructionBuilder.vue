@@ -228,7 +228,10 @@ function focusInput(): void {
   nextTick(() => input.value?.focus());
 }
 
-onMounted(focusInput);
+// Not on a touch screen: focusing there opens the on-screen keyboard over half the page.
+onMounted(() => {
+  if (!window.matchMedia('(pointer: coarse)').matches) focusInput();
+});
 
 defineExpose({ focus: focusInput });
 
@@ -357,9 +360,12 @@ function onBackspace(event: KeyboardEvent): void {
           :placeholder="moreToChoose ? typingHint : 'Ready to run'"
           :aria-invalid="doesNotFit || undefined"
           aria-label="Instruction"
+          type="text"
+          autocapitalize="off"
+          autocorrect="off"
           spellcheck="false"
           autocomplete="off"
-          autofocus
+          enterkeyhint="go"
           @keydown.enter.prevent="onEnter"
           @keydown.down="onArrow"
           @keydown.right="onArrow"
