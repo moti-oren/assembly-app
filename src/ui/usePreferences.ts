@@ -3,13 +3,18 @@ import { createGlobalState, useDark, useLocalStorage } from '@vueuse/core';
 import type { SoundKind } from './sounds';
 import { playSound } from './synth';
 
+type CpuView = 'diagram' | 'table';
+
 /** Theme and sound, shared by the header and the command palette. Both are remembered. */
 export const usePreferences = createGlobalState(() => {
   /** Dark until the user picks a theme. */
   const isDark = useDark({ initialValue: 'dark' });
   const soundOn = useLocalStorage('8086-sound', false);
   /** The CPU's state as one wired diagram, or as the separate register and flag tables. */
-  const cpuView = useLocalStorage<'diagram' | 'table'>('8086-cpu-view', 'diagram');
+  const cpuView = useLocalStorage<CpuView>('8086-cpu-view', 'diagram', {
+    // Anything else in storage (an old or hand-edited value) falls back to the diagram.
+    serializer: { read: (raw) => (raw === 'table' ? 'table' : 'diagram'), write: (view) => view }
+  });
 
   function toggleTheme(): void {
     const flip = async (): Promise<void> => {

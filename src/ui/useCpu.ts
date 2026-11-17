@@ -13,19 +13,17 @@ import {
   step,
   tooManyWrites
 } from '@/core/program';
-import {
-  createCpuState,
-  setInputPort,
-  snapshot,
-  type CpuSnapshot,
-  type CpuState
-} from '@/core/state';
+import { createCpuState, setInputPort, snapshot, type CpuSnapshot } from '@/core/state';
 
 /** Delay between two program lines while running; `instant` runs to the end in one go. */
 export const RUN_SPEEDS = { slow: 1100, normal: 600, fast: 150, instant: 0 } as const;
 export type RunSpeed = keyof typeof RUN_SPEEDS;
 
 export const RUN_SPEED_NAMES = Object.keys(RUN_SPEEDS) as RunSpeed[];
+
+export function isRunSpeed(value: unknown): value is RunSpeed {
+  return typeof value === 'string' && value in RUN_SPEEDS;
+}
 
 export const SPEED_LABELS: Record<RunSpeed, string> = {
   slow: 'Slow',
@@ -55,7 +53,7 @@ interface Undone {
  * reactive proxy, so every panel re-renders by itself; nothing needs to emit events.
  */
 export function useCpu() {
-  const state = reactive(createCpuState()) as CpuState;
+  const state = reactive(createCpuState());
   const history = shallowRef<ExecutionRecord[]>([]);
   /** Undone instructions, the most recently undone last. */
   const undone = shallowRef<Undone[]>([]);
