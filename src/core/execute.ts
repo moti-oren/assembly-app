@@ -418,11 +418,18 @@ const stringStep =
  * CX is tested first, so CX = 0 runs nothing. REPE and REPNE also stop on the compare's ZF.
  */
 function repeat(ctx: ExecutionContext, prefix: RepeatPrefix, step: () => void): void {
-  while (readRegister(ctx.state, 'cx') !== 0) {
-    step();
-    writeRegister(ctx.state, 'cx', readRegister(ctx.state, 'cx') - 1);
-    if (prefix === 'repe' && !ctx.flag('ZF')) return;
-    if (prefix === 'repne' && ctx.flag('ZF')) return;
+  // CX is counted in a local and stored once: the string steps never read it, and under a
+  // reactive state every register access is a proxy hit, 65535 times for a full CX.
+  let cx = readRegister(ctx.state, 'cx');
+  try {
+    while (cx !== 0) {
+      step();
+      cx--;
+      if (prefix === 'repe' && !ctx.flag('ZF')) return;
+      if (prefix === 'repne' && ctx.flag('ZF')) return;
+    }
+  } finally {
+    writeRegister(ctx.state, 'cx', cx);
   }
 }
 
