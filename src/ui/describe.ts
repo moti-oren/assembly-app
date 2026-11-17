@@ -2,7 +2,7 @@ import { explainOffset, type OffsetBreakdown } from '@/core/address';
 import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { getSpec, isStringCompare, type Mnemonic } from '@/core/instructions';
-import { formatHex, truncate } from '@/core/numbers';
+import { formatHex, littleEndian, truncate } from '@/core/numbers';
 import {
   effectiveAddress,
   effectiveOffset,
@@ -97,7 +97,7 @@ export function describeEquation(state: CpuState, record: ExecutionRecord): Equa
 
   const left =
     destination.type === 'mem' && memoryWrites.length > 0
-      ? memoryWrites.reduce((value, write, i) => value | (write.before << (8 * i)), 0)
+      ? littleEndian(memoryWrites.map((write) => write.before))
       : read(destination, stateBefore);
   const right = source ? read(source, stateBefore) : 1;
   const discarded = mnemonic === 'cmp' || mnemonic === 'test';
@@ -170,7 +170,7 @@ export function describeMemoryAccess(
     // A repeated store or copy shows the last element it wrote, at ES:DI.
     if (memoryWrites.length > 0) {
       const last = memoryWrites.slice(-size / 8);
-      const value = last.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
+      const value = littleEndian(last.map((write) => write.after));
       return access('es', last[0].address - (registers.es << 4), formatHex(value, size), true);
     }
     // With CX = 0 a repeat touches no memory at all.
@@ -185,7 +185,7 @@ export function describeMemoryAccess(
   if (memoryWrites.length > 0) {
     // An interrupt pushes three words; the one on show is the last, now on top of the stack.
     const top = memoryWrites.slice(-2);
-    const value = top.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
+    const value = littleEndian(top.map((write) => write.after));
     return access('ss', top[0].address - (registers.ss << 4), formatHex(value, 16), true);
   }
   if (decode(instruction).stack === 'pop') {
@@ -207,7 +207,7 @@ export function describePortAccess(state: CpuState, record: ExecutionRecord): Po
   const { instruction, portWrites } = record;
   const name = (port: number): string => formatHex(port, port > 0xff ? 16 : 8);
   if (instruction.mnemonic === 'out' && portWrites.length > 0) {
-    const value = portWrites.reduce((sum, write, i) => sum | (write.after << (8 * i)), 0);
+    const value = littleEndian(portWrites.map((write) => write.after));
     const size = portWrites.length === 2 ? 16 : 8;
     return { port: name(portWrites[0].port), value: formatHex(value, size), write: true };
   }

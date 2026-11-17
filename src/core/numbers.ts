@@ -19,6 +19,11 @@ export function toSigned(value: number, size: Size): number {
   return unsigned & signBit(size) ? unsigned - (mask(size) + 1) : unsigned;
 }
 
+/** Joins bytes stored low byte first, as the 8086 stores a word, into one number. */
+export function littleEndian(bytes: readonly number[]): number {
+  return bytes.reduce((value, byte, i) => value | (byte << (8 * i)), 0);
+}
+
 /** True when the low byte has an even number of set bits (the 8086 PF rule). */
 export function hasEvenParity(value: number): boolean {
   let v = value & 0xff;
