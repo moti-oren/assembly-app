@@ -3,9 +3,51 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Local fonts reshaped to IBM Plex's metrics, used until Plex arrives. Without them the
+ * character-aligned columns (registers, hex dump) jump when the font swaps in. Each face names
+ * one local font, so a missing one is skipped. Overrides are divided by size-adjust.
+ */
+@font-face {
+  font-family: 'Plex Mono Fallback Consolas';
+  src: local('Consolas');
+  size-adjust: 109.1%;
+  ascent-override: 93.9%;
+  descent-override: 25.2%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Plex Mono Fallback Menlo';
+  src: local('Menlo'), local('DejaVu Sans Mono');
+  size-adjust: 99.7%;
+  ascent-override: 102.8%;
+  descent-override: 27.6%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Plex Sans Fallback Segoe';
+  src: local('Segoe UI');
+  size-adjust: 104.8%;
+  ascent-override: 97.8%;
+  descent-override: 26.2%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Plex Sans Fallback Arial';
+  src: local('Arial');
+  size-adjust: 102%;
+  ascent-override: 100.5%;
+  descent-override: 27%;
+  line-gap-override: 0%;
+}
+
 @theme inline {
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --font-sans:
+    'IBM Plex Sans', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
+    system-ui, sans-serif;
+  --font-mono:
+    'IBM Plex Mono', 'Plex Mono Fallback Consolas', 'Plex Mono Fallback Menlo', ui-monospace,
+    monospace;
   --color-changed: var(--changed);
   --color-changed-foreground: var(--changed-foreground);
   --color-changed-glow: var(--changed-glow);
