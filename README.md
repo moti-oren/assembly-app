@@ -59,7 +59,7 @@ npm run lint
   and everything else uses DS.
 - The Memory panel works out how `segment:offset` becomes a 20-bit physical address
   (`segment × 10h + offset`, wrapping past 1MB) for the last memory access, or for any byte you
-  point at. **Show** scrolls the table to the last access.
+  point at. **Show in table** scrolls the table to the last access.
 - Shift counts are `1` or `CL`, as on the 8086.
 - String instructions (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) read from DS:SI, write to ES:DI and step by DF. Pick `rep`, `repe` or `repne`
@@ -148,7 +148,7 @@ npm run lint
   `[bp]` משתמש ב-SS וכל האחרים משתמשים ב-DS.
 - חלונית הזיכרון מפרטת איך `segment:offset` הופך לכתובת פיזית של 20 סיביות
   (`segment × 10h + offset`, עם גלישה מעבר ל-1MB) עבור הגישה האחרונה לזיכרון, או עבור כל בית
-  שמצביעים עליו. **Show** גולל את הטבלה אל הגישה האחרונה.
+  שמצביעים עליו. **Show in table** גולל את הטבלה אל הגישה האחרונה.
 - ספירת הזזה היא `1` או `CL`, כמו ב-8086.
 - פקודות המחרוזת (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) קוראות מ-DS:SI, כותבות ל-ES:DI ומתקדמות לפי DF. בוחרים קודם `rep`, `repe` או

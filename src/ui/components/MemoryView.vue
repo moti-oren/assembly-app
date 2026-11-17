@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
 import { Layers } from '@lucide/vue';
 import { explainAddress } from '@/core/address';
@@ -49,6 +49,7 @@ const parsedOffset = computed(() => parseNumber(`0x${offsetText.value.replace(/^
 const startOffset = computed(() => (parsedOffset.value ?? 0) & 0xfff0);
 /** Text that is not a hex number shows the rows from 0000, and the box says it was not understood. */
 const offsetInvalid = computed(() => offsetText.value.trim() !== '' && parsedOffset.value === null);
+const offsetErrorId = useId();
 
 const rows = computed(() => {
   // Reading memoryVersion makes this re-run after writes: the byte array itself is not reactive.
@@ -180,6 +181,7 @@ function ascii(value: number): string {
             v-model="offsetText"
             class="h-7 w-28 pl-13 font-mono text-sm"
             :aria-invalid="offsetInvalid || undefined"
+            :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
             maxlength="6"
             spellcheck="false"
             aria-label="Offset (hex)"
@@ -189,6 +191,9 @@ function ascii(value: number): string {
           <Layers />
           Stack top
         </Button>
+        <p v-if="offsetInvalid" :id="offsetErrorId" class="basis-full text-xs text-destructive">
+          “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+        </p>
       </div>
 
       <!-- segment:offset worked out into the 20-bit address that goes onto the bus. -->
@@ -230,7 +235,7 @@ function ascii(value: number): string {
             class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
-            Show
+            Show in table
           </button>
         </template>
         <span v-else class="font-sans text-muted-foreground">
