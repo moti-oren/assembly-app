@@ -270,18 +270,27 @@ const groups = computed(() => {
   return [...map.entries()];
 });
 
+/** The immediate size the typed number is too big for, or null when it fits or none is asked. */
+const overflowSize = computed<Size | null>(() => {
+  if (mnemonic.value === null || pendingMemory.value !== null) return null;
+  const size = operandChoices(mnemonic.value, operands.value).immediate;
+  const number = typedNumber.value;
+  return size !== null && number !== null && !fitsIn(number, size) ? size : null;
+});
+
+const doesNotFit = computed(() => overflowSize.value !== null);
+
 /** Hint for values that are typed rather than picked. */
 const typingHint = computed(() => {
   if (mnemonic.value === null) {
     return prefix.value ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
   }
   if (pendingMemory.value !== null) return 'Pick a register or type an offset (e.g. 0x10)';
+  if (overflowSize.value !== null) {
+    return `${filter.value} does not fit in ${overflowSize.value} bits`;
+  }
   const choices = operandChoices(mnemonic.value, operands.value);
   if (choices.immediate !== null) {
-    const number = typedNumber.value;
-    if (number !== null && !fitsIn(number, choices.immediate)) {
-      return `${filter.value} does not fit in ${choices.immediate} bits`;
-    }
     return `Type a number for an immediate (42, 0x2A, 2Ah, 101010b)`;
   }
   if (choices.label) return 'Pick a line to jump to, or type its number';
@@ -295,8 +304,6 @@ const moreToChoose = computed(
     pendingMemory.value !== null ||
     hasMoreOperands(mnemonic.value, operands.value)
 );
-
-const doesNotFit = computed(() => filter.value !== '' && typingHint.value.includes('does not fit'));
 
 /** The option Enter would pick. */
 const enterOption = computed(() =>
