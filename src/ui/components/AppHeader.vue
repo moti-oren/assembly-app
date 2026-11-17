@@ -62,7 +62,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-72">
             <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">
-              Replaces the program and resets the CPU
+              Replaces your program and clears the CPU and its history
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -84,7 +84,10 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
               <span class="hidden sm:inline">Reset</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Clears registers, flags and memory. The program is kept.</TooltipContent>
+          <TooltipContent
+            >Clears registers, flags, memory and the history. The program is kept. This can't be
+            undone.</TooltipContent
+          >
         </Tooltip>
 
         <Tooltip>
