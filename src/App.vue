@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef, useTemplateRef } from 'vue';
 import { assemble } from '@/core/encode';
 import { formatInstruction, type Instruction } from '@/core/instructions';
 import { Card, CardContent } from '@/components/ui/card';
@@ -49,7 +49,13 @@ useSoundEffects(cpu);
 const { cpuView } = usePreferences();
 const panels = usePanels(cpu);
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
-const commands = useCommands(cpu, panels);
+const builder = useTemplateRef('builder');
+const memoryView = useTemplateRef('memoryView');
+const commands = useCommands(cpu, panels, {
+  focusBuilder: () => builder.value?.focus(),
+  showStackTop: () => memoryView.value?.showStackTop(),
+  showLastAccess: () => memoryView.value?.showLastAccess()
+});
 const paletteOpen = ref(false);
 
 const programLines = computed(() => program.value.map(formatInstruction));
@@ -89,6 +95,7 @@ const encodingShown = computed(() =>
       >
         <div class="flex min-w-0 flex-col gap-4">
           <InstructionBuilder
+            ref="builder"
             :run="cpu.run"
             :add="cpu.addToProgram"
             :error="error"
@@ -150,6 +157,7 @@ const encodingShown = computed(() =>
           <!-- The devices sit by the CPU whose bus they hang off, in sight while a program runs. -->
           <DevicesPanel v-if="devicesShown" :state="state" @input="cpu.setInput" />
           <MemoryView
+            ref="memoryView"
             :state="state"
             :heat="memoryHeat"
             :record="lastRecord"
