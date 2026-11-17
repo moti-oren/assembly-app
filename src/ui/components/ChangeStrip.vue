@@ -10,11 +10,13 @@ import { describeMemoryAccess } from '@/ui/describe';
 
 const props = defineProps<{
   state: CpuState;
-  record: ExecutionRecord;
+  /** The last executed instruction; null before the first one. */
+  record: ExecutionRecord | null;
 }>();
 
 /** Everything the last instruction changed, as short `name value` pairs. */
 const changes = computed(() => {
+  if (!props.record) return [];
   const { before } = props.record;
   const list: { name: string; value: string }[] = [];
   for (const name of changedRegisters(before.registers, props.state.registers)) {
@@ -34,12 +36,18 @@ const changes = computed(() => {
 </script>
 
 <template>
-  <!-- On a narrow screen the CPU panels scroll away; this keeps the last result in sight. -->
+  <!--
+    On a narrow screen the CPU panels scroll away; this keeps the last result in sight. It is
+    there from the start, at a fixed height, so the page does not drop when the first result comes.
+  -->
   <div
-    class="sticky top-14 z-10 flex items-center gap-2 overflow-x-auto border-b bg-background/85 px-4 py-1.5 font-mono text-xs whitespace-nowrap backdrop-blur-sm"
+    class="sticky top-14 z-(--z-strip) flex h-8.25 items-center gap-2 leading-4 overflow-x-auto border-b bg-background/85 px-4 py-1.5 font-mono text-xs whitespace-nowrap backdrop-blur-sm"
     aria-live="polite"
   >
-    <span class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
+    <span v-if="!record" class="font-sans text-muted-foreground">
+      Run an instruction to see what it changes
+    </span>
+    <span v-else class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
     <span
       v-for="change in changes"
       :key="change.name"
@@ -47,7 +55,7 @@ const changes = computed(() => {
     >
       {{ change.name }} <span class="font-semibold">{{ change.value }}</span>
     </span>
-    <span v-if="changes.length === 0" class="font-sans text-muted-foreground">
+    <span v-if="record && changes.length === 0" class="font-sans text-muted-foreground">
       changed nothing
     </span>
   </div>

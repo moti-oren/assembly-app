@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useMediaQuery } from '@vueuse/core';
 import { hasMoreOperands, operandChoices } from '@/core/builder';
 import {
   getSpec,
@@ -50,8 +51,14 @@ const pendingMemory = ref<Size | null>(null);
 const filter = ref('');
 const input = ref<HTMLInputElement | null>(null);
 const card = ref<{ $el: HTMLElement } | null>(null);
-/** True while focus is inside the builder: the choices fold away when it is not in use. */
+/** True while focus is inside the builder. */
 const active = ref(false);
+/**
+ * With two columns the choices always stay open: folding them away would move every panel
+ * below the builder each time focus came and went. In one column they fold away when the
+ * builder is not in use, so the CPU panels are not pushed off screen.
+ */
+const twoColumns = useMediaQuery('(min-width: 64rem)');
 
 function onFocusOut(): void {
   // Focus moves between the input and the choices; only leaving the card counts.
@@ -221,7 +228,10 @@ function focusInput(): void {
   nextTick(() => input.value?.focus());
 }
 
-onMounted(focusInput);
+// Not on a touch screen: focusing there opens the on-screen keyboard over half the page.
+onMounted(() => {
+  if (!window.matchMedia('(pointer: coarse)').matches) focusInput();
+});
 
 defineExpose({ focus: focusInput });
 
@@ -350,9 +360,12 @@ function onBackspace(event: KeyboardEvent): void {
           :placeholder="moreToChoose ? typingHint : 'Ready to run'"
           :aria-invalid="doesNotFit || undefined"
           aria-label="Instruction"
+          type="text"
+          autocapitalize="off"
+          autocorrect="off"
           spellcheck="false"
           autocomplete="off"
-          autofocus
+          enterkeyhint="go"
           @keydown.enter.prevent="onEnter"
           @keydown.down="onArrow"
           @keydown.right="onArrow"
@@ -365,7 +378,7 @@ function onBackspace(event: KeyboardEvent): void {
           v-if="tokens.length > 0"
           variant="ghost"
           size="icon-xs"
-          class="text-muted-foreground"
+          class="text-muted-foreground pointer-coarse:size-11"
           title="Clear (Esc)"
           aria-label="Clear the instruction"
           @click.stop="clear"
@@ -389,7 +402,10 @@ function onBackspace(event: KeyboardEvent): void {
         <AlertDescription class="text-destructive/90">{{ error }}</AlertDescription>
       </Alert>
 
-      <div v-if="moreToChoose && active" class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80">
+      <div
+        v-if="moreToChoose && (active || twoColumns)"
+        class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80"
+      >
         <div v-for="[group, options] in groups" :key="group" class="mb-3 last:mb-0">
           <h3 class="mb-1.5 text-xs text-muted-foreground">{{ group }}</h3>
           <div class="flex flex-wrap gap-1.5">
@@ -424,7 +440,7 @@ function onBackspace(event: KeyboardEvent): void {
         <!-- A number that is too big already has its own message above. -->
         <p v-if="groups.length === 0 && !doesNotFit" class="text-sm text-muted-foreground">
           <template v-if="filter.trim()">
-            Nothing matches “<span class="font-mono text-foreground">{{ filter }}</span
+            Nothing matches “<span class="font-mono break-all text-foreground">{{ filter }}</span
             >”. Press <Kbd>Backspace</Kbd> to edit it or <Kbd>Esc</Kbd> to start over.
           </template>
           <template v-else>{{ typingHint }}</template>

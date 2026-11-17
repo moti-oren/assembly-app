@@ -92,7 +92,7 @@ const toggles = computed(() => [
 
 <template>
   <!-- Always on screen, so the program can be driven while watching any part of the CPU. -->
-  <footer class="sticky bottom-0 z-20 border-t bg-background/85 backdrop-blur-sm">
+  <footer class="sticky bottom-0 z-(--z-sticky) border-t bg-background/85 backdrop-blur-sm">
     <!-- Next to the buttons that ran the program, so a stop is seen where it was caused. -->
     <p
       v-if="error"
@@ -108,7 +108,7 @@ const toggles = computed(() => [
       aria-label="Program and history controls"
     >
       <div class="flex items-center gap-1.5">
-        <Button size="sm" :disabled="finished" @click="emit('step')">
+        <Button size="sm" class="pointer-coarse:h-11" :disabled="finished" @click="emit('step')">
           <StepForward />
           Step
         </Button>
@@ -117,7 +117,7 @@ const toggles = computed(() => [
             <Button
               variant="outline"
               size="sm"
-              class="w-24 justify-start"
+              class="w-24 justify-start pointer-coarse:h-11"
               :aria-label="`Step: ${nextPhase}`"
               :disabled="finished"
               @click="emit('phase')"
@@ -130,16 +130,33 @@ const toggles = computed(() => [
             Step one phase of the next line: fetch, decode, then execute
           </TooltipContent>
         </Tooltip>
-        <Button v-if="running" variant="outline" size="sm" @click="emit('pause')">
+        <Button
+          v-if="running"
+          variant="outline"
+          size="sm"
+          class="pointer-coarse:h-11"
+          @click="emit('pause')"
+        >
           <Pause />
           Pause
         </Button>
-        <Button v-else variant="outline" size="sm" :disabled="finished" @click="emit('run')">
+        <Button
+          v-else
+          variant="outline"
+          size="sm"
+          class="pointer-coarse:h-11"
+          :disabled="finished"
+          @click="emit('run')"
+        >
           <FastForward />
           Run program
         </Button>
         <Select :model-value="speed" @update:model-value="setSpeed">
-          <SelectTrigger size="sm" class="w-34" aria-label="Run speed">
+          <SelectTrigger
+            size="sm"
+            class="w-34 pointer-coarse:data-[size=sm]:h-11"
+            aria-label="Run speed"
+          >
             <!-- The value alone ("Fast") does not say what it is the value of. -->
             <SelectValue>
               <span class="text-muted-foreground">Speed:</span> {{ SPEED_LABELS[speed] }}
@@ -161,6 +178,7 @@ const toggles = computed(() => [
             <Button
               variant="ghost"
               size="icon-sm"
+              class="pointer-coarse:size-11"
               aria-label="Undo the last instruction"
               :disabled="executed === 0"
               @click="emit('undo')"
@@ -175,6 +193,7 @@ const toggles = computed(() => [
             <Button
               variant="ghost"
               size="icon-sm"
+              class="pointer-coarse:size-11"
               aria-label="Redo the undone instruction"
               :disabled="undone === 0"
               @click="emit('redo')"
@@ -186,7 +205,7 @@ const toggles = computed(() => [
         </Tooltip>
         <input
           type="range"
-          class="mx-1.5 h-4 min-w-0 flex-1 cursor-pointer accent-pointer disabled:cursor-default disabled:opacity-40"
+          class="mx-1.5 h-4 min-w-0 flex-1 cursor-pointer pointer-coarse:h-11 accent-pointer disabled:cursor-default disabled:opacity-40"
           min="0"
           :max="Math.max(total, 1)"
           :value="executed"
@@ -195,7 +214,7 @@ const toggles = computed(() => [
           @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
         />
         <span
-          class="w-16 text-right font-mono text-xs text-muted-foreground tabular-nums"
+          class="min-w-16 shrink-0 text-right font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums"
           :title="positionText"
         >
           <span aria-hidden="true">{{ executed }} / {{ total }}</span>
@@ -207,6 +226,7 @@ const toggles = computed(() => [
             <Button
               variant="ghost"
               size="sm"
+              class="pointer-coarse:h-11"
               :class="toggle.shown ? 'bg-secondary' : ''"
               :aria-label="toggle.label"
               :aria-pressed="toggle.shown"

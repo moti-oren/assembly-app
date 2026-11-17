@@ -90,7 +90,7 @@ function flip(bit: number): void {
               >in {{ port(PORTS.switches) }} = {{ formatHex(switches, 8) }}h</span
             >
           </h3>
-          <div class="flex gap-1.5">
+          <div class="flex gap-1.5 pointer-coarse:gap-5">
             <button
               v-for="bit in BITS"
               :key="bit"

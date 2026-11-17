@@ -26,6 +26,9 @@ const shown = computed(() => {
 
 const total = computed(() => props.history.length + props.future.length);
 
+/** Every row is its own grid, so the number column is sized once, for the largest number. */
+const numberColumn = computed(() => `max(3rem, calc(${String(total.value).length}ch + 0.75rem))`);
+
 const list = ref<HTMLElement | null>(null);
 
 // Keep the instruction the CPU is at in view.
@@ -63,12 +66,13 @@ watch(
       <div
         v-else
         ref="list"
+        :style="{ '--number-column': numberColumn }"
         class="relative max-h-56 overflow-y-auto rounded-lg border bg-muted/30 py-1 lg:max-h-80"
       >
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
           {{ history.length - SHOWN }} earlier instructions are not shown.
         </p>
-        <ol class="font-mono text-[13px]">
+        <ol class="font-mono text-code">
           <li
             v-for="{ record, number } in shown"
             :key="number"
@@ -76,7 +80,7 @@ watch(
           >
             <button
               type="button"
-              class="grid w-full grid-cols-[3rem_2.75rem_1fr] items-center px-3 py-0.5 text-left outline-none hover:bg-muted/60 focus-visible:bg-muted/60"
+              class="grid w-full grid-cols-[var(--number-column)_2.75rem_minmax(0,1fr)] items-center px-3 py-0.5 text-left outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60"
               :class="
                 number === history.length
                   ? 'bg-background font-semibold'

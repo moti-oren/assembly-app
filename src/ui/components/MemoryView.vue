@@ -183,6 +183,9 @@ function ascii(value: number): string {
             :aria-invalid="offsetInvalid || undefined"
             :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
             maxlength="6"
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
             spellcheck="false"
             aria-label="Offset (hex)"
           />
@@ -191,8 +194,11 @@ function ascii(value: number): string {
           <Layers />
           Stack top
         </Button>
-        <p v-if="offsetInvalid" :id="offsetErrorId" class="basis-full text-xs text-destructive">
-          “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+        <!-- Always there, so a message appearing while typing does not push the table down. -->
+        <p :id="offsetErrorId" class="min-h-4 basis-full text-xs text-destructive">
+          <template v-if="offsetInvalid">
+            “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+          </template>
         </p>
       </div>
 
@@ -232,7 +238,7 @@ function ascii(value: number): string {
           <button
             v-if="worked.isLastAccess"
             type="button"
-            class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
             Show in table

@@ -211,14 +211,15 @@ function flagChanged(flag: FlagName): boolean {
     <CardContent class="flex flex-col gap-4">
       <CpuCycle :state="state" :record="record" :pending="pending" />
 
-      <div class="@container">
+      <!-- The BIU's width, set on the children so the container query can switch it. -->
+      <div class="@container *:[--biu-width:15rem] @min-[40rem]:*:[--biu-width:18.5rem]">
         <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
         <div
           class="grid gap-y-5 rounded-xl border border-foreground/20 bg-muted/20 p-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
         >
           <section class="min-w-0" aria-label="Execution unit">
             <h3 class="unit-title">Execution unit <span>EU</span></h3>
-            <div class="flex flex-col font-mono text-[13px]">
+            <div class="flex flex-col font-mono text-code">
               <!-- The number system of each column, as in the register table. -->
               <div
                 class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
@@ -285,7 +286,7 @@ function flagChanged(flag: FlagName): boolean {
                   <RollingDigits :text="String(value(name))" />
                 </span>
 
-                <span class="hidden text-[11px] @min-[36rem]:inline">
+                <span class="hidden text-2xs @min-[36rem]:inline">
                   <RollingDigits
                     effect="flip"
                     dim-zeros
@@ -313,7 +314,7 @@ function flagChanged(flag: FlagName): boolean {
                 </div>
                 <div
                   v-if="equation"
-                  class="mt-2 grid grid-cols-[auto_auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-[13px]"
+                  class="mt-2 grid grid-cols-[auto_auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
                 >
                   <span />
                   <span class="text-right">{{ equation.left }}</span>
@@ -382,7 +383,7 @@ function flagChanged(flag: FlagName): boolean {
                       class="change-flash"
                       aria-hidden="true"
                     />
-                    <span class="text-[11px] font-semibold">{{ flag }}</span>
+                    <span class="text-2xs font-semibold">{{ flag }}</span>
                     <span
                       class="text-sm"
                       :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground/70'"
@@ -405,12 +406,9 @@ function flagChanged(flag: FlagName): boolean {
           />
 
           <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->
-          <section
-            class="flex flex-col sm:w-60 @min-[40rem]:w-[18.5rem]"
-            aria-label="Bus interface unit"
-          >
+          <section class="flex flex-col sm:w-(--biu-width)" aria-label="Bus interface unit">
             <h3 class="unit-title sm:pl-7">Bus interface unit <span>BIU</span></h3>
-            <div class="flex flex-col font-mono text-[13px]">
+            <div class="flex flex-col font-mono text-code">
               <div
                 class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
               >
@@ -449,7 +447,7 @@ function flagChanged(flag: FlagName): boolean {
                   <RollingDigits :text="String(value(name))" />
                 </span>
                 <!-- Only where both units fit their bits side by side; the EU's bits come first. -->
-                <span class="hidden text-[11px] @min-[40rem]:inline">
+                <span class="hidden text-2xs @min-[40rem]:inline">
                   <RollingDigits
                     effect="flip"
                     dim-zeros
@@ -475,7 +473,7 @@ function flagChanged(flag: FlagName): boolean {
                 </div>
                 <div
                   v-if="memory && address"
-                  class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-[13px]"
+                  class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
                 >
                   <span class="truncate font-sans text-xs text-muted-foreground">
                     {{ memory.segment.toUpperCase() }} × 10h
@@ -503,9 +501,13 @@ function flagChanged(flag: FlagName): boolean {
             <span class="font-medium text-foreground">Address / data bus</span>
             <span v-if="busText" class="ml-2 font-mono">{{ busText }}</span>
           </p>
-          <!-- Starts at the adder, so it crosses the edge of the package like a pin. -->
+          <!--
+            Starts at the adder, so it crosses the edge of the package like a pin. The adder's
+            centre is half the BIU's width less its 1.25rem wire, plus the package's padding and
+            border (0.6875rem) on the right.
+          -->
           <DiagramWire
-            class="-mt-[11px] mr-[calc(6.875rem+11px)] hidden h-9 @min-[40rem]:mr-[calc(8.625rem+11px)] w-0.5 shrink-0 sm:block"
+            class="-mt-2.75 mr-[calc((var(--biu-width)_-_1.25rem)/2_+_0.6875rem)] hidden h-9 w-0.5 shrink-0 sm:block"
             :kind="busKind"
             :tick="pulse"
           />
@@ -518,7 +520,7 @@ function flagChanged(flag: FlagName): boolean {
               class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
             >
               <span class="text-sm font-medium">Memory</span>
-              <span v-if="memory" class="truncate font-mono text-[13px]">
+              <span v-if="memory" class="truncate font-mono text-code">
                 <span class="font-sans text-xs text-muted-foreground">
                   {{ memory.write ? 'wrote' : 'read' }}
                 </span>
@@ -541,7 +543,7 @@ function flagChanged(flag: FlagName): boolean {
               class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
             >
               <span class="text-sm font-medium">I/O ports</span>
-              <span v-if="port" class="truncate font-mono text-[13px]">
+              <span v-if="port" class="truncate font-mono text-code">
                 <span class="font-sans text-xs text-muted-foreground">
                   {{ port.write ? 'wrote' : 'read' }}
                 </span>

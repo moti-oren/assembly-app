@@ -17,6 +17,7 @@ const VIEWS = [
       v-for="view in VIEWS"
       :key="view.value"
       size="icon-xs"
+      class="pointer-coarse:size-11"
       :variant="cpuView === view.value ? 'secondary' : 'ghost'"
       :aria-pressed="cpuView === view.value"
       :aria-label="view.label"
