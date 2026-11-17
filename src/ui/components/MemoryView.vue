@@ -183,6 +183,9 @@ function ascii(value: number): string {
             :aria-invalid="offsetInvalid || undefined"
             :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
             maxlength="6"
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
             spellcheck="false"
             aria-label="Offset (hex)"
           />
@@ -191,8 +194,11 @@ function ascii(value: number): string {
           <Layers />
           Stack top
         </Button>
-        <p v-if="offsetInvalid" :id="offsetErrorId" class="basis-full text-xs text-destructive">
-          “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+        <!-- Always there, so a message appearing while typing does not push the table down. -->
+        <p :id="offsetErrorId" class="min-h-4 basis-full text-xs text-destructive">
+          <template v-if="offsetInvalid">
+            “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+          </template>
         </p>
       </div>
 
