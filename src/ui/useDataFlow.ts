@@ -43,7 +43,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
     if (!first) return [];
 
     // Memory operands are located with the registers as they were when the instruction ran.
-    const stateBefore = { ...state, registers: before.registers } as CpuState;
+    const stateBefore = before;
     const size = operandSize(first) ?? (second && operandSize(second)) ?? 16;
 
     const locate = (operand: Operand): string | null => {

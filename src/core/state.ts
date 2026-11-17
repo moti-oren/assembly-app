@@ -83,7 +83,10 @@ export function createCpuState(): CpuState {
   };
 }
 
-export function readRegister(state: CpuState, name: RegisterName): number {
+/** Just the registers: enough to read them, e.g. from a snapshot of the CPU before an instruction. */
+export type RegisterFile = Pick<CpuState, 'registers'>;
+
+export function readRegister(state: RegisterFile, name: RegisterName): number {
   if (isByteRegister(name)) {
     const { parent, high } = BYTE_REGISTER_LOCATION[name];
     const word = state.registers[parent];

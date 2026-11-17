@@ -12,7 +12,13 @@ import {
   type Operand
 } from '@/core/operands';
 import type { WordRegister } from '@/core/registers';
-import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/state';
+import {
+  physicalAddress,
+  readMemory,
+  readRegister,
+  type CpuState,
+  type RegisterFile
+} from '@/core/state';
 
 /** Instructions whose result can be shown as `a <operator> b = result`. */
 const OPERATORS: Partial<Record<Mnemonic, string>> = {
@@ -42,11 +48,6 @@ function discardsResult(mnemonic: Mnemonic): boolean {
 export function aluUse(record: ExecutionRecord): { input: boolean; output: boolean } {
   const input = decode(record.instruction).usesAlu;
   return { input, output: input && !discardsResult(record.instruction.mnemonic) };
-}
-
-/** The CPU with its registers as they were when `record` ran; memory operands resolve there. */
-function before(state: CpuState, record: ExecutionRecord): CpuState {
-  return { ...state, registers: record.before.registers } as CpuState;
 }
 
 export interface Equation {
@@ -84,8 +85,9 @@ export function describeEquation(state: CpuState, record: ExecutionRecord): Equa
   if (!operator || !destination) return null;
 
   const size = operandSize(destination) ?? 16;
-  const stateBefore = before(state, record);
-  const read = (operand: Operand, registersFrom: CpuState): number => {
+  // Memory operands resolve with the registers as they were when the instruction ran.
+  const stateBefore = record.before;
+  const read = (operand: Operand, registersFrom: RegisterFile): number => {
     if (operand.type === 'reg') return readRegister(registersFrom, operand.name);
     if (operand.type === 'mem') {
       return readMemory(state, effectiveAddress(stateBefore, operand), size);
@@ -153,7 +155,7 @@ export function describeMemoryAccess(
 
   const operand = instruction.operands.find((candidate) => candidate.type === 'mem');
   if (operand) {
-    const stateBefore = before(state, record);
+    const stateBefore = record.before;
     const value = readMemory(state, effectiveAddress(stateBefore, operand), operand.size);
     return access(
       memorySegment(operand),

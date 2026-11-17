@@ -1,6 +1,6 @@
 import { truncate } from './numbers';
 import type { MemoryBase, Operand } from './operands';
-import { MEMORY_SIZE, readRegister, type CpuState } from './state';
+import { MEMORY_SIZE, readRegister, type RegisterFile } from './state';
 
 /** Every step of turning segment:offset into the 20-bit address the bus carries. */
 export interface AddressBreakdown {
@@ -41,7 +41,7 @@ export interface OffsetBreakdown {
 }
 
 export function explainOffset(
-  state: CpuState,
+  state: RegisterFile,
   operand: Extract<Operand, { type: 'mem' }>
 ): OffsetBreakdown {
   const baseValue = operand.base ? readRegister(state, operand.base) : 0;
