@@ -46,7 +46,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
         <Button
           variant="outline"
           size="sm"
-          class="mr-1 text-muted-foreground"
+          class="mr-1 text-muted-foreground pointer-coarse:h-11"
           aria-label="Commands"
           aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"
@@ -57,7 +57,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
         </Button>
         <DropdownMenu v-model:open="examplesOpen">
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="sm" aria-label="Examples">
+            <Button variant="ghost" size="sm" class="pointer-coarse:h-11" aria-label="Examples">
               <BookOpen />
               <span class="hidden sm:inline">Examples</span>
             </Button>
@@ -81,7 +81,13 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
 
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="ghost" size="sm" aria-label="Reset the CPU" @click="$emit('reset')">
+            <Button
+              variant="ghost"
+              size="sm"
+              class="pointer-coarse:h-11"
+              aria-label="Reset the CPU"
+              @click="$emit('reset')"
+            >
               <RotateCcw />
               <span class="hidden sm:inline">Reset</span>
             </Button>
@@ -97,6 +103,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
             <Button
               variant="ghost"
               size="icon-sm"
+              class="pointer-coarse:size-11"
               :aria-label="soundOn ? 'Turn sound off' : 'Turn sound on'"
               :aria-pressed="soundOn"
               @click="soundOn = !soundOn"
@@ -113,6 +120,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
             <Button
               variant="ghost"
               size="icon-sm"
+              class="pointer-coarse:size-11"
               :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
               @click="toggleTheme"
             >

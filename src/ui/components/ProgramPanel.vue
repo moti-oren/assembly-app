@@ -103,6 +103,7 @@ function machineCode(index: number): string {
             <Button
               variant="ghost"
               size="icon-sm"
+              class="pointer-coarse:size-11"
               aria-label="Clear the program"
               :disabled="program.length === 0"
               @click="emit('clear')"
