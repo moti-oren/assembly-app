@@ -9,6 +9,8 @@ import { usePreferences } from './usePreferences';
 /** What the palette asks of components on the page, which own the state these act on. */
 export interface PageActions {
   focusBuilder: () => void;
+  /** Opens the confirmation; clearing cannot be undone. */
+  askClearProgram: () => void;
   showStackTop: () => void;
   showLastAccess: () => void;
 }
@@ -65,9 +67,11 @@ export function useCommands(
         ]),
     {
       group: 'Program',
-      label: 'Clear the program',
+      label: 'Clear the program…',
       disabled: program.value.length === 0,
-      run: cpu.clearProgram
+      // The dialog takes focus; the palette must not take it back as it closes.
+      moves: 'focus',
+      run: page.askClearProgram
     },
     {
       group: 'Program',

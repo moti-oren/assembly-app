@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppHeader from '@/ui/components/AppHeader.vue';
 import ChangeStrip from '@/ui/components/ChangeStrip.vue';
+import ClearProgramDialog from '@/ui/components/ClearProgramDialog.vue';
 import CpuCycle from '@/ui/components/CpuCycle.vue';
 import CpuDiagram from '@/ui/components/CpuDiagram.vue';
 import DevicesPanel from '@/ui/components/DevicesPanel.vue';
@@ -51,8 +52,13 @@ const panels = usePanels(cpu);
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const builder = useTemplateRef('builder');
 const memoryView = useTemplateRef('memoryView');
+/** True while the user is asked to confirm clearing the program. */
+const clearAsked = ref(false);
 const commands = useCommands(cpu, panels, {
   focusBuilder: () => builder.value?.focus(),
+  askClearProgram: () => {
+    clearAsked.value = true;
+  },
   showStackTop: () => memoryView.value?.showStackTop(),
   showLastAccess: () => memoryView.value?.showLastAccess()
 });
@@ -87,6 +93,11 @@ const encodingShown = computed(() =>
         @commands="paletteOpen = true"
       />
       <CommandPalette v-model:open="paletteOpen" :commands="commands" />
+      <ClearProgramDialog
+        v-model:open="clearAsked"
+        :lines="program.length"
+        @confirm="cpu.clearProgram"
+      />
       <ChangeStrip v-if="lastRecord" class="lg:hidden" :state="state" :record="lastRecord" />
 
       <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
@@ -113,7 +124,7 @@ const encodingShown = computed(() =>
               :ip="state.registers.ip"
               :last-line="lastRecord?.line ?? null"
               :finished="finished"
-              @clear="cpu.clearProgram"
+              @clear="clearAsked = true"
               @remove="cpu.removeProgramLine"
               @inspect="inspect"
             />
