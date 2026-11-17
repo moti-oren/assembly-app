@@ -5,7 +5,7 @@ import {
   type Instruction,
   type Mnemonic
 } from './instructions';
-import { formatHex, toSigned, truncate, type Size } from './numbers';
+import { formatBits, formatHex, toSigned, truncate, type Size } from './numbers';
 import { formatLabel, formatOperand, type MemoryBase, type Operand } from './operands';
 import { isSegmentRegister, type RegisterName } from './registers';
 
@@ -158,7 +158,6 @@ const SINGLE_BYTE: Partial<Record<Mnemonic, number>> = {
 
 const PREFIX_BYTE = { rep: 0xf3, repe: 0xf3, repne: 0xf2 } as const;
 
-const bits = (value: number, width: number): string => value.toString(2).padStart(width, '0');
 const hexByte = (value: number): string => formatHex(value, 8);
 const word = (value: number): number[] => [value & 0xff, (value >> 8) & 0xff];
 const upper = (operand: Reg): string => operand.name.toUpperCase();
@@ -185,13 +184,13 @@ interface RegField {
 
 function registerField(operand: Reg): RegField {
   const number = registerNumber(operand.name);
-  return { number, note: `${bits(number, 3)} = ${upper(operand)}` };
+  return { number, note: `${formatBits(number, 3)} = ${upper(operand)}` };
 }
 
 function extension(number: number, name: string): RegField {
   return {
     number,
-    note: `${bits(number, 3)} = /${number}: picks ${name} from this opcode's group`
+    note: `${formatBits(number, 3)} = /${number}: picks ${name} from this opcode's group`
   };
 }
 
@@ -206,7 +205,7 @@ function modRm(reg: RegField, operand: Reg | Mem): EncodedField[] {
 
   if (operand.type === 'reg') {
     const rm = registerNumber(operand.name);
-    return [build(0b11, rm, '11: r/m is a register', `${bits(rm, 3)} = ${upper(operand)}`)];
+    return [build(0b11, rm, '11: r/m is a register', `${formatBits(rm, 3)} = ${upper(operand)}`)];
   }
 
   const displacement = truncate(operand.displacement, 16);
@@ -222,7 +221,7 @@ function modRm(reg: RegField, operand: Reg | Mem): EncodedField[] {
   }
 
   const rm = BASE_RM[operand.base];
-  const rmNote = `${bits(rm, 3)} = [${operand.base.toUpperCase()}]`;
+  const rmNote = `${formatBits(rm, 3)} = [${operand.base.toUpperCase()}]`;
   // [BP] has no form without a displacement: that slot (mod 00, r/m 110) is the direct address.
   if (displacement === 0 && operand.base !== 'bp') {
     return [build(0b00, rm, '00: memory, no displacement', rmNote)];

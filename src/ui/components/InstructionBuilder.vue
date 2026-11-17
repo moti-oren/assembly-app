@@ -21,6 +21,7 @@ import {
   type BuilderOption,
   type OptionAction
 } from '@/ui/builderOptions';
+import { groupBy } from '@/ui/groupBy';
 
 const props = defineProps<{
   /** Runs the instruction; returns false when the CPU rejected it. */
@@ -90,13 +91,7 @@ const visibleOptions = computed(() =>
   filterOptions(allOptions.value, filter.value, typedNumber.value)
 );
 
-const groups = computed(() => {
-  const map = new Map<string, BuilderOption[]>();
-  for (const option of visibleOptions.value) {
-    map.set(option.group, [...(map.get(option.group) ?? []), option]);
-  }
-  return [...map.entries()];
-});
+const groups = computed(() => groupBy(visibleOptions.value, (option) => option.group));
 
 /** The immediate size the typed number is too big for, or null when it fits or none is asked. */
 const overflowSize = computed<Size | null>(() => {

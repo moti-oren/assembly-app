@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import type { FieldKind } from '@/core/encode';
 import { formatInstruction } from '@/core/instructions';
-import { formatHex } from '@/core/numbers';
+import { formatBits, formatBytes, formatHex } from '@/core/numbers';
 import type { EncodingShown } from '@/ui/encodingShown';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -19,14 +19,6 @@ const KIND_LABELS: Record<FieldKind, string> = {
   immediate: 'Immediate',
   relative: 'Distance'
 };
-
-function hex(bytes: number[]): string {
-  return bytes.map((byte) => formatHex(byte, 8)).join(' ');
-}
-
-function bits(value: number, width: number): string {
-  return value.toString(2).padStart(width, '0');
-}
 
 const summary = computed(() => {
   if (!props.shown) return null;
@@ -58,7 +50,7 @@ const summary = computed(() => {
           class="max-w-full min-w-0 rounded-md border bg-muted/30 px-2.5 py-1.5 sm:max-w-72"
         >
           <div class="flex items-baseline gap-2">
-            <span class="font-mono text-sm font-semibold">{{ hex(field.bytes) }}</span>
+            <span class="font-mono text-sm font-semibold">{{ formatBytes(field.bytes) }}</span>
             <span class="text-[11px] font-medium tracking-wide text-pointer uppercase">{{
               KIND_LABELS[field.kind]
             }}</span>
@@ -68,13 +60,13 @@ const summary = computed(() => {
             class="mt-1 grid grid-cols-[auto_auto_minmax(0,1fr)] gap-x-2 text-xs text-muted-foreground"
           >
             <dt>mod</dt>
-            <dd class="font-mono text-foreground">{{ bits(field.modrm.mod, 2) }}</dd>
+            <dd class="font-mono text-foreground">{{ formatBits(field.modrm.mod, 2) }}</dd>
             <dd>{{ field.modrm.modNote.replace(/^[01]+(:| with)\s*/, '') }}</dd>
             <dt>reg</dt>
-            <dd class="font-mono text-foreground">{{ bits(field.modrm.reg, 3) }}</dd>
+            <dd class="font-mono text-foreground">{{ formatBits(field.modrm.reg, 3) }}</dd>
             <dd>{{ field.modrm.regNote.replace(/^[01]+ = /, '') }}</dd>
             <dt>r/m</dt>
-            <dd class="font-mono text-foreground">{{ bits(field.modrm.rm, 3) }}</dd>
+            <dd class="font-mono text-foreground">{{ formatBits(field.modrm.rm, 3) }}</dd>
             <dd>{{ field.modrm.rmNote.replace(/^[01]+ = /, '') }}</dd>
           </dl>
           <p v-else class="mt-0.5 text-xs text-muted-foreground">{{ field.note }}</p>

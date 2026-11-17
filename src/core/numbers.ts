@@ -72,6 +72,16 @@ export function formatHex(value: number, size: Size): string {
     .padStart(size / 4, '0');
 }
 
+/** A bit field of `width` bits, e.g. the 3-bit `reg` field of a ModR/M byte. */
+export function formatBits(value: number, width: number): string {
+  return value.toString(2).padStart(width, '0');
+}
+
+/** Bytes in hex, separated by spaces, the way machine code is written. */
+export function formatBytes(bytes: readonly number[]): string {
+  return bytes.map((byte) => formatHex(byte, 8)).join(' ');
+}
+
 export function formatBinary(value: number, size: Size): string {
   const bits = truncate(value, size).toString(2).padStart(size, '0');
   return bits.replace(/(.{4})(?=.)/g, '$1 ');
