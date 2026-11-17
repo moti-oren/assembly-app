@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { formatBinary, formatHex, toSigned } from '@/core/numbers';
-import { REGISTER_DESCRIPTIONS, WORD_REGISTERS, type WordRegister } from '@/core/registers';
+import {
+  REGISTER_DESCRIPTIONS,
+  SPLIT_REGISTERS,
+  WORD_REGISTERS,
+  type WordRegister
+} from '@/core/registers';
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -24,7 +29,6 @@ const props = defineProps<{
   tick: number;
 }>();
 
-const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
 /** Rows that start a new group: index/pointer, segment, and IP. */
 const GROUP_STARTS: readonly WordRegister[] = ['si', 'cs', 'ip'];
 

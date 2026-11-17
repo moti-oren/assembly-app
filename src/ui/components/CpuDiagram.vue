@@ -6,7 +6,12 @@ import type { ExecutionRecord } from '@/core/execute';
 import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/flags';
 import { formatInstruction } from '@/core/instructions';
 import { formatBinary, formatHex, toSigned } from '@/core/numbers';
-import { REGISTER_DESCRIPTIONS, WORD_REGISTERS, type WordRegister } from '@/core/registers';
+import {
+  REGISTER_DESCRIPTIONS,
+  SPLIT_REGISTERS,
+  WORD_REGISTERS,
+  type WordRegister
+} from '@/core/registers';
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -38,7 +43,6 @@ const props = defineProps<{
 
 type WireKind = 'read' | 'write' | undefined;
 
-const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
 /** The execution unit holds the data, pointer and index registers, the ALU and the flags. */
 const EU_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx', 'sp', 'bp', 'si', 'di'];
 /** The bus interface unit holds what an address is made of: the segments and IP. */

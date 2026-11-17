@@ -2,7 +2,7 @@ import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { isFlagSet } from '@/core/flags';
 import { INSTRUCTIONS } from '@/core/instructions';
-import type { WordRegister } from '@/core/registers';
+import { changedRegisters } from '@/core/registers';
 import type { CpuSnapshot } from '@/core/state';
 
 /** What one executed instruction sounds like. Every register shares one sound on purpose. */
@@ -42,8 +42,7 @@ export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSoun
   if (stack) return stack;
   if (record.memoryWrites.length > 0 || record.portWrites.length > 0) return 'memory';
 
-  const registers = Object.keys(before.registers) as WordRegister[];
-  if (registers.some((name) => name !== 'ip' && before.registers[name] !== after.registers[name])) {
+  if (changedRegisters(before.registers, after.registers).some((name) => name !== 'ip')) {
     return 'register';
   }
   if (before.flags !== after.flags) return 'flags';
