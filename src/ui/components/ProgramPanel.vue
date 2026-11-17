@@ -124,7 +124,7 @@ function machineCode(index: number): string {
       >
         <li
           v-if="marker"
-          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/10 pl-2 shadow-[inset_2px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out motion-reduce:transition-none"
+          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/15 pl-2 shadow-[inset_3px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out motion-reduce:transition-none"
           :style="{ translate: `0 ${marker.top}px`, height: `${marker.height}px` }"
           aria-hidden="true"
         >
@@ -147,7 +147,14 @@ function machineCode(index: number): string {
             :data-row="index"
             :aria-current="ip === index ? 'step' : undefined"
           >
-            <span />
+            <!-- The line that ran last, unless the IP marker already sits on it. -->
+            <span class="flex justify-center" aria-hidden="true">
+              <span
+                v-if="lastLine === index && ip !== index"
+                class="size-1.5 rounded-full bg-muted-foreground"
+                title="Ran last"
+              />
+            </span>
             <span
               class="text-xs"
               :class="
