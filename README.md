@@ -51,7 +51,7 @@ npm run lint
 - Instructions are not run from bytes, so IP is the index of the next program line (L0, L1, …),
   and jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it.
 - The Program panel still shows the machine code each line would assemble to on a real 8086.
-  The **Bytes** button in the bottom bar opens a panel that takes one instruction apart into
+  The **Machine code** button in the bottom bar opens a panel that takes one instruction apart into
   prefix, opcode, ModR/M (with its mod, reg and r/m bits), displacement, immediate and jump
   distance: the instruction in the builder, or else the next program line. Click a line's bytes
   to take that line apart.
@@ -140,7 +140,7 @@ npm run lint
 - הוראות אינן מורצות מתוך בתים, ולכן IP הוא האינדקס של שורת התוכנית הבאה (L0, L1, …), ויעדי
   jump/call הם שורות. CALL דוחף את השורה הבאה למחסנית ו-RET שולף אותה.
 - חלונית התוכנית מציגה בכל זאת את קוד המכונה שכל שורה הייתה מתורגמת אליו ב-8086 אמיתי. כפתור
-  **Bytes** בסרגל התחתון פותח חלונית שמפרקת הוראה אחת ל-prefix, opcode, ModR/M (עם סיביות
+  **Machine code** בסרגל התחתון פותח חלונית שמפרקת הוראה אחת ל-prefix, opcode, ModR/M (עם סיביות
   mod, reg ו-r/m), displacement, immediate ומרחק קפיצה: ההוראה שבבונה, ואם אין כזו, שורת
   התוכנית הבאה. לחיצה על הבתים של שורה מפרקת את אותה שורה.
 - אופרנדים של זיכרון הם `byte`/`word` מסוג `[bx]`, `[si]`, `[di]`, `[bp]` או `[offset]`.

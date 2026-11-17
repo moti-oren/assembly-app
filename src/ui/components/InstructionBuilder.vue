@@ -114,7 +114,7 @@ const typingHint = computed(() => {
   }
   const choices = operandChoices(mnemonic.value, operands.value);
   if (choices.immediate !== null) {
-    return `Type a number for an immediate (42, 0x2A, 2Ah, 101010b)`;
+    return 'Type a number: 42 (decimal), 0x2A or 2Ah (hex), 101010b (binary)';
   }
   if (choices.label) return 'Pick a line to jump to, or type its number';
   if (complete.value) return READY_HINT;
@@ -433,7 +433,7 @@ function onBackspace(event: KeyboardEvent): void {
 
     <CardFooter class="justify-between gap-3">
       <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
-        <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run</span>
+        <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run now</span>
         <span class="flex items-center gap-1.5">
           <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup> add
         </span>

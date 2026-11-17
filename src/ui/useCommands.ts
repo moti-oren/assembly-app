@@ -45,7 +45,12 @@ export function useCommands(
     },
     running.value
       ? { group: 'Program', label: 'Pause', run: cpu.pause }
-      : { group: 'Program', label: 'Run', disabled: finished.value, run: cpu.runProgram },
+      : {
+          group: 'Program',
+          label: 'Run the program',
+          disabled: finished.value,
+          run: cpu.runProgram
+        },
     // Only while new lines go above a chosen line; at the end is where they go otherwise.
     ...(insertAt.value === null
       ? []

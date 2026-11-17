@@ -100,7 +100,7 @@ const total = computed(() => props.executed + props.undone);
         </Button>
         <Button v-else variant="outline" size="sm" :disabled="finished" @click="emit('run')">
           <FastForward />
-          Run
+          Run program
         </Button>
         <Select :model-value="speed" @update:model-value="setSpeed">
           <SelectTrigger size="sm" class="w-26" aria-label="Run speed">
@@ -186,7 +186,7 @@ const total = computed(() => props.executed + props.undone);
           @click="emit('update:bytesShown', !bytesShown)"
         >
           <Binary />
-          <span class="hidden sm:inline">Bytes</span>
+          <span class="hidden sm:inline">Machine code</span>
         </Button>
       </div>
     </div>

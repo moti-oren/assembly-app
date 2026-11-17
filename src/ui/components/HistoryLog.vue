@@ -90,9 +90,13 @@ watch(
               <span class="pr-3 text-right text-xs text-muted-foreground tabular-nums">{{
                 number
               }}</span>
-              <span class="text-xs text-muted-foreground">{{
-                record.line === null ? 'now' : formatLabel(record.line)
-              }}</span>
+              <span
+                class="text-xs text-muted-foreground"
+                :title="
+                  record.line === null ? 'Run from the builder, not from the program' : undefined
+                "
+                >{{ record.line === null ? 'direct' : formatLabel(record.line) }}</span
+              >
               <span class="truncate">{{ formatInstruction(record.instruction) }}</span>
             </button>
           </li>
