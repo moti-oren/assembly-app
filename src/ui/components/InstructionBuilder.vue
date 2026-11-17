@@ -128,10 +128,32 @@ const moreToChoose = computed(
     hasMoreOperands(mnemonic.value, operands.value)
 );
 
+/** Index of the option the arrow keys moved to; Enter picks it. */
+const selectedIndex = ref(0);
+
+// A new list of options (typing, or a word chosen) starts again from the first one.
+watch(visibleOptions, () => {
+  selectedIndex.value = 0;
+});
+
 /** The option Enter would pick. */
 const enterOption = computed(() =>
-  complete.value && !filter.value.trim() ? null : (visibleOptions.value[0] ?? null)
+  complete.value && !filter.value.trim()
+    ? null
+    : (visibleOptions.value[selectedIndex.value] ?? null)
 );
+
+function onArrow(event: KeyboardEvent, step: 1 | -1): void {
+  const count = visibleOptions.value.length;
+  if (enterOption.value === null || count === 0) return;
+  // Left and Right keep moving the caret while there is text to edit.
+  if ((event.key === 'ArrowLeft' || event.key === 'ArrowRight') && filter.value !== '') return;
+  event.preventDefault();
+  selectedIndex.value = (selectedIndex.value + step + count) % count;
+  nextTick(() => {
+    card.value?.$el.querySelector('[data-selected="true"]')?.scrollIntoView({ block: 'nearest' });
+  });
+}
 
 /**
  * One line that explains what you are looking at: the hovered option, else the chosen
@@ -242,8 +264,8 @@ function onEnter(event: KeyboardEvent): void {
     submit(event.shiftKey);
     return;
   }
-  const first = visibleOptions.value[0];
-  if (first) choose(first);
+  const selected = enterOption.value;
+  if (selected) choose(selected);
 }
 
 function onBackspace(event: KeyboardEvent): void {
@@ -292,6 +314,10 @@ function onBackspace(event: KeyboardEvent): void {
           autocomplete="off"
           autofocus
           @keydown.enter.prevent="onEnter"
+          @keydown.down="onArrow($event, 1)"
+          @keydown.right="onArrow($event, 1)"
+          @keydown.up="onArrow($event, -1)"
+          @keydown.left="onArrow($event, -1)"
           @keydown.backspace="onBackspace"
           @keydown.esc="clear"
         />
@@ -333,6 +359,7 @@ function onBackspace(event: KeyboardEvent): void {
               variant="outline"
               size="sm"
               class="font-mono"
+              :data-selected="option === enterOption"
               :class="
                 option === enterOption
                   ? 'border-foreground/50 bg-secondary dark:border-foreground/40'
