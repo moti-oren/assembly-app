@@ -14,6 +14,16 @@ export type Program = readonly Instruction[];
 /** Stops runaway loops when running a whole program. */
 export const MAX_STEPS = 10_000;
 
+/**
+ * Stops a run whose records would hold too many memory writes. Every written byte is kept for
+ * undo, and one REP with a full CX writes 65535 of them, so MAX_STEPS alone does not bound memory.
+ */
+export const MAX_RUN_WRITES = 1_000_000;
+
+export function tooManyWrites(maxWrites = MAX_RUN_WRITES): CpuError {
+  return new CpuError(`Stopped after ${maxWrites} memory writes: is there an endless loop?`);
+}
+
 function mapTargets(instruction: Instruction, map: (target: number) => number): Instruction {
   if (!instruction.operands.some((operand) => operand.type === 'label')) {
     return instruction;
@@ -69,14 +79,17 @@ export function step(state: CpuState, program: Program): ExecutionRecord {
 
 /**
  * Runs from IP to the end of the program. Returns the records of every executed line, even
- * when it stops early because of an error (`error`) or because it hit MAX_STEPS.
+ * when it stops early because of an error (`error`) or because it hit MAX_STEPS or
+ * MAX_RUN_WRITES.
  */
 export function runToEnd(
   state: CpuState,
   program: Program,
-  maxSteps = MAX_STEPS
+  maxSteps = MAX_STEPS,
+  maxWrites = MAX_RUN_WRITES
 ): { records: ExecutionRecord[]; error: CpuError | null } {
   const records: ExecutionRecord[] = [];
+  let writes = 0;
   while (!isFinished(state, program)) {
     if (records.length >= maxSteps) {
       return {
@@ -84,8 +97,13 @@ export function runToEnd(
         error: new CpuError(`Stopped after ${maxSteps} steps: is there an endless loop?`)
       };
     }
+    if (writes >= maxWrites) {
+      return { records, error: tooManyWrites(maxWrites) };
+    }
     try {
-      records.push(step(state, program));
+      const record = step(state, program);
+      records.push(record);
+      writes += record.memoryWrites.length;
     } catch (caught) {
       if (caught instanceof CpuError) {
         return { records, error: caught };

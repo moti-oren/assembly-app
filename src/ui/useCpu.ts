@@ -7,9 +7,11 @@ import {
   ipAfterInsert,
   ipAfterRemove,
   isFinished,
+  MAX_RUN_WRITES,
   removeLine,
   runToEnd,
-  step
+  step,
+  tooManyWrites
 } from '@/core/program';
 import type { WordRegister } from '@/core/registers';
 import { createCpuState, redoPortWrite, setInputPort, type CpuState } from '@/core/state';
@@ -51,6 +53,8 @@ export function useCpu() {
   /** True while the program is running line by line on a timer. */
   const running = ref(false);
   let runTimer: number | undefined;
+  /** Memory writes of the run in progress, held to the same limit as an instant run. */
+  let runWrites = 0;
   /**
    * How far the line at IP has got when stepping by phase. Fetch and decode only show what is
    * about to happen: the CPU itself changes at execute, exactly as with a whole step.
@@ -141,7 +145,18 @@ export function useCpu() {
   }
 
   function runNextLine(): void {
-    const stepped = !finished.value && attempt(() => record([step(state, program.value)]));
+    if (runWrites >= MAX_RUN_WRITES) {
+      error.value = tooManyWrites().message;
+      pause();
+      return;
+    }
+    const stepped =
+      !finished.value &&
+      attempt(() => {
+        const entry = step(state, program.value);
+        runWrites += entry.memoryWrites.length;
+        record([entry]);
+      });
     if (!stepped || finished.value) {
       pause();
       return;
@@ -158,6 +173,7 @@ export function useCpu() {
       return;
     }
     running.value = true;
+    runWrites = 0;
     runNextLine();
   }
 
