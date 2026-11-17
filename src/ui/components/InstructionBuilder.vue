@@ -378,7 +378,7 @@ function onBackspace(event: KeyboardEvent): void {
           v-if="tokens.length > 0"
           variant="ghost"
           size="icon-xs"
-          class="text-muted-foreground"
+          class="text-muted-foreground pointer-coarse:size-11"
           title="Clear (Esc)"
           aria-label="Clear the instruction"
           @click.stop="clear"

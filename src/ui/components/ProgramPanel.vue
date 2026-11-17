@@ -81,7 +81,7 @@ watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMark
 });
 
 const ROW =
-  'group grid h-7 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pr-1 pl-2';
+  'group grid h-7 pointer-coarse:h-11 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pr-1 pl-2';
 
 function machineCode(index: number): string {
   return formatBytes(props.assembled[index].encoding.bytes);
@@ -174,6 +174,7 @@ function machineCode(index: number): string {
               <Button
                 variant="ghost"
                 size="icon-xs"
+                class="pointer-coarse:size-11"
                 title="Insert new lines above this one"
                 aria-label="Insert new lines above this one"
                 @click="emit('update:insertAt', index)"
@@ -183,7 +184,7 @@ function machineCode(index: number): string {
               <Button
                 variant="ghost"
                 size="icon-xs"
-                class="hover:text-destructive"
+                class="hover:text-destructive pointer-coarse:size-11"
                 title="Delete this line"
                 aria-label="Delete this line"
                 @click="emit('remove', index)"
