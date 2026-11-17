@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -80,16 +80,19 @@ function changedBits(name: WordRegister): number {
             :class="{ 'border-t': GROUP_STARTS.includes(name) }"
           >
             <TableCell class="py-1">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <span
-                    tabindex="0"
-                    class="cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
-                    >{{ name.toUpperCase() }}</span
+              <Popover>
+                <PopoverTrigger as-child>
+                  <button
+                    type="button"
+                    class="font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none hover:decoration-foreground focus-visible:decoration-foreground"
                   >
-                </TooltipTrigger>
-                <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
-              </Tooltip>
+                    {{ name.toUpperCase() }}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent side="right" class="w-auto max-w-64 text-xs">
+                  {{ REGISTER_DESCRIPTIONS[name] }}
+                </PopoverContent>
+              </Popover>
             </TableCell>
             <TableCell class="py-1">
               <span

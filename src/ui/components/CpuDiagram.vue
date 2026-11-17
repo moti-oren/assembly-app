@@ -14,7 +14,7 @@ import {
 } from '@/core/registers';
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   aluUse,
   describeEquation,
@@ -234,16 +234,19 @@ function flagChanged(flag: FlagName): boolean {
                 class="flex h-5 items-center gap-2.5"
                 :class="{ 'mt-1.5': GROUP_STARTS.includes(name) }"
               >
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <span
-                      tabindex="0"
-                      class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
-                      >{{ name.toUpperCase() }}</span
+                <Popover>
+                  <PopoverTrigger as-child>
+                    <button
+                      type="button"
+                      class="w-6 text-left font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none hover:decoration-foreground focus-visible:decoration-foreground"
                     >
-                  </TooltipTrigger>
-                  <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
-                </Tooltip>
+                      {{ name.toUpperCase() }}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" class="w-auto max-w-64 text-xs">
+                    {{ REGISTER_DESCRIPTIONS[name] }}
+                  </PopoverContent>
+                </Popover>
 
                 <span class="w-14">
                   <span
@@ -362,11 +365,11 @@ function flagChanged(flag: FlagName): boolean {
             />
 
             <div class="mt-3 grid grid-cols-9 gap-1 sm:mt-0 sm:mr-5">
-              <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
-                <TooltipTrigger as-child>
-                  <div
-                    tabindex="0"
-                    class="change-mark flex cursor-help flex-col items-center rounded-md border px-0 py-1 font-mono outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              <Popover v-for="flag in FLAG_NAMES" :key="flag">
+                <PopoverTrigger as-child>
+                  <button
+                    type="button"
+                    class="change-mark flex flex-col items-center rounded-md border px-0 py-1 font-mono outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                     :class="[
                       flagChanged(flag)
                         ? 'border-transparent bg-changed text-changed-foreground'
@@ -374,7 +377,7 @@ function flagChanged(flag: FlagName): boolean {
                           ? 'border-foreground/20 bg-secondary'
                           : 'border-border bg-card'
                     ]"
-                    :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}`"
+                    :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}. Show why`"
                   >
                     <span
                       v-if="flagChanged(flag)"
@@ -388,12 +391,12 @@ function flagChanged(flag: FlagName): boolean {
                       :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground/70'"
                       ><RollingDigits effect="flip" :text="isSet(flag) ? '1' : '0'"
                     /></span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent>
                   <FlagReason :flag="flag" :record="record" />
-                </TooltipContent>
-              </Tooltip>
+                </PopoverContent>
+              </Popover>
             </div>
           </section>
 
@@ -427,16 +430,19 @@ function flagChanged(flag: FlagName): boolean {
                 :class="{ 'mt-1.5': GROUP_STARTS.includes(name) }"
               >
                 <DiagramWire class="-mr-0.5 hidden w-5 sm:block" :kind="use(name)" :tick="pulse" />
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <span
-                      tabindex="0"
-                      class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
-                      >{{ name.toUpperCase() }}</span
+                <Popover>
+                  <PopoverTrigger as-child>
+                    <button
+                      type="button"
+                      class="w-6 text-left font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none hover:decoration-foreground focus-visible:decoration-foreground"
                     >
-                  </TooltipTrigger>
-                  <TooltipContent side="left">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
-                </Tooltip>
+                      {{ name.toUpperCase() }}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="left" class="w-auto max-w-64 text-xs">
+                    {{ REGISTER_DESCRIPTIONS[name] }}
+                  </PopoverContent>
+                </Popover>
                 <span class="w-10">
                   <ChangeMark :on="changedBits(name) !== 0" :tick="tick" :data-loc="`reg:${name}`">
                     <RollingDigits :text="formatHex(value(name), 16)" />

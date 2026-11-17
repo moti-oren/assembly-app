@@ -5,7 +5,7 @@ import { formatHex } from '@/core/numbers';
 import type { CpuState } from '@/core/state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
 
@@ -40,11 +40,12 @@ function changed(flag: FlagName): boolean {
     </CardHeader>
     <CardContent>
       <div class="grid grid-cols-3 gap-1.5 sm:grid-cols-5 xl:grid-cols-9">
-        <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
-          <TooltipTrigger as-child>
-            <div
-              tabindex="0"
-              class="change-mark flex cursor-help flex-col gap-0.5 rounded-md border px-2 py-1.5 outline-none xl:px-1.5 focus-visible:ring-3 focus-visible:ring-ring/50"
+        <!-- A popover, not a tooltip: the explanation is long, and it must open on touch too. -->
+        <Popover v-for="flag in FLAG_NAMES" :key="flag">
+          <PopoverTrigger as-child>
+            <button
+              type="button"
+              class="change-mark flex flex-col text-left gap-0.5 rounded-md border px-2 py-1.5 outline-none xl:px-1.5 focus-visible:ring-3 focus-visible:ring-ring/50"
               :class="[
                 changed(flag)
                   ? 'border-transparent bg-changed text-changed-foreground'
@@ -52,7 +53,7 @@ function changed(flag: FlagName): boolean {
                     ? 'border-foreground/20 bg-secondary'
                     : 'border-border'
               ]"
-              :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}`"
+              :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}. Show why`"
             >
               <span v-if="changed(flag)" :key="tick" class="change-flash" aria-hidden="true" />
               <div class="flex items-baseline justify-between font-mono">
@@ -68,10 +69,10 @@ function changed(flag: FlagName): boolean {
                 :class="changed(flag) ? 'opacity-80' : 'text-muted-foreground'"
                 >{{ FLAG_INFO[flag].label }}</span
               >
-            </div>
-          </TooltipTrigger>
-          <TooltipContent><FlagReason :flag="flag" :record="record" /></TooltipContent>
-        </Tooltip>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent><FlagReason :flag="flag" :record="record" /></PopoverContent>
+        </Popover>
       </div>
     </CardContent>
   </Card>
