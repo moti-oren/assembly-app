@@ -19,8 +19,18 @@ import {
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
-const byteAt = (displacement: number): Operand => ({ type: 'mem', size: 8, base: null, displacement });
-const wordAt = (displacement: number): Operand => ({ type: 'mem', size: 16, base: null, displacement });
+const byteAt = (displacement: number): Operand => ({
+  type: 'mem',
+  size: 8,
+  base: null,
+  displacement
+});
+const wordAt = (displacement: number): Operand => ({
+  type: 'mem',
+  size: 16,
+  base: null,
+  displacement
+});
 
 let cpu: CpuState;
 
@@ -55,7 +65,7 @@ describe('registers', () => {
     expect(readRegister(cpu, 'ax')).toBe(0x00ff);
   });
 
-  it('negative immediates are stored in two\'s complement', () => {
+  it("negative immediates are stored in two's complement", () => {
     run('mov', reg('bx'), imm(-1));
     expect(readRegister(cpu, 'bx')).toBe(0xffff);
   });

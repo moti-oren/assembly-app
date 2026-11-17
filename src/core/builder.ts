@@ -26,7 +26,10 @@ const SELECTABLE_REGISTERS: readonly RegisterName[] = [
   ...SEGMENT_REGISTERS
 ];
 
-export function nextOperandKinds(mnemonic: Mnemonic, operands: readonly Operand[]): Set<OperandKind> {
+export function nextOperandKinds(
+  mnemonic: Mnemonic,
+  operands: readonly Operand[]
+): Set<OperandKind> {
   const kinds = new Set<OperandKind>();
   for (const form of matchingForms(mnemonic, operands)) {
     if (form.length > operands.length) {

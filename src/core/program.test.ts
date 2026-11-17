@@ -12,13 +12,7 @@ import {
   type Program
 } from './program';
 import type { RegisterName } from './registers';
-import {
-  createCpuState,
-  readRegister,
-  setInputPort,
-  writeRegister,
-  type CpuState
-} from './state';
+import { createCpuState, readRegister, setInputPort, writeRegister, type CpuState } from './state';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -191,7 +185,11 @@ describe('runToEnd', () => {
   });
 
   it('stops at the first error and keeps what ran before it', () => {
-    const result = runToEnd(cpu, [line('inc', reg('ax')), line('div', reg('bl')), line('inc', reg('ax'))]);
+    const result = runToEnd(cpu, [
+      line('inc', reg('ax')),
+      line('div', reg('bl')),
+      line('inc', reg('ax'))
+    ]);
     expect(result.records.length).toBe(1);
     expect(result.error?.message).toContain('division by zero');
     expect(readRegister(cpu, 'ip')).toBe(1);

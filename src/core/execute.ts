@@ -111,7 +111,9 @@ class ExecutionContext {
         return;
       case 'imm':
       case 'label':
-        throw new CpuError(`Cannot write to ${operand.type === 'imm' ? 'an immediate value' : 'a label'}`);
+        throw new CpuError(
+          `Cannot write to ${operand.type === 'imm' ? 'an immediate value' : 'a label'}`
+        );
     }
   }
 
