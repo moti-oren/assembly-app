@@ -12,7 +12,7 @@ import {
 export const MEMORY_SIZE = 0x100000;
 
 /** The 8086 addresses 64K I/O ports, separate from memory. */
-export const PORT_COUNT = 0x10000;
+const PORT_COUNT = 0x10000;
 
 export interface IoState {
   /** The last byte OUT wrote to each port. */

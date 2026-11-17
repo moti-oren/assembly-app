@@ -1,5 +1,5 @@
 /** Bit positions inside the 8086 FLAGS register. */
-export const FLAG_BITS = {
+const FLAG_BITS = {
   CF: 0,
   PF: 2,
   AF: 4,

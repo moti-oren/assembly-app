@@ -58,8 +58,8 @@ class DivideError extends CpuError {}
 
 /** Each interrupt vector is 4 bytes at the bottom of memory: the handler's IP, then its CS. */
 export const VECTOR_SIZE = 4;
-export const DIVIDE_ERROR_INTERRUPT = 0;
-export const OVERFLOW_INTERRUPT = 4;
+const DIVIDE_ERROR_INTERRUPT = 0;
+const OVERFLOW_INTERRUPT = 4;
 
 /** Everything needed to undo one executed instruction. */
 export interface ExecutionRecord {

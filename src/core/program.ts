@@ -12,7 +12,7 @@ import type { CpuState } from './state';
 export type Program = readonly Instruction[];
 
 /** Stops runaway loops when running a whole program. */
-export const MAX_STEPS = 10_000;
+const MAX_STEPS = 10_000;
 
 /**
  * Stops a run whose records would hold too many memory writes. Every written byte is kept for
