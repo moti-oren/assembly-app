@@ -37,6 +37,7 @@ npm run lint
 ## Model
 
 - An instruction can run immediately (Enter) or be added to the program (Shift+Enter).
+- In the instruction box, the arrow keys move through the choices below it and Enter picks the highlighted one.
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
   fetch, decode, then execute. Fetch and decode show what is about to happen in the CPU panel's
   **Cycle** box and on the wires; the registers, flags and memory change only at execute.
@@ -126,6 +127,7 @@ npm run lint
 ## המודל
 
 - אפשר להריץ הוראה מיד (Enter) או להוסיף אותה לתוכנית (Shift+Enter).
+- בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה ו-Enter בוחר את המסומנת.
 - אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
   fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בתיבת **Cycle** שבחלונית
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.
