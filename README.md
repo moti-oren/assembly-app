@@ -73,7 +73,7 @@ npm run lint
   program line as its source (`mov word [0x84], L8`) to fill a vector. `into` is `int 4` when OF = 1,
   and a divide error is `int 0`. An empty vector is reported as an error instead of jumping to
   `0000:0000`. `pushf` and `popf` move FLAGS through the stack.
-- Click a flag to see why the last instruction left it at 0 or 1, worked out with that
+- Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
   instruction's own numbers (e.g. `7Fh + 01h` overflows as signed, so OF = 1). Click a register's
   name to see what it is for.
 
@@ -162,7 +162,7 @@ npm run lint
   שורת תוכנית כמקור (`mov word [0x84], L8`) כדי למלא וקטור. `into` הוא `int 4` כאשר OF = 1,
   וחריגת חלוקה היא `int 0`. וקטור ריק מדווח כשגיאה במקום לקפוץ ל-`0000:0000`. `pushf` ו-`popf`
   מעבירות את FLAGS דרך המחסנית.
-- לחיצה על דגל מסבירה למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
+- מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
   אותה הוראה (למשל `7Fh + 01h` גולש כמספר מסומן, ולכן OF = 1). לחיצה על שם של רגיסטר מסבירה
   למה הוא משמש.
 

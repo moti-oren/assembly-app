@@ -15,6 +15,7 @@ import {
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   aluUse,
   describeEquation,
@@ -365,11 +366,11 @@ function flagChanged(flag: FlagName): boolean {
             />
 
             <div class="mt-3 grid grid-cols-9 gap-1 sm:mt-0 sm:mr-5">
-              <Popover v-for="flag in FLAG_NAMES" :key="flag">
-                <PopoverTrigger as-child>
-                  <button
-                    type="button"
-                    class="change-mark flex flex-col items-center rounded-md border px-0 py-1 font-mono outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
+                <TooltipTrigger as-child>
+                  <div
+                    tabindex="0"
+                    class="change-mark flex cursor-help flex-col items-center rounded-md border px-0 py-1 font-mono outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                     :class="[
                       flagChanged(flag)
                         ? 'border-transparent bg-changed text-changed-foreground'
@@ -377,7 +378,7 @@ function flagChanged(flag: FlagName): boolean {
                           ? 'border-foreground/20 bg-secondary'
                           : 'border-border bg-card'
                     ]"
-                    :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}. Show why`"
+                    :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}`"
                   >
                     <span
                       v-if="flagChanged(flag)"
@@ -391,12 +392,12 @@ function flagChanged(flag: FlagName): boolean {
                       :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground/70'"
                       ><RollingDigits effect="flip" :text="isSet(flag) ? '1' : '0'"
                     /></span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
                   <FlagReason :flag="flag" :record="record" />
-                </PopoverContent>
-              </Popover>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </section>
 
