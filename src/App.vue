@@ -33,6 +33,7 @@ const {
   state,
   history,
   error,
+  errorFrom,
   program,
   insertAt,
   lastRecord,
@@ -109,7 +110,7 @@ const encodingShown = computed(() =>
             ref="builder"
             :run="cpu.run"
             :add="cpu.addToProgram"
-            :error="error"
+            :error="errorFrom === 'builder' ? error : null"
             :program-lines="programLines"
             :insert-line="insertAt ?? program.length"
             @draft="draft = $event"
@@ -184,6 +185,7 @@ const encodingShown = computed(() =>
         v-model:bytes-shown="bytesShown"
         :finished="finished"
         :running="running"
+        :error="errorFrom === 'program' ? error : null"
         :phase="pending?.phase ?? null"
         :executed="history.length"
         :undone="future.length"

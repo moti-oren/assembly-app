@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import {
   Binary,
   Cable,
+  CircleAlert,
   FastForward,
   Footprints,
   ListOrdered,
@@ -35,6 +36,8 @@ const props = defineProps<{
   historyShown: boolean;
   devicesShown: boolean;
   bytesShown: boolean;
+  /** Why the last step or run stopped, if the CPU raised an error. */
+  error: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -90,6 +93,15 @@ const toggles = computed(() => [
 <template>
   <!-- Always on screen, so the program can be driven while watching any part of the CPU. -->
   <footer class="sticky bottom-0 z-20 border-t bg-background/85 backdrop-blur-sm">
+    <!-- Next to the buttons that ran the program, so a stop is seen where it was caused. -->
+    <p
+      v-if="error"
+      role="alert"
+      class="mx-auto flex max-w-7xl items-start gap-2 px-4 pt-2.5 text-sm text-destructive lg:px-6"
+    >
+      <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      {{ error }}
+    </p>
     <div
       class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6"
       role="toolbar"

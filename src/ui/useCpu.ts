@@ -58,6 +58,8 @@ export function useCpu() {
   /** Undone instructions, the most recently undone last. */
   const undone = shallowRef<Undone[]>([]);
   const error = ref<string | null>(null);
+  /** What raised `error`: the builder's own instruction, or the program. Each shows its own. */
+  const errorFrom = ref<'builder' | 'program'>('builder');
   const program = shallowRef<Instruction[]>([]);
   /** Line that new program lines are inserted before; null means "append at the end". */
   const insertAt = ref<number | null>(null);
@@ -115,7 +117,7 @@ export function useCpu() {
   }
 
   /** Runs a CPU operation, turning a CpuError into the visible error message. */
-  function attempt(operation: () => void): boolean {
+  function attempt(from: 'builder' | 'program', operation: () => void): boolean {
     try {
       operation();
       error.value = null;
@@ -123,6 +125,7 @@ export function useCpu() {
     } catch (caught) {
       if (caught instanceof CpuError) {
         error.value = caught.message;
+        errorFrom.value = from;
         return false;
       }
       throw caught;
@@ -130,12 +133,12 @@ export function useCpu() {
   }
 
   function run(instruction: Instruction): boolean {
-    return attempt(() => record([execute(state, instruction)]));
+    return attempt('builder', () => record([execute(state, instruction)]));
   }
 
   function stepProgram(): void {
     pause();
-    attempt(() => record([step(state, program.value)]));
+    attempt('program', () => record([step(state, program.value)]));
   }
 
   /** Moves the line at IP one phase on: fetch, decode, then execute, which really runs it. */
@@ -162,7 +165,7 @@ export function useCpu() {
     try {
       continues =
         !finished.value &&
-        attempt(() => {
+        attempt('program', () => {
           if (runWrites >= MAX_RUN_WRITES) throw tooManyWrites();
           const entry = step(state, program.value);
           runWrites += entry.memoryWrites.length;
@@ -184,6 +187,7 @@ export function useCpu() {
       const result = runToEnd(state, program.value);
       record(result.records);
       error.value = result.error?.message ?? null;
+      errorFrom.value = 'program';
       return;
     }
     running.value = true;
@@ -277,6 +281,7 @@ export function useCpu() {
     state,
     history,
     error,
+    errorFrom,
     program,
     insertAt,
     lastRecord,
