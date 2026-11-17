@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { AssembledLine, FieldKind } from '@/core/encode';
-import { formatInstruction, type Instruction } from '@/core/instructions';
+import type { FieldKind } from '@/core/encode';
+import { formatInstruction } from '@/core/instructions';
 import { formatHex } from '@/core/numbers';
+import type { EncodingShown } from '@/ui/encodingShown';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const props = defineProps<{
   /** The instruction on show with its machine code, or null when there is nothing to encode. */
-  shown: { instruction: Instruction; assembled: AssembledLine; where: string } | null;
+  shown: EncodingShown | null;
 }>();
 
 const KIND_LABELS: Record<FieldKind, string> = {
