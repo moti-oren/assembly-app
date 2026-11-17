@@ -1,6 +1,6 @@
 import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_BITS } from '@/core/flags';
+import { isFlagSet } from '@/core/flags';
 import { INSTRUCTIONS } from '@/core/instructions';
 import type { WordRegister } from '@/core/registers';
 import type { CpuSnapshot } from '@/core/state';
@@ -23,8 +23,6 @@ export type StepSound =
 export type EventSound = 'undo' | 'ratchet' | 'error' | 'punch' | 'halt' | 'overflow';
 
 export type SoundKind = StepSound | EventSound;
-
-const OF = 1 << FLAG_BITS.OF;
 
 /** Picks the sound for an instruction from what it actually did, given the CPU right after it. */
 export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSound {
@@ -54,5 +52,5 @@ export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSoun
 
 /** True when this instruction is the one that raised OF: the moment a signed result broke. */
 export function raisedOverflow(record: ExecutionRecord, after: CpuSnapshot): boolean {
-  return (record.before.flags & OF) === 0 && (after.flags & OF) !== 0;
+  return !isFlagSet(record.before.flags, 'OF') && isFlagSet(after.flags, 'OF');
 }

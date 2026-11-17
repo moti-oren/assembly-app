@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_BITS, FLAG_NAMES } from '@/core/flags';
+import { FLAG_NAMES, isFlagSet } from '@/core/flags';
 import { formatInstruction } from '@/core/instructions';
 import { formatHex } from '@/core/numbers';
 import { WORD_REGISTERS } from '@/core/registers';
@@ -23,9 +23,8 @@ const changes = computed(() => {
     }
   }
   for (const flag of FLAG_NAMES) {
-    const bit = 1 << FLAG_BITS[flag];
-    if ((before.flags ^ props.state.flags) & bit) {
-      list.push({ name: flag, value: props.state.flags & bit ? '1' : '0' });
+    if (isFlagSet(before.flags ^ props.state.flags, flag)) {
+      list.push({ name: flag, value: isFlagSet(props.state.flags, flag) ? '1' : '0' });
     }
   }
   const memory = describeMemoryAccess(props.state, props.record);

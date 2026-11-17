@@ -15,11 +15,21 @@ export type FlagName = keyof typeof FLAG_BITS;
 
 export const FLAG_NAMES = Object.keys(FLAG_BITS) as FlagName[];
 
+/** The mask of one flag inside FLAGS. */
+export function flagBit(flag: FlagName): number {
+  return 1 << FLAG_BITS[flag];
+}
+
+/** Whether `flag` is set in a FLAGS value. */
+export function isFlagSet(flags: number, flag: FlagName): boolean {
+  return (flags & flagBit(flag)) !== 0;
+}
+
 /** Bit 1 of FLAGS is reserved and always reads as 1 on the 8086. */
 export const FLAGS_RESERVED = 0x0002;
 
 /** The bits of FLAGS that are real flags; POPF and IRET can load no others. */
-export const FLAGS_MASK = FLAG_NAMES.reduce((bits, name) => bits | (1 << FLAG_BITS[name]), 0);
+export const FLAGS_MASK = FLAG_NAMES.reduce((bits, name) => bits | flagBit(name), 0);
 
 export const FLAG_INFO: Record<FlagName, { label: string; description: string }> = {
   CF: {

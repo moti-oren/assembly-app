@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_BITS, FLAG_INFO, FLAG_NAMES, type FlagName } from '@/core/flags';
+import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/flags';
 import { formatHex } from '@/core/numbers';
 import type { CpuState } from '@/core/state';
 import { Badge } from '@/components/ui/badge';
@@ -20,13 +20,11 @@ const props = defineProps<{
 }>();
 
 function isSet(flag: FlagName): boolean {
-  return (props.state.flags & (1 << FLAG_BITS[flag])) !== 0;
+  return isFlagSet(props.state.flags, flag);
 }
 
 function changed(flag: FlagName): boolean {
-  return (
-    props.previous !== null && ((props.previous ^ props.state.flags) & (1 << FLAG_BITS[flag])) !== 0
-  );
+  return props.previous !== null && isFlagSet(props.previous ^ props.state.flags, flag);
 }
 </script>
 

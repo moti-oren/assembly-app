@@ -1,5 +1,5 @@
 import { PORTS } from './devices';
-import { FLAG_BITS, FLAGS_RESERVED, type FlagName } from './flags';
+import { FLAGS_RESERVED, flagBit, isFlagSet, type FlagName } from './flags';
 import { truncate, type Size } from './numbers';
 import {
   BYTE_REGISTER_LOCATION,
@@ -107,11 +107,11 @@ export function writeRegister(state: CpuState, name: RegisterName, value: number
 }
 
 export function getFlag(state: CpuState, flag: FlagName): boolean {
-  return (state.flags & (1 << FLAG_BITS[flag])) !== 0;
+  return isFlagSet(state.flags, flag);
 }
 
 export function setFlag(state: CpuState, flag: FlagName, value: boolean): void {
-  const bit = 1 << FLAG_BITS[flag];
+  const bit = flagBit(flag);
   state.flags = value ? state.flags | bit : state.flags & ~bit;
 }
 

@@ -1,5 +1,5 @@
 import type { AluTrace, ExecutionRecord } from './execute';
-import { FLAG_BITS, type FlagName } from './flags';
+import { isFlagSet, type FlagName } from './flags';
 import { getSpec, isStringCompare, type Mnemonic } from './instructions';
 import { formatBinary, formatHex, mask, signBit, toSigned, type Size } from './numbers';
 
@@ -278,7 +278,7 @@ export function explainFlag(record: ExecutionRecord, flag: FlagName): FlagReason
       return multiplyFlag(alu, flag, name);
     case 'restore':
       return set(
-        (alu.flags & (1 << FLAG_BITS[flag])) !== 0,
+        isFlagSet(alu.flags, flag),
         `${name} loads every flag from the FLAGS word it pops off the stack.`
       );
   }

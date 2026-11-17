@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { explainAddress } from '@/core/address';
 import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_BITS, FLAG_INFO, FLAG_NAMES, type FlagName } from '@/core/flags';
+import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/flags';
 import { formatInstruction } from '@/core/instructions';
 import { formatBinary, formatHex, toSigned } from '@/core/numbers';
 import { REGISTER_DESCRIPTIONS, WORD_REGISTERS, type WordRegister } from '@/core/registers';
@@ -179,11 +179,11 @@ const changedFlags = computed(() =>
 );
 
 function isSet(flag: FlagName): boolean {
-  return (props.state.flags & (1 << FLAG_BITS[flag])) !== 0;
+  return isFlagSet(props.state.flags, flag);
 }
 
 function flagChanged(flag: FlagName): boolean {
-  return (changedFlags.value & (1 << FLAG_BITS[flag])) !== 0;
+  return isFlagSet(changedFlags.value, flag);
 }
 </script>
 
