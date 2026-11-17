@@ -105,9 +105,11 @@
   /* The brief peak of the flash a value gives off as it changes. */
   --changed-glow: oklch(0.86 0.16 90);
   /* Stacking, lowest first. Dialogs, menus and tooltips (shadcn) sit at 50, above all of these. */
+  --z-drag: 5;
   --z-strip: 10;
   --z-sticky: 20;
   --z-flight: 40;
+  --drag-shadow: 0 18px 40px -12px oklch(0.2 0.02 260 / 35%);
   /* Text on the glow, which is bright in both themes. */
   --changed-glow-foreground: oklch(0.25 0.05 70);
   --pointer: oklch(0.55 0.18 255);
@@ -154,6 +156,7 @@
   --changed-glow: oklch(0.84 0.16 85);
   --card-sheen: oklch(1 0 0 / 3.5%);
   --overlay: oklch(0.1 0.02 305 / 55%);
+  --drag-shadow: 0 18px 40px -12px oklch(0 0 0 / 60%);
   --pointer: oklch(0.76 0.12 235);
   --pointer-foreground: oklch(0.18 0.02 260);
   --background: oklch(0.16 0.02 305);
@@ -507,6 +510,85 @@
   }
   .device-switch-on .device-knob {
     background: var(--pointer-foreground);
+  }
+
+  /*
+   * The grip that lets a card be dragged; see SortableColumn.vue. It sits on the card's top
+   * edge, half in the gap above, so it never covers what is inside the card.
+   */
+  .sortable-handle {
+    position: absolute;
+    top: -0.4375rem;
+    left: 50%;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 0.875rem;
+    translate: -50% 0;
+    border-radius: 9999px;
+    background: var(--card);
+    box-shadow: 0 0 0 1px var(--border);
+    color: var(--muted-foreground);
+    cursor: grab;
+    opacity: 0;
+    outline: none;
+    touch-action: none;
+    transition:
+      opacity 150ms,
+      color 150ms,
+      background-color 150ms;
+  }
+  .sortable-handle svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  /*
+   * A grip this thin is easy to miss, so the hit area is larger than it looks. It grows upward,
+   * into the gap between cards, and only 2px down, staying out of the card's padding.
+   */
+  .sortable-handle::after {
+    content: '';
+    position: absolute;
+    inset: -0.75rem -0.5rem -0.125rem;
+  }
+  [data-sortable]:hover > .sortable-handle,
+  .sortable-handle:focus-visible,
+  .sortable-dragging > .sortable-handle {
+    opacity: 1;
+  }
+  .sortable-handle:hover,
+  .sortable-dragging > .sortable-handle {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+  .sortable-handle:focus-visible {
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 0 0 4px color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+  /*
+   * No hover on a touch screen, so the grip is always there. Its hit area is 44px tall: up
+   * through the 16px gap to the end of the 12px padding of the card above.
+   */
+  @media (pointer: coarse) {
+    .sortable-handle {
+      opacity: 0.7;
+    }
+    .sortable-handle::after {
+      inset: -1.75rem -0.5rem -0.125rem;
+    }
+  }
+  .sortable-dragging {
+    z-index: var(--z-drag);
+  }
+  .sortable-dragging > [data-slot='card'] {
+    box-shadow: var(--drag-shadow);
+  }
+  :root.sorting,
+  :root.sorting * {
+    cursor: grabbing !important;
+    user-select: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

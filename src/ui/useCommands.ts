@@ -3,6 +3,7 @@ import { EXAMPLE_PROGRAMS } from '@/core/program';
 import type { PaletteCommand } from './components/CommandPalette.vue';
 import { describeMemoryAccess } from './describe';
 import { RUN_SPEED_NAMES, SPEED_LABELS, type Cpu } from './useCpu';
+import { usePanelOrder } from './usePanelOrder';
 import type { Panels } from './usePanels';
 import { usePreferences } from './usePreferences';
 
@@ -22,6 +23,7 @@ export function useCommands(
   page: PageActions
 ): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, cpuView, toggleTheme } = usePreferences();
+  const panelOrder = usePanelOrder();
   const { state, history, program, insertAt, lastRecord, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
 
@@ -153,6 +155,12 @@ export function useCommands(
       run: () => {
         soundOn.value = !soundOn.value;
       }
+    },
+    {
+      group: 'Preferences',
+      label: 'Reset the card order',
+      disabled: panelOrder.isDefault.value,
+      run: panelOrder.reset
     }
   ]);
 }
