@@ -84,7 +84,7 @@ Two layers; keep them separate.
 - **Lockfile:** `package-lock.json` changes go in the same commit as the `package.json` change that caused them.
 - If a change breaks the serialized shape of core state or the undo record, say so in the commit body (`BREAKING:` line).
 - Never skip hooks (`--no-verify`). If a hook fails, fix the cause.
-- Don't commit `dist/`, `node_modules/`, or `graphify-out/` (check `.gitignore` before staging).
+- Don't commit `dist/` or `node_modules/` (check `.gitignore` before staging).
 
 ## Conventions
 
@@ -102,5 +102,4 @@ Two layers; keep them separate.
 - **`cn` is intentional:** the `cn` package is shadcn's replacement for `clsx` + `tailwind-merge`. The generated components import it directly and `src/lib/utils.ts` re-exports it. Don't remove it or swap in `clsx`/`tailwind-merge`.
 - **Dependencies:** don't add new packages without asking.
 - **Comments:** only where the *why* is not obvious. No comments that restate what the line does.
-- **`graphify-out/`:** generated output (git-ignored). Don't edit it by hand.
 - **Language with the user:** everything addressed to the user is in Hebrew: replies, explanations, questions and all git reports (which branch was created, which commits were made, what each one contains, what was skipped and why). Only the artifacts stay in English: code, comments, commit messages and branch names. When quoting a commit message or branch name in a Hebrew report, keep it verbatim in English and write the surrounding explanation in Hebrew.
