@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useMediaQuery } from '@vueuse/core';
 import { hasMoreOperands, operandChoices } from '@/core/builder';
 import {
   getSpec,
@@ -50,8 +51,14 @@ const pendingMemory = ref<Size | null>(null);
 const filter = ref('');
 const input = ref<HTMLInputElement | null>(null);
 const card = ref<{ $el: HTMLElement } | null>(null);
-/** True while focus is inside the builder: the choices fold away when it is not in use. */
+/** True while focus is inside the builder. */
 const active = ref(false);
+/**
+ * With two columns the choices always stay open: folding them away would move every panel
+ * below the builder each time focus came and went. In one column they fold away when the
+ * builder is not in use, so the CPU panels are not pushed off screen.
+ */
+const twoColumns = useMediaQuery('(min-width: 64rem)');
 
 function onFocusOut(): void {
   // Focus moves between the input and the choices; only leaving the card counts.
@@ -389,7 +396,10 @@ function onBackspace(event: KeyboardEvent): void {
         <AlertDescription class="text-destructive/90">{{ error }}</AlertDescription>
       </Alert>
 
-      <div v-if="moreToChoose && active" class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80">
+      <div
+        v-if="moreToChoose && (active || twoColumns)"
+        class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80"
+      >
         <div v-for="[group, options] in groups" :key="group" class="mb-3 last:mb-0">
           <h3 class="mb-1.5 text-xs text-muted-foreground">{{ group }}</h3>
           <div class="flex flex-wrap gap-1.5">
