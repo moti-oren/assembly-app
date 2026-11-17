@@ -29,14 +29,18 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
 <template>
   <header class="sticky top-0 z-(--z-sticky) border-b bg-background/85 backdrop-blur-sm">
     <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 lg:px-6">
-      <div class="flex items-center gap-2.5">
+      <!--
+        On a phone the buttons need the room: the badge goes, and the name shortens before it
+        wraps. From md the tagline is on show, and it is the one that shortens.
+      -->
+      <div class="flex min-w-0 items-center gap-2.5 md:shrink-0">
         <div
-          class="grid size-7 place-items-center rounded-md bg-foreground font-mono text-2xs font-bold text-background"
+          class="hidden size-7 shrink-0 place-items-center rounded-md bg-foreground font-mono text-2xs font-bold text-background sm:grid"
           aria-hidden="true"
         >
           86
         </div>
-        <h1 class="text-[15px] font-semibold tracking-tight">8086 Playground</h1>
+        <h1 class="truncate text-[15px] font-semibold tracking-tight">8086 Playground</h1>
       </div>
       <p class="hidden truncate text-sm text-muted-foreground md:block">
         Build an instruction, run it, and watch the CPU change.
