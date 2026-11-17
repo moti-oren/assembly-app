@@ -40,6 +40,8 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
           variant="outline"
           size="sm"
           class="mr-1 text-muted-foreground"
+          aria-label="Commands"
+          aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"
         >
           <Search />
@@ -48,7 +50,7 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="Examples">
               <BookOpen />
               <span class="hidden sm:inline">Examples</span>
             </Button>
@@ -72,7 +74,7 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
 
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="ghost" size="sm" @click="$emit('reset')">
+            <Button variant="ghost" size="sm" aria-label="Reset the CPU" @click="$emit('reset')">
               <RotateCcw />
               <span class="hidden sm:inline">Reset</span>
             </Button>

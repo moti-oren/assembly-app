@@ -62,6 +62,27 @@ const nextPhase = computed(() =>
 );
 
 const total = computed(() => props.executed + props.undone);
+
+const toggles = computed(() => [
+  {
+    label: 'History',
+    icon: ListOrdered,
+    shown: props.historyShown,
+    flip: () => emit('update:historyShown', !props.historyShown)
+  },
+  {
+    label: 'I/O',
+    icon: Cable,
+    shown: props.devicesShown,
+    flip: () => emit('update:devicesShown', !props.devicesShown)
+  },
+  {
+    label: 'Machine code',
+    icon: Binary,
+    shown: props.bytesShown,
+    flip: () => emit('update:bytesShown', !props.bytesShown)
+  }
+]);
 </script>
 
 <template>
@@ -158,36 +179,23 @@ const total = computed(() => props.executed + props.undone);
         <span class="w-16 text-right font-mono text-xs text-muted-foreground tabular-nums">
           {{ executed }} / {{ total }}
         </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          :class="historyShown ? 'bg-secondary' : ''"
-          :aria-pressed="historyShown"
-          @click="emit('update:historyShown', !historyShown)"
-        >
-          <ListOrdered />
-          <span class="hidden sm:inline">History</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          :class="devicesShown ? 'bg-secondary' : ''"
-          :aria-pressed="devicesShown"
-          @click="emit('update:devicesShown', !devicesShown)"
-        >
-          <Cable />
-          <span class="hidden sm:inline">I/O</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          :class="bytesShown ? 'bg-secondary' : ''"
-          :aria-pressed="bytesShown"
-          @click="emit('update:bytesShown', !bytesShown)"
-        >
-          <Binary />
-          <span class="hidden sm:inline">Machine code</span>
-        </Button>
+        <!-- Icons only on a narrow screen, so the name moves into the label and a tooltip. -->
+        <Tooltip v-for="toggle in toggles" :key="toggle.label">
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              :class="toggle.shown ? 'bg-secondary' : ''"
+              :aria-label="toggle.label"
+              :aria-pressed="toggle.shown"
+              @click="toggle.flip"
+            >
+              <component :is="toggle.icon" />
+              <span class="hidden sm:inline">{{ toggle.label }}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent class="sm:hidden">{{ toggle.label }}</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   </footer>
