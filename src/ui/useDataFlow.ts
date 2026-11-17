@@ -4,6 +4,7 @@ import type { ExecutionRecord } from '@/core/execute';
 import { formatHex } from '@/core/numbers';
 import { effectiveAddress, operandSize, type Operand } from '@/core/operands';
 import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/state';
+import { usePreferences } from './usePreferences';
 
 /**
  * How long a value takes to travel between two places. The panels wait this long before they
@@ -40,7 +41,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
   layer.setAttribute('aria-hidden', 'true');
   document.body.append(layer);
 
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const { calm } = usePreferences();
   let timer: number | undefined;
   let lastExecution = -Infinity;
 
@@ -142,7 +143,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       const now = performance.now();
       const unhurried = now - lastExecution >= MIN_GAP_MS;
       lastExecution = now;
-      if (single && unhurried && !reducedMotion.matches && launch(plan(record))) {
+      if (single && unhurried && !calm.value && launch(plan(record))) {
         root.dataset.flight = '';
         timer = window.setTimeout(() => delete root.dataset.flight, FLIGHT_RESET_MS);
       } else {

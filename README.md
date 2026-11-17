@@ -83,6 +83,9 @@ npm run lint
   it and use the arrow keys (Home and End move it to the top or bottom). A card stays in its own
   column. The order is remembered, separately for the CPU diagram and the tables, and **Reset the
   card order** in the command palette (Ctrl+K) puts it back.
+- **Reduce animations** in the command palette turns off the values that fly between panels, the
+  flashes and the glowing wires; the changed values stay marked. It is remembered, and it is on by
+  itself when the system asks for reduced motion.
 
 ---
 
@@ -178,5 +181,8 @@ npm run lint
   אותה ומשתמשים במקשי החיצים (Home ו-End מעבירים אותה לראש העמודה או לסופה). כרטיסייה נשארת בעמודה
   שלה. הסדר נשמר, בנפרד לדיאגרמת ה-CPU ולטבלאות, והפקודה **Reset the card order** בפלטת הפקודות
   (Ctrl+K) מחזירה אותו לברירת המחדל.
+- **Reduce animations** בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
+  הזוהרים; הערכים שהשתנו נשארים מסומנים. ההגדרה נשמרת, והיא פועלת מעצמה כשהמערכת מבקשת להפחית
+  תנועה.
 
 </div>

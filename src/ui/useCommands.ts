@@ -22,7 +22,8 @@ export function useCommands(
   panels: Panels,
   page: PageActions
 ): ComputedRef<PaletteCommand[]> {
-  const { isDark, soundOn, cpuView, toggleTheme } = usePreferences();
+  const { isDark, soundOn, cpuView, reduceMotion, systemReducesMotion, toggleTheme } =
+    usePreferences();
   const panelOrder = usePanelOrder();
   const { state, history, program, insertAt, lastRecord, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
@@ -156,6 +157,21 @@ export function useCommands(
         soundOn.value = !soundOn.value;
       }
     },
+    // While the system asks for less motion, the app's own setting cannot bring it back.
+    systemReducesMotion.value
+      ? {
+          group: 'Preferences',
+          label: 'Animations are reduced by the system',
+          disabled: true,
+          run: () => {}
+        }
+      : {
+          group: 'Preferences',
+          label: reduceMotion.value ? 'Use full animations' : 'Reduce animations',
+          run: () => {
+            reduceMotion.value = !reduceMotion.value;
+          }
+        },
     {
       group: 'Preferences',
       label: 'Reset the card order',

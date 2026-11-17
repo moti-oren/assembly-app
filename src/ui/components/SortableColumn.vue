@@ -2,6 +2,7 @@
 import { nextTick, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue';
 import { GripHorizontal } from '@lucide/vue';
 import { dragTarget, settleOffset, shiftFor, type Slot } from '@/ui/reorder';
+import { usePreferences } from '@/ui/usePreferences';
 
 /**
  * A column of cards the user can put in any order by dragging a card's grip, or with the
@@ -55,7 +56,8 @@ let pointerY = 0;
 let scrollFrame = 0;
 let settleTimer = 0;
 
-const calm = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const { calm: calmRef } = usePreferences();
+const calm = (): boolean => calmRef.value;
 
 function card(key: K): HTMLElement | null {
   return root.value?.querySelector<HTMLElement>(`[data-sortable="${key}"]`) ?? null;
