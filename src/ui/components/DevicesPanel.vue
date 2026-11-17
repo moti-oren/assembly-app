@@ -4,6 +4,7 @@ import { DIGIT_COUNT, PORTS, litSegments, terminalText } from '@/core/devices';
 import { formatHex } from '@/core/numbers';
 import type { CpuState } from '@/core/state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const props = defineProps<{
   state: CpuState;
@@ -91,19 +92,21 @@ function flip(bit: number): void {
             >
           </h3>
           <div class="flex gap-1.5 pointer-coarse:gap-5">
-            <button
-              v-for="bit in BITS"
-              :key="bit"
-              type="button"
-              class="device-switch"
-              :class="{ 'device-switch-on': isOn(switches, bit) }"
-              :aria-pressed="isOn(switches, bit)"
-              :aria-label="`Switch ${bit}`"
-              :title="`Bit ${bit}`"
-              @click="flip(bit)"
-            >
-              <span class="device-knob" />
-            </button>
+            <Tooltip v-for="bit in BITS" :key="bit">
+              <TooltipTrigger as-child>
+                <button
+                  type="button"
+                  class="device-switch"
+                  :class="{ 'device-switch-on': isOn(switches, bit) }"
+                  :aria-pressed="isOn(switches, bit)"
+                  :aria-label="`Switch ${bit}`"
+                  @click="flip(bit)"
+                >
+                  <span class="device-knob" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Bit {{ bit }}</TooltipContent>
+            </Tooltip>
           </div>
         </section>
       </div>

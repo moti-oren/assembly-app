@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   builderOptions,
   filterOptions,
@@ -373,20 +374,22 @@ function onBackspace(event: KeyboardEvent): void {
         class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-input bg-background px-2 py-1.5 font-mono text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30"
         @click="focusInput"
       >
-        <button
-          v-for="(token, index) in tokens"
-          :key="index"
-          type="button"
-          class="inline-flex h-7 items-center rounded-md px-2 transition-colors hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          :class="[
-            token.head ? 'bg-foreground font-semibold text-background' : 'bg-secondary',
-            token.pending ? 'border border-dashed border-foreground/40 bg-transparent' : ''
-          ]"
-          title="Remove this word and the ones after it"
-          @click.stop="truncateTo(index)"
-        >
-          {{ token.label }}
-        </button>
+        <Tooltip v-for="(token, index) in tokens" :key="index">
+          <TooltipTrigger as-child>
+            <button
+              type="button"
+              class="inline-flex h-7 items-center rounded-md px-2 transition-colors hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              :class="[
+                token.head ? 'bg-foreground font-semibold text-background' : 'bg-secondary',
+                token.pending ? 'border border-dashed border-foreground/40 bg-transparent' : ''
+              ]"
+              @click.stop="truncateTo(index)"
+            >
+              {{ token.label }}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Remove this word and the ones after it</TooltipContent>
+        </Tooltip>
         <input
           ref="input"
           v-model="filter"
@@ -408,17 +411,21 @@ function onBackspace(event: KeyboardEvent): void {
           @keydown.backspace="onBackspace"
           @keydown.esc="clear"
         />
-        <Button
-          v-if="tokens.length > 0"
-          variant="ghost"
-          size="icon-xs"
-          class="text-muted-foreground pointer-coarse:size-11"
-          title="Clear (Esc)"
-          aria-label="Clear the instruction"
-          @click.stop="clear"
-        >
-          <X />
-        </Button>
+        <Tooltip v-if="tokens.length > 0">
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              class="text-muted-foreground pointer-coarse:size-11"
+              aria-label="Clear the instruction"
+              aria-keyshortcuts="Escape"
+              @click.stop="clear"
+            >
+              <X />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Clear the instruction <Kbd>Esc</Kbd></TooltipContent>
+        </Tooltip>
       </div>
 
       <p class="min-h-5 truncate text-sm text-muted-foreground" aria-live="polite">
