@@ -37,7 +37,7 @@ Two layers; keep them separate.
   - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …). **Display only**; nothing executes these bytes.
   - `devices.ts`: the port numbers of the I/O devices (LEDs, switches, 7-segment digits, terminal) and how their bytes are shown.
   - `address.ts` and `flagReasons.ts`: explanations for the UI, worked out from state and the undo record: how segment:offset becomes a 20-bit address, and why each flag got its value.
-- `src/ui/`: Vue components in `ui/components/` and `useCpu.ts`, which wraps the core in Vue reactivity. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
+- `src/ui/`: Vue components in `ui/components/` and `useCpu.ts`, which wraps the core in Vue reactivity. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
 - `src/components/ui/`: shadcn-vue components (Tailwind v4 + reka-ui), generated with `npx shadcn-vue add <name>`. They are excluded from ESLint; don't hand-edit them casually. Config in `components.json`.
 
 ## Execution model (non-obvious)
@@ -95,6 +95,7 @@ Two layers; keep them separate.
 - **Typed arrays are not reactive:** memory and port bytes live in `Uint8Array`s, so the UI depends on `memoryVersion` / `ioVersion`. Bump them on every write path.
 - **8086 fidelity:** flag behavior (AF, OF, CF, etc.) follows real 8086 semantics, not whatever is convenient. When unsure, check the 8086 reference instead of guessing.
 - **UI changes:** `typecheck` and `test` do not cover the UI. Verify it in the browser via `npm run dev` before reporting it done.
+- **Command palette (Ctrl+K) stays in sync:** the app's command palette lists what the user can do (program, history, devices, run speed, examples, preferences). Its commands are built in `src/ui/useCommands.ts` and shown by `CommandPalette.vue`. Whenever a change adds a user-facing action (a new toggle, panel, preference, run option, or anything the user could reasonably look for in the palette), add the matching command in the same change; when an action is renamed or removed, update or remove its command. Toggles use a label that reflects the current state (`Show …` / `Hide …`). Not every control belongs there; skip purely internal or purely contextual ones.
 - **README on UI changes:** whenever the UI changes (new or changed controls, shortcuts, panels, behavior the user sees), check whether `README.md` should change too (commands, layout, model, usage). If so, update it in the same change.
 - **README is bilingual:** `README.md` has the full guide in English at the top and the same guide in Hebrew (RTL) at the bottom. Any README edit must be applied to both halves so they stay equivalent.
 - **shadcn components:** add them with `npx shadcn-vue add <name>`, never by hand-writing files in `src/components/ui/`.
