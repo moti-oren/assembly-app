@@ -150,23 +150,25 @@ export function useCpu() {
   }
 
   function runNextLine(): void {
-    if (runWrites >= MAX_RUN_WRITES) {
-      error.value = tooManyWrites().message;
-      pause();
-      return;
+    let continues = false;
+    // Whatever goes wrong, even an error that is not the CPU's, the run must not stay "running".
+    try {
+      continues =
+        !finished.value &&
+        attempt(() => {
+          if (runWrites >= MAX_RUN_WRITES) throw tooManyWrites();
+          const entry = step(state, program.value);
+          runWrites += entry.memoryWrites.length;
+          record([entry]);
+        }) &&
+        !finished.value;
+    } finally {
+      if (continues) {
+        runTimer = window.setTimeout(runNextLine, RUN_SPEEDS[speed.value]);
+      } else {
+        pause();
+      }
     }
-    const stepped =
-      !finished.value &&
-      attempt(() => {
-        const entry = step(state, program.value);
-        runWrites += entry.memoryWrites.length;
-        record([entry]);
-      });
-    if (!stepped || finished.value) {
-      pause();
-      return;
-    }
-    runTimer = window.setTimeout(runNextLine, RUN_SPEEDS[speed.value]);
   }
 
   function runProgram(): void {
