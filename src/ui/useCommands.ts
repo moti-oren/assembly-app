@@ -92,7 +92,7 @@ export function useCommands(
         historyShown.value = !historyShown.value;
       }
     },
-    { group: 'History', label: 'Reset the CPU', run: cpu.reset },
+    { group: 'CPU', label: 'Reset the CPU', run: cpu.reset },
     {
       group: 'CPU',
       label: 'Show the top of the stack in memory',
