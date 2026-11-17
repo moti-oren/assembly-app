@@ -121,11 +121,9 @@ const detail = computed(() => {
           <span
             class="rounded-md border px-2 py-0.5 transition-colors duration-300"
             :class="
-              phase !== active
-                ? 'text-muted-foreground'
-                : phase === 'execute'
-                  ? 'border-transparent bg-changed font-semibold text-changed-foreground'
-                  : 'border-transparent bg-pointer font-semibold text-pointer-foreground'
+              phase === active
+                ? 'border-transparent bg-foreground font-semibold text-background'
+                : 'text-muted-foreground'
             "
             >{{ PHASE_LABELS[phase] }}</span
           >
