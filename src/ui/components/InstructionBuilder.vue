@@ -421,7 +421,14 @@ function onBackspace(event: KeyboardEvent): void {
             </Button>
           </div>
         </div>
-        <p v-if="groups.length === 0" class="text-sm text-muted-foreground">{{ typingHint }}</p>
+        <!-- A number that is too big already has its own message above. -->
+        <p v-if="groups.length === 0 && !doesNotFit" class="text-sm text-muted-foreground">
+          <template v-if="filter.trim()">
+            Nothing matches “<span class="font-mono text-foreground">{{ filter }}</span
+            >”. Press <Kbd>Backspace</Kbd> to edit it or <Kbd>Esc</Kbd> to start over.
+          </template>
+          <template v-else>{{ typingHint }}</template>
+        </p>
       </div>
       <div v-else-if="!moreToChoose" class="text-sm text-muted-foreground">
         <p>
