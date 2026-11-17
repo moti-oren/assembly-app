@@ -154,7 +154,7 @@ function ascii(value: number): string {
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="mr-1">Memory</CardTitle>
+        <CardTitle class="mr-1 group-data-[size=sm]/card:text-base">Memory</CardTitle>
         <Select v-model="segment">
           <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->

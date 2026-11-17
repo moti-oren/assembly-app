@@ -56,7 +56,7 @@ function flip(bit: number): void {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle>I/O devices</CardTitle>
+      <CardTitle class="group-data-[size=sm]/card:text-base">I/O devices</CardTitle>
       <CardDescription>
         <span class="font-mono">out</span> writes to a port, <span class="font-mono">in</span> reads
         one
