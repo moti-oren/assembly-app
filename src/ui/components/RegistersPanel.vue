@@ -54,7 +54,7 @@ function changedBits(name: WordRegister): number {
       </CardAction>
     </CardHeader>
     <CardContent>
-      <Table class="font-mono text-[13px]">
+      <Table class="font-mono text-code">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
             <TableHead class="h-8 w-12 font-sans text-xs text-muted-foreground">Reg</TableHead>

@@ -31,7 +31,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
     <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 lg:px-6">
       <div class="flex items-center gap-2.5">
         <div
-          class="grid size-7 place-items-center rounded-md bg-foreground font-mono text-[11px] font-bold text-background"
+          class="grid size-7 place-items-center rounded-md bg-foreground font-mono text-2xs font-bold text-background"
           aria-hidden="true"
         >
           86

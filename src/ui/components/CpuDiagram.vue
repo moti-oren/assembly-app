@@ -218,7 +218,7 @@ function flagChanged(flag: FlagName): boolean {
         >
           <section class="min-w-0" aria-label="Execution unit">
             <h3 class="unit-title">Execution unit <span>EU</span></h3>
-            <div class="flex flex-col font-mono text-[13px]">
+            <div class="flex flex-col font-mono text-code">
               <!-- The number system of each column, as in the register table. -->
               <div
                 class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
@@ -285,7 +285,7 @@ function flagChanged(flag: FlagName): boolean {
                   <RollingDigits :text="String(value(name))" />
                 </span>
 
-                <span class="hidden text-[11px] @min-[36rem]:inline">
+                <span class="hidden text-2xs @min-[36rem]:inline">
                   <RollingDigits
                     effect="flip"
                     dim-zeros
@@ -313,7 +313,7 @@ function flagChanged(flag: FlagName): boolean {
                 </div>
                 <div
                   v-if="equation"
-                  class="mt-2 grid grid-cols-[auto_auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-[13px]"
+                  class="mt-2 grid grid-cols-[auto_auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
                 >
                   <span />
                   <span class="text-right">{{ equation.left }}</span>
@@ -382,7 +382,7 @@ function flagChanged(flag: FlagName): boolean {
                       class="change-flash"
                       aria-hidden="true"
                     />
-                    <span class="text-[11px] font-semibold">{{ flag }}</span>
+                    <span class="text-2xs font-semibold">{{ flag }}</span>
                     <span
                       class="text-sm"
                       :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground/70'"
@@ -410,7 +410,7 @@ function flagChanged(flag: FlagName): boolean {
             aria-label="Bus interface unit"
           >
             <h3 class="unit-title sm:pl-7">Bus interface unit <span>BIU</span></h3>
-            <div class="flex flex-col font-mono text-[13px]">
+            <div class="flex flex-col font-mono text-code">
               <div
                 class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
               >
@@ -449,7 +449,7 @@ function flagChanged(flag: FlagName): boolean {
                   <RollingDigits :text="String(value(name))" />
                 </span>
                 <!-- Only where both units fit their bits side by side; the EU's bits come first. -->
-                <span class="hidden text-[11px] @min-[40rem]:inline">
+                <span class="hidden text-2xs @min-[40rem]:inline">
                   <RollingDigits
                     effect="flip"
                     dim-zeros
@@ -475,7 +475,7 @@ function flagChanged(flag: FlagName): boolean {
                 </div>
                 <div
                   v-if="memory && address"
-                  class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-[13px]"
+                  class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
                 >
                   <span class="truncate font-sans text-xs text-muted-foreground">
                     {{ memory.segment.toUpperCase() }} × 10h
@@ -518,7 +518,7 @@ function flagChanged(flag: FlagName): boolean {
               class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
             >
               <span class="text-sm font-medium">Memory</span>
-              <span v-if="memory" class="truncate font-mono text-[13px]">
+              <span v-if="memory" class="truncate font-mono text-code">
                 <span class="font-sans text-xs text-muted-foreground">
                   {{ memory.write ? 'wrote' : 'read' }}
                 </span>
@@ -541,7 +541,7 @@ function flagChanged(flag: FlagName): boolean {
               class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
             >
               <span class="text-sm font-medium">I/O ports</span>
-              <span v-if="port" class="truncate font-mono text-[13px]">
+              <span v-if="port" class="truncate font-mono text-code">
                 <span class="font-sans text-xs text-muted-foreground">
                   {{ port.write ? 'wrote' : 'read' }}
                 </span>

@@ -16,7 +16,7 @@ const equation = computed(() => props.record && describeEquation(props.state, pr
 
 <template>
   <Card size="sm">
-    <CardContent class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[13px]">
+    <CardContent class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-code">
       <template v-if="record">
         <span class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
         <span v-if="equation" class="ml-auto flex flex-wrap items-center gap-x-2">

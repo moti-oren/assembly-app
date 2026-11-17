@@ -72,7 +72,7 @@ watch(
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
           {{ history.length - SHOWN }} earlier instructions are not shown.
         </p>
-        <ol class="font-mono text-[13px]">
+        <ol class="font-mono text-code">
           <li
             v-for="{ record, number } in shown"
             :key="number"
