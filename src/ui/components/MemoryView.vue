@@ -131,13 +131,26 @@ function showStackTop(): void {
   offsetText.value = formatHex(rowOfSp - (rowCount.value - 1) * COLUMNS, 16);
 }
 
+const card = ref<{ $el: HTMLElement } | null>(null);
+
+/** For the command palette: jump, then bring the memory into view, which may be off screen. */
+defineExpose({
+  showStackTop: () => reveal(showStackTop),
+  showLastAccess: () => reveal(showLastAccess)
+});
+
+function reveal(jump: () => void): void {
+  jump();
+  card.value?.$el.scrollIntoView({ block: 'nearest' });
+}
+
 function ascii(value: number): string {
   return value >= 0x20 && value < 0x7f ? String.fromCharCode(value) : '·';
 }
 </script>
 
 <template>
-  <Card size="sm">
+  <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
         <CardTitle class="mr-1">Memory</CardTitle>

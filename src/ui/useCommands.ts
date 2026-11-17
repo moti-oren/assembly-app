@@ -1,17 +1,36 @@
 import { computed, type ComputedRef } from 'vue';
 import { EXAMPLE_PROGRAMS } from '@/core/program';
 import type { PaletteCommand } from './components/CommandPalette.vue';
+import { describeMemoryAccess } from './describe';
 import { RUN_SPEED_NAMES, SPEED_LABELS, type Cpu } from './useCpu';
 import type { Panels } from './usePanels';
 import { usePreferences } from './usePreferences';
 
+/** What the palette asks of components on the page, which own the state these act on. */
+export interface PageActions {
+  focusBuilder: () => void;
+  showStackTop: () => void;
+  showLastAccess: () => void;
+}
+
 /** Everything the command palette offers, labelled for the current state. */
-export function useCommands(cpu: Cpu, panels: Panels): ComputedRef<PaletteCommand[]> {
+export function useCommands(
+  cpu: Cpu,
+  panels: Panels,
+  page: PageActions
+): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, cpuView, toggleTheme } = usePreferences();
-  const { history, program, future, finished, speed, running } = cpu;
+  const { state, history, program, insertAt, lastRecord, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
 
+  /** Whether the last instruction read or wrote memory, so there is an access to show. */
+  const hasLastAccess = computed(() => {
+    void state.memoryVersion;
+    return lastRecord.value !== null && describeMemoryAccess(state, lastRecord.value) !== null;
+  });
+
   return computed<PaletteCommand[]>(() => [
+    { group: 'Program', label: 'Write an instruction', moves: 'focus', run: page.focusBuilder },
     {
       group: 'Program',
       label: 'Step one line',
@@ -27,14 +46,45 @@ export function useCommands(cpu: Cpu, panels: Panels): ComputedRef<PaletteComman
     running.value
       ? { group: 'Program', label: 'Pause', run: cpu.pause }
       : { group: 'Program', label: 'Run', disabled: finished.value, run: cpu.runProgram },
+    // Only while new lines go above a chosen line; at the end is where they go otherwise.
+    ...(insertAt.value === null
+      ? []
+      : [
+          {
+            group: 'Program',
+            label: 'Add new lines at the end',
+            run: () => {
+              insertAt.value = null;
+            }
+          }
+        ]),
     {
       group: 'Program',
       label: 'Clear the program',
       disabled: program.value.length === 0,
       run: cpu.clearProgram
     },
+    {
+      group: 'Program',
+      label: bytesShown.value ? 'Hide the machine code' : 'Show the machine code',
+      run: () => {
+        bytesShown.value = !bytesShown.value;
+      }
+    },
     { group: 'History', label: 'Undo', disabled: history.value.length === 0, run: cpu.undoLast },
     { group: 'History', label: 'Redo', disabled: future.value.length === 0, run: cpu.redo },
+    {
+      group: 'History',
+      label: 'Go back to the start',
+      disabled: history.value.length === 0,
+      run: () => cpu.seek(0)
+    },
+    {
+      group: 'History',
+      label: 'Go to the latest instruction',
+      disabled: future.value.length === 0,
+      run: () => cpu.seek(history.value.length + future.value.length)
+    },
     {
       group: 'History',
       label: historyShown.value ? 'Hide the history list' : 'Show the history list',
@@ -44,11 +94,17 @@ export function useCommands(cpu: Cpu, panels: Panels): ComputedRef<PaletteComman
     },
     { group: 'History', label: 'Reset the CPU', run: cpu.reset },
     {
-      group: 'Program',
-      label: bytesShown.value ? 'Hide the machine code' : 'Show the machine code',
-      run: () => {
-        bytesShown.value = !bytesShown.value;
-      }
+      group: 'CPU',
+      label: 'Show the top of the stack in memory',
+      moves: 'scroll',
+      run: page.showStackTop
+    },
+    {
+      group: 'CPU',
+      label: 'Show the last memory access',
+      disabled: !hasLastAccess.value,
+      moves: 'scroll',
+      run: page.showLastAccess
     },
     {
       group: 'Devices',

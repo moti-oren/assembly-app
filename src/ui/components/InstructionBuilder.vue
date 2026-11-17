@@ -161,6 +161,8 @@ function focusInput(): void {
 
 onMounted(focusInput);
 
+defineExpose({ focus: focusInput });
+
 function apply(action: OptionAction): void {
   switch (action.kind) {
     case 'prefix':
