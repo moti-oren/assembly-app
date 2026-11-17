@@ -48,6 +48,16 @@ export interface PortWrite {
   after: number;
 }
 
+/** The registers and FLAGS at one moment; memory and ports are tracked as writes instead. */
+export interface CpuSnapshot {
+  registers: Record<WordRegister, number>;
+  flags: number;
+}
+
+export function snapshot(state: CpuState): CpuSnapshot {
+  return { registers: { ...state.registers }, flags: state.flags };
+}
+
 export function createCpuState(): CpuState {
   return {
     registers: {

@@ -2,6 +2,7 @@ import type { ExecutionRecord } from '@/core/execute';
 import { FLAG_BITS } from '@/core/flags';
 import { INSTRUCTIONS } from '@/core/instructions';
 import type { WordRegister } from '@/core/registers';
+import type { CpuSnapshot } from '@/core/state';
 
 /** What one executed instruction sounds like. Every register shares one sound on purpose. */
 export type StepSound =
@@ -21,11 +22,6 @@ export type StepSound =
 export type EventSound = 'undo' | 'ratchet' | 'error' | 'punch' | 'halt' | 'overflow';
 
 export type SoundKind = StepSound | EventSound;
-
-export interface CpuSnapshot {
-  registers: Record<WordRegister, number>;
-  flags: number;
-}
 
 const OF = 1 << FLAG_BITS.OF;
 
