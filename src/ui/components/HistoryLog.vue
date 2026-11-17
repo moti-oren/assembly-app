@@ -85,7 +85,7 @@ watch(
                 number === history.length
                   ? 'bg-background font-semibold'
                   : number > history.length
-                    ? 'text-foreground/35'
+                    ? 'text-muted-foreground'
                     : 'text-foreground/75'
               "
               :aria-current="number === history.length ? 'step' : undefined"
