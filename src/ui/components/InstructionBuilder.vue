@@ -352,19 +352,12 @@ function truncateTo(index: number): void {
     clear();
     return;
   }
+  pendingMemory.value = null;
   if (prefix.value && index === 1) {
     mnemonic.value = null;
     operands.value = [];
-    pendingMemory.value = null;
-    focusInput();
-    return;
-  }
-  const keep = index - (prefix.value ? 2 : 1);
-  if (keep < operands.value.length) {
-    operands.value = operands.value.slice(0, keep);
-    pendingMemory.value = null;
   } else {
-    pendingMemory.value = null;
+    operands.value = operands.value.slice(0, index - (prefix.value ? 2 : 1));
   }
   focusInput();
 }
