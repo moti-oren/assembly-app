@@ -1,7 +1,7 @@
 import { computed, type ComputedRef } from 'vue';
 import { EXAMPLE_PROGRAMS } from '@/core/program';
 import type { PaletteCommand } from './components/CommandPalette.vue';
-import { RUN_SPEEDS, type Cpu, type RunSpeed } from './useCpu';
+import { RUN_SPEED_NAMES, SPEED_LABELS, type Cpu } from './useCpu';
 import type { Panels } from './usePanels';
 import { usePreferences } from './usePreferences';
 
@@ -57,9 +57,9 @@ export function useCommands(cpu: Cpu, panels: Panels): ComputedRef<PaletteComman
         devicesShown.value = !devicesShown.value;
       }
     },
-    ...(Object.keys(RUN_SPEEDS) as RunSpeed[]).map((name) => ({
+    ...RUN_SPEED_NAMES.map((name) => ({
       group: 'Run speed',
-      label: name[0].toUpperCase() + name.slice(1),
+      label: SPEED_LABELS[name],
       disabled: speed.value === name,
       run: () => {
         speed.value = name;

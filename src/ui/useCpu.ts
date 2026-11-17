@@ -25,6 +25,15 @@ import {
 export const RUN_SPEEDS = { slow: 1100, normal: 600, fast: 150, instant: 0 } as const;
 export type RunSpeed = keyof typeof RUN_SPEEDS;
 
+export const RUN_SPEED_NAMES = Object.keys(RUN_SPEEDS) as RunSpeed[];
+
+export const SPEED_LABELS: Record<RunSpeed, string> = {
+  slow: 'Slow',
+  normal: 'Normal',
+  fast: 'Fast',
+  instant: 'Instant'
+};
+
 /** How many instructions back a memory write still shows as warm. */
 export const HEAT_STEPS = 6;
 

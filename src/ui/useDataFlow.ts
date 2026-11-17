@@ -5,8 +5,14 @@ import { formatHex } from '@/core/numbers';
 import { effectiveAddress, operandSize, type Operand } from '@/core/operands';
 import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/state';
 
-/** Keep in sync with --flight in styles.css: the panels wait this long before they update. */
+/**
+ * How long a value takes to travel between two places. The panels wait this long before they
+ * update; useDataFlow hands it to the stylesheet as --flight.
+ */
 const FLIGHT_MS = 420;
+
+/** Clears `data-flight` even if a packet never lands, e.g. when its animation is dropped. */
+const FLIGHT_RESET_MS = 2000;
 
 /** Executions closer together than this (a fast run) skip the flight: packets would pile up. */
 const MIN_GAP_MS = 500;
@@ -28,6 +34,7 @@ function at(location: string): string {
  */
 export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord[]>): void {
   const root = document.documentElement;
+  root.style.setProperty('--flight', `${FLIGHT_MS}ms`);
   const layer = document.createElement('div');
   layer.className = 'data-flow-layer';
   layer.setAttribute('aria-hidden', 'true');
@@ -137,7 +144,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       lastExecution = now;
       if (single && unhurried && !reducedMotion.matches && launch(plan(record))) {
         root.dataset.flight = '';
-        timer = window.setTimeout(() => delete root.dataset.flight, 2000);
+        timer = window.setTimeout(() => delete root.dataset.flight, FLIGHT_RESET_MS);
       } else {
         delete root.dataset.flight;
       }
@@ -149,6 +156,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
     stop();
     window.clearTimeout(timer);
     delete root.dataset.flight;
+    root.style.removeProperty('--flight');
     layer.remove();
   });
 }

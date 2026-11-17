@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { explainAddress } from '@/core/address';
-import { decode } from '@/core/decode';
+import { CYCLE_PHASES, decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/flags';
 import { formatInstruction } from '@/core/instructions';
@@ -57,8 +57,8 @@ const decoded = computed(() =>
 );
 /** Changes with every phase as well as every execution, so each one lights the wires afresh. */
 const pulse = computed(() => {
-  const phaseStep = props.pending ? (props.pending.phase === 'fetch' ? 1 : 2) : 0;
-  return props.tick * 3 + phaseStep;
+  const phaseStep = props.pending ? CYCLE_PHASES.indexOf(props.pending.phase) + 1 : 0;
+  return props.tick * CYCLE_PHASES.length + phaseStep;
 });
 
 const equation = computed(() => shown.value && describeEquation(props.state, shown.value));

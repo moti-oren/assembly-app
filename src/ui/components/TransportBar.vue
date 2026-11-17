@@ -20,7 +20,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { PendingInstruction, RunSpeed } from '@/ui/useCpu';
+import { SPEED_LABELS, type PendingInstruction, type RunSpeed } from '@/ui/useCpu';
 
 const props = defineProps<{
   finished: boolean;
@@ -50,13 +50,6 @@ const emit = defineEmits<{
   'update:devicesShown': [shown: boolean];
   'update:bytesShown': [shown: boolean];
 }>();
-
-const SPEED_LABELS: Record<RunSpeed, string> = {
-  slow: 'Slow',
-  normal: 'Normal',
-  fast: 'Fast',
-  instant: 'Instant'
-};
 
 /** The phase button names what pressing it does next. */
 const nextPhase = computed(() =>
