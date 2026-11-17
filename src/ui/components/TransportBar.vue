@@ -6,6 +6,7 @@ import {
   CircleAlert,
   FastForward,
   Footprints,
+  Gauge,
   ListOrdered,
   Pause,
   Redo2,
@@ -102,12 +103,13 @@ const toggles = computed(() => [
       <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       {{ error }}
     </p>
+    <!-- Each group wraps onto a row of its own rather than pushing the page wider than the screen. -->
     <div
       class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6"
       role="toolbar"
       aria-label="Program and history controls"
     >
-      <div class="flex items-center gap-1.5">
+      <div class="flex flex-wrap items-center gap-1.5">
         <Button size="sm" class="pointer-coarse:h-11" :disabled="finished" @click="emit('step')">
           <StepForward />
           Step
@@ -149,17 +151,22 @@ const toggles = computed(() => [
           @click="emit('run')"
         >
           <FastForward />
-          Run program
+          <span>Run<span class="hidden sm:inline">&nbsp;program</span></span>
         </Button>
         <Select :model-value="speed" @update:model-value="setSpeed">
           <SelectTrigger
             size="sm"
-            class="w-34 pointer-coarse:data-[size=sm]:h-11"
-            aria-label="Run speed"
+            class="sm:min-w-24 lg:min-w-38 pointer-coarse:data-[size=sm]:h-11"
+            :aria-label="`Run speed: ${SPEED_LABELS[speed]}`"
           >
-            <!-- The value alone ("Fast") does not say what it is the value of. -->
+            <!--
+              The value alone ("Fast") does not say what it is the value of, so below lg an icon
+              says it. On a phone the icon is all there is room for; the label names the value.
+            -->
             <SelectValue>
-              <span class="text-muted-foreground">Speed:</span> {{ SPEED_LABELS[speed] }}
+              <Gauge class="text-muted-foreground lg:hidden" aria-hidden="true" />
+              <span class="hidden text-muted-foreground lg:inline">Speed:</span>
+              <span class="hidden sm:inline">{{ SPEED_LABELS[speed] }}</span>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -170,9 +177,11 @@ const toggles = computed(() => [
         </Select>
       </div>
 
-      <span class="hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
+      <!-- Only where both groups share one row; below lg the second one wraps under the first. -->
+      <span class="hidden h-6 w-px bg-border lg:block" aria-hidden="true" />
 
-      <div class="flex min-w-0 flex-1 basis-72 items-center gap-1.5">
+      <!-- No min-w-0: when its buttons do not fit beside the run controls, it wraps whole. -->
+      <div class="flex flex-1 basis-72 items-center gap-1.5">
         <Tooltip>
           <TooltipTrigger as-child>
             <Button
@@ -205,22 +214,23 @@ const toggles = computed(() => [
         </Tooltip>
         <input
           type="range"
-          class="mx-1.5 h-4 min-w-0 flex-1 cursor-pointer pointer-coarse:h-11 accent-pointer disabled:cursor-default disabled:opacity-40"
+          class="mx-1.5 h-4 w-10 flex-1 sm:w-16 cursor-pointer pointer-coarse:h-11 accent-pointer disabled:cursor-default disabled:opacity-40"
           min="0"
           :max="Math.max(total, 1)"
           :value="executed"
           :disabled="total === 0"
           aria-label="Move through the executed instructions"
+          :aria-valuetext="positionText"
           @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
         />
         <span
-          class="min-w-16 shrink-0 text-right font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums"
+          class="hidden min-w-16 shrink-0 text-right sm:inline font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums"
           :title="positionText"
+          aria-hidden="true"
         >
-          <span aria-hidden="true">{{ executed }} / {{ total }}</span>
-          <span class="sr-only">{{ positionText }}</span>
+          {{ executed }} / {{ total }}
         </span>
-        <!-- Icons only on a narrow screen, so the name moves into the label and a tooltip. -->
+        <!-- Icons only below xl, so the name moves into the label and a tooltip. -->
         <Tooltip v-for="toggle in toggles" :key="toggle.label">
           <TooltipTrigger as-child>
             <Button
@@ -233,10 +243,10 @@ const toggles = computed(() => [
               @click="toggle.flip"
             >
               <component :is="toggle.icon" />
-              <span class="hidden sm:inline">{{ toggle.label }}</span>
+              <span class="hidden xl:inline">{{ toggle.label }}</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent class="sm:hidden">{{ toggle.label }}</TooltipContent>
+          <TooltipContent class="xl:hidden">{{ toggle.label }}</TooltipContent>
         </Tooltip>
       </div>
     </div>
