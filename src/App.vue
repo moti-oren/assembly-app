@@ -103,7 +103,7 @@ const encodingShown = computed(() =>
         @confirm="cpu.clearProgram"
       />
       <AppErrorNotice />
-      <ChangeStrip v-if="lastRecord" class="lg:hidden" :state="state" :record="lastRecord" />
+      <ChangeStrip class="lg:hidden" :state="state" :record="lastRecord" />
 
       <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
       <main
