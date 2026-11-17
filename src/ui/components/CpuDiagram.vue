@@ -14,7 +14,6 @@ import {
 } from '@/core/registers';
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   aluUse,
@@ -235,19 +234,16 @@ function flagChanged(flag: FlagName): boolean {
                 class="flex h-5 items-center gap-2.5"
                 :class="{ 'mt-1.5': GROUP_STARTS.includes(name) }"
               >
-                <Popover>
-                  <PopoverTrigger as-child>
-                    <button
-                      type="button"
-                      class="w-6 text-left font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none hover:decoration-foreground focus-visible:decoration-foreground"
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <span
+                      tabindex="0"
+                      class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+                      >{{ name.toUpperCase() }}</span
                     >
-                      {{ name.toUpperCase() }}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent side="right" class="w-auto max-w-64 text-xs">
-                    {{ REGISTER_DESCRIPTIONS[name] }}
-                  </PopoverContent>
-                </Popover>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+                </Tooltip>
 
                 <span class="w-14">
                   <span
@@ -431,19 +427,16 @@ function flagChanged(flag: FlagName): boolean {
                 :class="{ 'mt-1.5': GROUP_STARTS.includes(name) }"
               >
                 <DiagramWire class="-mr-0.5 hidden w-5 sm:block" :kind="use(name)" :tick="pulse" />
-                <Popover>
-                  <PopoverTrigger as-child>
-                    <button
-                      type="button"
-                      class="w-6 text-left font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none hover:decoration-foreground focus-visible:decoration-foreground"
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <span
+                      tabindex="0"
+                      class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+                      >{{ name.toUpperCase() }}</span
                     >
-                      {{ name.toUpperCase() }}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent side="left" class="w-auto max-w-64 text-xs">
-                    {{ REGISTER_DESCRIPTIONS[name] }}
-                  </PopoverContent>
-                </Popover>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+                </Tooltip>
                 <span class="w-10">
                   <ChangeMark :on="changedBits(name) !== 0" :tick="tick" :data-loc="`reg:${name}`">
                     <RollingDigits :text="formatHex(value(name), 16)" />
