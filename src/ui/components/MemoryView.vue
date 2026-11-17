@@ -44,11 +44,11 @@ const offsetText = ref('0000');
 const twoColumns = useMediaQuery('(min-width: 64rem)');
 const rowCount = computed(() => (twoColumns.value ? WIDE_ROWS : COMPACT_ROWS));
 
-const startOffset = computed(() => {
-  // The offset box is always read as hex, with or without a 0x prefix or h suffix.
-  const parsed = parseNumber(`0x${offsetText.value.replace(/^0x|h$/gi, '')}`);
-  return parsed === null ? 0 : parsed & 0xfff0;
-});
+/** The offset box is always read as hex, with or without a 0x prefix or h suffix. */
+const parsedOffset = computed(() => parseNumber(`0x${offsetText.value.replace(/^0x|h$/gi, '')}`));
+const startOffset = computed(() => (parsedOffset.value ?? 0) & 0xfff0);
+/** Text that is not a hex number shows the rows from 0000, and the box says it was not understood. */
+const offsetInvalid = computed(() => offsetText.value.trim() !== '' && parsedOffset.value === null);
 
 const rows = computed(() => {
   // Reading memoryVersion makes this re-run after writes: the byte array itself is not reactive.
@@ -166,6 +166,7 @@ function ascii(value: number): string {
           <Input
             v-model="offsetText"
             class="h-7 w-28 pl-13 font-mono text-sm"
+            :aria-invalid="offsetInvalid || undefined"
             maxlength="6"
             spellcheck="false"
             aria-label="Offset (hex)"

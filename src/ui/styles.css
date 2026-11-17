@@ -59,8 +59,6 @@
   --changed-foreground: oklch(0.42 0.09 70);
   /* The brief peak of the flash a value gives off as it changes. */
   --changed-glow: oklch(0.86 0.16 90);
-  /* How long a value takes to travel between two places. Keep in sync with useDataFlow.ts. */
-  --flight: 420ms;
   --pointer: oklch(0.55 0.18 255);
   --pointer-foreground: oklch(0.985 0 0);
   --background: oklch(1 0 0);

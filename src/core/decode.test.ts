@@ -169,6 +169,16 @@ describe('decode', () => {
     expect(decode(line('nop')).port).toBeNull();
   });
 
+  it('tells the instructions that push onto the stack from the ones that pop', () => {
+    expect(decode(line('push', reg('ax'))).stack).toBe('push');
+    expect(decode(line('call', label(0))).stack).toBe('push');
+    expect(decode(line('int', imm(0x21))).stack).toBe('push');
+    expect(decode(line('pop', reg('ax'))).stack).toBe('pop');
+    expect(decode(line('ret')).stack).toBe('pop');
+    expect(decode(line('popf')).stack).toBe('pop');
+    expect(decode(line('mov', reg('ax'), reg('bx'))).stack).toBeNull();
+  });
+
   it('decodes the interrupt instructions', () => {
     const enter = decode(line('int', imm(0x21)));
     expect(enter.operands).toEqual([{ text: '0x21', kind: 'imm8', role: 'vector' }]);

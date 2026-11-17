@@ -46,6 +46,8 @@ describe('stepSound', () => {
   it('tells PUSH from POP', () => {
     expect(soundOf(line('push', reg('ax')))).toBe('push');
     expect(soundOf(line('pop', reg('ax')))).toBe('pop');
+    expect(soundOf(line('pushf'))).toBe('push');
+    expect(soundOf(line('popf'))).toBe('pop');
   });
 
   it('marks an instruction that only changes flags', () => {

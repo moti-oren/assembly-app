@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { explainAddress, explainOffset } from './address';
-import { effectiveOffset, type Operand } from './operands';
-import { createCpuState, physicalAddress, writeRegister } from './state';
+import { effectiveAddress, effectiveOffset, type Operand } from './operands';
+import { createCpuState, physicalAddress, snapshot, writeRegister } from './state';
 
 type MemoryOperand = Extract<Operand, { type: 'mem' }>;
 
@@ -72,5 +72,15 @@ describe('explainOffset', () => {
     expect(breakdown.offset).toBe(0x0001);
     expect(breakdown.wrapped).toBe(true);
     expect(breakdown.offset).toBe(effectiveOffset(cpu, operand));
+  });
+
+  it('works from a snapshot of the registers alone', () => {
+    const cpu = createCpuState();
+    writeRegister(cpu, 'bx', 0x0100);
+    const before = snapshot(cpu);
+    writeRegister(cpu, 'bx', 0x0200);
+    const operand: MemoryOperand = { type: 'mem', size: 8, base: 'bx', displacement: 4 };
+    expect(explainOffset(before, operand).offset).toBe(0x0104);
+    expect(effectiveAddress(before, operand)).toBe(physicalAddress(cpu.registers.ds, 0x0104));
   });
 });

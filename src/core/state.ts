@@ -1,5 +1,5 @@
 import { PORTS } from './devices';
-import { FLAG_BITS, FLAGS_RESERVED, type FlagName } from './flags';
+import { FLAGS_RESERVED, flagBit, isFlagSet, type FlagName } from './flags';
 import { truncate, type Size } from './numbers';
 import {
   BYTE_REGISTER_LOCATION,
@@ -12,7 +12,7 @@ import {
 export const MEMORY_SIZE = 0x100000;
 
 /** The 8086 addresses 64K I/O ports, separate from memory. */
-export const PORT_COUNT = 0x10000;
+const PORT_COUNT = 0x10000;
 
 export interface IoState {
   /** The last byte OUT wrote to each port. */
@@ -48,6 +48,16 @@ export interface PortWrite {
   after: number;
 }
 
+/** The registers and FLAGS at one moment; memory and ports are tracked as writes instead. */
+export interface CpuSnapshot {
+  registers: Record<WordRegister, number>;
+  flags: number;
+}
+
+export function snapshot(state: CpuState): CpuSnapshot {
+  return { registers: { ...state.registers }, flags: state.flags };
+}
+
 export function createCpuState(): CpuState {
   return {
     registers: {
@@ -73,7 +83,10 @@ export function createCpuState(): CpuState {
   };
 }
 
-export function readRegister(state: CpuState, name: RegisterName): number {
+/** Just the registers: enough to read them, e.g. from a snapshot of the CPU before an instruction. */
+export type RegisterFile = Pick<CpuState, 'registers'>;
+
+export function readRegister(state: RegisterFile, name: RegisterName): number {
   if (isByteRegister(name)) {
     const { parent, high } = BYTE_REGISTER_LOCATION[name];
     const word = state.registers[parent];
@@ -94,11 +107,11 @@ export function writeRegister(state: CpuState, name: RegisterName, value: number
 }
 
 export function getFlag(state: CpuState, flag: FlagName): boolean {
-  return (state.flags & (1 << FLAG_BITS[flag])) !== 0;
+  return isFlagSet(state.flags, flag);
 }
 
 export function setFlag(state: CpuState, flag: FlagName, value: boolean): void {
-  const bit = 1 << FLAG_BITS[flag];
+  const bit = flagBit(flag);
   state.flags = value ? state.flags | bit : state.flags & ~bit;
 }
 

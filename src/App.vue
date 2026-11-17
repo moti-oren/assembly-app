@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from 'vue';
-import { assemble, encode } from '@/core/encode';
+import { computed, ref, shallowRef } from 'vue';
+import { assemble } from '@/core/encode';
 import { formatInstruction, type Instruction } from '@/core/instructions';
-import { formatLabel } from '@/core/operands';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppHeader from '@/ui/components/AppHeader.vue';
@@ -11,7 +10,7 @@ import CpuCycle from '@/ui/components/CpuCycle.vue';
 import CpuDiagram from '@/ui/components/CpuDiagram.vue';
 import DevicesPanel from '@/ui/components/DevicesPanel.vue';
 import EncodingPanel from '@/ui/components/EncodingPanel.vue';
-import CommandPalette, { type PaletteCommand } from '@/ui/components/CommandPalette.vue';
+import CommandPalette from '@/ui/components/CommandPalette.vue';
 import FlagsPanel from '@/ui/components/FlagsPanel.vue';
 import HistoryLog from '@/ui/components/HistoryLog.vue';
 import InstructionBuilder from '@/ui/components/InstructionBuilder.vue';
@@ -20,11 +19,13 @@ import MemoryView from '@/ui/components/MemoryView.vue';
 import ProgramPanel from '@/ui/components/ProgramPanel.vue';
 import RegistersPanel from '@/ui/components/RegistersPanel.vue';
 import TransportBar from '@/ui/components/TransportBar.vue';
-import { EXAMPLE_PROGRAMS } from '@/core/program';
-import { RUN_SPEEDS, useCpu, type RunSpeed } from '@/ui/useCpu';
+import { chooseEncoding } from '@/ui/encodingShown';
+import { useCommands } from '@/ui/useCommands';
+import { useCpu } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
+import { usePanels } from '@/ui/usePanels';
 import { usePreferences } from '@/ui/usePreferences';
-import { raisedOverflow, stepSound } from '@/ui/sounds';
+import { useSoundEffects } from '@/ui/useSoundEffects';
 
 const cpu = useCpu();
 const {
@@ -43,172 +44,31 @@ const {
 } = cpu;
 
 useDataFlow(state, history);
+useSoundEffects(cpu);
+
+const { cpuView } = usePreferences();
+const panels = usePanels(cpu);
+const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
+const commands = useCommands(cpu, panels);
+const paletteOpen = ref(false);
 
 const programLines = computed(() => program.value.map(formatInstruction));
 
-const { isDark, soundOn, cpuView, toggleTheme, play } = usePreferences();
-
-// One instruction forward sounds like what it did; anything bigger is a single ratchet.
-watch(
-  () => history.value.length,
-  (length, previous) => {
-    const record = lastRecord.value;
-    if (length === previous + 1 && record) {
-      play(stepSound(record, state));
-      if (raisedOverflow(record, state)) play('overflow', 0.03);
-      if (record.line !== null && finished.value) play('halt', 0.12);
-    } else if (length === previous - 1) {
-      play('undo');
-    } else {
-      play('ratchet');
-    }
-  }
-);
-watch(error, (message) => message && play('error'));
-watch(
-  () => program.value.length,
-  (length, previous) => length === previous + 1 && play('punch')
-);
-
 /** The machine code of every program line; the program itself is never run from these bytes. */
 const assembled = computed(() => assemble(program.value));
-const bytesShown = ref(false);
 /** The complete instruction sitting in the builder, if any. */
 const draft = shallowRef<Instruction | null>(null);
-/** A program line whose bytes were clicked; it stays on show until the program moves on. */
-const inspectedLine = ref<number | null>(null);
-watch([() => history.value.length, program], () => {
-  inspectedLine.value = null;
-});
 
-function inspect(line: number): void {
-  inspectedLine.value = line;
-  bytesShown.value = true;
-}
-
-/** What the machine code panel takes apart: the draft, else a program line, else the last run. */
-const encodingShown = computed(() => {
-  const { lines } = assembled.value;
-  if (draft.value) {
-    return {
-      instruction: draft.value,
-      assembled: encode(draft.value, program.value),
-      where: 'as the next line of the program'
-    };
-  }
-  const line = inspectedLine.value ?? (finished.value ? null : state.registers.ip);
-  if (line !== null && lines[line]) {
-    return {
-      instruction: program.value[line],
-      assembled: lines[line],
-      where: `line ${formatLabel(line)}`
-    };
-  }
-  const record = lastRecord.value;
-  if (!record) return null;
-  return record.line !== null && lines[record.line]
-    ? {
-        instruction: program.value[record.line],
-        assembled: lines[record.line],
-        where: `line ${formatLabel(record.line)}, the last one run`
-      }
-    : {
-        instruction: record.instruction,
-        assembled: encode(record.instruction, program.value),
-        where: 'the last instruction run'
-      };
-});
-
-const paletteOpen = ref(false);
-/** The full list of executed instructions; the timeline itself is always in the bar. */
-const historyShown = ref(false);
-/** The LEDs, switches, digits and terminal. They open by themselves when a program uses a port. */
-const devicesShown = ref(false);
-const usesPort = (mnemonic: string): boolean => mnemonic === 'in' || mnemonic === 'out';
-watch([program, lastRecord], ([lines, record]) => {
-  const inProgram = lines.some((instruction) => usesPort(instruction.mnemonic));
-  if (inProgram || (record && usesPort(record.instruction.mnemonic))) devicesShown.value = true;
-});
-
-const commands = computed<PaletteCommand[]>(() => [
-  {
-    group: 'Program',
-    label: 'Step one line',
-    disabled: finished.value,
-    run: cpu.stepProgram
-  },
-  {
-    group: 'Program',
-    label: 'Step one phase (fetch, decode, execute)',
-    disabled: finished.value,
-    run: cpu.stepPhase
-  },
-  running.value
-    ? { group: 'Program', label: 'Pause', run: cpu.pause }
-    : { group: 'Program', label: 'Run', disabled: finished.value, run: cpu.runProgram },
-  {
-    group: 'Program',
-    label: 'Clear the program',
-    disabled: program.value.length === 0,
-    run: cpu.clearProgram
-  },
-  { group: 'History', label: 'Undo', disabled: history.value.length === 0, run: cpu.undoLast },
-  { group: 'History', label: 'Redo', disabled: future.value.length === 0, run: cpu.redo },
-  {
-    group: 'History',
-    label: historyShown.value ? 'Hide the history list' : 'Show the history list',
-    run: () => {
-      historyShown.value = !historyShown.value;
-    }
-  },
-  { group: 'History', label: 'Reset the CPU', run: cpu.reset },
-  {
-    group: 'Program',
-    label: bytesShown.value ? 'Hide the machine code' : 'Show the machine code',
-    run: () => {
-      bytesShown.value = !bytesShown.value;
-    }
-  },
-  {
-    group: 'Devices',
-    label: devicesShown.value ? 'Hide the I/O devices' : 'Show the I/O devices',
-    run: () => {
-      devicesShown.value = !devicesShown.value;
-    }
-  },
-  ...(Object.keys(RUN_SPEEDS) as RunSpeed[]).map((name) => ({
-    group: 'Run speed',
-    label: name[0].toUpperCase() + name.slice(1),
-    disabled: speed.value === name,
-    run: () => {
-      speed.value = name;
-    }
-  })),
-  ...EXAMPLE_PROGRAMS.map((example, index) => ({
-    group: 'Examples',
-    label: `Load "${example.name}"`,
-    run: () => cpu.loadExample(index)
-  })),
-  {
-    group: 'Preferences',
-    label: isDark.value ? 'Switch to light theme' : 'Switch to dark theme',
-    run: toggleTheme
-  },
-  {
-    group: 'Preferences',
-    label: cpuView.value === 'diagram' ? 'Show the CPU as tables' : 'Show the CPU as a diagram',
-    run: () => {
-      cpuView.value = cpuView.value === 'diagram' ? 'table' : 'diagram';
-    }
-  },
-  {
-    group: 'Preferences',
-    label: soundOn.value ? 'Turn sound off' : 'Turn sound on',
-    run: () => {
-      soundOn.value = !soundOn.value;
-    }
-  }
-]);
+const encodingShown = computed(() =>
+  chooseEncoding({
+    program: program.value,
+    lines: assembled.value.lines,
+    draft: draft.value,
+    inspected: inspectedLine.value,
+    next: finished.value ? null : state.registers.ip,
+    last: lastRecord.value
+  })
+);
 </script>
 
 <template>

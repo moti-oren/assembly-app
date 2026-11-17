@@ -5,8 +5,8 @@ import {
   type Instruction,
   type Mnemonic
 } from './instructions';
-import { formatHex, toSigned, truncate, type Size } from './numbers';
-import { formatLabel, type MemoryBase, type Operand } from './operands';
+import { formatBits, formatHex, toSigned, truncate, type Size } from './numbers';
+import { formatLabel, formatOperand, type MemoryBase, type Operand } from './operands';
 import { isSegmentRegister, type RegisterName } from './registers';
 
 /**
@@ -31,6 +31,8 @@ export interface EncodedField {
   bytes: number[];
   note: string;
   modrm?: ModRm;
+  /** Set on a field the 8086 cannot encode as written, e.g. a jump distance out of range. */
+  problem?: string;
 }
 
 export interface Encoding {
@@ -156,7 +158,6 @@ const SINGLE_BYTE: Partial<Record<Mnemonic, number>> = {
 
 const PREFIX_BYTE = { rep: 0xf3, repe: 0xf3, repne: 0xf2 } as const;
 
-const bits = (value: number, width: number): string => value.toString(2).padStart(width, '0');
 const hexByte = (value: number): string => formatHex(value, 8);
 const word = (value: number): number[] => [value & 0xff, (value >> 8) & 0xff];
 const upper = (operand: Reg): string => operand.name.toUpperCase();
@@ -183,13 +184,13 @@ interface RegField {
 
 function registerField(operand: Reg): RegField {
   const number = registerNumber(operand.name);
-  return { number, note: `${bits(number, 3)} = ${upper(operand)}` };
+  return { number, note: `${formatBits(number, 3)} = ${upper(operand)}` };
 }
 
 function extension(number: number, name: string): RegField {
   return {
     number,
-    note: `${bits(number, 3)} = /${number}: picks ${name} from this opcode's group`
+    note: `${formatBits(number, 3)} = /${number}: picks ${name} from this opcode's group`
   };
 }
 
@@ -204,7 +205,7 @@ function modRm(reg: RegField, operand: Reg | Mem): EncodedField[] {
 
   if (operand.type === 'reg') {
     const rm = registerNumber(operand.name);
-    return [build(0b11, rm, '11: r/m is a register', `${bits(rm, 3)} = ${upper(operand)}`)];
+    return [build(0b11, rm, '11: r/m is a register', `${formatBits(rm, 3)} = ${upper(operand)}`)];
   }
 
   const displacement = truncate(operand.displacement, 16);
@@ -220,7 +221,7 @@ function modRm(reg: RegField, operand: Reg | Mem): EncodedField[] {
   }
 
   const rm = BASE_RM[operand.base];
-  const rmNote = `${bits(rm, 3)} = [${operand.base.toUpperCase()}]`;
+  const rmNote = `${formatBits(rm, 3)} = [${operand.base.toUpperCase()}]`;
   // [BP] has no form without a displacement: that slot (mod 00, r/m 110) is the direct address.
   if (displacement === 0 && operand.base !== 'bp') {
     return [build(0b00, rm, '00: memory, no displacement', rmNote)];
@@ -253,278 +254,363 @@ interface Placement {
   offsetOf: (line: number) => number;
   /** JMP only: whether it needs the 16-bit form because its target is too far for 8 bits. */
   near: boolean;
-  problem: string | null;
 }
 
 function relative(place: Placement, target: number, size: Size, opcodeBytes: number): EncodedField {
   const next = place.offset + place.lead + opcodeBytes + size / 8;
   const destination = place.offsetOf(target);
   const distance = destination - next;
-  if (size === 8 && (distance < -128 || distance > 127)) {
-    place.problem = `Out of range: this jump reaches only −128 to +127 bytes, and ${formatLabel(target)} is ${distance} away`;
-  }
   const sum = `${formatLabel(target)} is at ${formatHex(destination, 16)}h and the next instruction at ${formatHex(next, 16)}h`;
-  return {
+  const field: EncodedField = {
     kind: 'relative',
     bytes: size === 8 ? [distance & 0xff] : word(distance),
     note: `The distance to jump, counted from the next instruction: ${sum}, so ${distance < 0 ? `−${-distance}` : `+${distance}`}`
   };
+  if (size === 8 && (distance < -128 || distance > 127)) {
+    field.problem = `Out of range: this jump reaches only −128 to +127 bytes, and ${formatLabel(target)} is ${distance} away`;
+  }
+  return field;
 }
 
-function encodeBody(instruction: Instruction, place: Placement): EncodedField[] {
-  const { mnemonic, operands } = instruction;
-  const [first, second] = operands;
-  const size = instructionSize(instruction) ?? 16;
-  const w = size === 16 ? 1 : 0;
-  const name = mnemonic.toUpperCase();
-  const isAccumulator = (operand: Operand | undefined): operand is Reg =>
-    operand?.type === 'reg' && (operand.name === 'al' || operand.name === 'ax');
-  /** The value of an immediate, or of a label: the byte offset of its line. */
-  const valueOf = (operand: Operand): number =>
-    operand.type === 'label'
-      ? place.offsetOf(operand.target)
-      : (operand as { value: number }).value;
-  /** `opcode r/m, r` and its mirror image differ only in which operand ModR/M calls r/m. */
-  const registerAndRm = (base: number, mirrored: number): EncodedField[] => {
-    if (first.type === 'reg' && second.type === 'mem') {
-      return [
-        opcode(mirrored | w, `${name} r${size}, r/m${size}`),
-        ...modRm(registerField(first), second)
-      ];
-    }
-    return [
-      opcode(base | w, `${name} r/m${size}, r${size}`),
-      ...modRm(registerField(second as Reg), first as Reg | Mem)
-    ];
-  };
+/*
+ * Operand narrowing. `encodeAt` only encodes valid instructions, so a mismatch here is a bug in
+ * this file, not bad input: it throws instead of producing wrong bytes.
+ */
+function wrongOperand(expected: string, operand: Operand | undefined): never {
+  throw new Error(`Expected ${expected}, got ${operand ? formatOperand(operand) : 'nothing'}`);
+}
 
-  const single = SINGLE_BYTE[mnemonic];
-  if (single !== undefined) return [opcode(single, `${name}: the whole instruction is this byte`)];
+function asReg(operand: Operand | undefined): Reg {
+  return operand?.type === 'reg' ? operand : wrongOperand('a register', operand);
+}
 
-  const shortJump = SHORT_JUMP[mnemonic];
-  if (shortJump !== undefined && first.type === 'label') {
+function asMem(operand: Operand | undefined): Mem {
+  return operand?.type === 'mem' ? operand : wrongOperand('a memory operand', operand);
+}
+
+function asRm(operand: Operand | undefined): Reg | Mem {
+  return operand?.type === 'reg' || operand?.type === 'mem'
+    ? operand
+    : wrongOperand('a register or memory operand', operand);
+}
+
+function asTarget(operand: Operand | undefined): number {
+  return operand?.type === 'label' ? operand.target : wrongOperand('a label', operand);
+}
+
+/** The value of an immediate, or of a label: the byte offset of its line. */
+function numericValue(operand: Operand | undefined, place: Placement): number {
+  if (operand?.type === 'imm') return operand.value;
+  if (operand?.type === 'label') return place.offsetOf(operand.target);
+  return wrongOperand('an immediate or a label', operand);
+}
+
+function isAccumulator(operand: Operand | undefined): operand is Reg {
+  return operand?.type === 'reg' && (operand.name === 'al' || operand.name === 'ax');
+}
+
+function isDirect(operand: Operand | undefined): operand is Mem {
+  return operand?.type === 'mem' && operand.base === null;
+}
+
+/** Everything the encoders need to know about the instruction being encoded. */
+interface Context {
+  mnemonic: Mnemonic;
+  first: Operand | undefined;
+  second: Operand | undefined;
+  size: Size;
+  /** The `w` bit of most opcodes: 1 for 16-bit operands. */
+  w: number;
+  name: string;
+  place: Placement;
+}
+
+/** Encodes the instructions it knows, and returns null for the others. */
+type Encoder = (c: Context) => EncodedField[] | null;
+
+/** `opcode r/m, r` and its mirror image differ only in which operand ModR/M calls r/m. */
+function registerAndRm(c: Context, base: number, mirrored: number): EncodedField[] {
+  const { first, second, size, w, name } = c;
+  if (first?.type === 'reg' && second?.type === 'mem') {
     return [
-      opcode(shortJump, `${name} with an 8-bit distance`),
-      relative(place, first.target, 8, 1)
+      opcode(mirrored | w, `${name} r${size}, r/m${size}`),
+      ...modRm(registerField(first), second)
     ];
   }
+  return [
+    opcode(base | w, `${name} r/m${size}, r${size}`),
+    ...modRm(registerField(asReg(second)), asRm(first))
+  ];
+}
 
-  const alu = ALU_NUMBER[mnemonic];
-  if (alu !== undefined) {
-    if (second.type !== 'imm') return registerAndRm(alu << 3, (alu << 3) | 0b10);
-    const value = truncate(second.value, size);
-    if (size === 16 && fitsSignedByte(value)) {
-      return [
-        opcode(0x83, 'Group: r/m16 with an 8-bit immediate that is sign-extended to 16 bits'),
-        ...modRm(extension(alu, name), first as Reg | Mem),
-        immediate(value, 8, 'The immediate, stored in one byte and sign-extended')
-      ];
-    }
-    if (isAccumulator(first)) {
-      return [
-        opcode(
-          (alu << 3) | 0b100 | w,
-          `${name} ${upper(first)}, imm${size}: a short form with no ModR/M`
-        ),
-        immediate(value, size, 'The immediate, low byte first')
-      ];
-    }
+const encodeSingleByte: Encoder = ({ mnemonic, name }) => {
+  const byte = SINGLE_BYTE[mnemonic];
+  return byte === undefined ? null : [opcode(byte, `${name}: the whole instruction is this byte`)];
+};
+
+const encodeShortJump: Encoder = ({ mnemonic, first, name, place }) => {
+  const code = SHORT_JUMP[mnemonic];
+  if (code === undefined) return null;
+  return [opcode(code, `${name} with an 8-bit distance`), relative(place, asTarget(first), 8, 1)];
+};
+
+const encodeAlu: Encoder = (c) => {
+  const alu = ALU_NUMBER[c.mnemonic];
+  if (alu === undefined) return null;
+  const { first, second, size, w, name } = c;
+  if (second?.type !== 'imm') return registerAndRm(c, alu << 3, (alu << 3) | 0b10);
+  const value = truncate(second.value, size);
+  if (size === 16 && fitsSignedByte(value)) {
     return [
-      opcode(0x80 | w, `Group: r/m${size} with a ${size}-bit immediate`),
-      ...modRm(extension(alu, name), first as Reg | Mem),
+      opcode(0x83, 'Group: r/m16 with an 8-bit immediate that is sign-extended to 16 bits'),
+      ...modRm(extension(alu, name), asRm(first)),
+      immediate(value, 8, 'The immediate, stored in one byte and sign-extended')
+    ];
+  }
+  if (isAccumulator(first)) {
+    return [
+      opcode(
+        (alu << 3) | 0b100 | w,
+        `${name} ${upper(first)}, imm${size}: a short form with no ModR/M`
+      ),
       immediate(value, size, 'The immediate, low byte first')
     ];
   }
+  return [
+    opcode(0x80 | w, `Group: r/m${size} with a ${size}-bit immediate`),
+    ...modRm(extension(alu, name), asRm(first)),
+    immediate(value, size, 'The immediate, low byte first')
+  ];
+};
 
+const encodeUnary: Encoder = ({ mnemonic, first, size, w, name }) => {
   const unary = UNARY_NUMBER[mnemonic];
-  if (unary !== undefined) {
-    return [
-      opcode(0xf6 | w, `Group: one-operand arithmetic on r/m${size}`),
-      ...modRm(extension(unary, name), first as Reg | Mem)
-    ];
-  }
+  if (unary === undefined) return null;
+  return [
+    opcode(0xf6 | w, `Group: one-operand arithmetic on r/m${size}`),
+    ...modRm(extension(unary, name), asRm(first))
+  ];
+};
 
+const encodeShift: Encoder = ({ mnemonic, first, second, size, w, name }) => {
   const shift = SHIFT_NUMBER[mnemonic];
-  if (shift !== undefined) {
-    const byCl = second.type === 'reg';
-    return [
-      opcode(0xd0 | (byCl ? 0b10 : 0) | w, `Group: shift r/m${size} by ${byCl ? 'CL' : '1'}`),
-      ...modRm(extension(shift, name), first as Reg | Mem)
-    ];
-  }
+  if (shift === undefined) return null;
+  const byCl = second?.type === 'reg';
+  return [
+    opcode(0xd0 | (byCl ? 0b10 : 0) | w, `Group: shift r/m${size} by ${byCl ? 'CL' : '1'}`),
+    ...modRm(extension(shift, name), asRm(first))
+  ];
+};
 
-  switch (mnemonic) {
-    case 'mov': {
-      if (first.type === 'reg' && isSegmentRegister(first.name)) {
-        return [
-          opcode(0x8e, 'MOV sreg, r/m16'),
-          ...modRm(registerField(first), second as Reg | Mem)
-        ];
-      }
-      if (second.type === 'reg' && isSegmentRegister(second.name)) {
-        return [
-          opcode(0x8c, 'MOV r/m16, sreg'),
-          ...modRm(registerField(second), first as Reg | Mem)
-        ];
-      }
-      if (second.type === 'imm' || second.type === 'label') {
-        const note =
-          second.type === 'label'
-            ? `The offset of ${formatLabel(second.target)} in the code, low byte first`
-            : 'The immediate, low byte first';
-        const value = truncate(valueOf(second), size);
-        if (first.type === 'reg') {
-          const number = registerNumber(first.name);
-          return [
-            opcode(
-              0xb0 | (w << 3) | number,
-              `MOV r${size}, imm${size}: ${hexByte(0xb0 | (w << 3))} + the register number (${upper(first)} = ${number})`
-            ),
-            immediate(value, size, note)
-          ];
-        }
-        return [
-          opcode(0xc6 | w, `MOV r/m${size}, imm${size}`),
-          ...modRm(extension(0, 'MOV'), first as Mem),
-          immediate(value, size, note)
-        ];
-      }
-      const direct = (operand: Operand): operand is Mem =>
-        operand.type === 'mem' && operand.base === null;
-      const address = (operand: Mem): EncodedField => ({
-        kind: 'displacement',
-        bytes: word(truncate(operand.displacement, 16)),
-        note: 'The 16-bit address, low byte first'
-      });
-      if (isAccumulator(first) && direct(second)) {
-        return [
-          opcode(0xa0 | w, `MOV ${upper(first)}, [address]: a short form with no ModR/M`),
-          address(second)
-        ];
-      }
-      if (direct(first) && isAccumulator(second)) {
-        return [
-          opcode(0xa2 | w, `MOV [address], ${upper(second)}: a short form with no ModR/M`),
-          address(first)
-        ];
-      }
-      return registerAndRm(0x88, 0x8a);
-    }
-    case 'xchg': {
-      const other = isAccumulator(first) ? second : isAccumulator(second) ? first : null;
-      if (size === 16 && other?.type === 'reg') {
-        const number = registerNumber(other.name);
-        return [
-          opcode(
-            0x90 | number,
-            `XCHG AX, r16: 90 + the register number (${upper(other)} = ${number})`
-          )
-        ];
-      }
-      // Swapping is symmetric, so either register could go in `reg`; assemblers put the first there.
-      if (first.type === 'reg' && second.type === 'reg') {
-        return [
-          opcode(0x86 | w, `XCHG r${size}, r/m${size}`),
-          ...modRm(registerField(first), second)
-        ];
-      }
-      return registerAndRm(0x86, 0x86);
-    }
-    case 'test': {
-      if (second.type !== 'imm') return registerAndRm(0x84, 0x84);
-      const value = truncate(second.value, size);
-      if (isAccumulator(first)) {
-        return [
-          opcode(0xa8 | w, `TEST ${upper(first)}, imm${size}: a short form with no ModR/M`),
-          immediate(value, size, 'The immediate, low byte first')
-        ];
-      }
-      return [
-        opcode(0xf6 | w, `Group: one-operand arithmetic on r/m${size}`),
-        ...modRm(extension(0, 'TEST'), first as Reg | Mem),
-        immediate(value, size, 'The immediate, low byte first')
-      ];
-    }
-    case 'push':
-    case 'pop': {
-      const pushing = mnemonic === 'push';
-      if (first.type === 'reg') {
-        const number = registerNumber(first.name);
-        if (isSegmentRegister(first.name)) {
-          return [
-            opcode(
-              (pushing ? 0x06 : 0x07) | (number << 3),
-              `${name} sreg: the segment register number (${upper(first)} = ${number}) sits in bits 3 and 4`
-            )
-          ];
-        }
-        const base = pushing ? 0x50 : 0x58;
-        return [
-          opcode(
-            base | number,
-            `${name} r16: ${hexByte(base)} + the register number (${upper(first)} = ${number})`
-          )
-        ];
-      }
-      return pushing
-        ? [
-            opcode(0xff, 'Group: one-operand instructions on r/m16'),
-            ...modRm(extension(6, 'PUSH'), first as Mem)
-          ]
-        : [opcode(0x8f, 'POP r/m16'), ...modRm(extension(0, 'POP'), first as Mem)];
-    }
-    case 'inc':
-    case 'dec': {
-      const number = mnemonic === 'inc' ? 0 : 1;
-      if (first.type === 'reg' && size === 16) {
-        const base = 0x40 | (number << 3);
-        const register = registerNumber(first.name);
-        return [
-          opcode(
-            base | register,
-            `${name} r16: ${hexByte(base)} + the register number (${upper(first)} = ${register})`
-          )
-        ];
-      }
-      return [
-        opcode(0xfe | w, `Group: one-operand instructions on r/m${size}`),
-        ...modRm(extension(number, name), first as Reg | Mem)
-      ];
-    }
-    case 'jmp': {
-      const target = (first as Extract<Operand, { type: 'label' }>).target;
-      return place.near
-        ? [opcode(0xe9, 'JMP with a 16-bit distance (near)'), relative(place, target, 16, 1)]
-        : [opcode(0xeb, 'JMP with an 8-bit distance (short)'), relative(place, target, 8, 1)];
-    }
-    case 'call': {
-      const target = (first as Extract<Operand, { type: 'label' }>).target;
-      return [opcode(0xe8, 'CALL with a 16-bit distance'), relative(place, target, 16, 1)];
-    }
-    case 'in':
-    case 'out': {
-      const port = mnemonic === 'in' ? second : first;
-      const base = mnemonic === 'in' ? 0xe4 : 0xe6;
-      if (port.type === 'reg') {
-        return [opcode(base | 0b1000 | w, `${name} through the port in DX, ${size} bits`)];
-      }
-      return [
-        opcode(base | w, `${name} through a fixed port, ${size} bits`),
-        immediate(truncate(valueOf(port), 8), 8, 'The port number')
-      ];
-    }
-    case 'int': {
-      const type = valueOf(first) & 0xff;
-      return type === 3
-        ? [opcode(0xcc, 'INT 3: its own one-byte opcode, made for breakpoints')]
-        : [opcode(0xcd, 'INT'), immediate(type, 8, 'The interrupt number')];
-    }
-    default:
-      throw new Error(`No encoding for ${formatInstruction(instruction)}`);
-  }
+/** The 16-bit address of a direct memory operand, for the forms that carry no ModR/M. */
+function directAddress(operand: Mem): EncodedField {
+  return {
+    kind: 'displacement',
+    bytes: word(truncate(operand.displacement, 16)),
+    note: 'The 16-bit address, low byte first'
+  };
 }
 
-function encodeAt(instruction: Instruction, place: Omit<Placement, 'lead' | 'problem'>): Encoding {
+const encodeMov: Encoder = (c) => {
+  const { first, second, size, w, place } = c;
+  if (first?.type === 'reg' && isSegmentRegister(first.name)) {
+    return [opcode(0x8e, 'MOV sreg, r/m16'), ...modRm(registerField(first), asRm(second))];
+  }
+  if (second?.type === 'reg' && isSegmentRegister(second.name)) {
+    return [opcode(0x8c, 'MOV r/m16, sreg'), ...modRm(registerField(second), asRm(first))];
+  }
+  if (second?.type === 'imm' || second?.type === 'label') {
+    const note =
+      second.type === 'label'
+        ? `The offset of ${formatLabel(second.target)} in the code, low byte first`
+        : 'The immediate, low byte first';
+    const value = truncate(numericValue(second, place), size);
+    if (first?.type === 'reg') {
+      const number = registerNumber(first.name);
+      return [
+        opcode(
+          0xb0 | (w << 3) | number,
+          `MOV r${size}, imm${size}: ${hexByte(0xb0 | (w << 3))} + the register number (${upper(first)} = ${number})`
+        ),
+        immediate(value, size, note)
+      ];
+    }
+    return [
+      opcode(0xc6 | w, `MOV r/m${size}, imm${size}`),
+      ...modRm(extension(0, 'MOV'), asMem(first)),
+      immediate(value, size, note)
+    ];
+  }
+  if (isAccumulator(first) && isDirect(second)) {
+    return [
+      opcode(0xa0 | w, `MOV ${upper(first)}, [address]: a short form with no ModR/M`),
+      directAddress(second)
+    ];
+  }
+  if (isDirect(first) && isAccumulator(second)) {
+    return [
+      opcode(0xa2 | w, `MOV [address], ${upper(second)}: a short form with no ModR/M`),
+      directAddress(first)
+    ];
+  }
+  return registerAndRm(c, 0x88, 0x8a);
+};
+
+const encodeXchg: Encoder = (c) => {
+  const { first, second, size, w } = c;
+  const other = isAccumulator(first) ? second : isAccumulator(second) ? first : null;
+  if (size === 16 && other?.type === 'reg') {
+    const number = registerNumber(other.name);
+    return [
+      opcode(0x90 | number, `XCHG AX, r16: 90 + the register number (${upper(other)} = ${number})`)
+    ];
+  }
+  // Swapping is symmetric, so either register could go in `reg`; assemblers put the first there.
+  if (first?.type === 'reg' && second?.type === 'reg') {
+    return [opcode(0x86 | w, `XCHG r${size}, r/m${size}`), ...modRm(registerField(first), second)];
+  }
+  return registerAndRm(c, 0x86, 0x86);
+};
+
+const encodeTest: Encoder = (c) => {
+  const { first, second, size, w } = c;
+  if (second?.type !== 'imm') return registerAndRm(c, 0x84, 0x84);
+  const value = truncate(second.value, size);
+  if (isAccumulator(first)) {
+    return [
+      opcode(0xa8 | w, `TEST ${upper(first)}, imm${size}: a short form with no ModR/M`),
+      immediate(value, size, 'The immediate, low byte first')
+    ];
+  }
+  return [
+    opcode(0xf6 | w, `Group: one-operand arithmetic on r/m${size}`),
+    ...modRm(extension(0, 'TEST'), asRm(first)),
+    immediate(value, size, 'The immediate, low byte first')
+  ];
+};
+
+const encodePushPop: Encoder = ({ mnemonic, first, name }) => {
+  const pushing = mnemonic === 'push';
+  if (first?.type === 'reg') {
+    const number = registerNumber(first.name);
+    if (isSegmentRegister(first.name)) {
+      return [
+        opcode(
+          (pushing ? 0x06 : 0x07) | (number << 3),
+          `${name} sreg: the segment register number (${upper(first)} = ${number}) sits in bits 3 and 4`
+        )
+      ];
+    }
+    const base = pushing ? 0x50 : 0x58;
+    return [
+      opcode(
+        base | number,
+        `${name} r16: ${hexByte(base)} + the register number (${upper(first)} = ${number})`
+      )
+    ];
+  }
+  return pushing
+    ? [
+        opcode(0xff, 'Group: one-operand instructions on r/m16'),
+        ...modRm(extension(6, 'PUSH'), asMem(first))
+      ]
+    : [opcode(0x8f, 'POP r/m16'), ...modRm(extension(0, 'POP'), asMem(first))];
+};
+
+const encodeIncDec: Encoder = ({ mnemonic, first, size, w, name }) => {
+  const number = mnemonic === 'inc' ? 0 : 1;
+  if (first?.type === 'reg' && size === 16) {
+    const base = 0x40 | (number << 3);
+    const register = registerNumber(first.name);
+    return [
+      opcode(
+        base | register,
+        `${name} r16: ${hexByte(base)} + the register number (${upper(first)} = ${register})`
+      )
+    ];
+  }
+  return [
+    opcode(0xfe | w, `Group: one-operand instructions on r/m${size}`),
+    ...modRm(extension(number, name), asRm(first))
+  ];
+};
+
+const encodeJmp: Encoder = ({ first, place }) => {
+  const target = asTarget(first);
+  return place.near
+    ? [opcode(0xe9, 'JMP with a 16-bit distance (near)'), relative(place, target, 16, 1)]
+    : [opcode(0xeb, 'JMP with an 8-bit distance (short)'), relative(place, target, 8, 1)];
+};
+
+const encodeCall: Encoder = ({ first, place }) => [
+  opcode(0xe8, 'CALL with a 16-bit distance'),
+  relative(place, asTarget(first), 16, 1)
+];
+
+const encodeInOut: Encoder = ({ mnemonic, first, second, size, w, name, place }) => {
+  const port = mnemonic === 'in' ? second : first;
+  const base = mnemonic === 'in' ? 0xe4 : 0xe6;
+  if (port?.type === 'reg') {
+    return [opcode(base | 0b1000 | w, `${name} through the port in DX, ${size} bits`)];
+  }
+  return [
+    opcode(base | w, `${name} through a fixed port, ${size} bits`),
+    immediate(truncate(numericValue(port, place), 8), 8, 'The port number')
+  ];
+};
+
+const encodeInt: Encoder = ({ first, place }) => {
+  const type = numericValue(first, place) & 0xff;
+  return type === 3
+    ? [opcode(0xcc, 'INT 3: its own one-byte opcode, made for breakpoints')]
+    : [opcode(0xcd, 'INT'), immediate(type, 8, 'The interrupt number')];
+};
+
+/** Instructions with an encoding of their own rather than a slot in an opcode group. */
+const BY_MNEMONIC: Partial<Record<Mnemonic, Encoder>> = {
+  mov: encodeMov,
+  xchg: encodeXchg,
+  test: encodeTest,
+  push: encodePushPop,
+  pop: encodePushPop,
+  inc: encodeIncDec,
+  dec: encodeIncDec,
+  jmp: encodeJmp,
+  call: encodeCall,
+  in: encodeInOut,
+  out: encodeInOut,
+  int: encodeInt
+};
+
+const ENCODERS: readonly Encoder[] = [
+  encodeSingleByte,
+  encodeShortJump,
+  encodeAlu,
+  encodeUnary,
+  encodeShift,
+  (c) => BY_MNEMONIC[c.mnemonic]?.(c) ?? null
+];
+
+function encodeBody(instruction: Instruction, place: Placement): EncodedField[] {
+  const { mnemonic, operands } = instruction;
+  const size = instructionSize(instruction) ?? 16;
+  const context: Context = {
+    mnemonic,
+    first: operands[0],
+    second: operands[1],
+    size,
+    w: size === 16 ? 1 : 0,
+    name: mnemonic.toUpperCase(),
+    place
+  };
+  for (const encoder of ENCODERS) {
+    const fields = encoder(context);
+    if (fields) return fields;
+  }
+  throw new Error(`No encoding for ${formatInstruction(instruction)}`);
+}
+
+function encodeAt(instruction: Instruction, place: Omit<Placement, 'lead'>): Encoding {
   if (!isValid(instruction)) {
     throw new Error(`Cannot encode an incomplete instruction: ${formatInstruction(instruction)}`);
   }
@@ -537,9 +623,12 @@ function encodeAt(instruction: Instruction, place: Omit<Placement, 'lead' | 'pro
         }
       ]
     : [];
-  const placement: Placement = { ...place, lead: prefix.length, problem: null };
-  const fields = [...prefix, ...encodeBody(instruction, placement)];
-  return { fields, bytes: fields.flatMap((field) => field.bytes), problem: placement.problem };
+  const fields = [...prefix, ...encodeBody(instruction, { ...place, lead: prefix.length })];
+  return {
+    fields,
+    bytes: fields.flatMap((field) => field.bytes),
+    problem: fields.find((field) => field.problem)?.problem ?? null
+  };
 }
 
 /**

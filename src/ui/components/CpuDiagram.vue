@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { explainAddress } from '@/core/address';
-import { decode } from '@/core/decode';
+import { CYCLE_PHASES, decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_BITS, FLAG_INFO, FLAG_NAMES, type FlagName } from '@/core/flags';
+import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/flags';
 import { formatInstruction } from '@/core/instructions';
 import { formatBinary, formatHex, toSigned } from '@/core/numbers';
-import { REGISTER_DESCRIPTIONS, WORD_REGISTERS, type WordRegister } from '@/core/registers';
+import {
+  REGISTER_DESCRIPTIONS,
+  SPLIT_REGISTERS,
+  WORD_REGISTERS,
+  type WordRegister
+} from '@/core/registers';
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -38,7 +43,6 @@ const props = defineProps<{
 
 type WireKind = 'read' | 'write' | undefined;
 
-const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
 /** The execution unit holds the data, pointer and index registers, the ALU and the flags. */
 const EU_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx', 'sp', 'bp', 'si', 'di'];
 /** The bus interface unit holds what an address is made of: the segments and IP. */
@@ -53,8 +57,8 @@ const decoded = computed(() =>
 );
 /** Changes with every phase as well as every execution, so each one lights the wires afresh. */
 const pulse = computed(() => {
-  const phaseStep = props.pending ? (props.pending.phase === 'fetch' ? 1 : 2) : 0;
-  return props.tick * 3 + phaseStep;
+  const phaseStep = props.pending ? CYCLE_PHASES.indexOf(props.pending.phase) + 1 : 0;
+  return props.tick * CYCLE_PHASES.length + phaseStep;
 });
 
 const equation = computed(() => shown.value && describeEquation(props.state, shown.value));
@@ -179,11 +183,11 @@ const changedFlags = computed(() =>
 );
 
 function isSet(flag: FlagName): boolean {
-  return (props.state.flags & (1 << FLAG_BITS[flag])) !== 0;
+  return isFlagSet(props.state.flags, flag);
 }
 
 function flagChanged(flag: FlagName): boolean {
-  return (changedFlags.value & (1 << FLAG_BITS[flag])) !== 0;
+  return isFlagSet(changedFlags.value, flag);
 }
 </script>
 

@@ -113,46 +113,136 @@ export interface InstructionSpec {
 export const INSTRUCTIONS = {
   mov: { category: 'transfer', description: 'dst = src', forms: MOV_FORMS },
   xchg: { category: 'transfer', description: 'Swap dst and src', forms: XCHG_FORMS },
-  push: { category: 'transfer', description: 'SP -= 2, then [SS:SP] = src', forms: [['r16'], ['sreg'], ['m16']] },
-  pop: { category: 'transfer', description: 'dst = [SS:SP], then SP += 2', forms: [['r16'], ['sregw'], ['m16']] },
+  push: {
+    category: 'transfer',
+    description: 'SP -= 2, then [SS:SP] = src',
+    forms: [['r16'], ['sreg'], ['m16']]
+  },
+  pop: {
+    category: 'transfer',
+    description: 'dst = [SS:SP], then SP += 2',
+    forms: [['r16'], ['sregw'], ['m16']]
+  },
 
   add: { category: 'arithmetic', description: 'dst = dst + src', forms: ALU_FORMS },
   adc: { category: 'arithmetic', description: 'dst = dst + src + CF', forms: ALU_FORMS },
   sub: { category: 'arithmetic', description: 'dst = dst - src', forms: ALU_FORMS },
   sbb: { category: 'arithmetic', description: 'dst = dst - src - CF', forms: ALU_FORMS },
-  cmp: { category: 'arithmetic', description: 'Set flags as for dst - src, discard the result', forms: ALU_FORMS },
+  cmp: {
+    category: 'arithmetic',
+    description: 'Set flags as for dst - src, discard the result',
+    forms: ALU_FORMS
+  },
   inc: { category: 'arithmetic', description: 'dst = dst + 1 (CF unchanged)', forms: UNARY_FORMS },
   dec: { category: 'arithmetic', description: 'dst = dst - 1 (CF unchanged)', forms: UNARY_FORMS },
   neg: { category: 'arithmetic', description: "dst = -dst (two's complement)", forms: UNARY_FORMS },
-  mul: { category: 'arithmetic', description: 'Unsigned: AX = AL * src, or DX:AX = AX * src', forms: UNARY_FORMS },
-  imul: { category: 'arithmetic', description: 'Signed: AX = AL * src, or DX:AX = AX * src', forms: UNARY_FORMS },
-  div: { category: 'arithmetic', description: 'Unsigned: AL,AH = AX / src, or AX,DX = DX:AX / src', forms: UNARY_FORMS },
-  idiv: { category: 'arithmetic', description: 'Signed: AL,AH = AX / src, or AX,DX = DX:AX / src', forms: UNARY_FORMS },
+  mul: {
+    category: 'arithmetic',
+    description: 'Unsigned: AX = AL * src, or DX:AX = AX * src',
+    forms: UNARY_FORMS
+  },
+  imul: {
+    category: 'arithmetic',
+    description: 'Signed: AX = AL * src, or DX:AX = AX * src',
+    forms: UNARY_FORMS
+  },
+  div: {
+    category: 'arithmetic',
+    description: 'Unsigned: AL,AH = AX / src, or AX,DX = DX:AX / src',
+    forms: UNARY_FORMS
+  },
+  idiv: {
+    category: 'arithmetic',
+    description: 'Signed: AL,AH = AX / src, or AX,DX = DX:AX / src',
+    forms: UNARY_FORMS
+  },
 
   and: { category: 'logic', description: 'dst = dst AND src', forms: ALU_FORMS },
   or: { category: 'logic', description: 'dst = dst OR src', forms: ALU_FORMS },
   xor: { category: 'logic', description: 'dst = dst XOR src', forms: ALU_FORMS },
   not: { category: 'logic', description: 'dst = NOT dst (flags unchanged)', forms: UNARY_FORMS },
-  test: { category: 'logic', description: 'Set flags as for dst AND src, discard the result', forms: ALU_FORMS },
+  test: {
+    category: 'logic',
+    description: 'Set flags as for dst AND src, discard the result',
+    forms: ALU_FORMS
+  },
 
   shl: { category: 'shift', description: 'Shift left, the top bit goes to CF', forms: SHIFT_FORMS },
-  shr: { category: 'shift', description: 'Logical shift right, the low bit goes to CF', forms: SHIFT_FORMS },
-  sar: { category: 'shift', description: 'Arithmetic shift right (keeps the sign)', forms: SHIFT_FORMS },
+  shr: {
+    category: 'shift',
+    description: 'Logical shift right, the low bit goes to CF',
+    forms: SHIFT_FORMS
+  },
+  sar: {
+    category: 'shift',
+    description: 'Arithmetic shift right (keeps the sign)',
+    forms: SHIFT_FORMS
+  },
   rol: { category: 'shift', description: 'Rotate left', forms: SHIFT_FORMS },
   ror: { category: 'shift', description: 'Rotate right', forms: SHIFT_FORMS },
   rcl: { category: 'shift', description: 'Rotate left through CF', forms: SHIFT_FORMS },
   rcr: { category: 'shift', description: 'Rotate right through CF', forms: SHIFT_FORMS },
 
-  movsb: { category: 'string', description: 'Copy the byte at DS:SI to ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 8 },
-  movsw: { category: 'string', description: 'Copy the word at DS:SI to ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 16 },
-  stosb: { category: 'string', description: 'Store AL at ES:DI, then step DI', forms: NO_OPERANDS, size: 8 },
-  stosw: { category: 'string', description: 'Store AX at ES:DI, then step DI', forms: NO_OPERANDS, size: 16 },
-  lodsb: { category: 'string', description: 'Load the byte at DS:SI into AL, then step SI', forms: NO_OPERANDS, size: 8 },
-  lodsw: { category: 'string', description: 'Load the word at DS:SI into AX, then step SI', forms: NO_OPERANDS, size: 16 },
-  scasb: { category: 'string', description: 'Set flags as for AL - the byte at ES:DI, then step DI', forms: NO_OPERANDS, size: 8 },
-  scasw: { category: 'string', description: 'Set flags as for AX - the word at ES:DI, then step DI', forms: NO_OPERANDS, size: 16 },
-  cmpsb: { category: 'string', description: 'Set flags as for the byte at DS:SI - the byte at ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 8 },
-  cmpsw: { category: 'string', description: 'Set flags as for the word at DS:SI - the word at ES:DI, then step SI and DI', forms: NO_OPERANDS, size: 16 },
+  movsb: {
+    category: 'string',
+    description: 'Copy the byte at DS:SI to ES:DI, then step SI and DI',
+    forms: NO_OPERANDS,
+    size: 8
+  },
+  movsw: {
+    category: 'string',
+    description: 'Copy the word at DS:SI to ES:DI, then step SI and DI',
+    forms: NO_OPERANDS,
+    size: 16
+  },
+  stosb: {
+    category: 'string',
+    description: 'Store AL at ES:DI, then step DI',
+    forms: NO_OPERANDS,
+    size: 8
+  },
+  stosw: {
+    category: 'string',
+    description: 'Store AX at ES:DI, then step DI',
+    forms: NO_OPERANDS,
+    size: 16
+  },
+  lodsb: {
+    category: 'string',
+    description: 'Load the byte at DS:SI into AL, then step SI',
+    forms: NO_OPERANDS,
+    size: 8
+  },
+  lodsw: {
+    category: 'string',
+    description: 'Load the word at DS:SI into AX, then step SI',
+    forms: NO_OPERANDS,
+    size: 16
+  },
+  scasb: {
+    category: 'string',
+    description: 'Set flags as for AL - the byte at ES:DI, then step DI',
+    forms: NO_OPERANDS,
+    size: 8
+  },
+  scasw: {
+    category: 'string',
+    description: 'Set flags as for AX - the word at ES:DI, then step DI',
+    forms: NO_OPERANDS,
+    size: 16
+  },
+  cmpsb: {
+    category: 'string',
+    description: 'Set flags as for the byte at DS:SI - the byte at ES:DI, then step SI and DI',
+    forms: NO_OPERANDS,
+    size: 8
+  },
+  cmpsw: {
+    category: 'string',
+    description: 'Set flags as for the word at DS:SI - the word at ES:DI, then step SI and DI',
+    forms: NO_OPERANDS,
+    size: 16
+  },
 
   in: { category: 'io', description: 'Read AL or AX from an I/O port', forms: IN_FORMS },
   out: { category: 'io', description: 'Write AL or AX to an I/O port', forms: OUT_FORMS },
@@ -162,14 +252,38 @@ export const INSTRUCTIONS = {
   jne: { category: 'control', description: 'Jump if not equal (ZF = 0)', forms: LABEL_FORMS },
   jz: { category: 'control', description: 'Jump if zero (ZF = 1)', forms: LABEL_FORMS },
   jnz: { category: 'control', description: 'Jump if not zero (ZF = 0)', forms: LABEL_FORMS },
-  ja: { category: 'control', description: 'Unsigned: jump if above (CF = 0 and ZF = 0)', forms: LABEL_FORMS },
-  jae: { category: 'control', description: 'Unsigned: jump if above or equal (CF = 0)', forms: LABEL_FORMS },
+  ja: {
+    category: 'control',
+    description: 'Unsigned: jump if above (CF = 0 and ZF = 0)',
+    forms: LABEL_FORMS
+  },
+  jae: {
+    category: 'control',
+    description: 'Unsigned: jump if above or equal (CF = 0)',
+    forms: LABEL_FORMS
+  },
   jb: { category: 'control', description: 'Unsigned: jump if below (CF = 1)', forms: LABEL_FORMS },
-  jbe: { category: 'control', description: 'Unsigned: jump if below or equal (CF = 1 or ZF = 1)', forms: LABEL_FORMS },
-  jg: { category: 'control', description: 'Signed: jump if greater (ZF = 0 and SF = OF)', forms: LABEL_FORMS },
-  jge: { category: 'control', description: 'Signed: jump if greater or equal (SF = OF)', forms: LABEL_FORMS },
+  jbe: {
+    category: 'control',
+    description: 'Unsigned: jump if below or equal (CF = 1 or ZF = 1)',
+    forms: LABEL_FORMS
+  },
+  jg: {
+    category: 'control',
+    description: 'Signed: jump if greater (ZF = 0 and SF = OF)',
+    forms: LABEL_FORMS
+  },
+  jge: {
+    category: 'control',
+    description: 'Signed: jump if greater or equal (SF = OF)',
+    forms: LABEL_FORMS
+  },
   jl: { category: 'control', description: 'Signed: jump if less (SF ≠ OF)', forms: LABEL_FORMS },
-  jle: { category: 'control', description: 'Signed: jump if less or equal (ZF = 1 or SF ≠ OF)', forms: LABEL_FORMS },
+  jle: {
+    category: 'control',
+    description: 'Signed: jump if less or equal (ZF = 1 or SF ≠ OF)',
+    forms: LABEL_FORMS
+  },
   jc: { category: 'control', description: 'Jump if carry (CF = 1)', forms: LABEL_FORMS },
   jnc: { category: 'control', description: 'Jump if no carry (CF = 0)', forms: LABEL_FORMS },
   js: { category: 'control', description: 'Jump if sign (SF = 1)', forms: LABEL_FORMS },
@@ -179,15 +293,47 @@ export const INSTRUCTIONS = {
   jp: { category: 'control', description: 'Jump if parity even (PF = 1)', forms: LABEL_FORMS },
   jnp: { category: 'control', description: 'Jump if parity odd (PF = 0)', forms: LABEL_FORMS },
   jcxz: { category: 'control', description: 'Jump if CX = 0', forms: LABEL_FORMS },
-  loop: { category: 'control', description: 'CX -= 1, jump if CX ≠ 0 (flags unchanged)', forms: LABEL_FORMS },
-  loope: { category: 'control', description: 'CX -= 1, jump if CX ≠ 0 and ZF = 1', forms: LABEL_FORMS },
-  loopne: { category: 'control', description: 'CX -= 1, jump if CX ≠ 0 and ZF = 0', forms: LABEL_FORMS },
-  call: { category: 'control', description: 'Push IP (the next line), then jump', forms: LABEL_FORMS },
-  ret: { category: 'control', description: 'Pop IP: return to the line after the CALL', forms: NO_OPERANDS },
+  loop: {
+    category: 'control',
+    description: 'CX -= 1, jump if CX ≠ 0 (flags unchanged)',
+    forms: LABEL_FORMS
+  },
+  loope: {
+    category: 'control',
+    description: 'CX -= 1, jump if CX ≠ 0 and ZF = 1',
+    forms: LABEL_FORMS
+  },
+  loopne: {
+    category: 'control',
+    description: 'CX -= 1, jump if CX ≠ 0 and ZF = 0',
+    forms: LABEL_FORMS
+  },
+  call: {
+    category: 'control',
+    description: 'Push IP (the next line), then jump',
+    forms: LABEL_FORMS
+  },
+  ret: {
+    category: 'control',
+    description: 'Pop IP: return to the line after the CALL',
+    forms: NO_OPERANDS
+  },
 
-  int: { category: 'interrupt', description: 'Push FLAGS, CS and IP, then jump to the handler in vector n (at 0000:n×4)', forms: [['imm8']] },
-  into: { category: 'interrupt', description: 'Interrupt 4 if OF = 1, otherwise do nothing', forms: NO_OPERANDS },
-  iret: { category: 'interrupt', description: 'Pop IP, CS and FLAGS: return from an interrupt handler', forms: NO_OPERANDS },
+  int: {
+    category: 'interrupt',
+    description: 'Push FLAGS, CS and IP, then jump to the handler in vector n (at 0000:n×4)',
+    forms: [['imm8']]
+  },
+  into: {
+    category: 'interrupt',
+    description: 'Interrupt 4 if OF = 1, otherwise do nothing',
+    forms: NO_OPERANDS
+  },
+  iret: {
+    category: 'interrupt',
+    description: 'Pop IP, CS and FLAGS: return from an interrupt handler',
+    forms: NO_OPERANDS
+  },
 
   pushf: { category: 'flags', description: 'Push FLAGS onto the stack', forms: NO_OPERANDS },
   popf: { category: 'flags', description: 'Pop FLAGS off the stack', forms: NO_OPERANDS },

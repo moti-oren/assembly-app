@@ -1,28 +1,21 @@
 import { onScopeDispose, watch, type ShallowRef } from 'vue';
+import { decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
-import type { Mnemonic } from '@/core/instructions';
 import { formatHex } from '@/core/numbers';
 import { effectiveAddress, operandSize, type Operand } from '@/core/operands';
 import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/state';
 
-/** Keep in sync with --flight in styles.css: the panels wait this long before they update. */
+/**
+ * How long a value takes to travel between two places. The panels wait this long before they
+ * update; useDataFlow hands it to the stylesheet as --flight.
+ */
 const FLIGHT_MS = 420;
+
+/** Clears `data-flight` even if a packet never lands, e.g. when its animation is dropped. */
+const FLIGHT_RESET_MS = 2000;
 
 /** Executions closer together than this (a fast run) skip the flight: packets would pile up. */
 const MIN_GAP_MS = 500;
-
-/** Instructions whose second operand's value ends up in (or is combined into) the first. */
-const WRITES_FIRST_OPERAND = new Set<Mnemonic>([
-  'mov',
-  'xchg',
-  'add',
-  'adc',
-  'sub',
-  'sbb',
-  'and',
-  'or',
-  'xor'
-]);
 
 interface Flight {
   from: string | null;
@@ -41,6 +34,7 @@ function at(location: string): string {
  */
 export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord[]>): void {
   const root = document.documentElement;
+  root.style.setProperty('--flight', `${FLIGHT_MS}ms`);
   const layer = document.createElement('div');
   layer.className = 'data-flow-layer';
   layer.setAttribute('aria-hidden', 'true');
@@ -56,7 +50,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
     if (!first) return [];
 
     // Memory operands are located with the registers as they were when the instruction ran.
-    const stateBefore = { ...state, registers: before.registers } as CpuState;
+    const stateBefore = before;
     const size = operandSize(first) ?? (second && operandSize(second)) ?? 16;
 
     const locate = (operand: Operand): string | null => {
@@ -72,7 +66,14 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       return formatHex(operand.type === 'imm' ? operand.value : operand.target, size);
     };
 
-    if (second && WRITES_FIRST_OPERAND.has(instruction.mnemonic)) {
+    const decoded = decode(instruction);
+    const [firstRole, secondRole] = decoded.operands.map((operand) => operand.role);
+    // The source's value ends up in (or is combined into) the destination. A port number is
+    // only an address, and XCHG moves both ways.
+    const moves =
+      (firstRole === 'destination' && secondRole === 'source' && decoded.port === null) ||
+      instruction.mnemonic === 'xchg';
+    if (second && moves) {
       // An immediate has no home in the CPU: it comes out of the code that was just run.
       const from = locate(second) ?? at(line === null ? 'builder' : `line:${line}`);
       const to = locate(first);
@@ -84,10 +85,10 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       }
       return [{ from, to, text: read(second) }];
     }
-    if (instruction.mnemonic === 'push' && memoryWrites.length > 0) {
+    if (decoded.stack === 'push' && memoryWrites.length > 0) {
       return [{ from: locate(first), to: at(`mem:${memoryWrites[0].address}`), text: read(first) }];
     }
-    if (instruction.mnemonic === 'pop') {
+    if (decoded.stack === 'pop') {
       const top = physicalAddress(before.registers.ss, before.registers.sp);
       return [{ from: at(`mem:${top}`), to: locate(first), text: read(first) }];
     }
@@ -143,7 +144,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
       lastExecution = now;
       if (single && unhurried && !reducedMotion.matches && launch(plan(record))) {
         root.dataset.flight = '';
-        timer = window.setTimeout(() => delete root.dataset.flight, 2000);
+        timer = window.setTimeout(() => delete root.dataset.flight, FLIGHT_RESET_MS);
       } else {
         delete root.dataset.flight;
       }
@@ -155,6 +156,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
     stop();
     window.clearTimeout(timer);
     delete root.dataset.flight;
+    root.style.removeProperty('--flight');
     layer.remove();
   });
 }

@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { ArrowUpToLine, ChevronRight, Trash2, X } from '@lucide/vue';
 import type { AssembledLine } from '@/core/encode';
 import { formatInstruction, type Instruction } from '@/core/instructions';
-import { formatHex } from '@/core/numbers';
+import { formatBytes, formatHex } from '@/core/numbers';
 import { formatLabel } from '@/core/operands';
 import { Button } from '@/components/ui/button';
 import {
@@ -82,7 +82,7 @@ const ROW =
   'group grid h-7 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pr-1 pl-2';
 
 function machineCode(index: number): string {
-  return props.assembled[index].encoding.bytes.map((byte) => formatHex(byte, 8)).join(' ');
+  return formatBytes(props.assembled[index].encoding.bytes);
 }
 </script>
 

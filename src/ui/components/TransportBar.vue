@@ -20,7 +20,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { PendingInstruction, RunSpeed } from '@/ui/useCpu';
+import { SPEED_LABELS, isRunSpeed, type PendingInstruction, type RunSpeed } from '@/ui/useCpu';
 
 const props = defineProps<{
   finished: boolean;
@@ -51,12 +51,10 @@ const emit = defineEmits<{
   'update:bytesShown': [shown: boolean];
 }>();
 
-const SPEED_LABELS: Record<RunSpeed, string> = {
-  slow: 'Slow',
-  normal: 'Normal',
-  fast: 'Fast',
-  instant: 'Instant'
-};
+/** The select hands back whatever value its item had; only a known speed gets through. */
+function setSpeed(value: unknown): void {
+  if (isRunSpeed(value)) emit('update:speed', value);
+}
 
 /** The phase button names what pressing it does next. */
 const nextPhase = computed(() =>
@@ -104,7 +102,7 @@ const total = computed(() => props.executed + props.undone);
           <FastForward />
           Run
         </Button>
-        <Select :model-value="speed" @update:model-value="emit('update:speed', $event as RunSpeed)">
+        <Select :model-value="speed" @update:model-value="setSpeed">
           <SelectTrigger size="sm" class="w-26" aria-label="Run speed">
             <SelectValue />
           </SelectTrigger>

@@ -12,7 +12,7 @@ import type { CpuState } from './state';
 export type Program = readonly Instruction[];
 
 /** Stops runaway loops when running a whole program. */
-export const MAX_STEPS = 10_000;
+const MAX_STEPS = 10_000;
 
 /**
  * Stops a run whose records would hold too many memory writes. Every written byte is kept for
@@ -30,9 +30,8 @@ function mapTargets(instruction: Instruction, map: (target: number) => number): 
   }
   return {
     ...instruction,
-    operands: instruction.operands.map(
-      (operand): Operand =>
-        operand.type === 'label' ? { type: 'label', target: map(operand.target) } : operand
+    operands: instruction.operands.map((operand): Operand =>
+      operand.type === 'label' ? { type: 'label', target: map(operand.target) } : operand
     )
   };
 }
@@ -42,7 +41,11 @@ function mapTargets(instruction: Instruction, map: (target: number) => number): 
  * at the same instructions (they shift down by one), so existing jumps stay correct. The new
  * instruction's own labels refer to the program as it was before the insert, and shift the same way.
  */
-export function insertLine(program: Program, index: number, instruction: Instruction): Instruction[] {
+export function insertLine(
+  program: Program,
+  index: number,
+  instruction: Instruction
+): Instruction[] {
   const shift = (target: number) => (target >= index ? target + 1 : target);
   const shifted = program.map((line) => mapTargets(line, shift));
   return [...shifted.slice(0, index), mapTargets(instruction, shift), ...shifted.slice(index)];
@@ -213,7 +216,11 @@ export const EXAMPLE_PROGRAMS: { name: string; description: string; program: Pro
     program: [
       line('xor', reg('ax'), reg('ax')),
       line('mov', reg('ds'), reg('ax')),
-      line('mov', { type: 'mem', size: 16, base: null, displacement: 0x21 * VECTOR_SIZE }, label(8)),
+      line(
+        'mov',
+        { type: 'mem', size: 16, base: null, displacement: 0x21 * VECTOR_SIZE },
+        label(8)
+      ),
       line('mov', reg('al'), imm(0x41)),
       line('int', imm(0x21)),
       line('mov', reg('al'), imm(0x42)),

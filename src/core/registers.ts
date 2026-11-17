@@ -42,6 +42,17 @@ export const REGISTER_DESCRIPTIONS: Record<WordRegister, string> = {
   ip: 'Instruction pointer: the next program line to run (lines are not encoded into bytes)'
 };
 
+/** The word registers whose two halves are byte registers of their own (AH and AL for AX). */
+export const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
+
+/** The registers whose value differs between two moments, in the usual register order. */
+export function changedRegisters(
+  before: Record<WordRegister, number>,
+  after: Record<WordRegister, number>
+): WordRegister[] {
+  return WORD_REGISTERS.filter((name) => before[name] !== after[name]);
+}
+
 export function isByteRegister(name: RegisterName): name is ByteRegister {
   return name in BYTE_REGISTER_LOCATION;
 }

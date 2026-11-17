@@ -10,6 +10,7 @@ import {
   CommandList
 } from '@/components/ui/command';
 import { Kbd } from '@/components/ui/kbd';
+import { groupBy } from '@/ui/groupBy';
 
 export interface PaletteCommand {
   group: string;
@@ -21,13 +22,7 @@ export interface PaletteCommand {
 const props = defineProps<{ commands: PaletteCommand[] }>();
 const open = defineModel<boolean>('open', { required: true });
 
-const groups = computed(() => {
-  const byGroup = new Map<string, PaletteCommand[]>();
-  for (const command of props.commands) {
-    byGroup.set(command.group, [...(byGroup.get(command.group) ?? []), command]);
-  }
-  return [...byGroup];
-});
+const groups = computed(() => groupBy(props.commands, (command) => command.group));
 
 useEventListener(window, 'keydown', (event: KeyboardEvent) => {
   // `code` is the physical key, so the shortcut also works on a non-Latin keyboard layout.

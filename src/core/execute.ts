@@ -9,18 +9,21 @@ import {
 } from './instructions';
 import { formatHex, hasEvenParity, mask, signBit, toSigned, truncate, type Size } from './numbers';
 import { effectiveAddress, type Operand } from './operands';
-import type { SegmentRegister, WordRegister } from './registers';
+import type { SegmentRegister } from './registers';
 import {
   getFlag,
   physicalAddress,
   readMemory,
   readPort,
   readRegister,
+  redoPortWrite,
   setFlag,
+  snapshot,
   undoPortWrite,
   writeMemory,
   writePort,
   writeRegister,
+  type CpuSnapshot,
   type CpuState,
   type MemoryWrite,
   type PortWrite
@@ -55,15 +58,15 @@ class DivideError extends CpuError {}
 
 /** Each interrupt vector is 4 bytes at the bottom of memory: the handler's IP, then its CS. */
 export const VECTOR_SIZE = 4;
-export const DIVIDE_ERROR_INTERRUPT = 0;
-export const OVERFLOW_INTERRUPT = 4;
+const DIVIDE_ERROR_INTERRUPT = 0;
+const OVERFLOW_INTERRUPT = 4;
 
 /** Everything needed to undo one executed instruction. */
 export interface ExecutionRecord {
   instruction: Instruction;
   /** The program line it was fetched from, or null when it was run directly. */
   line: number | null;
-  before: { registers: Record<WordRegister, number>; flags: number };
+  before: CpuSnapshot;
   memoryWrites: MemoryWrite[];
   /** Bytes OUT latched into I/O ports. */
   portWrites: PortWrite[];
@@ -111,7 +114,9 @@ class ExecutionContext {
         return;
       case 'imm':
       case 'label':
-        throw new CpuError(`Cannot write to ${operand.type === 'imm' ? 'an immediate value' : 'a label'}`);
+        throw new CpuError(
+          `Cannot write to ${operand.type === 'imm' ? 'an immediate value' : 'a label'}`
+        );
     }
   }
 
@@ -642,7 +647,7 @@ export function execute(
   const record: ExecutionRecord = {
     instruction,
     line,
-    before: { registers: { ...state.registers }, flags: state.flags },
+    before: snapshot(state),
     memoryWrites: ctx.memoryWrites,
     portWrites: ctx.portWrites,
     alu: null,
@@ -688,5 +693,20 @@ export function undo(state: CpuState, record: ExecutionRecord): void {
   }
   for (let i = record.portWrites.length - 1; i >= 0; i--) {
     undoPortWrite(state, record.portWrites[i]);
+  }
+}
+
+/** Re-applies an undone record without running it again: the inverse of `undo`. */
+export function redo(state: CpuState, record: ExecutionRecord, after: CpuSnapshot): void {
+  Object.assign(state.registers, after.registers);
+  state.flags = after.flags;
+  for (const write of record.memoryWrites) {
+    state.memory[write.address] = write.after;
+  }
+  if (record.memoryWrites.length > 0) {
+    state.memoryVersion++;
+  }
+  for (const write of record.portWrites) {
+    redoPortWrite(state, write);
   }
 }

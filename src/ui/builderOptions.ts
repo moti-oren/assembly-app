@@ -1,0 +1,214 @@
+import { operandChoices } from '@/core/builder';
+import {
+  CATEGORY_LABELS,
+  MNEMONICS,
+  REPEAT_PREFIXES,
+  getSpec,
+  prefixAllows,
+  type Mnemonic,
+  type RepeatPrefix
+} from '@/core/instructions';
+import { fitsIn, formatHex, type Size } from '@/core/numbers';
+import {
+  MEMORY_BASES,
+  formatImmediate,
+  formatLabel,
+  memorySegment,
+  type MemoryBase,
+  type Operand
+} from '@/core/operands';
+import { isByteRegister, isSegmentRegister } from '@/core/registers';
+
+/** The instruction builder's state: what has been chosen so far, and what is being typed. */
+export interface BuilderDraft {
+  /** A repeat prefix chosen before the mnemonic; it narrows the mnemonics to the ones it fits. */
+  prefix: RepeatPrefix | null;
+  mnemonic: Mnemonic | null;
+  operands: readonly Operand[];
+  /** Set after choosing "byte [ ]" / "word [ ]", until the address inside the brackets is chosen. */
+  pendingMemory: Size | null;
+  /** The text in the filter as a number, or null when it is not one. */
+  typed: number | null;
+  /** The program, formatted, so jumps can offer its lines as targets. */
+  programLines: readonly string[];
+}
+
+/** What choosing an option adds to the draft. */
+export type OptionAction =
+  | { kind: 'prefix'; prefix: RepeatPrefix }
+  | { kind: 'mnemonic'; mnemonic: Mnemonic }
+  | { kind: 'operand'; operand: Operand }
+  /** Opens the brackets of a memory operand of this size. */
+  | { kind: 'memory'; size: Size };
+
+export interface BuilderOption {
+  key: string;
+  label: string;
+  group: string;
+  hint?: string;
+  /** For options a typed number can select: immediates, direct addresses, the count 1, labels. */
+  matchesNumber?: (value: number) => boolean;
+  action: OptionAction;
+}
+
+const anyNumber = () => true;
+
+function prefixOptions(): BuilderOption[] {
+  return (Object.keys(REPEAT_PREFIXES) as RepeatPrefix[]).map((prefix) => ({
+    key: `prefix-${prefix}`,
+    label: prefix,
+    group: 'Repeat prefix',
+    hint: `${REPEAT_PREFIXES[prefix]}. Pick the string instruction next.`,
+    action: { kind: 'prefix', prefix }
+  }));
+}
+
+function mnemonicOptions(chosen: RepeatPrefix | null): BuilderOption[] {
+  const options: BuilderOption[] = [];
+  let prefixesOffered = chosen !== null;
+  for (const mnemonic of MNEMONICS) {
+    const { category, description } = getSpec(mnemonic);
+    // The prefixes sit right after the string instructions they repeat.
+    if (
+      !prefixesOffered &&
+      options.at(-1)?.group === CATEGORY_LABELS.string &&
+      category !== 'string'
+    ) {
+      options.push(...prefixOptions());
+      prefixesOffered = true;
+    }
+    if (chosen && !prefixAllows(chosen, mnemonic)) continue;
+    options.push({
+      key: mnemonic,
+      label: mnemonic,
+      group: CATEGORY_LABELS[category],
+      hint: description,
+      action: { kind: 'mnemonic', mnemonic }
+    });
+  }
+  return options;
+}
+
+function memoryAddressOptions(size: Size, typed: number | null): BuilderOption[] {
+  const operand = (base: MemoryBase | null, displacement: number): Operand => ({
+    type: 'mem',
+    size,
+    base,
+    displacement
+  });
+  const options: BuilderOption[] = MEMORY_BASES.map((base) => ({
+    key: `base-${base}`,
+    label: `[${base}]`,
+    group: 'Address in a register',
+    hint: `${memorySegment({ type: 'mem', size, base, displacement: 0 }).toUpperCase()}:${base.toUpperCase()}`,
+    action: { kind: 'operand', operand: operand(base, 0) }
+  }));
+
+  if (typed !== null && typed >= 0 && typed <= 0xffff) {
+    options.unshift({
+      key: 'direct',
+      label: `[0x${formatHex(typed, 16)}]`,
+      group: 'Direct address',
+      hint: 'DS:offset',
+      matchesNumber: anyNumber,
+      action: { kind: 'operand', operand: operand(null, typed) }
+    });
+  }
+  return options;
+}
+
+function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[] {
+  const choices = operandChoices(mnemonic, draft.operands);
+  const options: BuilderOption[] = [];
+
+  const { typed } = draft;
+  if (choices.immediate !== null && typed !== null && fitsIn(typed, choices.immediate)) {
+    const size = choices.immediate;
+    options.push({
+      key: 'imm',
+      label: formatImmediate(typed),
+      group: `Immediate (${size}-bit)`,
+      hint: typed < 0 ? `= 0x${formatHex(typed, size)}` : `= ${typed}`,
+      matchesNumber: anyNumber,
+      action: { kind: 'operand', operand: { type: 'imm', value: typed } }
+    });
+  }
+  if (choices.one) {
+    options.push({
+      key: 'one',
+      label: '1',
+      group: 'Count',
+      matchesNumber: (value) => value === 1,
+      action: { kind: 'operand', operand: { type: 'imm', value: 1 } }
+    });
+  }
+
+  if (choices.label) {
+    const group =
+      getSpec(mnemonic).category === 'control'
+        ? 'Jump to program line'
+        : 'Number of a program line';
+    // Every line is a target, plus the line after the last one (the end of the program).
+    for (let target = 0; target <= draft.programLines.length; target++) {
+      options.push({
+        key: `label${target}`,
+        label: formatLabel(target),
+        group,
+        hint: draft.programLines[target] ?? 'end of program',
+        matchesNumber: (value) => value === target,
+        action: { kind: 'operand', operand: { type: 'label', target } }
+      });
+    }
+  }
+
+  for (const name of choices.registers) {
+    const group = isByteRegister(name)
+      ? '8-bit registers'
+      : isSegmentRegister(name)
+        ? 'Segment registers'
+        : '16-bit registers';
+    options.push({
+      key: name,
+      label: name,
+      group,
+      action: { kind: 'operand', operand: { type: 'reg', name } }
+    });
+  }
+
+  for (const size of choices.memory) {
+    options.push({
+      key: `mem${size}`,
+      label: size === 8 ? 'byte [ ]' : 'word [ ]',
+      group: 'Memory',
+      hint: `${size}-bit value in memory`,
+      action: { kind: 'memory', size }
+    });
+  }
+
+  return options;
+}
+
+/** Every choice the builder offers for the next word of the instruction. */
+export function builderOptions(draft: BuilderDraft): BuilderOption[] {
+  if (draft.mnemonic === null) return mnemonicOptions(draft.prefix);
+  if (draft.pendingMemory !== null) return memoryAddressOptions(draft.pendingMemory, draft.typed);
+  return operandOptions(draft.mnemonic, draft);
+}
+
+/** The options the filter text leaves, in the order Enter should consider them. */
+export function filterOptions(
+  options: readonly BuilderOption[],
+  filter: string,
+  typed: number | null
+): BuilderOption[] {
+  const text = filter.trim().toLowerCase();
+  if (!text) return [...options];
+  // A typed number only selects the options that accept that number.
+  if (typed !== null) return options.filter((option) => option.matchesNumber?.(typed));
+  // Matches that start with the typed text come first, so Enter picks the obvious one.
+  const matches = options.filter((option) => option.label.toLowerCase().includes(text));
+  return [
+    ...matches.filter((option) => option.label.toLowerCase().startsWith(text)),
+    ...matches.filter((option) => !option.label.toLowerCase().startsWith(text))
+  ];
+}

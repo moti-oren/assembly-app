@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PORTS, terminalText } from './devices';
-import { CpuError, execute, undo } from './execute';
+import { CpuError, execute, redo, undo } from './execute';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
 import type { RegisterName } from './registers';
@@ -12,6 +12,7 @@ import {
   readRegister,
   setFlag,
   setInputPort,
+  snapshot,
   writeMemory,
   writeRegister,
   type CpuState
@@ -19,8 +20,18 @@ import {
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
-const byteAt = (displacement: number): Operand => ({ type: 'mem', size: 8, base: null, displacement });
-const wordAt = (displacement: number): Operand => ({ type: 'mem', size: 16, base: null, displacement });
+const byteAt = (displacement: number): Operand => ({
+  type: 'mem',
+  size: 8,
+  base: null,
+  displacement
+});
+const wordAt = (displacement: number): Operand => ({
+  type: 'mem',
+  size: 16,
+  base: null,
+  displacement
+});
 
 let cpu: CpuState;
 
@@ -55,7 +66,7 @@ describe('registers', () => {
     expect(readRegister(cpu, 'ax')).toBe(0x00ff);
   });
 
-  it('negative immediates are stored in two\'s complement', () => {
+  it("negative immediates are stored in two's complement", () => {
     run('mov', reg('bx'), imm(-1));
     expect(readRegister(cpu, 'bx')).toBe(0xffff);
   });
@@ -329,6 +340,26 @@ describe('undo', () => {
     undo(cpu, record);
     expect(readRegister(cpu, 'sp')).toBe(0xfffe);
     expect(readMemory(cpu, physicalAddress(readRegister(cpu, 'ss'), 0xfffc), 16)).toBe(0);
+  });
+
+  it('redo puts back exactly what undo took away', () => {
+    run('mov', reg('ax'), imm(0x41));
+    const record = run('push', reg('ax'));
+    const portRecord = run('out', imm(PORTS.terminal), reg('al'));
+    const after = snapshot(cpu);
+    const memoryAfter = cpu.memory.slice();
+
+    undo(cpu, portRecord);
+    undo(cpu, record);
+    const version = cpu.memoryVersion;
+    redo(cpu, record, after);
+    redo(cpu, portRecord, after);
+
+    expect(snapshot(cpu)).toEqual(after);
+    expect(cpu.memory).toEqual(memoryAfter);
+    expect(cpu.memoryVersion).toBeGreaterThan(version);
+    expect(cpu.io.out[PORTS.terminal]).toBe(0x41);
+    expect(terminalText(cpu.io.terminal)).toBe('A');
   });
 });
 

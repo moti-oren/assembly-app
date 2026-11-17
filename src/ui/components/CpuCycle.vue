@@ -11,7 +11,7 @@ import type { ExecutionRecord } from '@/core/execute';
 import { CATEGORY_LABELS, formatInstruction } from '@/core/instructions';
 import { formatHex } from '@/core/numbers';
 import { formatLabel } from '@/core/operands';
-import { WORD_REGISTERS } from '@/core/registers';
+import { changedRegisters } from '@/core/registers';
 import type { CpuState } from '@/core/state';
 import type { PendingInstruction } from '@/ui/useCpu';
 
@@ -72,9 +72,9 @@ function describeDecode(decoded: Decoded): string {
 function describeExecute(record: ExecutionRecord): string {
   const { registers, flags } = props.state;
   const changed = list([
-    ...WORD_REGISTERS.filter(
-      (name) => name !== 'ip' && registers[name] !== record.before.registers[name]
-    ).map((name) => name.toUpperCase()),
+    ...changedRegisters(record.before.registers, registers)
+      .filter((name) => name !== 'ip')
+      .map((name) => name.toUpperCase()),
     record.memoryWrites.length > 0 && 'memory',
     record.portWrites.length > 0 && 'an I/O port',
     flags !== record.before.flags && 'the flags'

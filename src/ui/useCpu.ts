@@ -1,5 +1,5 @@
 import { computed, onScopeDispose, reactive, ref, shallowRef, watch } from 'vue';
-import { CpuError, execute, undo, type ExecutionRecord } from '@/core/execute';
+import { CpuError, execute, redo as redoRecord, undo, type ExecutionRecord } from '@/core/execute';
 import type { Instruction } from '@/core/instructions';
 import {
   EXAMPLE_PROGRAMS,
@@ -13,12 +13,24 @@ import {
   step,
   tooManyWrites
 } from '@/core/program';
-import type { WordRegister } from '@/core/registers';
-import { createCpuState, redoPortWrite, setInputPort, type CpuState } from '@/core/state';
+import { createCpuState, setInputPort, snapshot, type CpuSnapshot } from '@/core/state';
 
 /** Delay between two program lines while running; `instant` runs to the end in one go. */
-export const RUN_SPEEDS = { slow: 1100, normal: 600, fast: 150, instant: 0 } as const;
+const RUN_SPEEDS = { slow: 1100, normal: 600, fast: 150, instant: 0 } as const;
 export type RunSpeed = keyof typeof RUN_SPEEDS;
+
+export const RUN_SPEED_NAMES = Object.keys(RUN_SPEEDS) as RunSpeed[];
+
+export function isRunSpeed(value: unknown): value is RunSpeed {
+  return typeof value === 'string' && value in RUN_SPEEDS;
+}
+
+export const SPEED_LABELS: Record<RunSpeed, string> = {
+  slow: 'Slow',
+  normal: 'Normal',
+  fast: 'Fast',
+  instant: 'Instant'
+};
 
 /** How many instructions back a memory write still shows as warm. */
 export const HEAT_STEPS = 6;
@@ -33,7 +45,7 @@ export interface PendingInstruction {
 /** An undone instruction, with the CPU as it left it, so it can be redone without re-running. */
 interface Undone {
   record: ExecutionRecord;
-  after: { registers: Record<WordRegister, number>; flags: number };
+  after: CpuSnapshot;
 }
 
 /**
@@ -41,7 +53,7 @@ interface Undone {
  * reactive proxy, so every panel re-renders by itself; nothing needs to emit events.
  */
 export function useCpu() {
-  const state = reactive(createCpuState()) as CpuState;
+  const state = reactive(createCpuState());
   const history = shallowRef<ExecutionRecord[]>([]);
   /** Undone instructions, the most recently undone last. */
   const undone = shallowRef<Undone[]>([]);
@@ -145,23 +157,25 @@ export function useCpu() {
   }
 
   function runNextLine(): void {
-    if (runWrites >= MAX_RUN_WRITES) {
-      error.value = tooManyWrites().message;
-      pause();
-      return;
+    let continues = false;
+    // Whatever goes wrong, even an error that is not the CPU's, the run must not stay "running".
+    try {
+      continues =
+        !finished.value &&
+        attempt(() => {
+          if (runWrites >= MAX_RUN_WRITES) throw tooManyWrites();
+          const entry = step(state, program.value);
+          runWrites += entry.memoryWrites.length;
+          record([entry]);
+        }) &&
+        !finished.value;
+    } finally {
+      if (continues) {
+        runTimer = window.setTimeout(runNextLine, RUN_SPEEDS[speed.value]);
+      } else {
+        pause();
+      }
     }
-    const stepped =
-      !finished.value &&
-      attempt(() => {
-        const entry = step(state, program.value);
-        runWrites += entry.memoryWrites.length;
-        record([entry]);
-      });
-    if (!stepped || finished.value) {
-      pause();
-      return;
-    }
-    runTimer = window.setTimeout(runNextLine, RUN_SPEEDS[speed.value]);
   }
 
   function runProgram(): void {
@@ -215,24 +229,15 @@ export function useCpu() {
     pause();
     const past = [...history.value];
     const ahead = [...undone.value];
-    while (past.length > position) {
-      const entry = past.pop()!;
-      const after = { registers: { ...state.registers }, flags: state.flags };
+    for (let entry = past.at(-1); entry && past.length > position; entry = past.at(-1)) {
+      past.pop();
+      ahead.push({ record: entry, after: snapshot(state) });
       undo(state, entry);
-      ahead.push({ record: entry, after });
     }
-    while (past.length < position && ahead.length > 0) {
-      const { record: entry, after } = ahead.pop()!;
-      Object.assign(state.registers, after.registers);
-      state.flags = after.flags;
-      for (const write of entry.memoryWrites) {
-        state.memory[write.address] = write.after;
-      }
-      if (entry.memoryWrites.length > 0) {
-        state.memoryVersion++;
-      }
-      entry.portWrites.forEach((write) => redoPortWrite(state, write));
-      past.push(entry);
+    for (let next = ahead.at(-1); next && past.length < position; next = ahead.at(-1)) {
+      ahead.pop();
+      redoRecord(state, next.record, next.after);
+      past.push(next.record);
     }
     history.value = past;
     undone.value = ahead;

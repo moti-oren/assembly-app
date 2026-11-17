@@ -19,11 +19,6 @@ export const DIGIT_COUNT = 2;
 export const SEGMENTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'] as const;
 export type Segment = (typeof SEGMENTS)[number];
 
-/** The byte that shows each hex digit on a 7-segment display. */
-export const SEGMENT_PATTERNS: readonly number[] = [
-  0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71
-];
-
 export function litSegments(value: number): Segment[] {
   return SEGMENTS.filter((_, bit) => (value & (1 << bit)) !== 0);
 }

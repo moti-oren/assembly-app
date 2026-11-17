@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_BITS, FLAG_NAMES } from '@/core/flags';
+import { FLAG_NAMES, isFlagSet } from '@/core/flags';
 import { formatInstruction } from '@/core/instructions';
 import { formatHex } from '@/core/numbers';
-import { WORD_REGISTERS } from '@/core/registers';
+import { changedRegisters } from '@/core/registers';
 import type { CpuState } from '@/core/state';
 import { describeMemoryAccess } from '@/ui/describe';
 
@@ -17,15 +17,12 @@ const props = defineProps<{
 const changes = computed(() => {
   const { before } = props.record;
   const list: { name: string; value: string }[] = [];
-  for (const name of WORD_REGISTERS) {
-    if (before.registers[name] !== props.state.registers[name]) {
-      list.push({ name: name.toUpperCase(), value: formatHex(props.state.registers[name], 16) });
-    }
+  for (const name of changedRegisters(before.registers, props.state.registers)) {
+    list.push({ name: name.toUpperCase(), value: formatHex(props.state.registers[name], 16) });
   }
   for (const flag of FLAG_NAMES) {
-    const bit = 1 << FLAG_BITS[flag];
-    if ((before.flags ^ props.state.flags) & bit) {
-      list.push({ name: flag, value: props.state.flags & bit ? '1' : '0' });
+    if (isFlagSet(before.flags ^ props.state.flags, flag)) {
+      list.push({ name: flag, value: isFlagSet(props.state.flags, flag) ? '1' : '0' });
     }
   }
   const memory = describeMemoryAccess(props.state, props.record);

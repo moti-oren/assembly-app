@@ -2,33 +2,26 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { hasMoreOperands, operandChoices } from '@/core/builder';
 import {
-  CATEGORY_LABELS,
-  INSTRUCTIONS,
-  MNEMONICS,
-  REPEAT_PREFIXES,
+  getSpec,
   isComplete,
-  prefixAllows,
-  type Category,
   type Instruction,
   type Mnemonic,
   type RepeatPrefix
 } from '@/core/instructions';
-import { fitsIn, formatHex, parseNumber, type Size } from '@/core/numbers';
-import {
-  MEMORY_BASES,
-  formatImmediate,
-  formatLabel,
-  formatOperand,
-  memorySegment,
-  type MemoryBase,
-  type Operand
-} from '@/core/operands';
-import { isByteRegister, isSegmentRegister } from '@/core/registers';
+import { fitsIn, parseNumber, type Size } from '@/core/numbers';
+import { formatLabel, formatOperand, type Operand } from '@/core/operands';
 import { CircleAlert, CornerDownLeft, Play, Plus, X } from '@lucide/vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
+import {
+  builderOptions,
+  filterOptions,
+  type BuilderOption,
+  type OptionAction
+} from '@/ui/builderOptions';
+import { groupBy } from '@/ui/groupBy';
 
 const props = defineProps<{
   /** Runs the instruction; returns false when the CPU rejected it. */
@@ -45,20 +38,6 @@ const emit = defineEmits<{
   /** The instruction as built so far, once it is complete; null while it is not. */
   draft: [instruction: Instruction | null];
 }>();
-
-type MemoryOperand = Extract<Operand, { type: 'mem' }>;
-
-interface Option {
-  key: string;
-  label: string;
-  group: string;
-  hint?: string;
-  /** For options a typed number can select: immediates, direct addresses, the count 1, labels. */
-  matchesNumber?: (value: number) => boolean;
-  apply: () => void;
-}
-
-const anyNumber = () => true;
 
 const READY_HINT = 'Enter: run now · Shift+Enter: add to the program';
 
@@ -81,7 +60,7 @@ function onFocusOut(): void {
   });
 }
 /** The option under the pointer or keyboard focus; its hint is previewed below the input. */
-const hovered = ref<Option | null>(null);
+const hovered = ref<BuilderOption | null>(null);
 
 const complete = computed(
   () =>
@@ -97,178 +76,32 @@ function addOperand(operand: Operand): void {
   pendingMemory.value = null;
 }
 
-function memoryOperand(base: MemoryBase | null, displacement: number): MemoryOperand {
-  return { type: 'mem', size: pendingMemory.value ?? 16, base, displacement };
-}
+const allOptions = computed(() =>
+  builderOptions({
+    prefix: prefix.value,
+    mnemonic: mnemonic.value,
+    operands: operands.value,
+    pendingMemory: pendingMemory.value,
+    typed: typedNumber.value,
+    programLines: props.programLines
+  })
+);
 
-function mnemonicOptions(): Option[] {
-  const chosen = prefix.value;
-  const options: Option[] = [];
-  let prefixesOffered = chosen !== null;
-  const offerPrefixes = (): void => {
-    prefixesOffered = true;
-    for (const name of Object.keys(REPEAT_PREFIXES) as RepeatPrefix[]) {
-      options.push({
-        key: `prefix-${name}`,
-        label: name,
-        group: 'Repeat prefix',
-        hint: `${REPEAT_PREFIXES[name]}. Pick the string instruction next.`,
-        apply: () => {
-          prefix.value = name;
-        }
-      });
-    }
-  };
+const visibleOptions = computed(() =>
+  filterOptions(allOptions.value, filter.value, typedNumber.value)
+);
 
-  for (const name of MNEMONICS) {
-    const category = INSTRUCTIONS[name].category as Category;
-    // The prefixes sit right after the string instructions they repeat.
-    if (
-      !prefixesOffered &&
-      options.at(-1)?.group === CATEGORY_LABELS.string &&
-      category !== 'string'
-    ) {
-      offerPrefixes();
-    }
-    if (chosen && !prefixAllows(chosen, name)) continue;
-    options.push({
-      key: name,
-      label: name,
-      group: CATEGORY_LABELS[category],
-      hint: INSTRUCTIONS[name].description,
-      apply: () => {
-        mnemonic.value = name;
-      }
-    });
-  }
-  return options;
-}
+const groups = computed(() => groupBy(visibleOptions.value, (option) => option.group));
 
-function memoryAddressOptions(): Option[] {
-  const options: Option[] = MEMORY_BASES.map((base) => {
-    const operand = memoryOperand(base, 0);
-    return {
-      key: `base-${base}`,
-      label: `[${base}]`,
-      group: 'Address in a register',
-      hint: `${memorySegment(operand).toUpperCase()}:${base.toUpperCase()}`,
-      apply: () => addOperand(operand)
-    };
-  });
-
-  const address = typedNumber.value;
-  if (address !== null && address >= 0 && address <= 0xffff) {
-    options.unshift({
-      key: 'direct',
-      label: `[0x${formatHex(address, 16)}]`,
-      group: 'Direct address',
-      hint: 'DS:offset',
-      matchesNumber: anyNumber,
-      apply: () => addOperand(memoryOperand(null, address))
-    });
-  }
-  return options;
-}
-
-function operandOptions(current: Mnemonic): Option[] {
-  const choices = operandChoices(current, operands.value);
-  const options: Option[] = [];
-
+/** The immediate size the typed number is too big for, or null when it fits or none is asked. */
+const overflowSize = computed<Size | null>(() => {
+  if (mnemonic.value === null || pendingMemory.value !== null) return null;
+  const size = operandChoices(mnemonic.value, operands.value).immediate;
   const number = typedNumber.value;
-  if (choices.immediate !== null && number !== null) {
-    const size = choices.immediate;
-    if (fitsIn(number, size)) {
-      options.push({
-        key: 'imm',
-        label: formatImmediate(number),
-        group: `Immediate (${size}-bit)`,
-        hint: number < 0 ? `= 0x${formatHex(number, size)}` : `= ${number}`,
-        matchesNumber: anyNumber,
-        apply: () => addOperand({ type: 'imm', value: number })
-      });
-    }
-  }
-  if (choices.one) {
-    options.push({
-      key: 'one',
-      label: '1',
-      group: 'Count',
-      matchesNumber: (value) => value === 1,
-      apply: () => addOperand({ type: 'imm', value: 1 })
-    });
-  }
-
-  if (choices.label) {
-    // Every line is a target, plus the line after the last one (the end of the program).
-    for (let target = 0; target <= props.programLines.length; target++) {
-      options.push({
-        key: `label${target}`,
-        label: formatLabel(target),
-        group:
-          INSTRUCTIONS[current].category === 'control'
-            ? 'Jump to program line'
-            : 'Number of a program line',
-        hint: props.programLines[target] ?? 'end of program',
-        matchesNumber: (value) => value === target,
-        apply: () => addOperand({ type: 'label', target })
-      });
-    }
-  }
-
-  for (const name of choices.registers) {
-    const group = isByteRegister(name)
-      ? '8-bit registers'
-      : isSegmentRegister(name)
-        ? 'Segment registers'
-        : '16-bit registers';
-    options.push({ key: name, label: name, group, apply: () => addOperand({ type: 'reg', name }) });
-  }
-
-  for (const size of choices.memory) {
-    const label = size === 8 ? 'byte [ ]' : 'word [ ]';
-    options.push({
-      key: `mem${size}`,
-      label,
-      group: 'Memory',
-      hint: `${size}-bit value in memory`,
-      apply: () => {
-        pendingMemory.value = size;
-      }
-    });
-  }
-
-  return options;
-}
-
-const allOptions = computed<Option[]>(() => {
-  if (mnemonic.value === null) return mnemonicOptions();
-  if (pendingMemory.value !== null) return memoryAddressOptions();
-  return operandOptions(mnemonic.value);
+  return size !== null && number !== null && !fitsIn(number, size) ? size : null;
 });
 
-const visibleOptions = computed(() => {
-  const text = filter.value.trim().toLowerCase();
-  if (!text) return allOptions.value;
-  // A typed number only selects the options that accept that number.
-  const number = typedNumber.value;
-  if (number !== null) {
-    return allOptions.value.filter((option) => option.matchesNumber?.(number));
-  }
-  // Matches that start with the typed text come first, so Enter picks the obvious one.
-  const matches = allOptions.value.filter((option) => option.label.toLowerCase().includes(text));
-  return [
-    ...matches.filter((option) => option.label.toLowerCase().startsWith(text)),
-    ...matches.filter((option) => !option.label.toLowerCase().startsWith(text))
-  ];
-});
-
-const groups = computed(() => {
-  const map = new Map<string, Option[]>();
-  for (const option of visibleOptions.value) {
-    map.set(option.group, [...(map.get(option.group) ?? []), option]);
-  }
-  return [...map.entries()];
-});
+const doesNotFit = computed(() => overflowSize.value !== null);
 
 /** Hint for values that are typed rather than picked. */
 const typingHint = computed(() => {
@@ -276,12 +109,11 @@ const typingHint = computed(() => {
     return prefix.value ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
   }
   if (pendingMemory.value !== null) return 'Pick a register or type an offset (e.g. 0x10)';
+  if (overflowSize.value !== null) {
+    return `${filter.value} does not fit in ${overflowSize.value} bits`;
+  }
   const choices = operandChoices(mnemonic.value, operands.value);
   if (choices.immediate !== null) {
-    const number = typedNumber.value;
-    if (number !== null && !fitsIn(number, choices.immediate)) {
-      return `${filter.value} does not fit in ${choices.immediate} bits`;
-    }
     return `Type a number for an immediate (42, 0x2A, 2Ah, 101010b)`;
   }
   if (choices.label) return 'Pick a line to jump to, or type its number';
@@ -296,8 +128,6 @@ const moreToChoose = computed(
     hasMoreOperands(mnemonic.value, operands.value)
 );
 
-const doesNotFit = computed(() => filter.value !== '' && typingHint.value.includes('does not fit'));
-
 /** The option Enter would pick. */
 const enterOption = computed(() =>
   complete.value && !filter.value.trim() ? null : (visibleOptions.value[0] ?? null)
@@ -310,8 +140,7 @@ const enterOption = computed(() =>
 const preview = computed<{ label: string; text: string } | null>(() => {
   const option = hovered.value ?? (mnemonic.value === null ? enterOption.value : null);
   if (option?.hint) return { label: option.label, text: option.hint };
-  if (mnemonic.value)
-    return { label: mnemonic.value, text: INSTRUCTIONS[mnemonic.value].description };
+  if (mnemonic.value) return { label: mnemonic.value, text: getSpec(mnemonic.value).description };
   return null;
 });
 
@@ -332,8 +161,25 @@ function focusInput(): void {
 
 onMounted(focusInput);
 
-function choose(option: Option): void {
-  option.apply();
+function apply(action: OptionAction): void {
+  switch (action.kind) {
+    case 'prefix':
+      prefix.value = action.prefix;
+      return;
+    case 'mnemonic':
+      mnemonic.value = action.mnemonic;
+      return;
+    case 'operand':
+      addOperand(action.operand);
+      return;
+    case 'memory':
+      pendingMemory.value = action.size;
+      return;
+  }
+}
+
+function choose(option: BuilderOption): void {
+  apply(option.action);
   hovered.value = null;
   filter.value = '';
   focusInput();
@@ -345,19 +191,12 @@ function truncateTo(index: number): void {
     clear();
     return;
   }
+  pendingMemory.value = null;
   if (prefix.value && index === 1) {
     mnemonic.value = null;
     operands.value = [];
-    pendingMemory.value = null;
-    focusInput();
-    return;
-  }
-  const keep = index - (prefix.value ? 2 : 1);
-  if (keep < operands.value.length) {
-    operands.value = operands.value.slice(0, keep);
-    pendingMemory.value = null;
   } else {
-    pendingMemory.value = null;
+    operands.value = operands.value.slice(0, index - (prefix.value ? 2 : 1));
   }
   focusInput();
 }
