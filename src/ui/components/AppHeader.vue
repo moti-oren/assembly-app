@@ -17,6 +17,11 @@ import { usePreferences } from '@/ui/usePreferences';
 defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
 
 const { isDark, soundOn, toggleTheme } = usePreferences();
+
+/** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
+const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
+  ? '⌘K'
+  : 'Ctrl K';
 </script>
 
 <template>
@@ -46,7 +51,7 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
         >
           <Search />
           <span class="hidden sm:inline">Commands</span>
-          <Kbd class="hidden sm:inline-flex">Ctrl K</Kbd>
+          <Kbd class="hidden sm:inline-flex">{{ shortcut }}</Kbd>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -95,7 +100,7 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
               <VolumeX v-else />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{{ soundOn ? 'Sound on' : 'Sound off' }}</TooltipContent>
+          <TooltipContent>{{ soundOn ? 'Turn sound off' : 'Turn sound on' }}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -110,7 +115,9 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
               <Moon v-else />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{{ isDark ? 'Light theme' : 'Dark theme' }}</TooltipContent>
+          <TooltipContent>{{
+            isDark ? 'Switch to light theme' : 'Switch to dark theme'
+          }}</TooltipContent>
         </Tooltip>
       </div>
     </div>
