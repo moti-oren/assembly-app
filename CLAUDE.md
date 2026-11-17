@@ -19,6 +19,8 @@ npm run lint         # eslint . (flat config)
 npm run format       # prettier --write src
 ```
 
+When a change adds, renames or removes a command (an npm script in `package.json`, or a command developers now run), update this list in the same change. Also update the commands in `README.md`, in both languages.
+
 Style: Prettier with single quotes, semicolons, no trailing commas, 100 columns. Path alias `@` → `src`.
 
 ## Architecture
@@ -69,7 +71,13 @@ Two layers; keep them separate.
   4. Verify `git status` is clean and report the branch and commits to the user, **in Hebrew** (see "Language with the user").
   - **Partial work is exempt:** if the task is only partly done (blocked, failing, waiting for a user decision, or the user stopped midway), do **not** commit or create a branch. Leave the changes uncommitted and say what remains.
   - Do not commit unrelated pre-existing changes the user left in the tree; stage only files that belong to this task.
-- **Still needs an explicit request:** `git push`, merging into `main`, amending, and rewriting history (rebase, `reset --hard`, force-push). Prefer a new commit over amending.
+- **Still needs an explicit request:** merging into `main`, amending, and rewriting history (rebase, `reset --hard`, force-push). Prefer a new commit over amending. A `git push` also needs a request, except the push that follows a merge (next rule).
+- **After a merge, push and clean up:** when you merge a branch into `main` (only when the user asked for the merge), finish the job without asking again:
+  1. On the merged `main`, run `npm run typecheck`, `npm run lint` and `npm test`. If anything fails, stop: do not push and do not delete the branch; report it.
+  2. `git push origin main`. Never force-push. If the push is rejected or fails, stop, keep the branch, and report why.
+  3. Only after the push succeeded, delete the branch locally with `git branch -d <branch>` (the safe form, which refuses an unmerged branch; never `-D`) and on the remote with `git push origin --delete <branch>` if it exists there.
+  4. Report in Hebrew what was merged, pushed and deleted.
+  - This applies only to a merge that Claude performs. Pushing a branch that is not being merged still needs an explicit request.
 - **Language of the commits themselves:** the text stored in git (commit subjects and bodies, branch names, code and code comments) is in English.
 - **Destructive commands:** before `git reset`, `git checkout -- <path>`, `git clean` or `git stash drop`, inspect what will be lost (`git status`, `git diff`). Uncommitted work may be the user's.
 - **Large moves:** commit deletions, moves/renames and new content separately, so `git log --follow` and blame keep working.
