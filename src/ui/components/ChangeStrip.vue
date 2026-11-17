@@ -36,7 +36,7 @@ const changes = computed(() => {
 <template>
   <!-- On a narrow screen the CPU panels scroll away; this keeps the last result in sight. -->
   <div
-    class="sticky top-14 z-10 flex items-center gap-2 overflow-x-auto border-b bg-background/85 px-4 py-1.5 font-mono text-xs whitespace-nowrap backdrop-blur-sm"
+    class="sticky top-14 z-(--z-strip) flex items-center gap-2 overflow-x-auto border-b bg-background/85 px-4 py-1.5 font-mono text-xs whitespace-nowrap backdrop-blur-sm"
     aria-live="polite"
   >
     <span class="font-semibold">{{ formatInstruction(record.instruction) }}</span>

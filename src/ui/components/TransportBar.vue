@@ -92,7 +92,7 @@ const toggles = computed(() => [
 
 <template>
   <!-- Always on screen, so the program can be driven while watching any part of the CPU. -->
-  <footer class="sticky bottom-0 z-20 border-t bg-background/85 backdrop-blur-sm">
+  <footer class="sticky bottom-0 z-(--z-sticky) border-t bg-background/85 backdrop-blur-sm">
     <!-- Next to the buttons that ran the program, so a stop is seen where it was caused. -->
     <p
       v-if="error"

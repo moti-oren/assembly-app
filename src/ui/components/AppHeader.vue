@@ -27,7 +27,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
 </script>
 
 <template>
-  <header class="sticky top-0 z-20 border-b bg-background/85 backdrop-blur-sm">
+  <header class="sticky top-0 z-(--z-sticky) border-b bg-background/85 backdrop-blur-sm">
     <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 lg:px-6">
       <div class="flex items-center gap-2.5">
         <div

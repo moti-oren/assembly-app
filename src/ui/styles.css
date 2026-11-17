@@ -104,6 +104,10 @@
   --changed-foreground: oklch(0.42 0.09 70);
   /* The brief peak of the flash a value gives off as it changes. */
   --changed-glow: oklch(0.86 0.16 90);
+  /* Stacking, lowest first. Dialogs, menus and tooltips (shadcn) sit at 50, above all of these. */
+  --z-strip: 10;
+  --z-sticky: 20;
+  --z-flight: 40;
   /* Text on the glow, which is bright in both themes. */
   --changed-glow-foreground: oklch(0.25 0.05 70);
   --pointer: oklch(0.55 0.18 255);
@@ -407,7 +411,7 @@
   .data-flow-layer {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: var(--z-flight);
     overflow: hidden;
     pointer-events: none;
   }
