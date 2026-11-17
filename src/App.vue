@@ -135,7 +135,7 @@ const encodingShown = computed(() =>
 
       <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
       <main
-        class="mx-auto grid w-full max-w-7xl flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
+        class="mx-auto grid w-full max-w-(--page-width) flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
       >
         <!-- Each column's cards can be dragged into any order, but never into the other column. -->
         <SortableColumn

@@ -6,7 +6,7 @@ import { appError } from '@/ui/appError';
 </script>
 
 <template>
-  <div v-if="appError" class="mx-auto w-full max-w-7xl px-4 pt-4 lg:px-6">
+  <div v-if="appError" class="mx-auto w-full max-w-(--page-width) px-4 pt-4 lg:px-6">
     <Alert variant="destructive" role="alert">
       <CircleAlert />
       <AlertTitle>Something went wrong inside the playground.</AlertTitle>

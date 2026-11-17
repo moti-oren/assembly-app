@@ -98,14 +98,14 @@ const toggles = computed(() => [
     <p
       v-if="error"
       role="alert"
-      class="mx-auto flex max-w-7xl items-start gap-2 px-4 pt-2.5 text-sm text-destructive lg:px-6"
+      class="mx-auto flex max-w-(--page-width) items-start gap-2 px-4 pt-2.5 text-sm text-destructive lg:px-6"
     >
       <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       {{ error }}
     </p>
     <!-- Each group wraps onto a row of its own rather than pushing the page wider than the screen. -->
     <div
-      class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6"
+      class="mx-auto flex max-w-(--page-width) flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6"
       role="toolbar"
       aria-label="Program and history controls"
     >
