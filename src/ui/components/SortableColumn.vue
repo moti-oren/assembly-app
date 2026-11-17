@@ -1,10 +1,16 @@
 <script setup lang="ts" generic="K extends string">
-import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useId } from 'vue';
+import { nextTick, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue';
 import { GripHorizontal } from '@lucide/vue';
+import { dragTarget, settleOffset, shiftFor, type Slot } from '@/ui/reorder';
 
 /**
- * A column of cards the user can put in any order by dragging a card's handle, or with the
- * arrow keys on the handle. A card can only move within its own column.
+ * A column of cards the user can put in any order by dragging a card's grip, or with the
+ * arrow keys on the grip. A card can only move within its own column.
+ *
+ * While a card is dragged nothing moves in the page itself: the dragged card follows the
+ * pointer and the others slide aside, all drawn with `translate`. The new order is saved once,
+ * when the card is dropped. Moving elements during the drag would cost the pointer capture
+ * and the pointer's events along with it.
  */
 const props = defineProps<{
   /** The cards on show, in order; each one is the name of a slot. */
@@ -19,18 +25,37 @@ const emit = defineEmits<{
 
 defineSlots<Record<K, () => unknown>>();
 
+/** Edge of the window, in pixels, where holding a dragged card scrolls the page. */
+const EDGE = 120;
+const MAX_SCROLL_STEP = 18;
+/** How long a dropped card takes to settle; matches the transitions in styles.css. */
+const SETTLE_MS = 200;
+
 const root = ref<HTMLElement | null>(null);
-/** The order while a card is being dragged; it is only saved when the card is dropped. */
-const working = shallowRef<K[] | null>(null);
-const shown = computed<K[]>(() => working.value ?? props.keys);
-const dragging = shallowRef<K | null>(null);
-/** How far the dragged card is drawn from its place in the column. */
-const offset = ref(0);
+/** The card being dragged, or settling into place after a drop. */
+const active = shallowRef<K | null>(null);
+const phase = ref<'dragging' | 'settling'>('dragging');
+/** How far the active card is drawn from its own place. */
+const dragY = ref(0);
+/** The place the active card would drop into now. */
+const target = ref(0);
+/** Set for the one frame in which the new order replaces the drawn one, so nothing animates. */
+const instant = ref(false);
 const announcement = ref('');
 const hintId = useId();
 
-const EDGE = 120;
-const MAX_SCROLL_STEP = 16;
+/* Measured when a drag begins; the page does not change under a drag. */
+let slots: Slot[] = [];
+let home = 0;
+let gap = 0;
+let minY = 0;
+let maxY = 0;
+let start = { pointerId: -1, pageY: 0 };
+let pointerY = 0;
+let scrollFrame = 0;
+let settleTimer = 0;
+
+const calm = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function card(key: K): HTMLElement | null {
   return root.value?.querySelector<HTMLElement>(`[data-sortable="${key}"]`) ?? null;
@@ -40,17 +65,172 @@ function handle(key: K): HTMLElement | null {
   return card(key)?.querySelector<HTMLElement>('[data-sortable-handle]') ?? null;
 }
 
-const calm = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function announce(key: K, keys: readonly K[]): void {
+  announcement.value = `${props.labels[key]} moved to position ${keys.indexOf(key) + 1} of ${keys.length}`;
+}
+
+/** Where each card is drawn while a drag is on. */
+function cardStyle(key: K, index: number): Record<string, string> | undefined {
+  if (active.value === null) return undefined;
+  if (key === active.value) return { translate: `0 ${dragY.value}px` };
+  const shift = shiftFor(slots, home, target.value, index, gap);
+  return shift === 0 ? undefined : { translate: `0 ${shift}px` };
+}
+
+/* Dragging */
+
+function onPointerDown(event: PointerEvent, key: K): void {
+  if (event.button !== 0 || active.value !== null) return;
+  event.preventDefault();
+  const column = root.value;
+  if (!column) return;
+
+  slots = props.keys.map((item) => {
+    const element = card(item);
+    return { top: element?.offsetTop ?? 0, height: element?.offsetHeight ?? 0 };
+  });
+  home = props.keys.indexOf(key);
+  gap = parseFloat(getComputedStyle(column).rowGap) || 0;
+  // The card can travel from the top of the column to its bottom, and no further.
+  const last = slots[slots.length - 1];
+  minY = slots[0].top - slots[home].top;
+  maxY = last.top + last.height - (slots[home].top + slots[home].height);
+
+  start = { pointerId: event.pointerId, pageY: event.clientY + window.scrollY };
+  pointerY = event.clientY;
+  target.value = home;
+  dragY.value = 0;
+  phase.value = 'dragging';
+  active.value = key;
+
+  document.documentElement.classList.add('sorting');
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', cancel);
+  window.addEventListener('keydown', onDragKey);
+  window.addEventListener('blur', cancel);
+  window.addEventListener('scroll', follow, { passive: true });
+  scrollFrame = requestAnimationFrame(autoScroll);
+}
+
+function onPointerMove(event: PointerEvent): void {
+  if (event.pointerId !== start.pointerId) return;
+  pointerY = event.clientY;
+  follow();
+}
+
+/** Keeps the dragged card under the pointer, and the others out of its way. */
+function follow(): void {
+  if (active.value === null || phase.value !== 'dragging') return;
+  const travelled = pointerY + window.scrollY - start.pageY;
+  dragY.value = Math.min(maxY, Math.max(minY, travelled));
+  target.value = dragTarget(slots, home, dragY.value);
+}
+
+/** Scrolls the page while the dragged card is held near the top or bottom of the window. */
+function autoScroll(): void {
+  if (active.value === null || phase.value !== 'dragging') return;
+  const fromBottom = window.innerHeight - pointerY;
+  const step =
+    pointerY < EDGE
+      ? -Math.ceil(((EDGE - pointerY) / EDGE) * MAX_SCROLL_STEP)
+      : fromBottom < EDGE
+        ? Math.ceil(((EDGE - fromBottom) / EDGE) * MAX_SCROLL_STEP)
+        : 0;
+  if (step !== 0) window.scrollBy(0, step);
+  scrollFrame = requestAnimationFrame(autoScroll);
+}
+
+function onPointerUp(event: PointerEvent): void {
+  if (event.pointerId !== start.pointerId) return;
+  drop();
+}
+
+/** Escape, a cancelled pointer, or leaving the window puts the card back where it was. */
+function cancel(): void {
+  if (active.value === null || phase.value !== 'dragging') return;
+  target.value = home;
+  drop();
+}
+
+function onDragKey(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    cancel();
+  }
+}
+
+/** Lets go of the card: it glides into its new place, and then the order is saved. */
+function drop(): void {
+  const key = active.value;
+  if (key === null || phase.value !== 'dragging') return;
+  stopListening();
+  phase.value = 'settling';
+  const to = target.value;
+  dragY.value = settleOffset(slots, home, to, gap);
+  window.clearTimeout(settleTimer);
+  settleTimer = window.setTimeout(() => commit(key, to), calm() ? 0 : SETTLE_MS);
+}
 
 /**
- * Changes the order, then slides every card that moved from where it was to its new place
- * (FLIP), so cards glide out of the way instead of jumping. `except` is left to the caller.
+ * Swaps the drawn order for the real one in a single frame without transitions. Every card is
+ * already drawn where the new order puts it, so nothing on screen moves.
  */
-async function reorder(change: () => void, except: K | null): Promise<void> {
+async function commit(key: K, to: number): Promise<void> {
+  instant.value = true;
+  if (to !== home) {
+    const order = props.keys.filter((item) => item !== key);
+    order.splice(to, 0, key);
+    emit('move', key, to);
+    announce(key, order);
+  }
+  active.value = null;
+  dragY.value = 0;
+  await nextTick();
+  requestAnimationFrame(() => {
+    instant.value = false;
+  });
+}
+
+function stopListening(): void {
+  cancelAnimationFrame(scrollFrame);
+  document.documentElement.classList.remove('sorting');
+  window.removeEventListener('pointermove', onPointerMove);
+  window.removeEventListener('pointerup', onPointerUp);
+  window.removeEventListener('pointercancel', cancel);
+  window.removeEventListener('keydown', onDragKey);
+  window.removeEventListener('blur', cancel);
+  window.removeEventListener('scroll', follow);
+}
+
+/** A card shown or hidden mid-drag (the I/O panel opens by itself) ends the drag at once. */
+watch(
+  () => props.keys.join(),
+  () => {
+    if (active.value === null) return;
+    stopListening();
+    window.clearTimeout(settleTimer);
+    active.value = null;
+    dragY.value = 0;
+  }
+);
+
+onBeforeUnmount(() => {
+  stopListening();
+  window.clearTimeout(settleTimer);
+});
+
+/* Keyboard */
+
+/**
+ * Changes the order, then slides every card from where it was to its new place (FLIP), so the
+ * cards glide instead of jumping.
+ */
+async function reorder(change: () => void): Promise<void> {
   const before = new Map<K, number>();
-  for (const key of shown.value) {
+  for (const key of props.keys) {
     const element = card(key);
-    if (element && key !== except) before.set(key, element.getBoundingClientRect().top);
+    if (element) before.set(key, element.getBoundingClientRect().top);
   }
   change();
   await nextTick();
@@ -68,145 +248,6 @@ async function reorder(change: () => void, except: K | null): Promise<void> {
   }
 }
 
-function announce(key: K, keys: readonly K[]): void {
-  announcement.value = `${props.labels[key]} moved to position ${keys.indexOf(key) + 1} of ${keys.length}`;
-}
-
-/* Dragging */
-
-interface Drag {
-  key: K;
-  pointerId: number;
-  /** Pointer and scroll position, and the card's place, when the drag began. */
-  pointerY: number;
-  scrollY: number;
-  top: number;
-  original: K[];
-}
-
-let drag: Drag | null = null;
-let pointerY = 0;
-let busy = false;
-let scrollFrame = 0;
-
-function onPointerDown(event: PointerEvent, key: K): void {
-  if (event.button !== 0 || drag) return;
-  const element = card(key);
-  if (!element) return;
-  event.preventDefault();
-  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  pointerY = event.clientY;
-  drag = {
-    key,
-    pointerId: event.pointerId,
-    pointerY: event.clientY,
-    scrollY: window.scrollY,
-    top: element.offsetTop,
-    original: [...props.keys]
-  };
-  working.value = [...props.keys];
-  dragging.value = key;
-  offset.value = 0;
-  document.documentElement.classList.add('sorting');
-  window.addEventListener('scroll', follow, { passive: true });
-  window.addEventListener('keydown', onDragKey);
-  scrollFrame = requestAnimationFrame(autoScroll);
-}
-
-function onPointerMove(event: PointerEvent): void {
-  if (!drag || event.pointerId !== drag.pointerId) return;
-  pointerY = event.clientY;
-  follow();
-}
-
-/** Draws the card under the pointer, and moves it in the order once it passes a neighbour. */
-function follow(): void {
-  if (!drag) return;
-  const element = card(drag.key);
-  if (!element) return;
-  const travelled = pointerY + window.scrollY - (drag.pointerY + drag.scrollY);
-  offset.value = travelled - (element.offsetTop - drag.top);
-  if (busy) return;
-
-  const centre = element.offsetTop + offset.value + element.offsetHeight / 2;
-  const others = shown.value.filter((key) => key !== drag!.key);
-  const to = others.filter((key) => {
-    const other = card(key);
-    return other !== null && other.offsetTop + other.offsetHeight / 2 < centre;
-  }).length;
-  if (to === shown.value.indexOf(drag.key)) return;
-
-  const key = drag.key;
-  const next = [...others.slice(0, to), key, ...others.slice(to)];
-  busy = true;
-  void reorder(() => {
-    working.value = next;
-  }, key).then(() => {
-    busy = false;
-    follow();
-  });
-}
-
-/** Scrolls the page while the dragged card is held near the top or bottom of the window. */
-function autoScroll(): void {
-  if (!drag) return;
-  const fromBottom = window.innerHeight - pointerY;
-  const step =
-    pointerY < EDGE
-      ? -Math.ceil(((EDGE - pointerY) / EDGE) * MAX_SCROLL_STEP)
-      : fromBottom < EDGE
-        ? Math.ceil(((EDGE - fromBottom) / EDGE) * MAX_SCROLL_STEP)
-        : 0;
-  if (step !== 0) window.scrollBy(0, step);
-  scrollFrame = requestAnimationFrame(autoScroll);
-}
-
-function onPointerUp(event: PointerEvent): void {
-  if (!drag || event.pointerId !== drag.pointerId) return;
-  const { key, original } = drag;
-  const order = shown.value;
-  finish();
-  if (order.join() !== original.join()) {
-    emit('move', key, order.indexOf(key));
-    announce(key, order);
-  }
-}
-
-/**
- * Escape, or a cancelled pointer, puts every card back where it was: the saved order never
- * changed during the drag, so ending it without saving is enough.
- */
-function cancel(): void {
-  finish();
-}
-
-function onDragKey(event: KeyboardEvent): void {
-  if (event.key === 'Escape') {
-    event.preventDefault();
-    cancel();
-  }
-}
-
-/** Ends the drag; every card, the dropped one too, glides from where it was drawn into place. */
-function finish(): void {
-  if (!drag) return;
-  drag = null;
-  busy = false;
-  cancelAnimationFrame(scrollFrame);
-  window.removeEventListener('scroll', follow);
-  window.removeEventListener('keydown', onDragKey);
-  document.documentElement.classList.remove('sorting');
-  void reorder(() => {
-    dragging.value = null;
-    offset.value = 0;
-    working.value = null;
-  }, null);
-}
-
-onBeforeUnmount(finish);
-
-/* Keyboard */
-
 function onHandleKey(event: KeyboardEvent, key: K): void {
   const index = props.keys.indexOf(key);
   const to =
@@ -221,11 +262,11 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
             : null;
   if (to === null) return;
   event.preventDefault();
-  if (to < 0 || to >= props.keys.length || to === index) return;
+  if (active.value !== null || to < 0 || to >= props.keys.length || to === index) return;
   const order = props.keys.filter((item) => item !== key);
   order.splice(to, 0, key);
-  void reorder(() => emit('move', key, to), null).then(() => {
-    // Moving the card in the page takes focus off its handle; give it back.
+  void reorder(() => emit('move', key, to)).then(() => {
+    // Moving the card in the page takes focus off its grip; give it back.
     handle(key)?.focus();
     handle(key)?.scrollIntoView({ block: 'nearest' });
   });
@@ -234,14 +275,21 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
 </script>
 
 <template>
-  <div ref="root" class="relative flex min-w-0 flex-col gap-4">
+  <div
+    ref="root"
+    class="relative flex min-w-0 flex-col gap-4"
+    :class="{ 'sortable-instant': instant }"
+  >
     <div
-      v-for="key in shown"
+      v-for="(key, index) in keys"
       :key="key"
       :data-sortable="key"
-      class="relative"
-      :class="{ 'sortable-dragging': key === dragging }"
-      :style="key === dragging ? { transform: `translateY(${offset}px)` } : undefined"
+      class="sortable-item relative"
+      :class="{
+        'sortable-lifted': key === active && phase === 'dragging',
+        'sortable-settling': key === active && phase === 'settling'
+      }"
+      :style="cardStyle(key, index)"
     >
       <button
         type="button"
@@ -251,9 +299,6 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
         :aria-describedby="hintId"
         title="Drag to move this card within its column"
         @pointerdown="onPointerDown($event, key)"
-        @pointermove="onPointerMove"
-        @pointerup="onPointerUp"
-        @pointercancel="cancel"
         @keydown="onHandleKey($event, key)"
       >
         <GripHorizontal aria-hidden="true" />

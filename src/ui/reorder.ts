@@ -34,3 +34,71 @@ export function moveAmongVisible<K>(
   }
   return [...rest.slice(0, index), key, ...rest.slice(index)];
 }
+
+/** Where a card sits in its column, in page pixels, measured when a drag begins. */
+export interface Slot {
+  top: number;
+  height: number;
+}
+
+/**
+ * How far the dragged card's leading edge has to reach into a neighbour to take its place:
+ * a short way into a tall card, so a drag never needs more than a small move; half of a
+ * short one, so the swap does not happen the moment the edges touch.
+ */
+export const SWAP_DISTANCE = 48;
+
+function reach(slot: Slot): number {
+  return Math.min(slot.height / 2, SWAP_DISTANCE);
+}
+
+/**
+ * The place the card at `home` would drop into after moving `dy` pixels. It is worked out from
+ * where every card was when the drag began, so the answer depends only on `dy`: the cards that
+ * slide aside never feed back into it, and nothing flickers back and forth.
+ */
+export function dragTarget(slots: readonly Slot[], home: number, dy: number): number {
+  const top = slots[home].top + dy;
+  const bottom = top + slots[home].height;
+  let target = home;
+  if (dy > 0) {
+    for (let index = home + 1; index < slots.length; index++) {
+      if (bottom <= slots[index].top + reach(slots[index])) break;
+      target = index;
+    }
+  } else if (dy < 0) {
+    for (let index = home - 1; index >= 0; index--) {
+      const slot = slots[index];
+      if (top >= slot.top + slot.height - reach(slot)) break;
+      target = index;
+    }
+  }
+  return target;
+}
+
+/** How far card `index` slides to make room while the card at `home` hovers over `target`. */
+export function shiftFor(
+  slots: readonly Slot[],
+  home: number,
+  target: number,
+  index: number,
+  gap: number
+): number {
+  const room = slots[home].height + gap;
+  if (index > home && index <= target) return -room;
+  if (index < home && index >= target) return room;
+  return 0;
+}
+
+/** How far the dragged card is from its starting place once it settles at `target`. */
+export function settleOffset(
+  slots: readonly Slot[],
+  home: number,
+  target: number,
+  gap: number
+): number {
+  let offset = 0;
+  for (let index = home + 1; index <= target; index++) offset += slots[index].height + gap;
+  for (let index = target; index < home; index++) offset -= slots[index].height + gap;
+  return offset;
+}
