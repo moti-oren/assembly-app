@@ -4,6 +4,7 @@ import { assemble } from '@/core/encode';
 import { formatInstruction, type Instruction } from '@/core/instructions';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import AppErrorNotice from '@/ui/components/AppErrorNotice.vue';
 import AppHeader from '@/ui/components/AppHeader.vue';
 import ChangeStrip from '@/ui/components/ChangeStrip.vue';
 import ClearProgramDialog from '@/ui/components/ClearProgramDialog.vue';
@@ -101,6 +102,7 @@ const encodingShown = computed(() =>
         :lines="program.length"
         @confirm="cpu.clearProgram"
       />
+      <AppErrorNotice />
       <ChangeStrip v-if="lastRecord" class="lg:hidden" :state="state" :record="lastRecord" />
 
       <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
