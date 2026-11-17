@@ -39,7 +39,7 @@ export const REGISTER_DESCRIPTIONS: Record<WordRegister, string> = {
   ds: 'Data segment: default for memory operands',
   es: 'Extra segment',
   ss: 'Stack segment: used by PUSH/POP and [bp]',
-  ip: 'Instruction pointer: the next program line to run (lines are not encoded into bytes)'
+  ip: 'Instruction pointer: the next program line to run'
 };
 
 /** The word registers whose two halves are byte registers of their own (AH and AL for AX). */

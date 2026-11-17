@@ -114,7 +114,7 @@ const typingHint = computed(() => {
   }
   const choices = operandChoices(mnemonic.value, operands.value);
   if (choices.immediate !== null) {
-    return `Type a number for an immediate (42, 0x2A, 2Ah, 101010b)`;
+    return 'Type a number: 42 (decimal), 0x2A or 2Ah (hex), 101010b (binary)';
   }
   if (choices.label) return 'Pick a line to jump to, or type its number';
   if (complete.value) return READY_HINT;
@@ -421,7 +421,14 @@ function onBackspace(event: KeyboardEvent): void {
             </Button>
           </div>
         </div>
-        <p v-if="groups.length === 0" class="text-sm text-muted-foreground">{{ typingHint }}</p>
+        <!-- A number that is too big already has its own message above. -->
+        <p v-if="groups.length === 0 && !doesNotFit" class="text-sm text-muted-foreground">
+          <template v-if="filter.trim()">
+            Nothing matches “<span class="font-mono text-foreground">{{ filter }}</span
+            >”. Press <Kbd>Backspace</Kbd> to edit it or <Kbd>Esc</Kbd> to start over.
+          </template>
+          <template v-else>{{ typingHint }}</template>
+        </p>
       </div>
       <div v-else-if="!moreToChoose" class="text-sm text-muted-foreground">
         <p>
@@ -433,7 +440,7 @@ function onBackspace(event: KeyboardEvent): void {
 
     <CardFooter class="justify-between gap-3">
       <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
-        <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run</span>
+        <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run now</span>
         <span class="flex items-center gap-1.5">
           <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup> add
         </span>

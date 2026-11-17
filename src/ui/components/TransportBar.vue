@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import {
   Binary,
   Cable,
+  CircleAlert,
   FastForward,
   Footprints,
   ListOrdered,
@@ -35,6 +36,8 @@ const props = defineProps<{
   historyShown: boolean;
   devicesShown: boolean;
   bytesShown: boolean;
+  /** Why the last step or run stopped, if the CPU raised an error. */
+  error: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -62,11 +65,43 @@ const nextPhase = computed(() =>
 );
 
 const total = computed(() => props.executed + props.undone);
+
+const positionText = computed(() => `${props.executed} of ${total.value} instructions run`);
+
+const toggles = computed(() => [
+  {
+    label: 'History',
+    icon: ListOrdered,
+    shown: props.historyShown,
+    flip: () => emit('update:historyShown', !props.historyShown)
+  },
+  {
+    label: 'I/O',
+    icon: Cable,
+    shown: props.devicesShown,
+    flip: () => emit('update:devicesShown', !props.devicesShown)
+  },
+  {
+    label: 'Machine code',
+    icon: Binary,
+    shown: props.bytesShown,
+    flip: () => emit('update:bytesShown', !props.bytesShown)
+  }
+]);
 </script>
 
 <template>
   <!-- Always on screen, so the program can be driven while watching any part of the CPU. -->
   <footer class="sticky bottom-0 z-20 border-t bg-background/85 backdrop-blur-sm">
+    <!-- Next to the buttons that ran the program, so a stop is seen where it was caused. -->
+    <p
+      v-if="error"
+      role="alert"
+      class="mx-auto flex max-w-7xl items-start gap-2 px-4 pt-2.5 text-sm text-destructive lg:px-6"
+    >
+      <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      {{ error }}
+    </p>
     <div
       class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6"
       role="toolbar"
@@ -83,6 +118,7 @@ const total = computed(() => props.executed + props.undone);
               variant="outline"
               size="sm"
               class="w-24 justify-start"
+              :aria-label="`Step: ${nextPhase}`"
               :disabled="finished"
               @click="emit('phase')"
             >
@@ -100,11 +136,14 @@ const total = computed(() => props.executed + props.undone);
         </Button>
         <Button v-else variant="outline" size="sm" :disabled="finished" @click="emit('run')">
           <FastForward />
-          Run
+          Run program
         </Button>
         <Select :model-value="speed" @update:model-value="setSpeed">
-          <SelectTrigger size="sm" class="w-26" aria-label="Run speed">
-            <SelectValue />
+          <SelectTrigger size="sm" class="w-34" aria-label="Run speed">
+            <!-- The value alone ("Fast") does not say what it is the value of. -->
+            <SelectValue>
+              <span class="text-muted-foreground">Speed:</span> {{ SPEED_LABELS[speed] }}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="(label, value) in SPEED_LABELS" :key="value" :value="value">
@@ -155,39 +194,30 @@ const total = computed(() => props.executed + props.undone);
           aria-label="Move through the executed instructions"
           @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
         />
-        <span class="w-16 text-right font-mono text-xs text-muted-foreground tabular-nums">
-          {{ executed }} / {{ total }}
+        <span
+          class="w-16 text-right font-mono text-xs text-muted-foreground tabular-nums"
+          :title="positionText"
+        >
+          <span aria-hidden="true">{{ executed }} / {{ total }}</span>
+          <span class="sr-only">{{ positionText }}</span>
         </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          :class="historyShown ? 'bg-secondary' : ''"
-          :aria-pressed="historyShown"
-          @click="emit('update:historyShown', !historyShown)"
-        >
-          <ListOrdered />
-          <span class="hidden sm:inline">History</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          :class="devicesShown ? 'bg-secondary' : ''"
-          :aria-pressed="devicesShown"
-          @click="emit('update:devicesShown', !devicesShown)"
-        >
-          <Cable />
-          <span class="hidden sm:inline">I/O</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          :class="bytesShown ? 'bg-secondary' : ''"
-          :aria-pressed="bytesShown"
-          @click="emit('update:bytesShown', !bytesShown)"
-        >
-          <Binary />
-          <span class="hidden sm:inline">Bytes</span>
-        </Button>
+        <!-- Icons only on a narrow screen, so the name moves into the label and a tooltip. -->
+        <Tooltip v-for="toggle in toggles" :key="toggle.label">
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              :class="toggle.shown ? 'bg-secondary' : ''"
+              :aria-label="toggle.label"
+              :aria-pressed="toggle.shown"
+              @click="toggle.flip"
+            >
+              <component :is="toggle.icon" />
+              <span class="hidden sm:inline">{{ toggle.label }}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent class="sm:hidden">{{ toggle.label }}</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   </footer>

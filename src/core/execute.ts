@@ -115,7 +115,7 @@ class ExecutionContext {
       case 'imm':
       case 'label':
         throw new CpuError(
-          `Cannot write to ${operand.type === 'imm' ? 'an immediate value' : 'a label'}`
+          `${operand.type === 'imm' ? 'A number' : 'A line label'} can't be a destination. Pick a register or memory first.`
         );
     }
   }
@@ -133,7 +133,7 @@ class ExecutionContext {
 
   jump(target: Operand): void {
     if (target.type !== 'label') {
-      throw new CpuError('Jump target must be a label');
+      throw new CpuError('A jump needs a program line (L0, L1, …) as its target.');
     }
     writeRegister(this.state, 'ip', target.target);
   }
@@ -235,7 +235,8 @@ class ExecutionContext {
     if (!handler) {
       const vector = formatHex(type * VECTOR_SIZE, 16);
       throw new CpuError(
-        `Interrupt ${formatHex(type, 8)}h has no handler: its vector at 0000:${vector} is empty`
+        `INT ${formatHex(type, 8)}h has no handler yet: its vector at 0000:${vector} is empty. ` +
+          `Store the handler's line in that vector first (see the "Software interrupt" example).`
       );
     }
     this.push(this.state.flags);
@@ -449,6 +450,16 @@ function divideError(reason: string): never {
   throw new DivideError(`Divide error (#DE): ${reason}`);
 }
 
+const DIVISOR_ZERO = 'the divisor is 0. Put a non-zero value in it first.';
+
+function quotientTooBig(quotient: number, size: Size): never {
+  return size === 8
+    ? divideError(
+        `the quotient ${quotient} is too big for AL. Divide a smaller value, or use a 16-bit divisor.`
+      )
+    : divideError(`the quotient ${quotient} is too big for AX. Divide a smaller value in DX:AX.`);
+}
+
 const HANDLERS: Record<Mnemonic, Handler> = {
   mov: (ctx, [dst, src]) => ctx.write(dst, ctx.read(src)),
   xchg: (ctx, [a, b]) => {
@@ -497,24 +508,24 @@ const HANDLERS: Record<Mnemonic, Handler> = {
   },
   div: (ctx, [src]) => {
     const divisor = ctx.read(src);
-    if (divisor === 0) divideError('division by zero');
+    if (divisor === 0) divideError(DIVISOR_ZERO);
     if (ctx.size === 8) {
       const dividend = readRegister(ctx.state, 'ax');
       const quotient = Math.floor(dividend / divisor);
-      if (quotient > 0xff) divideError(`quotient ${quotient} does not fit in AL`);
+      if (quotient > 0xff) quotientTooBig(quotient, 8);
       writeRegister(ctx.state, 'al', quotient);
       writeRegister(ctx.state, 'ah', dividend % divisor);
     } else {
       const dividend = readRegister(ctx.state, 'dx') * 0x10000 + readRegister(ctx.state, 'ax');
       const quotient = Math.floor(dividend / divisor);
-      if (quotient > 0xffff) divideError(`quotient ${quotient} does not fit in AX`);
+      if (quotient > 0xffff) quotientTooBig(quotient, 16);
       writeRegister(ctx.state, 'ax', quotient);
       writeRegister(ctx.state, 'dx', dividend % divisor);
     }
   },
   idiv: (ctx, [src]) => {
     const divisor = toSigned(ctx.read(src), ctx.size);
-    if (divisor === 0) divideError('division by zero');
+    if (divisor === 0) divideError(DIVISOR_ZERO);
     const dividend =
       ctx.size === 8
         ? toSigned(readRegister(ctx.state, 'ax'), 16)
@@ -523,7 +534,7 @@ const HANDLERS: Record<Mnemonic, Handler> = {
     const remainder = dividend % divisor; // takes the sign of the dividend, like the 8086
     const limit = signBit(ctx.size);
     if (quotient < -limit || quotient > limit - 1) {
-      divideError(`quotient ${quotient} does not fit in ${ctx.size === 8 ? 'AL' : 'AX'}`);
+      quotientTooBig(quotient, ctx.size);
     }
     if (ctx.size === 8) {
       writeRegister(ctx.state, 'al', quotient);
@@ -640,7 +651,9 @@ export function execute(
   line: number | null = null
 ): ExecutionRecord {
   if (!isValid(instruction)) {
-    throw new CpuError(`Invalid instruction: ${formatInstruction(instruction)}`);
+    throw new CpuError(
+      `${formatInstruction(instruction)} isn't a valid 8086 instruction. Remove the last word and pick again.`
+    );
   }
 
   const ctx = new ExecutionContext(state, instructionSize(instruction) ?? 16);

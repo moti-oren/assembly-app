@@ -214,11 +214,11 @@ describe('mul / div', () => {
 
   it('divide errors leave the state untouched', () => {
     run('mov', reg('ax'), imm(1234));
-    expect(() => run('div', reg('bl'))).toThrow(/division by zero/);
+    expect(() => run('div', reg('bl'))).toThrow(/divisor is 0/);
     expect(readRegister(cpu, 'ax')).toBe(1234);
 
     run('mov', reg('bl'), imm(1));
-    expect(() => run('div', reg('bl'))).toThrow(/does not fit/);
+    expect(() => run('div', reg('bl'))).toThrow(/quotient 1234 is too big for AL/);
     expect(readRegister(cpu, 'ax')).toBe(1234);
   });
 });
@@ -626,7 +626,9 @@ describe('interrupts', () => {
 
   it('refuses an interrupt whose vector is empty and changes nothing', () => {
     const sp = readRegister(cpu, 'sp');
-    expect(() => run('int', imm(5))).toThrow('vector at 0000:0014 is empty');
+    expect(() => run('int', imm(5))).toThrow(
+      'INT 05h has no handler yet: its vector at 0000:0014 is empty'
+    );
     expect(readRegister(cpu, 'sp')).toBe(sp);
   });
 

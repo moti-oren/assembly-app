@@ -174,7 +174,7 @@ describe('assemble', () => {
   it('reports a conditional jump that cannot reach its target', () => {
     const filler = Array.from({ length: 50 }, () => line('mov', reg('ax'), imm(0x1234)));
     const { lines } = assemble([line('je', label(51)), ...filler, line('nop')]);
-    expect(lines[0].encoding.problem).toContain('Out of range');
+    expect(lines[0].encoding.problem).toContain('Too far for a conditional jump');
   });
 
   it('stores a label used as a value as the byte offset of its line', () => {

@@ -15,8 +15,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { usePreferences } from '@/ui/usePreferences';
 
 defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
+/** The examples menu, which the empty program panel can also open. */
+const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
 const { isDark, soundOn, toggleTheme } = usePreferences();
+
+/** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
+const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
+  ? '⌘K'
+  : 'Ctrl K';
 </script>
 
 <template>
@@ -40,22 +47,24 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
           variant="outline"
           size="sm"
           class="mr-1 text-muted-foreground"
+          aria-label="Commands"
+          aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"
         >
           <Search />
           <span class="hidden sm:inline">Commands</span>
-          <Kbd class="hidden sm:inline-flex">Ctrl K</Kbd>
+          <Kbd class="hidden sm:inline-flex">{{ shortcut }}</Kbd>
         </Button>
-        <DropdownMenu>
+        <DropdownMenu v-model:open="examplesOpen">
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="Examples">
               <BookOpen />
               <span class="hidden sm:inline">Examples</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-72">
             <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">
-              Replaces the program and resets the CPU
+              Replaces your program and clears the CPU and its history
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -72,12 +81,15 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
 
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="ghost" size="sm" @click="$emit('reset')">
+            <Button variant="ghost" size="sm" aria-label="Reset the CPU" @click="$emit('reset')">
               <RotateCcw />
               <span class="hidden sm:inline">Reset</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Clears registers, flags and memory. The program is kept.</TooltipContent>
+          <TooltipContent
+            >Clears registers, flags, memory and the history. The program is kept. This can't be
+            undone.</TooltipContent
+          >
         </Tooltip>
 
         <Tooltip>
@@ -93,7 +105,7 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
               <VolumeX v-else />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{{ soundOn ? 'Sound on' : 'Sound off' }}</TooltipContent>
+          <TooltipContent>{{ soundOn ? 'Turn sound off' : 'Turn sound on' }}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -108,7 +120,9 @@ const { isDark, soundOn, toggleTheme } = usePreferences();
               <Moon v-else />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{{ isDark ? 'Light theme' : 'Dark theme' }}</TooltipContent>
+          <TooltipContent>{{
+            isDark ? 'Switch to light theme' : 'Switch to dark theme'
+          }}</TooltipContent>
         </Tooltip>
       </div>
     </div>

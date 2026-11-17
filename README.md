@@ -51,7 +51,7 @@ npm run lint
 - Instructions are not run from bytes, so IP is the index of the next program line (L0, L1, …),
   and jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it.
 - The Program panel still shows the machine code each line would assemble to on a real 8086.
-  The **Bytes** button in the bottom bar opens a panel that takes one instruction apart into
+  The **Machine code** button in the bottom bar opens a panel that takes one instruction apart into
   prefix, opcode, ModR/M (with its mod, reg and r/m bits), displacement, immediate and jump
   distance: the instruction in the builder, or else the next program line. Click a line's bytes
   to take that line apart.
@@ -59,7 +59,7 @@ npm run lint
   and everything else uses DS.
 - The Memory panel works out how `segment:offset` becomes a 20-bit physical address
   (`segment × 10h + offset`, wrapping past 1MB) for the last memory access, or for any byte you
-  point at. **Show** scrolls the table to the last access.
+  point at. **Show in table** scrolls the table to the last access.
 - Shift counts are `1` or `CL`, as on the 8086.
 - String instructions (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) read from DS:SI, write to ES:DI and step by DF. Pick `rep`, `repe` or `repne`
@@ -74,7 +74,8 @@ npm run lint
   and a divide error is `int 0`. An empty vector is reported as an error instead of jumping to
   `0000:0000`. `pushf` and `popf` move FLAGS through the stack.
 - Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
-  instruction's own numbers (e.g. `7Fh + 01h` overflows as signed, so OF = 1).
+  instruction's own numbers (e.g. `7Fh + 01h` overflows as signed, so OF = 1). Hover or focus a register's
+  name to see what it is for.
 
 ---
 
@@ -140,14 +141,14 @@ npm run lint
 - הוראות אינן מורצות מתוך בתים, ולכן IP הוא האינדקס של שורת התוכנית הבאה (L0, L1, …), ויעדי
   jump/call הם שורות. CALL דוחף את השורה הבאה למחסנית ו-RET שולף אותה.
 - חלונית התוכנית מציגה בכל זאת את קוד המכונה שכל שורה הייתה מתורגמת אליו ב-8086 אמיתי. כפתור
-  **Bytes** בסרגל התחתון פותח חלונית שמפרקת הוראה אחת ל-prefix, opcode, ModR/M (עם סיביות
+  **Machine code** בסרגל התחתון פותח חלונית שמפרקת הוראה אחת ל-prefix, opcode, ModR/M (עם סיביות
   mod, reg ו-r/m), displacement, immediate ומרחק קפיצה: ההוראה שבבונה, ואם אין כזו, שורת
   התוכנית הבאה. לחיצה על הבתים של שורה מפרקת את אותה שורה.
 - אופרנדים של זיכרון הם `byte`/`word` מסוג `[bx]`, `[si]`, `[di]`, `[bp]` או `[offset]`.
   `[bp]` משתמש ב-SS וכל האחרים משתמשים ב-DS.
 - חלונית הזיכרון מפרטת איך `segment:offset` הופך לכתובת פיזית של 20 סיביות
   (`segment × 10h + offset`, עם גלישה מעבר ל-1MB) עבור הגישה האחרונה לזיכרון, או עבור כל בית
-  שמצביעים עליו. **Show** גולל את הטבלה אל הגישה האחרונה.
+  שמצביעים עליו. **Show in table** גולל את הטבלה אל הגישה האחרונה.
 - ספירת הזזה היא `1` או `CL`, כמו ב-8086.
 - פקודות המחרוזת (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) קוראות מ-DS:SI, כותבות ל-ES:DI ומתקדמות לפי DF. בוחרים קודם `rep`, `repe` או
@@ -162,6 +163,7 @@ npm run lint
   וחריגת חלוקה היא `int 0`. וקטור ריק מדווח כשגיאה במקום לקפוץ ל-`0000:0000`. `pushf` ו-`popf`
   מעבירות את FLAGS דרך המחסנית.
 - מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
-  אותה הוראה (למשל `7Fh + 01h` גולש כמספר מסומן, ולכן OF = 1).
+  אותה הוראה (למשל `7Fh + 01h` גולש כמספר מסומן, ולכן OF = 1). מעבר עם העכבר או מיקוד על שם של רגיסטר מסביר
+  למה הוא משמש.
 
 </div>

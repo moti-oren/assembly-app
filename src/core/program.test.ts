@@ -191,7 +191,7 @@ describe('runToEnd', () => {
       line('inc', reg('ax'))
     ]);
     expect(result.records.length).toBe(1);
-    expect(result.error?.message).toContain('division by zero');
+    expect(result.error?.message).toContain('divisor is 0');
     expect(readRegister(cpu, 'ip')).toBe(1);
   });
 });
