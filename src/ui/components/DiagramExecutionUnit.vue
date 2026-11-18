@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
-import { REGISTER_DESCRIPTIONS, SPLIT_REGISTERS, half, type WordRegister } from '@/core/x86/registers';
+import {
+  REGISTER_DESCRIPTIONS,
+  SPLIT_REGISTERS,
+  half,
+  type WordRegister
+} from '@/core/x86/registers';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import ChangeMark from './ChangeMark.vue';
