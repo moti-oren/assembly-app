@@ -10,7 +10,7 @@ import { RA, ZERO } from './registers';
  */
 
 /** Pseudo-instruction operands are the real kinds, plus `imm32`: any 32-bit value, for LI. */
-type PseudoKind = OperandKind | 'imm32';
+export type PseudoKind = OperandKind | 'imm32';
 
 interface PseudoSpec {
   description: string;
@@ -70,6 +70,17 @@ const PSEUDO_INSTRUCTIONS = {
 } satisfies Record<string, PseudoSpec>;
 
 export type PseudoMnemonic = keyof typeof PSEUDO_INSTRUCTIONS;
+
+export const PSEUDO_MNEMONICS = Object.keys(PSEUDO_INSTRUCTIONS) as PseudoMnemonic[];
+
+/** What a pseudo-instruction does, and the operands it takes. */
+export function pseudoSpec(mnemonic: PseudoMnemonic): {
+  description: string;
+  form: readonly PseudoKind[];
+} {
+  const { description, form } = PSEUDO_INSTRUCTIONS[mnemonic];
+  return { description, form };
+}
 
 export interface PseudoInstruction {
   mnemonic: PseudoMnemonic;
