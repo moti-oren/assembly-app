@@ -117,9 +117,14 @@ export function useCpu<
     replaceProgram([]);
   }
 
-  function loadExample(index: number): void {
+  /** Replaces the program and starts the CPU afresh, without its history. */
+  function loadProgram(lines: readonly Instruction[]): void {
     reset();
-    replaceProgram(architecture.examples[index].program);
+    replaceProgram(lines);
+  }
+
+  function loadExample(index: number): void {
+    loadProgram(architecture.examples[index].program);
   }
 
   /** Moves through time: undoes or redoes until exactly `position` instructions have run. */
@@ -179,6 +184,7 @@ export function useCpu<
     addToProgram,
     removeProgramLine,
     clearProgram,
+    loadProgram,
     loadExample,
     undoLast,
     redo,

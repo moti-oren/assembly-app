@@ -3,7 +3,10 @@ import { defineAsyncComponent, watch } from 'vue';
 import { MOS6502 } from '@/core/mos6502/architecture';
 import { RV32 } from '@/core/rv32/architecture';
 import { X86 } from '@/core/x86/architecture';
+import type { ComparedId } from '@/core/comparison';
+import type { ComparisonTask } from '@/core/comparisonTasks';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useComparison } from '@/ui/useComparison';
 import { useCpu } from '@/ui/useCpu';
 import { usePreferences } from '@/ui/usePreferences';
 
@@ -11,12 +14,23 @@ import { usePreferences } from '@/ui/usePreferences';
 const X86Workbench = defineAsyncComponent(() => import('@/ui/components/X86Workbench.vue'));
 const Rv32Workbench = defineAsyncComponent(() => import('@/ui/components/Rv32Workbench.vue'));
 const Mos6502Workbench = defineAsyncComponent(() => import('@/ui/components/Mos6502Workbench.vue'));
+const CompareDialog = defineAsyncComponent(() => import('@/ui/components/CompareDialog.vue'));
 
-/** Both CPUs live for the whole visit: switching shows the other one as it was left. */
+/** Every CPU lives for the whole visit: switching shows the other one as it was left. */
 const x86 = useCpu(X86);
 const rv32 = useCpu(RV32);
 const mos6502 = useCpu(MOS6502);
 const { architecture } = usePreferences();
+const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
+
+/** Opens a task's program on its CPU, from the comparison. */
+function loadSolution(task: ComparisonTask, id: ComparedId): void {
+  if (id === 'x86') x86.loadProgram(task.x86.program);
+  else if (id === 'rv32') rv32.loadProgram(task.rv32.program);
+  else mos6502.loadProgram(task.mos6502.program);
+  architecture.value = id;
+  comparisonOpen.value = false;
+}
 
 // A program left running on a timer would keep stepping out of sight.
 watch(architecture, () => {
@@ -34,5 +48,6 @@ watch(architecture, () => {
       <Rv32Workbench v-else-if="architecture === 'rv32'" :cpu="rv32" />
       <Mos6502Workbench v-else :cpu="mos6502" />
     </div>
+    <CompareDialog v-if="comparisonWanted" v-model:open="comparisonOpen" @load="loadSolution" />
   </TooltipProvider>
 </template>
