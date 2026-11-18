@@ -62,25 +62,30 @@ export interface Equation {
   discarded: boolean;
 }
 
+/** SCAS and CMPS have no operands to read back; the ALU's own record has what they compared. */
+function stringCompareEquation(record: ExecutionRecord): Equation | null {
+  if (!isStringCompare(record.instruction.mnemonic) || record.alu?.kind !== 'subtract') {
+    return null;
+  }
+  const { a, b, result, size } = record.alu;
+  return {
+    destination: '',
+    left: formatHex(a, size),
+    operator: '−',
+    right: formatHex(b, size),
+    carry: null,
+    result: formatHex(result, size),
+    discarded: true
+  };
+}
+
 export function describeEquation(state: CpuState, record: ExecutionRecord): Equation | null {
+  const stringCompare = stringCompareEquation(record);
+  if (stringCompare) return stringCompare;
+
   const { instruction, memoryWrites } = record;
   const { mnemonic } = instruction;
   const [destination, source] = instruction.operands;
-
-  // SCAS and CMPS have no operands to read back; the ALU's own record has what they compared.
-  if (isStringCompare(mnemonic) && record.alu?.kind === 'subtract') {
-    const { a, b, result, size } = record.alu;
-    return {
-      destination: '',
-      left: formatHex(a, size),
-      operator: '−',
-      right: formatHex(b, size),
-      carry: null,
-      result: formatHex(result, size),
-      discarded: true
-    };
-  }
-
   const operator = OPERATORS[mnemonic];
   if (!operator || !destination) return null;
 
@@ -131,33 +136,78 @@ export interface MemoryAccess {
   offsetParts: OffsetBreakdown | null;
 }
 
+type DataSegment = MemoryAccess['segment'];
+
+function memoryAccess(
+  record: ExecutionRecord,
+  segment: DataSegment,
+  offset: number,
+  value: string,
+  write: boolean,
+  offsetParts: OffsetBreakdown | null = null
+): MemoryAccess {
+  return {
+    address: `${segment.toUpperCase()}:${formatHex(offset, 16)}`,
+    value,
+    write,
+    segment,
+    segmentValue: record.before.registers[segment],
+    offset: truncate(offset, 16),
+    offsetParts
+  };
+}
+
+/** A string instruction: the last element a store or copy wrote, or the element it read. */
+function stringAccess(state: CpuState, record: ExecutionRecord): MemoryAccess | null {
+  const { instruction, memoryWrites } = record;
+  const registers = record.before.registers;
+  const size = getSpec(instruction.mnemonic).size ?? 8;
+  // A repeated store or copy shows the last element it wrote, at ES:DI.
+  if (memoryWrites.length > 0) {
+    const last = memoryWrites.slice(-size / 8);
+    const value = littleEndian(last.map((write) => write.after));
+    const offset = last[0].address - (registers.es << 4);
+    return memoryAccess(record, 'es', offset, formatHex(value, size), true);
+  }
+  // With CX = 0 a repeat touches no memory at all.
+  if (instruction.prefix && registers.cx === 0) return null;
+  const fromSource = decode(instruction).reads.includes('si');
+  const segment = fromSource ? 'ds' : 'es';
+  const offset = fromSource ? registers.si : registers.di;
+  const value = readMemory(state, physicalAddress(registers[segment], offset), size);
+  return memoryAccess(record, segment, offset, formatHex(value, size), false);
+}
+
+/** With no memory operand, anything written went onto the stack (PUSH, CALL); POP reads it. */
+function stackAccess(state: CpuState, record: ExecutionRecord): MemoryAccess | null {
+  const { instruction, memoryWrites } = record;
+  const registers = record.before.registers;
+  if (memoryWrites.length > 0) {
+    // An interrupt pushes three words; the one on show is the last, now on top of the stack.
+    const top = memoryWrites.slice(-2);
+    const value = littleEndian(top.map((write) => write.after));
+    const offset = top[0].address - (registers.ss << 4);
+    return memoryAccess(record, 'ss', offset, formatHex(value, 16), true);
+  }
+  if (decode(instruction).stack === 'pop') {
+    const top = physicalAddress(registers.ss, registers.sp);
+    const value = formatHex(readMemory(state, top, 16), 16);
+    return memoryAccess(record, 'ss', registers.sp, value, false);
+  }
+  return null;
+}
+
 export function describeMemoryAccess(
   state: CpuState,
   record: ExecutionRecord
 ): MemoryAccess | null {
   const { instruction, memoryWrites } = record;
-  const registers = record.before.registers;
-  const access = (
-    segment: 'ds' | 'es' | 'ss',
-    offset: number,
-    value: string,
-    write: boolean,
-    offsetParts: OffsetBreakdown | null = null
-  ): MemoryAccess => ({
-    address: `${segment.toUpperCase()}:${formatHex(offset, 16)}`,
-    value,
-    write,
-    segment,
-    segmentValue: registers[segment],
-    offset: truncate(offset, 16),
-    offsetParts
-  });
-
   const operand = instruction.operands.find((candidate) => candidate.type === 'mem');
   if (operand) {
     const stateBefore = record.before;
     const value = readMemory(state, effectiveAddress(stateBefore, operand), operand.size);
-    return access(
+    return memoryAccess(
+      record,
       memorySegment(operand),
       effectiveOffset(stateBefore, operand),
       formatHex(value, operand.size),
@@ -165,34 +215,8 @@ export function describeMemoryAccess(
       explainOffset(stateBefore, operand)
     );
   }
-  if (getSpec(instruction.mnemonic).category === 'string') {
-    const size = getSpec(instruction.mnemonic).size ?? 8;
-    // A repeated store or copy shows the last element it wrote, at ES:DI.
-    if (memoryWrites.length > 0) {
-      const last = memoryWrites.slice(-size / 8);
-      const value = littleEndian(last.map((write) => write.after));
-      return access('es', last[0].address - (registers.es << 4), formatHex(value, size), true);
-    }
-    // With CX = 0 a repeat touches no memory at all.
-    if (instruction.prefix && registers.cx === 0) return null;
-    const fromSource = decode(instruction).reads.includes('si');
-    const segment = fromSource ? 'ds' : 'es';
-    const offset = fromSource ? registers.si : registers.di;
-    const value = readMemory(state, physicalAddress(registers[segment], offset), size);
-    return access(segment, offset, formatHex(value, size), false);
-  }
-  // No memory operand, so anything written went onto the stack (PUSH, CALL).
-  if (memoryWrites.length > 0) {
-    // An interrupt pushes three words; the one on show is the last, now on top of the stack.
-    const top = memoryWrites.slice(-2);
-    const value = littleEndian(top.map((write) => write.after));
-    return access('ss', top[0].address - (registers.ss << 4), formatHex(value, 16), true);
-  }
-  if (decode(instruction).stack === 'pop') {
-    const top = physicalAddress(registers.ss, registers.sp);
-    return access('ss', registers.sp, formatHex(readMemory(state, top, 16), 16), false);
-  }
-  return null;
+  if (getSpec(instruction.mnemonic).category === 'string') return stringAccess(state, record);
+  return stackAccess(state, record);
 }
 
 export interface PortAccess {

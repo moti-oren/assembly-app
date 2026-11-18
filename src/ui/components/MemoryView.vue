@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
-import { useTwoColumns } from '@/ui/layout';
+import { useTwoColumns } from '@/ui/useTwoColumns';
 import { Layers } from '@lucide/vue';
 import { explainAddress, formatPhysical } from '@/core/address';
 import { printable } from '@/core/devices';
@@ -9,7 +9,7 @@ import { formatHex, parseNumber } from '@/core/numbers';
 import type { SegmentRegister } from '@/core/registers';
 import { physicalAddress, type CpuState } from '@/core/state';
 import { describeMemoryAccess } from '@/ui/describe';
-import { HEAT_STEPS } from '@/ui/useCpu';
+import { HEAT_STEPS } from '@/ui/useCpuHistory';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

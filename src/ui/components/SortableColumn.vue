@@ -1,7 +1,15 @@
 <script setup lang="ts" generic="K extends string">
 import { nextTick, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue';
 import { GripHorizontal } from '@lucide/vue';
-import { dragTarget, keyTarget, settleOffset, shiftFor, withMoved, type Slot } from '@/ui/reorder';
+import {
+  autoScrollStep,
+  dragTarget,
+  keyTarget,
+  settleOffset,
+  shiftFor,
+  withMoved,
+  type Slot
+} from '@/ui/reorder';
 import { usePreferences } from '@/ui/usePreferences';
 
 /**
@@ -26,9 +34,6 @@ const emit = defineEmits<{
 
 defineSlots<Record<K, () => unknown>>();
 
-/** Edge of the window, in pixels, where holding a dragged card scrolls the page. */
-const EDGE = 120;
-const MAX_SCROLL_STEP = 18;
 /** How long a dropped card takes to glide into its place. */
 const SETTLE_MS = 200;
 /** How long the other cards take to slide aside, and a card moved by the keyboard to glide. */
@@ -141,13 +146,7 @@ function follow(): void {
 /** Scrolls the page while the dragged card is held near the top or bottom of the window. */
 function autoScroll(): void {
   if (active.value === null || phase.value !== 'dragging') return;
-  const fromBottom = window.innerHeight - pointerY;
-  const step =
-    pointerY < EDGE
-      ? -Math.ceil(((EDGE - pointerY) / EDGE) * MAX_SCROLL_STEP)
-      : fromBottom < EDGE
-        ? Math.ceil(((EDGE - fromBottom) / EDGE) * MAX_SCROLL_STEP)
-        : 0;
+  const step = autoScrollStep(pointerY, window.innerHeight);
   if (step !== 0) window.scrollBy(0, step);
   scrollFrame = requestAnimationFrame(autoScroll);
 }

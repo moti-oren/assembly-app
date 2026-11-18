@@ -37,5 +37,51 @@ export default tseslint.config(
       ]
     }
   },
+  // UI helpers are plain functions over plain data: no Vue, no composables, no components.
+  {
+    files: ['src/ui/*.ts'],
+    ignores: ['src/ui/use*.ts', 'src/ui/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['vue', '@vue/*', '@vueuse/*'],
+              message: 'Reactive code belongs in a use*.ts composable, not in a helper.'
+            },
+            {
+              group: ['./use*', '@/ui/use*', '*.vue'],
+              message: 'A helper must not import composables or components.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  // Composables sit below the components: they never import one, not even for a type.
+  {
+    files: ['src/ui/use*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['*.vue'],
+              message:
+                'A composable must not import a component; shared types belong in a .ts file.'
+            }
+          ]
+        }
+      ]
+    }
+  },
+  // Past ~500 lines a source file must be split (CLAUDE.md, "Code structure").
+  {
+    files: ['src/**/*.ts', 'src/**/*.vue'],
+    ignores: ['src/**/*.test.ts'],
+    rules: { 'max-lines': ['error', { max: 500 }] }
+  },
   prettier
 );

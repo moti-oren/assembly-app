@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PORTS, terminalText } from './devices';
-import { CpuError, execute, redo, undo } from './execute';
+import { CpuError } from './cpuError';
+import { execute, redo, undo } from './execute';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
 import type { RegisterName } from './registers';

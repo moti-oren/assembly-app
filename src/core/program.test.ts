@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CpuError, execute, undo } from './execute';
+import { CpuError } from './cpuError';
+import { execute, undo } from './execute';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
 import {

@@ -13,7 +13,7 @@ import { formatHex } from '@/core/numbers';
 import { formatLabel } from '@/core/operands';
 import { changedRegisters } from '@/core/registers';
 import type { CpuState } from '@/core/state';
-import type { PendingInstruction } from '@/ui/useCpu';
+import type { PendingInstruction } from '@/ui/usePhaseStepping';
 
 const props = defineProps<{
   state: CpuState;

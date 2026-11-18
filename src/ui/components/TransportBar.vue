@@ -22,7 +22,8 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { SPEED_LABELS, isRunSpeed, type PendingInstruction, type RunSpeed } from '@/ui/useCpu';
+import { SPEED_LABELS, isRunSpeed, type RunSpeed } from '@/ui/runSpeeds';
+import type { PendingInstruction } from '@/ui/usePhaseStepping';
 
 const props = defineProps<{
   finished: boolean;

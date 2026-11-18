@@ -1,4 +1,4 @@
-import { operandChoices } from '@/core/builder';
+import { operandChoices, type OperandChoices } from '@/core/builder';
 import {
   CATEGORY_LABELS,
   MNEMONICS,
@@ -117,11 +117,9 @@ function memoryAddressOptions(size: Size, typed: number | null): BuilderOption[]
   return options;
 }
 
-function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[] {
-  const choices = operandChoices(mnemonic, draft.operands);
+/** A typed number that fits the immediate, and the count of 1 that shifts take. */
+function numberOptions(choices: OperandChoices, typed: number | null): BuilderOption[] {
   const options: BuilderOption[] = [];
-
-  const { typed } = draft;
   if (choices.immediate !== null && typed !== null && fitsIn(typed, choices.immediate)) {
     const size = choices.immediate;
     options.push({
@@ -142,50 +140,83 @@ function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[
       action: { kind: 'operand', operand: { type: 'imm', value: 1 } }
     });
   }
+  return options;
+}
 
-  if (choices.label) {
-    const group =
-      getSpec(mnemonic).category === 'control'
-        ? 'Jump to program line'
-        : 'Number of a program line';
-    // Every line is a target, plus the line after the last one (the end of the program).
-    for (let target = 0; target <= draft.programLines.length; target++) {
-      options.push({
-        key: `label${target}`,
-        label: formatLabel(target),
-        group,
-        hint: draft.programLines[target] ?? 'end of program',
-        matchesNumber: (value) => value === target,
-        action: { kind: 'operand', operand: { type: 'label', target } }
-      });
-    }
-  }
+/** Every program line as a target, plus the line after the last one (the end of the program). */
+function lineOptions(mnemonic: Mnemonic, programLines: readonly string[]): BuilderOption[] {
+  const group =
+    getSpec(mnemonic).category === 'control' ? 'Jump to program line' : 'Number of a program line';
+  return Array.from({ length: programLines.length + 1 }, (_, target) => ({
+    key: `label${target}`,
+    label: formatLabel(target),
+    group,
+    hint: programLines[target] ?? 'end of program',
+    matchesNumber: (value: number) => value === target,
+    action: { kind: 'operand', operand: { type: 'label', target } }
+  }));
+}
 
-  for (const name of choices.registers) {
-    const group = isByteRegister(name)
+function registerOptions(registers: OperandChoices['registers']): BuilderOption[] {
+  return registers.map((name) => ({
+    key: name,
+    label: name,
+    group: isByteRegister(name)
       ? '8-bit registers'
       : isSegmentRegister(name)
         ? 'Segment registers'
-        : '16-bit registers';
-    options.push({
-      key: name,
-      label: name,
-      group,
-      action: { kind: 'operand', operand: { type: 'reg', name } }
-    });
-  }
+        : '16-bit registers',
+    action: { kind: 'operand', operand: { type: 'reg', name } }
+  }));
+}
 
-  for (const size of choices.memory) {
-    options.push({
-      key: `mem${size}`,
-      label: size === 8 ? 'byte [ ]' : 'word [ ]',
-      group: 'Memory',
-      hint: `${size}-bit value in memory`,
-      action: { kind: 'memory', size }
-    });
-  }
+function memoryOptions(sizes: OperandChoices['memory']): BuilderOption[] {
+  return sizes.map((size) => ({
+    key: `mem${size}`,
+    label: size === 8 ? 'byte [ ]' : 'word [ ]',
+    group: 'Memory',
+    hint: `${size}-bit value in memory`,
+    action: { kind: 'memory', size }
+  }));
+}
 
-  return options;
+function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[] {
+  const choices = operandChoices(mnemonic, draft.operands);
+  return [
+    ...numberOptions(choices, draft.typed),
+    ...(choices.label ? lineOptions(mnemonic, draft.programLines) : []),
+    ...registerOptions(choices.registers),
+    ...memoryOptions(choices.memory)
+  ];
+}
+
+/** The immediate size the typed number is too big for, or null when it fits or none is asked. */
+export function overflowingSize(draft: BuilderDraft): Size | null {
+  const { mnemonic, operands, pendingMemory, typed } = draft;
+  if (mnemonic === null || pendingMemory !== null) return null;
+  const size = operandChoices(mnemonic, operands).immediate;
+  return size !== null && typed !== null && !fitsIn(typed, size) ? size : null;
+}
+
+/**
+ * What the input says can be typed next. `filter` is the text as typed, quoted back when the
+ * number does not fit; `complete` is whether the instruction can already run.
+ */
+export function typingHint(draft: BuilderDraft, filter: string, complete: boolean): string {
+  const { prefix, mnemonic, operands, pendingMemory } = draft;
+  if (mnemonic === null) {
+    return prefix ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
+  }
+  if (pendingMemory !== null) return 'Pick a register or type an offset (e.g. 0x10)';
+  const tooBig = overflowingSize(draft);
+  if (tooBig !== null) return `${filter} does not fit in ${tooBig} bits`;
+  const choices = operandChoices(mnemonic, operands);
+  if (choices.immediate !== null) {
+    return 'Type a number: 42 (decimal), 0x2A or 2Ah (hex), 101010b (binary)';
+  }
+  if (choices.label) return 'Pick a line to jump to, or type its number';
+  if (complete) return 'Enter: run now · Shift+Enter: add to the program';
+  return 'Type to filter';
 }
 
 /** Every choice the builder offers for the next word of the instruction. */

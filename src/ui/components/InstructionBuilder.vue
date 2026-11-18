@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { hasMoreOperands, operandChoices } from '@/core/builder';
+import { hasMoreOperands } from '@/core/builder';
 import { getSpec, type Instruction } from '@/core/instructions';
-import { fitsIn, parseNumber, type Size } from '@/core/numbers';
+import { parseNumber } from '@/core/numbers';
 import { formatLabel } from '@/core/operands';
 import { CircleAlert, CornerDownLeft, Play, Plus, X } from '@lucide/vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -10,10 +10,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { builderOptions, filterOptions, type BuilderOption } from '@/ui/builderOptions';
+import {
+  builderOptions,
+  filterOptions,
+  overflowingSize,
+  typingHint,
+  type BuilderDraft,
+  type BuilderOption
+} from '@/ui/builderOptions';
 import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
-import { useTwoColumns } from '@/ui/layout';
+import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
 const props = defineProps<{
@@ -31,8 +38,6 @@ const emit = defineEmits<{
   /** The instruction as built so far, once it is complete; null while it is not. */
   draft: [instruction: Instruction | null];
 }>();
-
-const READY_HINT = 'Enter: run now · Shift+Enter: add to the program';
 
 const draft = useInstructionDraft();
 const { prefix, mnemonic, operands, pendingMemory, complete, built, tokens } = draft;
@@ -81,50 +86,22 @@ const hovered = ref<BuilderOption | null>(null);
 
 const typedNumber = computed(() => parseNumber(filter.value));
 
-const allOptions = computed(() =>
-  builderOptions({
-    prefix: prefix.value,
-    mnemonic: mnemonic.value,
-    operands: operands.value,
-    pendingMemory: pendingMemory.value,
-    typed: typedNumber.value,
-    programLines: props.programLines
-  })
-);
-
+const draftState = computed<BuilderDraft>(() => ({
+  prefix: prefix.value,
+  mnemonic: mnemonic.value,
+  operands: operands.value,
+  pendingMemory: pendingMemory.value,
+  typed: typedNumber.value,
+  programLines: props.programLines
+}));
+const allOptions = computed(() => builderOptions(draftState.value));
 const visibleOptions = computed(() =>
   filterOptions(allOptions.value, filter.value, typedNumber.value)
 );
-
 const groups = computed(() => groupBy(visibleOptions.value, (option) => option.group));
 
-/** The immediate size the typed number is too big for, or null when it fits or none is asked. */
-const overflowSize = computed<Size | null>(() => {
-  if (mnemonic.value === null || pendingMemory.value !== null) return null;
-  const size = operandChoices(mnemonic.value, operands.value).immediate;
-  const number = typedNumber.value;
-  return size !== null && number !== null && !fitsIn(number, size) ? size : null;
-});
-
-const doesNotFit = computed(() => overflowSize.value !== null);
-
-/** Hint for values that are typed rather than picked. */
-const typingHint = computed(() => {
-  if (mnemonic.value === null) {
-    return prefix.value ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
-  }
-  if (pendingMemory.value !== null) return 'Pick a register or type an offset (e.g. 0x10)';
-  if (overflowSize.value !== null) {
-    return `${filter.value} does not fit in ${overflowSize.value} bits`;
-  }
-  const choices = operandChoices(mnemonic.value, operands.value);
-  if (choices.immediate !== null) {
-    return 'Type a number: 42 (decimal), 0x2A or 2Ah (hex), 101010b (binary)';
-  }
-  if (choices.label) return 'Pick a line to jump to, or type its number';
-  if (complete.value) return READY_HINT;
-  return 'Type to filter';
-});
+const doesNotFit = computed(() => overflowingSize(draftState.value) !== null);
+const hint = computed(() => typingHint(draftState.value, filter.value, complete.value));
 
 const moreToChoose = computed(
   () =>
@@ -301,7 +278,7 @@ function onBackspace(event: KeyboardEvent): void {
           ref="input"
           v-model="filter"
           class="h-7 min-w-40 flex-1 bg-transparent px-1 outline-none placeholder:font-sans placeholder:text-muted-foreground"
-          :placeholder="moreToChoose ? typingHint : 'Ready to run'"
+          :placeholder="moreToChoose ? hint : 'Ready to run'"
           :aria-invalid="doesNotFit || undefined"
           aria-label="Instruction"
           type="text"
@@ -337,7 +314,7 @@ function onBackspace(event: KeyboardEvent): void {
 
       <p class="min-h-5 truncate text-sm text-muted-foreground" aria-live="polite">
         <template v-if="doesNotFit">
-          <span class="text-destructive">{{ typingHint }}</span>
+          <span class="text-destructive">{{ hint }}</span>
         </template>
         <template v-else-if="preview">
           <span class="mr-2 font-mono font-medium text-foreground">{{ preview.label }}</span>
@@ -391,7 +368,7 @@ function onBackspace(event: KeyboardEvent): void {
             Nothing matches “<span class="font-mono break-all text-foreground">{{ filter }}</span
             >”. Press <Kbd>Backspace</Kbd> to edit it or <Kbd>Esc</Kbd> to start over.
           </template>
-          <template v-else>{{ typingHint }}</template>
+          <template v-else>{{ hint }}</template>
         </p>
       </div>
       <!-- Takes the place of the choices, so the program below stays where the fold left it. -->

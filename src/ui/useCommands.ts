@@ -1,11 +1,25 @@
 import { computed, type ComputedRef } from 'vue';
 import { EXAMPLE_PROGRAMS } from '@/core/program';
-import type { PaletteCommand } from './components/CommandPalette.vue';
 import { describeMemoryAccess } from './describe';
-import { RUN_SPEED_NAMES, SPEED_LABELS, type Cpu } from './useCpu';
+import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
+import type { Cpu } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
 import type { Panels } from './usePanels';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
+
+/** One entry in the command palette. */
+export interface PaletteCommand {
+  group: string;
+  label: string;
+  disabled?: boolean;
+  /**
+   * What the command does to the page beyond its own state. Either way it runs once the palette
+   * has closed, since an open palette locks page scrolling and then hands focus back. `focus`
+   * also stops that hand-back, which would undo the command's work.
+   */
+  moves?: 'focus' | 'scroll';
+  run: () => void;
+}
 
 /** What the palette asks of components on the page, which own the state these act on. */
 export interface PageActions {
