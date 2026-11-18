@@ -23,6 +23,7 @@ import {
   type BuilderOption,
   type OptionAction
 } from '@/ui/builderOptions';
+import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
 
 const props = defineProps<{
@@ -176,31 +177,6 @@ const enterOption = computed(() =>
     : (orderedOptions.value[selectedIndex.value] ?? null)
 );
 
-/** The index of the button on the next row up or down, in the column nearest to `from`. */
-function rowNeighbour(buttons: HTMLElement[], from: number, down: boolean): number {
-  const current = buttons[from].getBoundingClientRect();
-  const centre = current.left + current.width / 2;
-  let rowTop: number | null = null;
-  for (const button of buttons) {
-    const top = button.getBoundingClientRect().top;
-    const beyond = down ? top > current.top + 1 : top < current.top - 1;
-    if (beyond && (rowTop === null || (down ? top < rowTop : top > rowTop))) rowTop = top;
-  }
-  if (rowTop === null) return from;
-  let best = from;
-  let distance = Infinity;
-  buttons.forEach((button, index) => {
-    const rect = button.getBoundingClientRect();
-    if (Math.abs(rect.top - rowTop) > 1) return;
-    const gap = Math.abs(rect.left + rect.width / 2 - centre);
-    if (gap < distance) {
-      distance = gap;
-      best = index;
-    }
-  });
-  return best;
-}
-
 /**
  * Arrows walk the options: Left/Right one at a time, Up/Down by row. While there is text to
  * edit, the plain arrows stay with the input and only Alt+arrow navigates.
@@ -215,7 +191,8 @@ function onArrow(event: KeyboardEvent): void {
   if (vertical) {
     const buttons = [...(card.value?.$el.querySelectorAll<HTMLElement>('[data-option]') ?? [])];
     if (buttons.length === count) {
-      selectedIndex.value = rowNeighbour(buttons, selectedIndex.value, forward);
+      const boxes = buttons.map((button) => button.getBoundingClientRect());
+      selectedIndex.value = rowNeighbour(boxes, selectedIndex.value, forward);
     }
   } else {
     selectedIndex.value = (selectedIndex.value + (forward ? 1 : -1) + count) % count;
