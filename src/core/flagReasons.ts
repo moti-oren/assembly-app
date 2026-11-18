@@ -1,4 +1,5 @@
-import type { AluTrace, ExecutionRecord } from './execute';
+import type { ExecutionRecord } from './execute';
+import type { AluTrace } from './executionContext';
 import { isFlagSet, type FlagName } from './flags';
 import { getSpec, isStringCompare, type Mnemonic } from './instructions';
 import { formatBinary, formatHex, mask, signBit, toSigned, type Size } from './numbers';

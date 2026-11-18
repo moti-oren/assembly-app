@@ -1,5 +1,6 @@
 import { computed, onScopeDispose, reactive, ref, shallowRef, watch } from 'vue';
-import { CpuError, execute, redo as redoRecord, undo, type ExecutionRecord } from '@/core/execute';
+import { CpuError } from '@/core/cpuError';
+import { execute, redo as redoRecord, undo, type ExecutionRecord } from '@/core/execute';
 import type { Instruction } from '@/core/instructions';
 import {
   EXAMPLE_PROGRAMS,

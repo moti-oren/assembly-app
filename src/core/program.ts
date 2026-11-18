@@ -1,5 +1,7 @@
 import { PORTS } from './devices';
-import { CpuError, VECTOR_SIZE, execute, type ExecutionRecord } from './execute';
+import { CpuError } from './cpuError';
+import { execute, type ExecutionRecord } from './execute';
+import { VECTOR_SIZE } from './executionContext';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
 import type { CpuState } from './state';
