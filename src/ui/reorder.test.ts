@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  autoScrollStep,
   dragTarget,
   keyTarget,
   moveAmongVisible,
@@ -118,5 +119,18 @@ describe('dragging a card', () => {
     expect(settleOffset(slots, 0, 2, GAP)).toBe(266 + 1016);
     expect(settleOffset(slots, 2, 0, GAP)).toBe(-(576 + 266));
     expect(settleOffset(slots, 1, 1, GAP)).toBe(0);
+  });
+});
+
+describe('autoScrollStep', () => {
+  it('does not scroll away from the edges', () => {
+    expect(autoScrollStep(400, 800)).toBe(0);
+  });
+
+  it('scrolls up near the top and down near the bottom, faster closer to the edge', () => {
+    expect(autoScrollStep(0, 800)).toBe(-18);
+    expect(autoScrollStep(60, 800)).toBe(-9);
+    expect(autoScrollStep(800, 800)).toBe(18);
+    expect(autoScrollStep(740, 800)).toBe(9);
   });
 });

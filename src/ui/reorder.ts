@@ -125,3 +125,22 @@ export function settleOffset(
   for (let index = target; index < home; index++) offset -= slots[index].height + gap;
   return offset;
 }
+
+/** Edge of the window, in pixels, where holding a dragged card scrolls the page. */
+const SCROLL_EDGE = 120;
+const MAX_SCROLL_STEP = 18;
+
+/**
+ * How far to scroll the page this frame while a dragged card is held at `pointerY`: faster the
+ * closer the pointer is to the top or bottom edge of a window `viewportHeight` tall, else 0.
+ */
+export function autoScrollStep(pointerY: number, viewportHeight: number): number {
+  const fromBottom = viewportHeight - pointerY;
+  if (pointerY < SCROLL_EDGE) {
+    return -Math.ceil(((SCROLL_EDGE - pointerY) / SCROLL_EDGE) * MAX_SCROLL_STEP);
+  }
+  if (fromBottom < SCROLL_EDGE) {
+    return Math.ceil(((SCROLL_EDGE - fromBottom) / SCROLL_EDGE) * MAX_SCROLL_STEP);
+  }
+  return 0;
+}
