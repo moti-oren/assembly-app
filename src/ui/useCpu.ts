@@ -1,7 +1,7 @@
 import { computed, reactive, ref } from 'vue';
 import type { Architecture } from '@/core/shared/architecture';
 import { CpuError } from '@/core/shared/cpuError';
-import type { ExecutionRecord } from '@/core/shared/executionRecord';
+import { undo, type ExecutionRecord } from '@/core/shared/executionRecord';
 import {
   isFinished,
   MAX_RUN_WRITES,
@@ -63,10 +63,23 @@ export function useCpu<
     }
   }
 
-  function run(instruction: Instruction): boolean {
-    return attempt('builder', () =>
-      record([architecture.execute(state, instruction, null, program.value)])
-    );
+  /**
+   * Runs instructions straight from the builder, as one: what one builder entry stands for, like
+   * the two lines of a RISC-V `li`. If one fails, the ones before it are undone.
+   */
+  function run(instructions: readonly Instruction[]): boolean {
+    return attempt('builder', () => {
+      const records: Record[] = [];
+      try {
+        for (const instruction of instructions) {
+          records.push(architecture.execute(state, instruction, null, program.value));
+        }
+      } catch (caught) {
+        for (const done of records.reverse()) undo(state, done);
+        throw caught;
+      }
+      record(records);
+    });
   }
 
   function stepProgram(): void {

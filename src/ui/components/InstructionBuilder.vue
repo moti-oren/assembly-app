@@ -24,10 +24,10 @@ import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
 const props = defineProps<{
-  /** Runs the instruction; returns false when the CPU rejected it. */
-  run: (instruction: Instruction) => boolean;
-  /** Adds the instruction to the program at `insertLine`. */
-  add: (instruction: Instruction) => void;
+  /** Runs the instructions; returns false when the CPU rejected them. */
+  run: (instructions: Instruction[]) => boolean;
+  /** Adds the instructions to the program at `insertLine`. */
+  add: (instructions: Instruction[]) => void;
   error: string | null;
   /** The program, formatted, so jumps can offer its lines as targets. */
   programLines: string[];
@@ -215,9 +215,9 @@ function submit(toProgram: boolean): void {
   const instruction = built.value;
   if (!instruction) return;
   if (toProgram) {
-    props.add(instruction);
+    props.add([instruction]);
     clear();
-  } else if (props.run(instruction)) {
+  } else if (props.run([instruction])) {
     clear();
   }
 }
