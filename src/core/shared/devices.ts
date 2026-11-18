@@ -1,6 +1,8 @@
 /**
- * The devices wired to the I/O ports. OUT latches a byte into an output port and IN reads the
- * byte a device presents on an input port; the two directions are separate, as on real hardware.
+ * The devices wired to the I/O ports. Writing latches a byte into an output port and reading
+ * gets the byte a device presents on an input port; the two directions are separate, as on real
+ * hardware. The 8086 reaches the ports with OUT and IN; an architecture without I/O instructions
+ * maps them into memory, at the same numbers from a base address up.
  */
 export const PORTS = {
   /** Output: eight LEDs, one per bit. */
