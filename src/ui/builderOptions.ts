@@ -1,4 +1,4 @@
-import { operandChoices } from '@/core/builder';
+import { operandChoices, type OperandChoices } from '@/core/builder';
 import {
   CATEGORY_LABELS,
   MNEMONICS,
@@ -117,11 +117,9 @@ function memoryAddressOptions(size: Size, typed: number | null): BuilderOption[]
   return options;
 }
 
-function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[] {
-  const choices = operandChoices(mnemonic, draft.operands);
+/** A typed number that fits the immediate, and the count of 1 that shifts take. */
+function numberOptions(choices: OperandChoices, typed: number | null): BuilderOption[] {
   const options: BuilderOption[] = [];
-
-  const { typed } = draft;
   if (choices.immediate !== null && typed !== null && fitsIn(typed, choices.immediate)) {
     const size = choices.immediate;
     options.push({
@@ -142,50 +140,54 @@ function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[
       action: { kind: 'operand', operand: { type: 'imm', value: 1 } }
     });
   }
+  return options;
+}
 
-  if (choices.label) {
-    const group =
-      getSpec(mnemonic).category === 'control'
-        ? 'Jump to program line'
-        : 'Number of a program line';
-    // Every line is a target, plus the line after the last one (the end of the program).
-    for (let target = 0; target <= draft.programLines.length; target++) {
-      options.push({
-        key: `label${target}`,
-        label: formatLabel(target),
-        group,
-        hint: draft.programLines[target] ?? 'end of program',
-        matchesNumber: (value) => value === target,
-        action: { kind: 'operand', operand: { type: 'label', target } }
-      });
-    }
-  }
+/** Every program line as a target, plus the line after the last one (the end of the program). */
+function lineOptions(mnemonic: Mnemonic, programLines: readonly string[]): BuilderOption[] {
+  const group =
+    getSpec(mnemonic).category === 'control' ? 'Jump to program line' : 'Number of a program line';
+  return Array.from({ length: programLines.length + 1 }, (_, target) => ({
+    key: `label${target}`,
+    label: formatLabel(target),
+    group,
+    hint: programLines[target] ?? 'end of program',
+    matchesNumber: (value: number) => value === target,
+    action: { kind: 'operand', operand: { type: 'label', target } }
+  }));
+}
 
-  for (const name of choices.registers) {
-    const group = isByteRegister(name)
+function registerOptions(registers: OperandChoices['registers']): BuilderOption[] {
+  return registers.map((name) => ({
+    key: name,
+    label: name,
+    group: isByteRegister(name)
       ? '8-bit registers'
       : isSegmentRegister(name)
         ? 'Segment registers'
-        : '16-bit registers';
-    options.push({
-      key: name,
-      label: name,
-      group,
-      action: { kind: 'operand', operand: { type: 'reg', name } }
-    });
-  }
+        : '16-bit registers',
+    action: { kind: 'operand', operand: { type: 'reg', name } }
+  }));
+}
 
-  for (const size of choices.memory) {
-    options.push({
-      key: `mem${size}`,
-      label: size === 8 ? 'byte [ ]' : 'word [ ]',
-      group: 'Memory',
-      hint: `${size}-bit value in memory`,
-      action: { kind: 'memory', size }
-    });
-  }
+function memoryOptions(sizes: OperandChoices['memory']): BuilderOption[] {
+  return sizes.map((size) => ({
+    key: `mem${size}`,
+    label: size === 8 ? 'byte [ ]' : 'word [ ]',
+    group: 'Memory',
+    hint: `${size}-bit value in memory`,
+    action: { kind: 'memory', size }
+  }));
+}
 
-  return options;
+function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[] {
+  const choices = operandChoices(mnemonic, draft.operands);
+  return [
+    ...numberOptions(choices, draft.typed),
+    ...(choices.label ? lineOptions(mnemonic, draft.programLines) : []),
+    ...registerOptions(choices.registers),
+    ...memoryOptions(choices.memory)
+  ];
 }
 
 /** Every choice the builder offers for the next word of the instruction. */
