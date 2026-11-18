@@ -1,5 +1,6 @@
 import { computed, nextTick, watchEffect } from 'vue';
 import { createGlobalState, useDark, useLocalStorage, useMediaQuery } from '@vueuse/core';
+import { isArchitectureId, type ArchitectureId } from './architectures';
 import type { SoundKind } from './sounds';
 import { STORAGE_KEYS } from './storageKeys';
 import { playSound } from './synth';
@@ -21,6 +22,11 @@ export const usePreferences = createGlobalState(() => {
   const cpuView = useLocalStorage<CpuView>(STORAGE_KEYS.cpuView, 'diagram', {
     // Anything else in storage (an old or hand-edited value) falls back to the diagram.
     serializer: { read: (raw) => (raw === 'table' ? 'table' : 'diagram'), write: (view) => view }
+  });
+
+  /** The CPU on show. Each one keeps its own program and history while the other is shown. */
+  const architecture = useLocalStorage<ArchitectureId>(STORAGE_KEYS.architecture, 'x86', {
+    serializer: { read: (raw) => (isArchitectureId(raw) ? raw : 'x86'), write: (id) => id }
   });
 
   /** Asked for here; the system setting can ask for it too, and either one is enough. */
@@ -57,6 +63,7 @@ export const usePreferences = createGlobalState(() => {
     isDark,
     soundOn,
     cpuView,
+    architecture,
     reduceMotion,
     systemReducesMotion,
     calm,

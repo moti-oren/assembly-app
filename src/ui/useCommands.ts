@@ -1,4 +1,5 @@
 import { computed, type ComputedRef } from 'vue';
+import { ARCHITECTURE_CHOICES } from './architectures';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
 import type { CpuControls } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
@@ -38,7 +39,7 @@ export function useCommands(
   panels: Panels,
   page: PageActions
 ): ComputedRef<PaletteCommand[]> {
-  const { isDark, soundOn, cpuView, reduceMotion, systemReducesMotion, toggleTheme } =
+  const { isDark, soundOn, cpuView, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
     usePreferences();
   const panelOrder = usePanelOrder();
   const { history, program, insertAt, future, finished, speed, running } = cpu;
@@ -142,6 +143,13 @@ export function useCommands(
       disabled: speed.value === name,
       run: () => {
         speed.value = name;
+      }
+    })),
+    ...ARCHITECTURE_CHOICES.filter((choice) => choice.id !== architecture.value).map((choice) => ({
+      group: 'CPU',
+      label: `Switch to ${choice.label}`,
+      run: () => {
+        architecture.value = choice.id;
       }
     })),
     ...cpu.architecture.examples.map((example, index) => ({

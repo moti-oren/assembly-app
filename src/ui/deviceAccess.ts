@@ -1,4 +1,6 @@
 import { formatHex } from '@/core/shared/numbers';
+import { formatHex32 } from '@/core/rv32/bits';
+import { DEVICE_BASE } from '@/core/rv32/state';
 
 /** How a CPU reaches the devices: with I/O instructions and port numbers, or through memory. */
 export interface DeviceAccess {
@@ -16,4 +18,12 @@ export const X86_DEVICE_ACCESS: DeviceAccess = {
   read: 'in',
   noun: 'port',
   address: (port) => `${formatHex(port, 8)}h`
+};
+
+/** RISC-V has no I/O instructions: the devices are bytes of memory from DEVICE_BASE up. */
+export const RV32_DEVICE_ACCESS: DeviceAccess = {
+  write: 'sb',
+  read: 'lbu',
+  noun: 'device address',
+  address: (port) => `0x${formatHex32(DEVICE_BASE + port)}`
 };

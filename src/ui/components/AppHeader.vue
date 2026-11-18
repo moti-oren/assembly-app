@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
 import { usePreferences } from '@/ui/usePreferences';
 
 defineProps<{
@@ -21,7 +22,7 @@ defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
 /** The examples menu, which the empty program panel can also open. */
 const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
-const { isDark, soundOn, toggleTheme } = usePreferences();
+const { isDark, soundOn, architecture, toggleTheme } = usePreferences();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
 const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
@@ -47,9 +48,24 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
           class="hidden size-7 shrink-0 place-items-center rounded-md bg-foreground font-mono text-2xs font-bold text-background sm:grid"
           aria-hidden="true"
         >
-          86
+          {{ ARCHITECTURE_CHOICES.find((choice) => choice.id === architecture)?.badge }}
         </div>
-        <h1 class="truncate text-[15px] font-semibold tracking-tight">8086 Playground</h1>
+        <h1 class="truncate text-[15px] font-semibold tracking-tight">CPU Playground</h1>
+      </div>
+      <!-- Each CPU keeps its own program and history, so switching back finds them as they were. -->
+      <div class="flex shrink-0 rounded-md border p-0.5" role="group" aria-label="Architecture">
+        <Button
+          v-for="choice in ARCHITECTURE_CHOICES"
+          :key="choice.id"
+          :variant="architecture === choice.id ? 'secondary' : 'ghost'"
+          size="sm"
+          class="h-7 px-2.5 text-xs pointer-coarse:h-11"
+          :class="{ 'font-semibold': architecture === choice.id }"
+          :aria-pressed="architecture === choice.id"
+          @click="architecture = choice.id"
+        >
+          {{ choice.label }}
+        </Button>
       </div>
       <p class="hidden truncate text-sm text-muted-foreground md:block">
         Build an instruction, run it, and watch the CPU change.
