@@ -8,7 +8,7 @@ import { sanitizeOrder } from './reorder';
  */
 const DEFAULTS = {
   left: ['builder', 'program', 'history', 'encoding'],
-  diagram: ['cpu', 'devices', 'memory'],
+  diagram: ['cycle', 'cpu', 'devices', 'memory'],
   table: ['cycle', 'registers', 'operation', 'flags', 'devices', 'memory']
 } as const;
 

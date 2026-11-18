@@ -28,7 +28,6 @@ import {
 } from '@/ui/describe';
 import type { PendingInstruction } from '@/ui/useCpu';
 import ChangeMark from './ChangeMark.vue';
-import CpuCycle from './CpuCycle.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import DiagramWire from './DiagramWire.vue';
 import FlagReason from './FlagReason.vue';
@@ -217,8 +216,6 @@ function flagChanged(flag: FlagName): boolean {
     </CardHeader>
 
     <CardContent class="flex flex-col gap-4">
-      <CpuCycle :state="state" :record="record" :pending="pending" />
-
       <!-- The BIU's width, set on the children so the container query can switch it. -->
       <div class="@container *:[--biu-width:15rem] @min-[40rem]:*:[--biu-width:18.5rem]">
         <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
