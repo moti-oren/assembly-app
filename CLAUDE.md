@@ -40,6 +40,38 @@ Two layers; keep them separate.
 - `src/ui/`: Vue components in `ui/components/` and `useCpu.ts`, which wraps the core in Vue reactivity. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
 - `src/components/ui/`: shadcn-vue components (Tailwind v4 + reka-ui), generated with `npx shadcn-vue add <name>`. They are excluded from ESLint; don't hand-edit them casually. Config in `components.json`.
 
+## Code structure
+
+Every change, new code or an edit to existing code, must leave the structure modular and in line with these rules. If existing code you touch breaks one of them, fix it as part of the change, or tell the user when the fix is too big for the task.
+
+**Layers.** Imports only go downward, never up or sideways into a higher layer:
+
+| Layer | Files | May import |
+|---|---|---|
+| Components | `src/ui/components/*.vue`, `src/App.vue` | everything below, other components, `src/components/ui/` (shadcn) |
+| Composables | `src/ui/use*.ts` | composables, helpers, core, Vue/VueUse |
+| Helpers | other `src/ui/*.ts` (`describe.ts`, `sounds.ts`, …) | helpers, core. **No Vue**: plain functions over plain data |
+| Core | `src/core/*.ts` | core only (enforced by ESLint) |
+
+- **Anything reactive is a composable:** code that holds `ref` / `computed` / `watch` state or uses VueUse lives in a `use*.ts` file and is named `useX`. A helper never imports Vue.
+- **Components wire, they don't compute:** a `.vue` file binds state to markup. Calculations, decisions and text formatting go in a helper or composable, where they can be unit-tested. If a function in `<script setup>` would deserve a test, it belongs in a `.ts` file.
+- **Shared types live in `.ts` files:** never import a type from a `.vue` file. A component may import its prop types from a `.ts` file, not the other way around.
+- **No import cycles** between files.
+
+**Size and responsibility.**
+
+- **One responsibility per file:** you should be able to say what a file does in one sentence without "and". The name says what it is: `useX` for a composable, a noun for a helper or a core module, PascalCase for a component.
+- **File size** (source files, not tests): past **~300 lines**, check before adding to it whether it now holds more than one responsibility. Past **~500 lines** it must be split: split it before adding more. A component counts its template too; split a large template into child components.
+- **Function size:** about **50 lines** at most; split a longer function into named steps. Two things are not "long functions": a composable factory (`useX`), whose inner functions follow the limit but whose body past ~150 lines should be split into smaller composables or helpers; and a flat list of data (the instruction table, the palette's command list) whose entries are short.
+- **Tests** live next to their module (`x.test.ts` for `x.ts`) and are exempt from the size limits; group them with `describe`.
+
+**Adding and changing code.**
+
+- **Put new code where it belongs:** first look for the existing file whose responsibility it is, in the right layer. Create a new file only when no file fits, and give it a name that says its job.
+- **Don't duplicate:** the third copy of the same logic is the moment to extract a shared function. Don't add abstractions for a single use.
+- **Exports are the module's API:** export only what other files (including tests) use, plus types that appear in exported signatures. Remove exports nobody uses.
+- **Before finishing a task** that added a file or grew one noticeably, re-check it against this section.
+
 ## Execution model (non-obvious)
 
 - Instructions **run as data, not as bytes**. IP is the index of the next program line (L0, L1, …); jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it. The machine code from `encode.ts` is shown beside the program but never executed, and it is not written into memory.
@@ -89,7 +121,6 @@ Two layers; keep them separate.
 
 ## Conventions
 
-- **`core` stays framework-free:** never import `vue` or anything from `@/ui` / `@/components` inside `src/core/`.
 - **Adding an instruction:** define it in `instructions.ts`, implement it in `execute.ts`, then add tests in `execute.test.ts`. If it touches flags, test the flags too. Then give it an encoding in `encode.ts` (it throws for a mnemonic it does not know, and a test encodes every example program), and list any registers it uses implicitly in `decode.ts`.
 - **Undo is a contract:** every path in `execute.ts` must return a complete undo record (registers, flags, memory writes, port writes and IP). A new path without one breaks history.
 - **Encodings follow NASM:** where the 8086 allows two encodings of one instruction, `encode.ts` produces the one NASM picks (checked against NASM 3.02 with `bits 16` / `cpu 8086`). Two deliberate exceptions: `int 3` is the one-byte `CC`, and a conditional jump out of short range is reported as a problem instead of being rewritten as an inverted jump over a `jmp`.
