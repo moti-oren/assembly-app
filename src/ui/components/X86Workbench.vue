@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef } from 'vue';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
-import { assemble } from '@/core/x86/encode';
+import { assemble, encode } from '@/core/x86/encode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { CpuState } from '@/core/x86/state';
 import { Card, CardContent } from '@/components/ui/card';
@@ -98,14 +98,17 @@ const assembled = computed(() => assemble(program.value));
 const draft = shallowRef<Instruction | null>(null);
 
 const encodingShown = computed(() =>
-  chooseEncoding({
-    program: program.value,
-    lines: assembled.value.lines,
-    draft: draft.value,
-    inspected: inspectedLine.value,
-    next: finished.value ? null : nextLine.value,
-    last: lastRecord.value
-  })
+  chooseEncoding(
+    {
+      program: program.value,
+      lines: assembled.value.lines,
+      draft: draft.value,
+      inspected: inspectedLine.value,
+      next: finished.value ? null : nextLine.value,
+      last: lastRecord.value
+    },
+    encode
+  )
 );
 </script>
 
