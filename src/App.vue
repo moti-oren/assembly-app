@@ -217,6 +217,7 @@ const encodingShown = computed(() =>
             <RegistersPanel
               :state="state"
               :previous="lastRecord?.before.registers ?? null"
+              :record="lastRecord"
               :tick="history.length"
             />
           </template>
