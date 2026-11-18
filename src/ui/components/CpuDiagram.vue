@@ -10,6 +10,8 @@ import {
   REGISTER_DESCRIPTIONS,
   SPLIT_REGISTERS,
   WORD_REGISTERS,
+  half,
+  type RegisterName,
   type WordRegister
 } from '@/core/registers';
 import type { CpuState } from '@/core/state';
@@ -21,7 +23,8 @@ import {
   describeMemoryAccess,
   describePortAccess,
   registersRead,
-  registersWritten
+  registersWritten,
+  wasWritten
 } from '@/ui/describe';
 import type { PendingInstruction } from '@/ui/useCpu';
 import ChangeMark from './ChangeMark.vue';
@@ -78,6 +81,11 @@ const read = computed(() => {
   if (decoded.value) return new Set<WordRegister>(decoded.value.reads);
   return shown.value ? registersRead(shown.value) : new Set<WordRegister>();
 });
+
+/** Whether the last instruction wrote `name`, a register or one half of one. */
+function wrote(name: RegisterName): boolean {
+  return wasWritten(shown.value, name);
+}
 
 const written = computed(() =>
   shown.value ? registersWritten(shown.value) : new Set<WordRegister>()
@@ -254,6 +262,7 @@ function flagChanged(flag: FlagName): boolean {
                   >
                     <ChangeMark
                       :on="(changedBits(name) & 0xff00) !== 0"
+                      :written="wrote(half(name, 'h'))"
                       :tick="tick"
                       :title="`${name[0].toUpperCase()}H`"
                       :data-loc="`reg:${name[0]}h`"
@@ -262,6 +271,7 @@ function flagChanged(flag: FlagName): boolean {
                     </ChangeMark>
                     <ChangeMark
                       :on="(changedBits(name) & 0x00ff) !== 0"
+                      :written="wrote(half(name, 'l'))"
                       :tick="tick"
                       :title="`${name[0].toUpperCase()}L`"
                       :data-loc="`reg:${name[0]}l`"
@@ -272,6 +282,7 @@ function flagChanged(flag: FlagName): boolean {
                   <ChangeMark
                     v-else
                     :on="changedBits(name) !== 0"
+                    :written="wrote(name)"
                     :tick="tick"
                     :data-loc="`reg:${name}`"
                   >
@@ -436,7 +447,12 @@ function flagChanged(flag: FlagName): boolean {
                   <TooltipContent side="left">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
                 </Tooltip>
                 <span class="w-10">
-                  <ChangeMark :on="changedBits(name) !== 0" :tick="tick" :data-loc="`reg:${name}`">
+                  <ChangeMark
+                    :on="changedBits(name) !== 0"
+                    :written="wrote(name)"
+                    :tick="tick"
+                    :data-loc="`reg:${name}`"
+                  >
                     <RollingDigits :text="formatHex(value(name), 16)" />
                   </ChangeMark>
                 </span>

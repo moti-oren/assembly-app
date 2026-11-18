@@ -9,7 +9,7 @@ import {
 } from './instructions';
 import { formatHex, hasEvenParity, mask, signBit, toSigned, truncate, type Size } from './numbers';
 import { effectiveAddress, type Operand } from './operands';
-import type { SegmentRegister } from './registers';
+import type { RegisterName, SegmentRegister } from './registers';
 import {
   getFlag,
   physicalAddress,
@@ -74,11 +74,17 @@ export interface ExecutionRecord {
   alu: AluTrace | null;
   /** The interrupt the instruction entered (INT n, INTO, a divide error), or null. */
   interrupt: number | null;
+  /**
+   * Registers the instruction wrote, whether or not the value changed: byte registers by their
+   * own name (AL, not AX), each once. The fetch moving IP to the next line is not one of them.
+   */
+  registersWritten: RegisterName[];
 }
 
 class ExecutionContext {
   readonly memoryWrites: MemoryWrite[] = [];
   readonly portWrites: PortWrite[] = [];
+  readonly registersWritten: RegisterName[] = [];
   alu: AluTrace | null = null;
   interrupted: number | null = null;
 
@@ -102,10 +108,16 @@ class ExecutionContext {
     }
   }
 
+  /** Every register the instruction writes goes through here, so the record can list it. */
+  writeRegister(name: RegisterName, value: number): void {
+    writeRegister(this.state, name, value);
+    if (!this.registersWritten.includes(name)) this.registersWritten.push(name);
+  }
+
   write(operand: Operand, value: number): void {
     switch (operand.type) {
       case 'reg':
-        writeRegister(this.state, operand.name, value);
+        this.writeRegister(operand.name, value);
         return;
       case 'mem':
         this.memoryWrites.push(
@@ -135,7 +147,7 @@ class ExecutionContext {
     if (target.type !== 'label') {
       throw new CpuError('A jump needs a program line (L0, L1, …) as its target.');
     }
-    writeRegister(this.state, 'ip', target.target);
+    this.writeRegister('ip', target.target);
   }
 
   flag(name: FlagName): boolean {
@@ -205,7 +217,7 @@ class ExecutionContext {
 
   push(value: number): void {
     const sp = truncate(readRegister(this.state, 'sp') - 2, 16);
-    writeRegister(this.state, 'sp', sp);
+    this.writeRegister('sp', sp);
     const address = physicalAddress(readRegister(this.state, 'ss'), sp);
     this.memoryWrites.push(...writeMemory(this.state, address, 16, value));
   }
@@ -213,7 +225,7 @@ class ExecutionContext {
   pop(): number {
     const sp = readRegister(this.state, 'sp');
     const value = readMemory(this.state, physicalAddress(readRegister(this.state, 'ss'), sp), 16);
-    writeRegister(this.state, 'sp', sp + 2);
+    this.writeRegister('sp', sp + 2);
     return value;
   }
 
@@ -244,8 +256,8 @@ class ExecutionContext {
     this.setFlag('TF', false);
     this.push(readRegister(this.state, 'cs'));
     this.push(readRegister(this.state, 'ip'));
-    writeRegister(this.state, 'cs', handler.cs);
-    writeRegister(this.state, 'ip', handler.ip);
+    this.writeRegister('cs', handler.cs);
+    this.writeRegister('ip', handler.ip);
     this.interrupted = type;
   }
 
@@ -378,7 +390,7 @@ const loopIf =
   (condition: (ctx: ExecutionContext) => boolean): Handler =>
   (ctx, [target]) => {
     const cx = truncate(readRegister(ctx.state, 'cx') - 1, 16);
-    writeRegister(ctx.state, 'cx', cx);
+    ctx.writeRegister('cx', cx);
     if (cx !== 0 && condition(ctx)) {
       ctx.jump(target);
     }
@@ -405,7 +417,7 @@ const stringStep =
         ctx.writeAt('es', di, readRegister(ctx.state, accumulator));
         break;
       case 'lods':
-        writeRegister(ctx.state, accumulator, ctx.readAt('ds', si));
+        ctx.writeRegister(accumulator, ctx.readAt('ds', si));
         break;
       case 'scas':
         ctx.subtract(readRegister(ctx.state, accumulator), ctx.readAt('es', di), 0);
@@ -415,8 +427,8 @@ const stringStep =
         break;
     }
 
-    if (usesSource) writeRegister(ctx.state, 'si', si + delta);
-    if (operation !== 'lods') writeRegister(ctx.state, 'di', di + delta);
+    if (usesSource) ctx.writeRegister('si', si + delta);
+    if (operation !== 'lods') ctx.writeRegister('di', di + delta);
   };
 
 /**
@@ -426,7 +438,8 @@ const stringStep =
 function repeat(ctx: ExecutionContext, prefix: RepeatPrefix, step: () => void): void {
   // CX is counted in a local and stored once: the string steps never read it, and under a
   // reactive state every register access is a proxy hit, 65535 times for a full CX.
-  let cx = readRegister(ctx.state, 'cx');
+  const start = readRegister(ctx.state, 'cx');
+  let cx = start;
   try {
     while (cx !== 0) {
       step();
@@ -435,7 +448,8 @@ function repeat(ctx: ExecutionContext, prefix: RepeatPrefix, step: () => void): 
       if (prefix === 'repne' && ctx.flag('ZF')) return;
     }
   } finally {
-    writeRegister(ctx.state, 'cx', cx);
+    // With CX = 0 nothing runs, and CX is not written either.
+    if (cx !== start) ctx.writeRegister('cx', cx);
   }
 }
 
@@ -484,12 +498,12 @@ const HANDLERS: Record<Mnemonic, Handler> = {
     const factor = ctx.read(src);
     if (ctx.size === 8) {
       const product = readRegister(ctx.state, 'al') * factor;
-      writeRegister(ctx.state, 'ax', product);
+      ctx.writeRegister('ax', product);
       ctx.setProductFlags(product, false, product > 0xff);
     } else {
       const product = readRegister(ctx.state, 'ax') * factor;
-      writeRegister(ctx.state, 'ax', product % 0x10000);
-      writeRegister(ctx.state, 'dx', Math.floor(product / 0x10000));
+      ctx.writeRegister('ax', product % 0x10000);
+      ctx.writeRegister('dx', Math.floor(product / 0x10000));
       ctx.setProductFlags(product, false, product > 0xffff);
     }
   },
@@ -497,12 +511,12 @@ const HANDLERS: Record<Mnemonic, Handler> = {
     const factor = toSigned(ctx.read(src), ctx.size);
     if (ctx.size === 8) {
       const product = toSigned(readRegister(ctx.state, 'al'), 8) * factor;
-      writeRegister(ctx.state, 'ax', product);
+      ctx.writeRegister('ax', product);
       ctx.setProductFlags(product, true, product < -0x80 || product > 0x7f);
     } else {
       const product = toSigned(readRegister(ctx.state, 'ax'), 16) * factor;
-      writeRegister(ctx.state, 'ax', product);
-      writeRegister(ctx.state, 'dx', product >> 16);
+      ctx.writeRegister('ax', product);
+      ctx.writeRegister('dx', product >> 16);
       ctx.setProductFlags(product, true, product < -0x8000 || product > 0x7fff);
     }
   },
@@ -513,14 +527,14 @@ const HANDLERS: Record<Mnemonic, Handler> = {
       const dividend = readRegister(ctx.state, 'ax');
       const quotient = Math.floor(dividend / divisor);
       if (quotient > 0xff) quotientTooBig(quotient, 8);
-      writeRegister(ctx.state, 'al', quotient);
-      writeRegister(ctx.state, 'ah', dividend % divisor);
+      ctx.writeRegister('al', quotient);
+      ctx.writeRegister('ah', dividend % divisor);
     } else {
       const dividend = readRegister(ctx.state, 'dx') * 0x10000 + readRegister(ctx.state, 'ax');
       const quotient = Math.floor(dividend / divisor);
       if (quotient > 0xffff) quotientTooBig(quotient, 16);
-      writeRegister(ctx.state, 'ax', quotient);
-      writeRegister(ctx.state, 'dx', dividend % divisor);
+      ctx.writeRegister('ax', quotient);
+      ctx.writeRegister('dx', dividend % divisor);
     }
   },
   idiv: (ctx, [src]) => {
@@ -537,11 +551,11 @@ const HANDLERS: Record<Mnemonic, Handler> = {
       quotientTooBig(quotient, ctx.size);
     }
     if (ctx.size === 8) {
-      writeRegister(ctx.state, 'al', quotient);
-      writeRegister(ctx.state, 'ah', remainder);
+      ctx.writeRegister('al', quotient);
+      ctx.writeRegister('ah', remainder);
     } else {
-      writeRegister(ctx.state, 'ax', quotient);
-      writeRegister(ctx.state, 'dx', remainder);
+      ctx.writeRegister('ax', quotient);
+      ctx.writeRegister('dx', remainder);
     }
   },
 
@@ -613,15 +627,15 @@ const HANDLERS: Record<Mnemonic, Handler> = {
     ctx.push(readRegister(ctx.state, 'ip'));
     ctx.jump(target);
   },
-  ret: (ctx) => writeRegister(ctx.state, 'ip', ctx.pop()),
+  ret: (ctx) => ctx.writeRegister('ip', ctx.pop()),
 
   int: (ctx, [type]) => ctx.interrupt(ctx.read(type) & 0xff),
   into: (ctx) => {
     if (ctx.flag('OF')) ctx.interrupt(OVERFLOW_INTERRUPT);
   },
   iret: (ctx) => {
-    writeRegister(ctx.state, 'ip', ctx.pop());
-    writeRegister(ctx.state, 'cs', ctx.pop());
+    ctx.writeRegister('ip', ctx.pop());
+    ctx.writeRegister('cs', ctx.pop());
     ctx.restoreFlags(ctx.pop());
   },
 
@@ -664,7 +678,8 @@ export function execute(
     memoryWrites: ctx.memoryWrites,
     portWrites: ctx.portWrites,
     alu: null,
-    interrupt: null
+    interrupt: null,
+    registersWritten: ctx.registersWritten
   };
 
   try {

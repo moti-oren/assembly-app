@@ -280,6 +280,11 @@
       color 300ms,
       border-color 300ms;
   }
+  /* Written with the value it already had: outlined, so it is not mistaken for a change. */
+  .change-mark-written {
+    outline: 1px dashed var(--changed-foreground);
+    outline-offset: -1px;
+  }
   .change-flash {
     position: absolute;
     inset: 0;

@@ -44,6 +44,8 @@ npm run lint
 - **Reset** sets registers, flags and memory back to their start values and clears the history;
   the program is kept. When the history holds instructions it asks first, since Undo cannot
   bring them back.
+- A register the last instruction changed is filled in amber. One it wrote with the value it
+  already held is outlined instead, e.g. `mov si, 0` while SI is 0, so a write is never invisible.
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
   fetch, decode, then execute. Fetch and decode show what is about to happen in the CPU panel's
   **Cycle** box and on the wires; the registers, flags and memory change only at execute.
@@ -146,6 +148,8 @@ npm run lint
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
 - **Reset** מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את ההיסטוריה; התוכנית נשמרת.
   כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
+- רגיסטר שההוראה האחרונה שינתה ממולא בענבר. רגיסטר שהיא כתבה אליו את הערך שכבר היה בו מוקף
+  במסגרת מקווקוות במקום, למשל `mov si, 0` כש-SI כבר 0, כך שכתיבה אף פעם לא נעלמת.
 - אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
   fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בתיבת **Cycle** שבחלונית
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.

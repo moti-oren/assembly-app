@@ -678,3 +678,49 @@ describe('interrupts', () => {
     expect(readRegister(cpu, 'bx')).toBe(3);
   });
 });
+
+describe('registersWritten', () => {
+  const line = (target: number): Operand => ({ type: 'label', target });
+
+  it('lists a register written with the value it already held', () => {
+    writeRegister(cpu, 'al', 5);
+    expect(run('mov', reg('al'), imm(5)).registersWritten).toEqual(['al']);
+  });
+
+  it('names the byte register, not its parent', () => {
+    writeRegister(cpu, 'ax', 7);
+    writeRegister(cpu, 'bl', 2);
+    expect(run('div', reg('bl')).registersWritten).toEqual(['al', 'ah']);
+  });
+
+  it('includes the registers an instruction writes without naming them', () => {
+    expect(run('push', reg('ax')).registersWritten).toEqual(['sp']);
+    expect(run('pop', reg('bx')).registersWritten).toEqual(['sp', 'bx']);
+  });
+
+  it('leaves out registers that are only read', () => {
+    expect(run('cmp', reg('ax'), reg('bx')).registersWritten).toEqual([]);
+  });
+
+  it('counts a jump as writing IP, but not the fetch that moves IP on', () => {
+    const jump = execute(cpu, { mnemonic: 'jmp', operands: [line(5)] }, 0);
+    expect(jump.registersWritten).toEqual(['ip']);
+    const move = execute(cpu, { mnemonic: 'mov', operands: [reg('al'), imm(1)] }, 1);
+    expect(move.registersWritten).toEqual(['al']);
+  });
+
+  it('a repeat with CX = 0 writes nothing, not even CX', () => {
+    const record = execute(cpu, { prefix: 'rep', mnemonic: 'stosb', operands: [] });
+    expect(record.registersWritten).toEqual([]);
+  });
+
+  it('a repeat that runs writes its pointers and CX', () => {
+    writeRegister(cpu, 'cx', 2);
+    const record = execute(cpu, { prefix: 'rep', mnemonic: 'stosb', operands: [] });
+    expect(record.registersWritten).toEqual(['di', 'cx']);
+  });
+
+  it('INTO with OF clear writes nothing', () => {
+    expect(run('into').registersWritten).toEqual([]);
+  });
+});

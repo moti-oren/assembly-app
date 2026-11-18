@@ -4,8 +4,10 @@ import {
   REGISTER_DESCRIPTIONS,
   SPLIT_REGISTERS,
   WORD_REGISTERS,
+  half,
   type WordRegister
 } from '@/core/registers';
+import type { ExecutionRecord } from '@/core/execute';
 import type { CpuState } from '@/core/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,6 +19,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { wasWritten } from '@/ui/describe';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -25,6 +28,8 @@ const props = defineProps<{
   state: CpuState;
   /** Register values before the last instruction, used to highlight what changed. */
   previous: Record<WordRegister, number> | null;
+  /** The last executed instruction: it marks the registers it wrote without changing them. */
+  record: ExecutionRecord | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -49,6 +54,10 @@ function changedBits(name: WordRegister): number {
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
           changed by the last instruction
+        </span>
+        <span class="hidden items-center gap-1.5 md:flex">
+          <span class="change-mark-written inline-block size-2.5 rounded-xs" aria-hidden="true" />
+          written, same value
         </span>
         <CpuViewToggle />
       </CardAction>
@@ -99,6 +108,7 @@ function changedBits(name: WordRegister): number {
               >
                 <ChangeMark
                   :on="(changedBits(name) & 0xff00) !== 0"
+                  :written="wasWritten(record, half(name, 'h'))"
                   :tick="tick"
                   :title="`${name[0].toUpperCase()}H`"
                   :data-loc="`reg:${name[0]}h`"
@@ -107,6 +117,7 @@ function changedBits(name: WordRegister): number {
                 </ChangeMark>
                 <ChangeMark
                   :on="(changedBits(name) & 0x00ff) !== 0"
+                  :written="wasWritten(record, half(name, 'l'))"
                   :tick="tick"
                   :title="`${name[0].toUpperCase()}L`"
                   :data-loc="`reg:${name[0]}l`"
@@ -117,6 +128,7 @@ function changedBits(name: WordRegister): number {
               <ChangeMark
                 v-else
                 :on="changedBits(name) !== 0"
+                :written="wasWritten(record, name)"
                 :tick="tick"
                 :data-loc="`reg:${name}`"
               >
@@ -124,7 +136,11 @@ function changedBits(name: WordRegister): number {
               </ChangeMark>
             </TableCell>
             <TableCell class="py-1 text-right tabular-nums">
-              <ChangeMark :on="changedBits(name) !== 0" :tick="tick">
+              <ChangeMark
+                :on="changedBits(name) !== 0"
+                :written="wasWritten(record, name)"
+                :tick="tick"
+              >
                 <RollingDigits :text="String(value(name))" />
               </ChangeMark>
             </TableCell>
