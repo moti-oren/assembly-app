@@ -3,7 +3,8 @@ import { decode } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { formatHex } from '@/core/shared/numbers';
 import { effectiveAddress, operandSize, type Operand } from '@/core/x86/operands';
-import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/x86/state';
+import { physicalAddress, readRegister, type CpuState } from '@/core/x86/state';
+import { readMemory } from '@/core/shared/state';
 import { usePreferences } from './usePreferences';
 
 /**

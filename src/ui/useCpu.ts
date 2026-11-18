@@ -10,7 +10,8 @@ import {
   step,
   tooManyWrites
 } from '@/core/x86/program';
-import { createCpuState, setInputPort } from '@/core/x86/state';
+import { createCpuState } from '@/core/x86/state';
+import { setInputPort } from '@/core/shared/state';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
 import { useProgramLines } from './useProgramLines';

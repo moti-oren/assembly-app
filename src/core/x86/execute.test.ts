@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PORTS, terminalText } from '../shared/devices';
 import { CpuError } from '../shared/cpuError';
-import { execute, redo, undo } from './execute';
+import { execute } from './execute';
+import { redo, undo } from '../shared/executionRecord';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
 import type { RegisterName } from './registers';
@@ -9,15 +10,12 @@ import {
   createCpuState,
   getFlag,
   physicalAddress,
-  readMemory,
   readRegister,
   setFlag,
-  setInputPort,
-  snapshot,
-  writeMemory,
   writeRegister,
   type CpuState
 } from './state';
+import { readMemory, setInputPort, snapshot, writeMemory } from '../shared/state';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });

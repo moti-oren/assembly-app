@@ -6,15 +6,12 @@ import type { RegisterName, SegmentRegister } from './registers';
 import {
   getFlag,
   physicalAddress,
-  readMemory,
   readRegister,
   setFlag,
-  writeMemory,
   writeRegister,
-  type CpuState,
-  type MemoryWrite,
-  type PortWrite
+  type CpuState
 } from './state';
+import { readMemory, writeMemory, type MemoryWrite, type PortWrite } from '../shared/state';
 
 /** What the ALU computed, kept so the flags it produced can be explained afterwards. */
 export type AluTrace =

@@ -12,13 +12,8 @@ import {
   type Operand
 } from '@/core/x86/operands';
 import { isByteRegister, wordOf, type RegisterName, type WordRegister } from '@/core/x86/registers';
-import {
-  physicalAddress,
-  readMemory,
-  readRegister,
-  type CpuState,
-  type RegisterFile
-} from '@/core/x86/state';
+import { physicalAddress, readRegister, type CpuState, type RegisterFile } from '@/core/x86/state';
+import { readMemory } from '@/core/shared/state';
 
 /** Instructions whose result can be shown as `a <operator> b = result`. */
 const OPERATORS: Partial<Record<Mnemonic, string>> = {

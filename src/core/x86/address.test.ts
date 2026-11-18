@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { explainAddress, explainOffset, formatPhysical } from './address';
 import { effectiveAddress, effectiveOffset, type Operand } from './operands';
-import { createCpuState, physicalAddress, snapshot, writeRegister } from './state';
+import { createCpuState, physicalAddress, writeRegister } from './state';
+import { snapshot } from '../shared/state';
 
 type MemoryOperand = Extract<Operand, { type: 'mem' }>;
 
