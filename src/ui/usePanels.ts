@@ -1,7 +1,6 @@
 import { ref, watch, type Ref } from 'vue';
-import { decode } from '@/core/x86/decode';
-import type { Instruction } from '@/core/x86/instructions';
-import type { Cpu } from './useCpu';
+import type { ExecutionRecord } from '@/core/shared/executionRecord';
+import type { CpuControls } from './useCpu';
 
 /** The panels that can be shown or hidden, and the program line whose bytes are on show. */
 export interface Panels {
@@ -15,9 +14,16 @@ export interface Panels {
   inspect: (line: number) => void;
 }
 
-const usesPort = (instruction: Instruction): boolean => decode(instruction).port !== null;
+/** Whether a program, or the instruction that ran last, uses the I/O devices. */
+export type UsesDevices<Instruction, Record> = (
+  program: readonly Instruction[],
+  last: Record | null
+) => boolean;
 
-export function usePanels(cpu: Cpu): Panels {
+export function usePanels<Instruction, Record extends ExecutionRecord>(
+  cpu: CpuControls<Instruction, Record>,
+  usesDevices: UsesDevices<Instruction, Record>
+): Panels {
   const { history, program, lastRecord } = cpu;
   const historyShown = ref(false);
   const bytesShown = ref(false);
@@ -29,8 +35,7 @@ export function usePanels(cpu: Cpu): Panels {
   });
 
   watch([program, lastRecord], ([lines, record]) => {
-    const inProgram = lines.some(usesPort);
-    if (inProgram || (record && usesPort(record.instruction))) devicesShown.value = true;
+    if (usesDevices(lines, record)) devicesShown.value = true;
   });
 
   function inspect(line: number): void {

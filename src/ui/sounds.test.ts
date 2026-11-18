@@ -1,4 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { RV32 } from '@/core/rv32/architecture';
+import type {
+  Instruction as Rv32Instruction,
+  Mnemonic as Rv32Mnemonic
+} from '@/core/rv32/instructions';
+import type { Operand as Rv32Operand } from '@/core/rv32/operands';
+import type { CpuState as Rv32State } from '@/core/rv32/state';
 import { execute } from '@/core/x86/execute';
 import type { Instruction, Mnemonic } from '@/core/x86/instructions';
 import type { Operand } from '@/core/x86/operands';
@@ -6,7 +13,7 @@ import { step, type Program } from '@/core/shared/program';
 import { X86 } from '@/core/x86/architecture';
 import type { RegisterName } from '@/core/x86/registers';
 import { createCpuState, writeRegister } from '@/core/x86/state';
-import { raisedOverflow, stepSound } from './sounds';
+import { raisedOverflow, rv32StepSound, stepSound } from './sounds';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -85,5 +92,38 @@ describe('raisedOverflow', () => {
 
     const after = execute(state, line('mov', reg('bx'), imm(1)));
     expect(raisedOverflow(after, state)).toBe(false);
+  });
+});
+
+describe('rv32StepSound', () => {
+  const rv = (mnemonic: Rv32Mnemonic, ...operands: Rv32Operand[]): Rv32Instruction => ({
+    mnemonic,
+    operands
+  });
+  const x = (index: number): Rv32Operand => ({ type: 'reg', index });
+  const to = (target: number): Rv32Operand => ({ type: 'label', target });
+  const program = [
+    rv('jal', x(1), to(2)),
+    rv('addi', x(10), x(0), { type: 'imm', value: 1 }),
+    rv('jalr', x(0), { type: 'mem', base: 1, offset: 0 }),
+    rv('beq', x(10), x(0), to(0))
+  ];
+
+  function soundOfLine(line: number, setup?: (state: Rv32State) => void) {
+    const state = RV32.createState();
+    RV32.setNextLine(state, line, program);
+    setup?.(state);
+    return rv32StepSound(step(RV32, state, program), state);
+  }
+
+  it('hears JAL with ra as a call and JALR through ra as a return', () => {
+    expect(soundOfLine(0)).toBe('call');
+    expect(soundOfLine(2, (state) => (state.registers.x1 = 4))).toBe('ret');
+  });
+
+  it('hears a register change, and a branch taken or not', () => {
+    expect(soundOfLine(1)).toBe('register');
+    expect(soundOfLine(3)).toBe('jump-back');
+    expect(soundOfLine(3, (state) => (state.registers.x10 = 1))).toBe('no-jump');
   });
 });

@@ -1,10 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="Instruction extends ProgramInstruction">
 import { computed, onMounted, ref, watch } from 'vue';
 import { ArrowUpToLine, ChevronRight, Trash2, X } from '@lucide/vue';
-import type { AssembledLine } from '@/core/x86/encode';
-import { formatInstruction, type Instruction } from '@/core/x86/instructions';
-import { formatBytes, formatHex } from '@/core/shared/numbers';
-import { formatLabel } from '@/core/x86/operands';
+import { formatBytes } from '@/core/shared/numbers';
+import { formatLabel, isLabel, type ProgramInstruction } from '@/core/shared/program';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,11 +14,16 @@ import {
 } from '@/components/ui/card';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { CodePlace, LineCode } from '@/ui/programCode';
 
 const props = defineProps<{
   program: Instruction[];
+  /** How the architecture writes an instruction. */
+  format: (instruction: Instruction) => string;
   /** The machine code of each line, shown beside it. */
-  assembled: AssembledLine[];
+  code: LineCode[];
+  /** Where a line's code sits, as the tooltip says it. */
+  codePlace: CodePlace;
   ip: number;
   /** Line new instructions are inserted before; null = the end. */
   insertAt: number | null;
@@ -46,7 +49,7 @@ const targets = computed(() => {
   const set = new Set<number>();
   for (const instruction of props.program) {
     for (const operand of instruction.operands) {
-      if (operand.type === 'label') set.add(operand.target);
+      if (isLabel(operand)) set.add(operand.target);
     }
   }
   return set;
@@ -84,7 +87,7 @@ const ROW =
   'group grid h-7 pointer-coarse:h-11 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pr-1 pl-2';
 
 function machineCode(index: number): string {
-  return formatBytes(props.assembled[index].encoding.bytes);
+  return formatBytes(props.code[index].bytes);
 }
 </script>
 
@@ -163,22 +166,21 @@ function machineCode(index: number): string {
               >{{ formatLabel(index) }}{{ targets.has(index) ? ':' : '' }}</span
             >
             <span class="truncate" :class="{ 'font-semibold': lastLine === index }"
-              ><span :data-loc="`line:${index}`">{{ formatInstruction(instruction) }}</span></span
+              ><span :data-loc="`line:${index}`">{{ format(instruction) }}</span></span
             >
-            <Tooltip v-if="assembled[index]">
+            <Tooltip v-if="code[index]">
               <TooltipTrigger as-child>
                 <button
                   type="button"
                   class="hidden max-w-36 truncate rounded-sm px-1 text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
-                  :class="{ 'text-destructive': assembled[index].encoding.problem }"
+                  :class="{ 'text-destructive': code[index].problem }"
                   @click="emit('inspect', index)"
                 >
                   {{ machineCode(index) }}
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                Machine code at offset {{ formatHex(assembled[index].offset, 16) }}h. Click to take
-                it apart.
+                Machine code at {{ codePlace(code[index].address) }}. Click to take it apart.
               </TooltipContent>
             </Tooltip>
             <span v-else />

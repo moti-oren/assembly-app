@@ -31,6 +31,19 @@ export type Category =
   | 'jump'
   | 'upper';
 
+export const CATEGORY_LABELS: Record<Category, string> = {
+  arithmetic: 'Arithmetic',
+  logic: 'Logic',
+  shift: 'Shift',
+  compare: 'Compare',
+  multiply: 'Multiply & divide (M)',
+  load: 'Load from memory',
+  store: 'Store to memory',
+  branch: 'Branch',
+  jump: 'Jump & link',
+  upper: 'Upper immediate'
+};
+
 export interface InstructionSpec {
   category: Category;
   format: Format;

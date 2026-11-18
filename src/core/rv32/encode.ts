@@ -1,7 +1,7 @@
-import type { Program } from '../shared/program';
+import { formatLabel, type Program } from '../shared/program';
 import { field, fitsSigned, u32 } from './bits';
 import { getSpec, type Format, type Instruction, type Mnemonic } from './instructions';
-import { formatLabel, formatRegister, type Operand } from './operands';
+import { formatRegister, type Operand } from './operands';
 import { addressOfLine } from './state';
 
 /**

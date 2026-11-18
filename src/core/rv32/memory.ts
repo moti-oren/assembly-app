@@ -1,6 +1,6 @@
 import { CpuError } from '../shared/cpuError';
 import { littleEndian } from '../shared/numbers';
-import type { Program } from '../shared/program';
+import { formatLabel, type Program } from '../shared/program';
 import {
   readBytes,
   readPort,
@@ -12,7 +12,6 @@ import {
 import { formatHex32, u32 } from './bits';
 import { wordAt } from './encode';
 import type { Instruction } from './instructions';
-import { formatLabel } from './operands';
 import {
   addressOfLine,
   CODE_BASE,
@@ -27,7 +26,16 @@ import {
 export type AccessSize = 1 | 2 | 4;
 
 /** What sits at an address: the program's code, plain RAM, or a device. */
+export type Region = 'code' | 'ram' | 'device';
+
 type Target = { kind: 'code' } | { kind: 'ram' } | { kind: 'device'; port: number };
+
+/** The region an address falls in, or null where nothing is wired. */
+export function regionAt(address: number, lineCount: number): Region | null {
+  if (address >= DEVICE_BASE && address < DEVICE_BASE + DEVICE_SPACE) return 'device';
+  if (address < 0 || address >= RAM_SIZE) return null;
+  return address < addressOfLine(lineCount) ? 'code' : 'ram';
+}
 
 const SIZE_NAMES: Record<AccessSize, string> = { 1: 'byte', 2: 'half-word', 4: 'word' };
 

@@ -1,3 +1,6 @@
+import type { ExecutionRecord as Rv32Record } from '@/core/rv32/execute';
+import { RA, ZERO } from '@/core/rv32/registers';
+import type { CpuState as Rv32State } from '@/core/rv32/state';
 import { decode } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { isFlagSet } from '@/core/x86/flags';
@@ -52,4 +55,24 @@ export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSoun
 /** True when this instruction is the one that raised OF: the moment a signed result broke. */
 export function raisedOverflow(record: ExecutionRecord, after: CpuSnapshot): boolean {
   return !isFlagSet(record.before.flags, 'OF') && isFlagSet(after.flags, 'OF');
+}
+
+/** What one RISC-V instruction sounds like: JAL with ra is a call, JALR to ra a return. */
+export function rv32StepSound(record: Rv32Record, after: Rv32State): StepSound {
+  const { mnemonic, operands } = record.instruction;
+  const [first, second] = operands;
+  if (mnemonic === 'jal' && first.type === 'reg' && first.index === RA) return 'call';
+  const returns =
+    mnemonic === 'jalr' && first.type === 'reg' && first.index === ZERO && second.type === 'mem';
+  if (returns && second.base === RA) return 'ret';
+  const { pc } = after.registers;
+  const from = record.before.registers.pc;
+  const fallThrough = record.line === null ? from : from + 4;
+  if (record.comparison && !record.comparison.taken) return 'no-jump';
+  if (pc !== fallThrough) return pc > from ? 'jump-forward' : 'jump-back';
+  if (record.access?.write) return 'memory';
+  const changed = Object.keys(after.registers).some(
+    (key) => key !== 'pc' && after.registers[key as 'x1'] !== record.before.registers[key as 'x1']
+  );
+  return changed ? 'register' : 'idle';
 }

@@ -2,12 +2,15 @@
 import { computed } from 'vue';
 import { DIGIT_COUNT, PORTS, litSegments, terminalText } from '@/core/shared/devices';
 import { formatHex } from '@/core/shared/numbers';
-import type { CpuState } from '@/core/x86/state';
+import type { CpuState } from '@/core/shared/state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { DeviceAccess } from '@/ui/deviceAccess';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const props = defineProps<{
   state: CpuState;
+  /** How the CPU reaches the devices, which the labels show. */
+  access: DeviceAccess;
 }>();
 
 const emit = defineEmits<{
@@ -46,7 +49,7 @@ function isOn(value: number, bit: number): boolean {
 }
 
 function port(number: number): string {
-  return `${formatHex(number, 8)}h`;
+  return props.access.address(number);
 }
 
 function flip(bit: number): void {
@@ -59,8 +62,8 @@ function flip(bit: number): void {
     <CardHeader>
       <CardTitle class="group-data-[size=sm]/card:text-base">I/O devices</CardTitle>
       <CardDescription>
-        <span class="font-mono">out</span> writes to a port, <span class="font-mono">in</span> reads
-        one
+        <span class="font-mono">{{ access.write }}</span> writes to a {{ access.noun }},
+        <span class="font-mono">{{ access.read }}</span> reads one
       </CardDescription>
     </CardHeader>
 
@@ -69,7 +72,9 @@ function flip(bit: number): void {
         <section aria-label="LEDs">
           <h3 class="device-title">
             LEDs
-            <span class="device-port">out {{ port(PORTS.leds) }} = {{ formatHex(leds, 8) }}h</span>
+            <span class="device-port"
+              >{{ access.write }} {{ port(PORTS.leds) }} = {{ formatHex(leds, 8) }}h</span
+            >
           </h3>
           <div class="flex gap-1.5">
             <span
@@ -88,7 +93,7 @@ function flip(bit: number): void {
           <h3 class="device-title">
             Switches
             <span class="device-port"
-              >in {{ port(PORTS.switches) }} = {{ formatHex(switches, 8) }}h</span
+              >{{ access.read }} {{ port(PORTS.switches) }} = {{ formatHex(switches, 8) }}h</span
             >
           </h3>
           <div class="flex gap-1.5 pointer-coarse:gap-5">
@@ -115,7 +120,7 @@ function flip(bit: number): void {
         <h3 class="device-title">
           7-segment
           <span class="device-port"
-            >out {{ port(PORTS.digits) }}, {{ port(PORTS.digits + 1) }}</span
+            >{{ access.write }} {{ port(PORTS.digits) }}, {{ port(PORTS.digits + 1) }}</span
           >
         </h3>
         <div class="flex gap-2 rounded-md border bg-background/60 px-2.5 py-2">
@@ -125,11 +130,11 @@ function flip(bit: number): void {
             viewBox="0 0 42 64"
             class="h-16 w-auto"
             role="img"
-            :aria-label="`Digit on port ${port(digit.port)} shows ${formatHex(digit.value, 8)}h`"
+            :aria-label="`Digit at ${access.noun} ${port(digit.port)} shows ${formatHex(digit.value, 8)}h`"
           >
             <title>
-              Port {{ port(digit.port) }} = {{ formatHex(digit.value, 8) }}h. Bits 0 to 7 light a,
-              b, c, d, e, f, g and the dot.
+              {{ formatHex(digit.value, 8) }}h, written to {{ access.noun }} {{ port(digit.port) }}.
+              Bits 0 to 7 light a, b, c, d, e, f, g and the dot.
             </title>
             <g class="device-segments">
               <rect
@@ -190,7 +195,7 @@ function flip(bit: number): void {
       <section class="flex min-w-0 flex-col" aria-label="Terminal">
         <h3 class="device-title">
           Terminal
-          <span class="device-port">out {{ port(PORTS.terminal) }}</span>
+          <span class="device-port">{{ access.write }} {{ port(PORTS.terminal) }}</span>
         </h3>
         <!-- Reversed, so the newest output stays in view as the text grows. -->
         <div

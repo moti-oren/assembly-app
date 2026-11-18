@@ -1,14 +1,15 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="Instruction">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import type { ExecutionRecord } from '@/core/x86/execute';
-import { formatInstruction } from '@/core/x86/instructions';
-import { formatLabel } from '@/core/x86/operands';
+import type { ExecutionRecord } from '@/core/shared/executionRecord';
+import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const props = defineProps<{
-  history: ExecutionRecord[];
+  history: ExecutionRecord<Instruction>[];
+  /** How the architecture writes an instruction. */
+  format: (instruction: Instruction) => string;
   /** Undone instructions, in the order they would run again. */
-  future: ExecutionRecord[];
+  future: ExecutionRecord<Instruction>[];
 }>();
 const emit = defineEmits<{ seek: [position: number] }>();
 
@@ -101,7 +102,7 @@ watch(
                 "
                 >{{ record.line === null ? 'direct' : formatLabel(record.line) }}</span
               >
-              <span class="truncate">{{ formatInstruction(record.instruction) }}</span>
+              <span class="truncate">{{ format(record.instruction) }}</span>
             </button>
           </li>
         </ol>

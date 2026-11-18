@@ -25,6 +25,17 @@ export const ZERO = 0;
 export const RA = 1;
 export const SP = 2;
 
+/** What each register is for, by the calling convention. */
+export type RegisterRole = 'special' | 'argument' | 'temporary' | 'saved';
+
+export function registerRole(index: number): RegisterRole {
+  const name = ABI_NAMES[index];
+  if (index < 5) return 'special';
+  if (name.startsWith('a')) return 'argument';
+  if (name.startsWith('t')) return 'temporary';
+  return 'saved';
+}
+
 export function registerKey(index: number): (typeof REGISTER_KEYS)[number] {
   return REGISTER_KEYS[index];
 }

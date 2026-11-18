@@ -1,19 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import {
-  CYCLE_PHASES,
-  OPERAND_KIND_LABELS,
-  decode,
-  type CyclePhase,
-  type Decoded
-} from '@/core/x86/decode';
+import type { CyclePhase } from '@/core/shared/cycle';
+import { OPERAND_KIND_LABELS, decode, type Decoded } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { CATEGORY_LABELS, formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { formatHex } from '@/core/shared/numbers';
-import { formatLabel } from '@/core/x86/operands';
+import { formatLabel } from '@/core/shared/program';
 import { changedRegisters } from '@/core/x86/registers';
 import type { CpuState } from '@/core/x86/state';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
+import CycleStrip from './CycleStrip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -22,12 +18,6 @@ const props = defineProps<{
   /** The program line being stepped by phase, if any. */
   pending: PendingInstruction<Instruction> | null;
 }>();
-
-const PHASE_LABELS: Record<CyclePhase, string> = {
-  fetch: 'Fetch',
-  decode: 'Decode',
-  execute: 'Execute'
-};
 
 const active = computed<CyclePhase | null>(
   () => props.pending?.phase ?? (props.record ? 'execute' : null)
@@ -103,43 +93,9 @@ const detail = computed(() => {
 </script>
 
 <template>
-  <div class="rounded-lg border bg-muted/30 px-3 py-2.5">
-    <div class="flex items-center gap-3">
-      <span class="text-sm font-medium">Cycle</span>
-      <ol class="flex items-center gap-1 text-xs" aria-label="Instruction cycle">
-        <li
-          v-for="(phase, index) in CYCLE_PHASES"
-          :key="phase"
-          class="flex items-center gap-1"
-          :aria-current="phase === active ? 'step' : undefined"
-        >
-          <span
-            v-if="index > 0"
-            class="h-0.5 w-3 rounded-full bg-foreground/15"
-            aria-hidden="true"
-          />
-          <span
-            class="rounded-md border px-2 py-0.5 transition-colors duration-300"
-            :class="
-              phase === active
-                ? 'border-transparent bg-foreground font-semibold text-background'
-                : 'text-muted-foreground'
-            "
-            >{{ PHASE_LABELS[phase] }}</span
-          >
-        </li>
-      </ol>
-      <span class="ml-auto truncate font-mono text-xs text-muted-foreground">{{
-        instruction ? formatInstruction(instruction) : 'idle'
-      }}</span>
-    </div>
-    <!-- Three lines, whatever the text, so the panels below never move until it is opened. -->
-    <details class="group mt-2 text-xs leading-4 text-muted-foreground">
-      <summary
-        class="line-clamp-3 h-12 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
-      >
-        <span aria-live="polite">{{ detail }}</span>
-      </summary>
-    </details>
-  </div>
+  <CycleStrip
+    :active="active"
+    :instruction="instruction ? formatInstruction(instruction) : null"
+    :detail="detail"
+  />
 </template>

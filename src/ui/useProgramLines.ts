@@ -31,11 +31,14 @@ export function useProgramLines<
   /** Line that new program lines are inserted before; null means "append at the end". */
   const insertAt = ref<number | null>(null);
 
-  function addToProgram(instruction: Instruction): void {
-    const index = insertAt.value ?? program.value.length;
-    edit(insertLine(program.value, index, instruction), (next) => lineAfterInsert(next, index));
-    if (insertAt.value !== null) {
-      insertAt.value++;
+  /** Adds lines one after another at the insertion point, e.g. the two lines of a RISC-V `li`. */
+  function addToProgram(instructions: readonly Instruction[]): void {
+    for (const instruction of instructions) {
+      const index = insertAt.value ?? program.value.length;
+      edit(insertLine(program.value, index, instruction), (next) => lineAfterInsert(next, index));
+      if (insertAt.value !== null) {
+        insertAt.value++;
+      }
     }
   }
 

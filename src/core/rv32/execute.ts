@@ -5,7 +5,7 @@ import { snapshot } from '../shared/state';
 import { BRANCH_CONDITIONS, IMMEDIATE_OPERATIONS, OPERATIONS, type AluMnemonic } from './alu';
 import { formatHex32, signExtend, u32 } from './bits';
 import { formatInstruction, getSpec, isValid, type Instruction } from './instructions';
-import { load, store, type AccessSize } from './memory';
+import { load, regionAt, store, type AccessSize, type Region } from './memory';
 import type { Operand } from './operands';
 import { registerKey, type RegisterName } from './registers';
 import {
@@ -25,9 +25,28 @@ export interface AluTrace {
   result: number;
 }
 
+/** A load or store, as it happened. */
+export interface MemoryAccess {
+  address: number;
+  size: AccessSize;
+  write: boolean;
+  region: Region;
+  /** The value loaded, before any sign extension, or the value stored. */
+  value: number;
+}
+
+/** The two register values a branch compared, and whether it jumped. */
+export interface Comparison {
+  a: number;
+  b: number;
+  taken: boolean;
+}
+
 /** An executed RISC-V instruction: what undo needs, and what explains it afterwards. */
 export interface ExecutionRecord extends SharedRecord<Instruction, RegisterName> {
   alu: AluTrace | null;
+  access: MemoryAccess | null;
+  comparison: Comparison | null;
 }
 
 type Reg = Extract<Operand, { type: 'reg' }>;
@@ -62,7 +81,9 @@ class Run {
       memoryWrites: [],
       portWrites: [],
       registersWritten: [],
-      alu: null
+      alu: null,
+      access: null,
+      comparison: null
     };
   }
 
@@ -106,6 +127,11 @@ class Run {
     this.state.registers.pc = address;
   }
 
+  accessed(address: number, size: AccessSize, write: boolean, value: number): void {
+    const region = regionAt(address, this.program.length)!;
+    this.record.access = { address, size, write, region, value };
+  }
+
   /** The address of the instruction after this one, which JAL and JALR keep as the link. */
   get next(): number {
     return u32(this.here + INSTRUCTION_SIZE);
@@ -123,20 +149,23 @@ function runInstruction(run: Run, { mnemonic, operands }: Instruction): void {
     run.write(a, run.compute(mnemonic as AluMnemonic, run.read(b), run.read(c)));
   } else if (category === 'load') {
     const { size, signed } = LOAD_SIZES[mnemonic];
-    const value = load(run.state, run.program, run.address(b), size);
+    const address = run.address(b);
+    const value = load(run.state, run.program, address, size);
+    run.accessed(address, size, false, value);
     run.write(a, signed ? signExtend(value, size * 8) : value);
   } else if (category === 'store') {
-    const result = store(
-      run.state,
-      run.program,
-      run.address(b),
-      STORE_SIZES[mnemonic],
-      run.read(a)
-    );
+    const address = run.address(b);
+    const size = STORE_SIZES[mnemonic];
+    const value = run.read(a) & (2 ** (8 * size) - 1);
+    const result = store(run.state, run.program, address, size, value);
+    run.accessed(address, size, true, u32(value));
     run.record.memoryWrites.push(...result.memoryWrites);
     run.record.portWrites.push(...result.portWrites);
   } else if (category === 'branch') {
-    const taken = BRANCH_CONDITIONS[mnemonic]!(run.read(a), run.read(b));
+    const left = run.read(a);
+    const right = run.read(b);
+    const taken = BRANCH_CONDITIONS[mnemonic]!(left, right);
+    run.record.comparison = { a: left, b: right, taken };
     if (taken) run.jump(addressOfLine((c as { target: number }).target));
   } else {
     runJumpOrUpper(run, mnemonic, a, b);
