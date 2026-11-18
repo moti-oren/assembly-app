@@ -51,6 +51,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     examples.
   - `mos6502/`: the MOS 6502 (NMOS): the 56 instructions and their 13 addressing modes, decimal
     mode, cycle counts, the code layout (instructions of 1 to 3 bytes) and examples.
+  - `comparisonTasks.ts` and `comparison.ts`: the same tasks written for all three CPUs, and what
+    running each program takes (lines, bytes, instructions run, memory writes, cycles).
 - `src/ui/`: Vue components and `useCpu`, which wraps a CPU core in Vue reactivity. Each
   architecture has a workbench (`X86Workbench`, `Rv32Workbench`, `Mos6502Workbench`) that lays
   out its panels: the shared ones (program, history, builder, devices, and `FlatMemory` for the
@@ -179,6 +181,18 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   shows the two bytes. `JMP ($xxFF)` reads its high byte from `$xx00`, as the original chip does.
   BRK is two bytes (the CPU skips the one after it), so RTI returns to the next line.
 
+## Comparing the CPUs
+
+- **Compare** at the top of the page (on a wide screen), or **Compare the CPUs on the same task…**
+  in the command palette, opens the same task written for all three CPUs: adding 1 to 10, a 16-bit
+  sum, multiplying, filling memory, calling a function, and lighting the LEDs.
+- A table sets side by side the program's lines and machine code bytes, the instructions it runs,
+  the bytes it writes to memory (the stack included), and on the 6502 its clock cycles. The fewest
+  in each row stands out. A paragraph says where the difference comes from: REP STOSB against a
+  loop, a return address on the stack or in `ra`, a multiply instruction or none.
+- Each CPU's program is listed with its machine code and what it leaves behind. **Load into …**
+  replaces that CPU's program with it, as an example does, and switches to it.
+
 ---
 
 <div dir="rtl">
@@ -239,6 +253,8 @@ npm run verify:6502 # check the 6502 core against py65
     ההרצה, הקידוד של 32 סיביות, פסאודו-הוראות ודוגמאות.
   - `mos6502/`: ה-MOS 6502 (NMOS): 56 ההוראות ו-13 שיטות המיעון שלהן, מצב עשרוני, ספירת מחזורי
     שעון, פריסת הקוד (הוראות של 1 עד 3 בתים) ודוגמאות.
+  - `comparisonTasks.ts` ו-`comparison.ts`: אותן משימות, כתובות לשלושת המעבדים, ומה ההרצה של כל
+    תוכנית דורשת (שורות, בתים, הוראות שרצו, כתיבות לזיכרון, מחזורי שעון).
 - `src/ui/`: רכיבי Vue ו-`useCpu`, שעוטף ליבת CPU בריאקטיביות של Vue. לכל ארכיטקטורה יש שולחן
   עבודה (`X86Workbench`, `Rv32Workbench`, `Mos6502Workbench`) שמסדר את החלוניות שלה: המשותפות
   (תוכנית, היסטוריה, בונה, התקנים, ו-`FlatMemory` למרחבי הכתובות השטוחים של RISC-V ושל ה-6502)
@@ -354,5 +370,17 @@ npm run verify:6502 # check the 6502 core against py65
 - JSR דוחפת את הכתובת של הבית האחרון שלה, ו-RTS מוסיפה לה 1; **Stack** בחלונית הזיכרון מראה את
   שני הבתים. `JMP ($xxFF)` קוראת את הבית העליון מ-`$xx00`, כמו השבב המקורי. BRK היא שני בתים
   (המעבד מדלג על זה שאחריה), ולכן RTI חוזרת לשורה הבאה.
+
+## השוואת המעבדים
+
+- **Compare** בראש העמוד (במסך רחב), או **Compare the CPUs on the same task…** בפלטת הפקודות,
+  פותח את אותה משימה כתובה לשלושת המעבדים: חיבור 1 עד 10, סכום של 16 סיביות, כפל, מילוי זיכרון,
+  קריאה לפונקציה והדלקת הנורות.
+- טבלה מעמידה זו מול זו את מספר השורות ובתי קוד המכונה של התוכנית, את ההוראות שהיא מריצה, את
+  הבתים שהיא כותבת לזיכרון (כולל המחסנית), ובמקרה של ה-6502 גם את מחזורי השעון. הקטן ביותר בכל
+  שורה בולט. פסקה מסבירה מאין ההבדל: REP STOSB מול לולאה, כתובת חזרה במחסנית או ב-`ra`, הוראת
+  כפל או היעדרה.
+- התוכנית של כל מעבד מוצגת עם קוד המכונה שלה ועם מה שהיא משאירה אחריה. **Load into …** מחליף
+  בה את התוכנית של אותו מעבד, כמו דוגמה, ועובר אליו.
 
 </div>

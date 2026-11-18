@@ -3,6 +3,7 @@ import { ARCHITECTURE_CHOICES } from './architectures';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
 import type { CpuControls } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
+import { useComparison } from './useComparison';
 import type { Panels } from './usePanels';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
 
@@ -42,6 +43,7 @@ export function useCommands(
   const { isDark, soundOn, cpuView, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
     usePreferences();
   const panelOrder = usePanelOrder();
+  const comparison = useComparison();
   const { history, program, insertAt, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
@@ -152,6 +154,15 @@ export function useCommands(
         architecture.value = choice.id;
       }
     })),
+    {
+      group: 'CPU',
+      label: 'Compare the CPUs on the same task…',
+      // The dialog takes focus; the palette must not take it back as it closes.
+      moves: 'focus',
+      run: () => {
+        comparison.open.value = true;
+      }
+    },
     ...cpu.architecture.examples.map((example, index) => ({
       group: 'Examples',
       label: `Load "${example.name}"`,

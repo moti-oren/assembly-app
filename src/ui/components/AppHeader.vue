@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Moon, RotateCcw, Search, Sun, Volume2, VolumeX } from '@lucide/vue';
+import { BookOpen, Columns3, Moon, RotateCcw, Search, Sun, Volume2, VolumeX } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
 import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
+import { useComparison } from '@/ui/useComparison';
 import { usePreferences } from '@/ui/usePreferences';
 
 defineProps<{
@@ -23,6 +24,7 @@ defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
 const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
 const { isDark, soundOn, architecture, toggleTheme } = usePreferences();
+const { open: comparisonOpen } = useComparison();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
 const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
@@ -84,6 +86,22 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
           <span class="hidden sm:inline">Commands</span>
           <Kbd class="hidden sm:inline-flex">{{ shortcut }}</Kbd>
         </Button>
+        <!-- Narrower headers have no room for it: there the palette opens the comparison. -->
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              class="hidden pointer-coarse:h-11 lg:inline-flex"
+              aria-label="Compare the CPUs"
+              @click="comparisonOpen = true"
+            >
+              <Columns3 />
+              <span>Compare</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>The same task on all three CPUs, side by side</TooltipContent>
+        </Tooltip>
         <DropdownMenu v-model:open="examplesOpen">
           <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="sm" class="pointer-coarse:h-11" aria-label="Examples">
