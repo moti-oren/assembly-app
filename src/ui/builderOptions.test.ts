@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { builderOptions, filterOptions, type BuilderDraft } from './builderOptions';
+import {
+  builderOptions,
+  filterOptions,
+  overflowingSize,
+  typingHint,
+  type BuilderDraft
+} from './builderOptions';
 
 const empty: BuilderDraft = {
   prefix: null,
@@ -75,5 +81,43 @@ describe('filterOptions', () => {
   it('lets a typed number select only the options that accept it', () => {
     const options = builderOptions({ ...empty, mnemonic: 'jmp', programLines: ['nop', 'nop'] });
     expect(filterOptions(options, '1', 1).map((option) => option.label)).toEqual(['L1']);
+  });
+});
+
+describe('typingHint', () => {
+  const draft = (changes: Partial<BuilderDraft>): BuilderDraft => ({ ...empty, ...changes });
+  const ax = { type: 'reg', name: 'ax' } as const;
+  const al = { type: 'reg', name: 'al' } as const;
+
+  it('asks for an instruction first, or the one a prefix repeats', () => {
+    expect(typingHint(empty, '', false)).toBe('Type to filter instructions');
+    expect(typingHint(draft({ prefix: 'rep' }), '', false)).toBe(
+      'Pick the string instruction to repeat'
+    );
+  });
+
+  it('asks for an address inside the brackets of a memory operand', () => {
+    expect(typingHint(draft({ mnemonic: 'mov', pendingMemory: 16 }), '', false)).toBe(
+      'Pick a register or type an offset (e.g. 0x10)'
+    );
+  });
+
+  it('says when a typed number is too big for the immediate', () => {
+    const tooBig = draft({ mnemonic: 'mov', operands: [al], typed: 300 });
+    expect(overflowingSize(tooBig)).toBe(8);
+    expect(typingHint(tooBig, '300', false)).toBe('300 does not fit in 8 bits');
+    expect(overflowingSize(draft({ mnemonic: 'mov', operands: [ax], typed: 300 }))).toBeNull();
+  });
+
+  it('explains how to type a number, a line, or that the instruction is ready', () => {
+    expect(typingHint(draft({ mnemonic: 'mov', operands: [ax] }), '', false)).toMatch(
+      /^Type a number/
+    );
+    expect(typingHint(draft({ mnemonic: 'jmp' }), '', false)).toBe(
+      'Pick a line to jump to, or type its number'
+    );
+    expect(typingHint(draft({ mnemonic: 'nop' }), '', true)).toBe(
+      'Enter: run now · Shift+Enter: add to the program'
+    );
   });
 });

@@ -190,6 +190,35 @@ function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): BuilderOption[
   ];
 }
 
+/** The immediate size the typed number is too big for, or null when it fits or none is asked. */
+export function overflowingSize(draft: BuilderDraft): Size | null {
+  const { mnemonic, operands, pendingMemory, typed } = draft;
+  if (mnemonic === null || pendingMemory !== null) return null;
+  const size = operandChoices(mnemonic, operands).immediate;
+  return size !== null && typed !== null && !fitsIn(typed, size) ? size : null;
+}
+
+/**
+ * What the input says can be typed next. `filter` is the text as typed, quoted back when the
+ * number does not fit; `complete` is whether the instruction can already run.
+ */
+export function typingHint(draft: BuilderDraft, filter: string, complete: boolean): string {
+  const { prefix, mnemonic, operands, pendingMemory } = draft;
+  if (mnemonic === null) {
+    return prefix ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
+  }
+  if (pendingMemory !== null) return 'Pick a register or type an offset (e.g. 0x10)';
+  const tooBig = overflowingSize(draft);
+  if (tooBig !== null) return `${filter} does not fit in ${tooBig} bits`;
+  const choices = operandChoices(mnemonic, operands);
+  if (choices.immediate !== null) {
+    return 'Type a number: 42 (decimal), 0x2A or 2Ah (hex), 101010b (binary)';
+  }
+  if (choices.label) return 'Pick a line to jump to, or type its number';
+  if (complete) return 'Enter: run now · Shift+Enter: add to the program';
+  return 'Type to filter';
+}
+
 /** Every choice the builder offers for the next word of the instruction. */
 export function builderOptions(draft: BuilderDraft): BuilderOption[] {
   if (draft.mnemonic === null) return mnemonicOptions(draft.prefix);
