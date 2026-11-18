@@ -12,6 +12,7 @@
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
     "verify:rv32": "python scripts/verify/verify-rv32.py",
+    "verify:6502": "python scripts/verify/verify-6502.py",
     "format": "prettier --write src",
     "format:check": "prettier --check src"
   },

@@ -15,12 +15,18 @@ npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
 npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
+npm run verify:6502 # check the 6502 core against py65
 ```
 
 `npm run verify:rv32` needs Python with `pip install capstone unicorn`. It encodes every RISC-V
 instruction with varied operands and has Capstone read the bytes back, then runs random programs
 from their bytes in Unicorn and compares registers, PC and memory with the playground's. An
 optional seed gives another set of cases: `npm run verify:rv32 -- 7`.
+
+`npm run verify:6502` needs Python with `pip install py65`. It has py65's assembler assemble every
+6502 opcode the playground encodes, and runs random programs from their bytes in py65's simulator,
+comparing A, X, Y, SP, P, PC, memory and the cycle count. In decimal mode py65 does not reproduce
+the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## Layout
 
@@ -42,6 +48,9 @@ optional seed gives another set of cases: `npm run verify:rv32 -- 7`.
   - `rv32/`: RISC-V (RV32I with the M extension), with the same kind of modules: registers, the
     instruction set, the memory map, execution, the 32-bit encoding, pseudo-instructions and
     examples.
+  - `mos6502/`: the MOS 6502 (NMOS): the 56 instructions and their 13 addressing modes, decimal
+    mode, cycle counts, the code layout (instructions of 1 to 3 bytes) and examples. It is not in
+    the app yet.
 - `src/ui/`: Vue components and `useCpu`, which wraps a CPU core in Vue reactivity. Each
   architecture has a workbench (`X86Workbench`, `Rv32Workbench`) that lays out its panels: the
   shared ones (program, history, builder, devices) and its own (`Rv32Diagram`, `Rv32Memory`, …).
@@ -167,6 +176,7 @@ npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
 npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
+npm run verify:6502 # check the 6502 core against py65
 ```
 
 <div dir="rtl">
@@ -180,6 +190,10 @@ npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
   `pip install capstone unicorn`. הפקודה מקודדת כל הוראת RISC-V עם אופרנדים שונים ונותנת ל-Capstone
   לקרוא את הבתים בחזרה, ואז מריצה תוכניות אקראיות מהבתים שלהן ב-Unicorn ומשווה רגיסטרים, PC
   וזיכרון לאלה של האפליקציה. seed אופציונלי נותן סט מקרים אחר: `npm run verify:rv32 -- 7`.
+- `npm run verify:6502`: בדיקת ליבת ה-6502 מול py65. צריך Python עם `pip install py65`. האסמבלר של
+  py65 מרכיב כל opcode של 6502 שהאפליקציה מקודדת, והסימולטור שלו מריץ תוכניות אקראיות מהבתים שלהן
+  ומשווה A, X, Y, SP, P, PC, זיכרון ומספר מחזורי שעון. במצב עשרוני py65 לא משחזר את N, V ו-Z של שבב
+  ה-NMOS, ולכן סכומי BCD מושווים רק ב-A ובנשא.
 
 ## מבנה הפרויקט
 
@@ -197,6 +211,8 @@ npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
     - `encode.ts`: קוד המכונה שכל הוראה מתורגמת אליו. הוא משמש לתצוגה בלבד.
   - `rv32/`: RISC-V (RV32I עם הרחבת M), עם אותם סוגי מודולים: רגיסטרים, סט ההוראות, מפת הזיכרון,
     ההרצה, הקידוד של 32 סיביות, פסאודו-הוראות ודוגמאות.
+  - `mos6502/`: ה-MOS 6502 (NMOS): 56 ההוראות ו-13 שיטות המיעון שלהן, מצב עשרוני, ספירת מחזורי
+    שעון, פריסת הקוד (הוראות של 1 עד 3 בתים) ודוגמאות. הוא עוד לא מחובר לאפליקציה.
 - `src/ui/`: רכיבי Vue ו-`useCpu`, שעוטף ליבת CPU בריאקטיביות של Vue. לכל ארכיטקטורה יש שולחן
   עבודה (`X86Workbench`, `Rv32Workbench`) שמסדר את החלוניות שלה: המשותפות (תוכנית, היסטוריה, בונה,
   התקנים) ואלה שלה (`Rv32Diagram`, `Rv32Memory`, …). הבונה שואל את הדקדוק של כל ארכיטקטורה
