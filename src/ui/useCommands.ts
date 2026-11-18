@@ -1,7 +1,8 @@
 import { computed, type ComputedRef } from 'vue';
 import { EXAMPLE_PROGRAMS } from '@/core/program';
 import { describeMemoryAccess } from './describe';
-import { RUN_SPEED_NAMES, SPEED_LABELS, type Cpu } from './useCpu';
+import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
+import type { Cpu } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
 import type { Panels } from './usePanels';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';

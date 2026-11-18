@@ -26,7 +26,7 @@ import {
   registersWritten,
   wasWritten
 } from '@/ui/describe';
-import type { PendingInstruction } from '@/ui/useCpu';
+import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import DiagramWire from './DiagramWire.vue';
