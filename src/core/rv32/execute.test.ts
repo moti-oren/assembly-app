@@ -146,6 +146,23 @@ describe('loads and stores', () => {
     expect(get('a0')).toBe(0x80f1);
   });
 
+  it('records what each access touched', () => {
+    set('t0', 0x1234abcd);
+    expect(run(line('sh', r('t0'), at(2, 's0'))).access).toEqual({
+      address: DATA_BASE + 2,
+      size: 2,
+      write: true,
+      region: 'ram',
+      value: 0xabcd
+    });
+    expect(run(line('lb', r('a0'), at(2, 's0'))).access).toMatchObject({
+      write: false,
+      value: 0xcd
+    });
+    const program = [line('addi', r('a0'), r('zero'), imm(5))];
+    expect(run(line('lw', r('a0'), at(0, 'zero')), program).access?.region).toBe('code');
+  });
+
   it('traps a misaligned access and leaves the CPU as it was', () => {
     expect(() => run(line('lw', r('a0'), at(2, 's0')))).toThrow(/Misaligned load/);
     expect(() => run(line('sh', r('a0'), at(1, 's0')))).toThrow(/Misaligned store/);
@@ -207,6 +224,13 @@ describe('branches and jumps', () => {
     cpu.registers.pc = 0;
     execute(cpu, line('bltu', r('a0'), r('a1'), label(3)), 0, branch);
     expect(cpu.registers.pc).toBe(4);
+  });
+
+  it('records the two values a branch compared', () => {
+    set('a0', 3);
+    const record = run(line('bge', r('a0'), r('zero'), label(0)), program);
+    expect(record.comparison).toEqual({ a: 3, b: 0, taken: true });
+    expect(run(line('beq', r('a0'), r('zero'), label(0)), program).comparison?.taken).toBe(false);
   });
 
   it('works out the JALR target before writing rd', () => {
