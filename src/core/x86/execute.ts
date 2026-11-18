@@ -1,7 +1,8 @@
-import { CpuError, DivideError } from '../shared/cpuError';
+import { CpuError } from '../shared/cpuError';
 import { DIVIDE_ERROR_INTERRUPT, ExecutionContext, type AluTrace } from './executionContext';
 import { HANDLERS } from './handlers';
 import { formatInstruction, instructionSize, isValid, type Instruction } from './instructions';
+import { DivideError } from './multiplyDivide';
 import type { RegisterName } from './registers';
 import {
   redoPortWrite,

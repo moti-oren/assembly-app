@@ -1,7 +1,10 @@
-import { DivideError } from '../shared/cpuError';
+import { CpuError } from '../shared/cpuError';
 import { signBit, toSigned, type Size } from '../shared/numbers';
 import { readRegister } from './state';
 import type { Handler } from './executionContext';
+
+/** A divide error is interrupt 0; it only surfaces as an error when no handler is installed. */
+export class DivideError extends CpuError {}
 
 function divideError(reason: string): never {
   throw new DivideError(`Divide error (#DE): ${reason}`);
