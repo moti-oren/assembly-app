@@ -47,8 +47,8 @@ npm run lint
 - A register the last instruction changed is filled in amber. One it wrote with the value it
   already held is outlined instead, e.g. `mov si, 0` while SI is 0, so a write is never invisible.
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
-  fetch, decode, then execute. Fetch and decode show what is about to happen in the CPU panel's
-  **Cycle** box and on the wires; the registers, flags and memory change only at execute.
+  fetch, decode, then execute. Fetch and decode show what is about to happen in the **Cycle**
+  card above the CPU and on the wires; the registers, flags and memory change only at execute.
 - The CPU diagram is laid out like the 8086 itself. The **execution unit** (EU) holds the data,
   pointer and index registers, the ALU and the flags; the **bus interface unit** (BIU) holds the
   segment registers, IP and the **address adder**, which shows `segment × 10h + offset` for the
@@ -151,7 +151,7 @@ npm run lint
 - רגיסטר שההוראה האחרונה שינתה ממולא בענבר. רגיסטר שהיא כתבה אליו את הערך שכבר היה בו מוקף
   במסגרת מקווקוות במקום, למשל `mov si, 0` כש-SI כבר 0, כך שכתיבה אף פעם לא נעלמת.
 - אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
-  fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בתיבת **Cycle** שבחלונית
+  fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בכרטיסיית **Cycle** שמעל
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.
 - דיאגרמת ה-CPU בנויה כמו ה-8086 עצמו. **יחידת הביצוע** (EU) מחזיקה את רגיסטרי הנתונים,
   המצביעים והאינדקסים, את ה-ALU ואת הדגלים; **יחידת ממשק ה-bus** (BIU) מחזיקה את רגיסטרי
