@@ -6,7 +6,7 @@ import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
 import { runToEnd, step, type Program } from '../shared/program';
 import { X86 } from './architecture';
-import { EXAMPLE_PROGRAMS } from './program';
+import { EXAMPLE_PROGRAMS } from './examples';
 import type { RegisterName } from './registers';
 import { createCpuState, readRegister, writeRegister, type CpuState } from './state';
 import { setInputPort } from '../shared/state';

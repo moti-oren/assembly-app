@@ -1,7 +1,7 @@
 import type { Architecture } from '../shared/architecture';
+import { EXAMPLE_PROGRAMS } from './examples';
 import { execute, type ExecutionRecord } from './execute';
 import type { Instruction } from './instructions';
-import { EXAMPLE_PROGRAMS } from './program';
 import { createCpuState, type CpuState } from './state';
 
 /** The 8086. Its IP holds the index of the next program line, not a byte address. */
