@@ -3,6 +3,7 @@ import { computed, ref, useId } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
 import { Layers } from '@lucide/vue';
 import { explainAddress, formatPhysical } from '@/core/address';
+import { printable } from '@/core/devices';
 import type { ExecutionRecord } from '@/core/execute';
 import { formatHex, parseNumber } from '@/core/numbers';
 import type { SegmentRegister } from '@/core/registers';
@@ -139,10 +140,6 @@ defineExpose({
 function reveal(jump: () => void): void {
   jump();
   card.value?.$el.scrollIntoView({ block: 'nearest' });
-}
-
-function ascii(value: number): string {
-  return value >= 0x20 && value < 0x7f ? String.fromCharCode(value) : '·';
 }
 </script>
 
@@ -293,7 +290,7 @@ function ascii(value: number): string {
                 </ChangeMark>
               </td>
               <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
-                {{ row.bytes.map((byte) => ascii(byte.value)).join('') }}
+                {{ row.bytes.map((byte) => printable(byte.value)).join('') }}
               </td>
             </tr>
           </tbody>

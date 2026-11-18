@@ -23,13 +23,18 @@ export function litSegments(value: number): Segment[] {
   return SEGMENTS.filter((_, bit) => (value & (1 << bit)) !== 0);
 }
 
+/** A byte as a character on screen: printable ASCII as itself, anything else as a dot. */
+export function printable(byte: number): string {
+  return byte >= 0x20 && byte < 0x7f ? String.fromCharCode(byte) : '·';
+}
+
 /** What the terminal shows for the bytes written to it: printable ASCII, and line feeds. */
 export function terminalText(bytes: readonly number[]): string {
   return bytes
     .map((byte) => {
       if (byte === 0x0a) return '\n';
       if (byte === 0x0d) return '';
-      return byte >= 0x20 && byte < 0x7f ? String.fromCharCode(byte) : '·';
+      return printable(byte);
     })
     .join('');
 }
