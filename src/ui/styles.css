@@ -372,8 +372,9 @@
   .digit-glyph {
     display: inline-block;
   }
+  /* Unlit, but still a digit to read: 0.55 keeps it near 4.5:1 in both themes. */
   .digit-off {
-    opacity: 0.4;
+    opacity: 0.55;
   }
   .roll-up-enter-active,
   .roll-up-leave-active,

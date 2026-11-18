@@ -386,7 +386,7 @@ function flagChanged(flag: FlagName): boolean {
                     <span class="text-2xs font-semibold">{{ flag }}</span>
                     <span
                       class="text-sm"
-                      :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground/70'"
+                      :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground'"
                       ><RollingDigits effect="flip" :text="isSet(flag) ? '1' : '0'"
                     /></span>
                   </div>

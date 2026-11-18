@@ -57,9 +57,7 @@ function changed(flag: FlagName): boolean {
               <span v-if="changed(flag)" :key="tick" class="change-flash" aria-hidden="true" />
               <div class="flex items-baseline justify-between font-mono">
                 <span class="text-sm font-semibold">{{ flag }}</span>
-                <span
-                  class="text-sm"
-                  :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground/70'"
+                <span class="text-sm" :class="isSet(flag) ? 'font-bold' : 'text-muted-foreground'"
                   ><RollingDigits effect="flip" :text="isSet(flag) ? '1' : '0'"
                 /></span>
               </div>

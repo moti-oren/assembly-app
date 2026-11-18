@@ -252,7 +252,7 @@ function ascii(value: number): string {
       <div class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
-            <tr class="text-muted-foreground/80">
+            <tr class="text-muted-foreground">
               <th class="py-1 pr-3 text-left font-normal">offset</th>
               <th
                 v-for="column in COLUMNS"
@@ -287,7 +287,7 @@ function ascii(value: number): string {
                     heat.get(byte.address) === 0
                       ? 'font-semibold'
                       : byte.value === 0
-                        ? 'text-muted-foreground/50'
+                        ? 'text-muted-foreground'
                         : ''
                   "
                 >

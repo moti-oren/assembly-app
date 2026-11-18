@@ -134,7 +134,7 @@ function machineCode(index: number): string {
           <li v-if="insertionPoint === index && insertAt !== null" class="px-2">
             <button
               type="button"
-              class="flex w-full items-center gap-2 py-0.5 font-sans text-2xs pointer-coarse:min-h-11 text-muted-foreground hover:text-foreground"
+              class="flex w-full items-center gap-2 py-0.5 font-sans text-xs pointer-coarse:min-h-11 text-muted-foreground hover:text-foreground"
               @click="emit('update:insertAt', null)"
             >
               <span class="h-px flex-1 border-t border-dashed border-foreground/40" />
@@ -168,7 +168,7 @@ function machineCode(index: number): string {
             <button
               v-if="assembled[index]"
               type="button"
-              class="hidden max-w-36 truncate rounded-sm px-1 text-2xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
+              class="hidden max-w-36 truncate rounded-sm px-1 text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
               :class="{ 'text-destructive': assembled[index].encoding.problem }"
               :title="`Machine code at offset ${formatHex(assembled[index].offset, 16)}h. Click to take it apart.`"
               @click="emit('inspect', index)"
