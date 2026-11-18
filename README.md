@@ -42,6 +42,9 @@ optional seed gives another set of cases: `npm run verify:rv32 -- 7`.
   - `rv32/`: RISC-V (RV32I with the M extension), with the same kind of modules: registers, the
     instruction set, the memory map, execution, the 32-bit encoding, pseudo-instructions and
     examples.
+  - `mos6502/`: the MOS 6502 (NMOS): the 56 instructions and their 13 addressing modes, decimal
+    mode, cycle counts, the code layout (instructions of 1 to 3 bytes) and examples. It is not in
+    the app yet.
 - `src/ui/`: Vue components and `useCpu`, which wraps a CPU core in Vue reactivity. Each
   architecture has a workbench (`X86Workbench`, `Rv32Workbench`) that lays out its panels: the
   shared ones (program, history, builder, devices) and its own (`Rv32Diagram`, `Rv32Memory`, …).
@@ -197,6 +200,8 @@ npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
     - `encode.ts`: קוד המכונה שכל הוראה מתורגמת אליו. הוא משמש לתצוגה בלבד.
   - `rv32/`: RISC-V (RV32I עם הרחבת M), עם אותם סוגי מודולים: רגיסטרים, סט ההוראות, מפת הזיכרון,
     ההרצה, הקידוד של 32 סיביות, פסאודו-הוראות ודוגמאות.
+  - `mos6502/`: ה-MOS 6502 (NMOS): 56 ההוראות ו-13 שיטות המיעון שלהן, מצב עשרוני, ספירת מחזורי
+    שעון, פריסת הקוד (הוראות של 1 עד 3 בתים) ודוגמאות. הוא עוד לא מחובר לאפליקציה.
 - `src/ui/`: רכיבי Vue ו-`useCpu`, שעוטף ליבת CPU בריאקטיביות של Vue. לכל ארכיטקטורה יש שולחן
   עבודה (`X86Workbench`, `Rv32Workbench`) שמסדר את החלוניות שלה: המשותפות (תוכנית, היסטוריה, בונה,
   התקנים) ואלה שלה (`Rv32Diagram`, `Rv32Memory`, …). הבונה שואל את הדקדוק של כל ארכיטקטורה
