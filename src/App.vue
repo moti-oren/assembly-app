@@ -3,6 +3,7 @@ import { computed, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { assemble } from '@/core/x86/encode';
 import { X86 } from '@/core/x86/architecture';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
+import { X86_GRAMMAR } from '@/ui/x86Grammar';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppErrorNotice from '@/ui/components/AppErrorNotice.vue';
@@ -146,12 +147,13 @@ const encodingShown = computed(() =>
           <template #builder>
             <InstructionBuilder
               ref="builder"
+              :grammar="X86_GRAMMAR"
               :run="cpu.run"
               :add="cpu.addToProgram"
               :error="errorFrom === 'builder' ? error : null"
               :program-lines="programLines"
               :insert-line="insertAt ?? program.length"
-              @draft="draft = $event"
+              @draft="draft = $event?.[0] ?? null"
             />
           </template>
           <template #program>

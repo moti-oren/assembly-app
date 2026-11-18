@@ -1,7 +1,5 @@
-<script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { hasMoreOperands } from '@/core/x86/builder';
-import { getSpec, type Instruction } from '@/core/x86/instructions';
+<script setup lang="ts" generic="Action, Instruction">
+import { computed, nextTick, onMounted, ref, shallowRef, watch } from 'vue';
 import { parseNumber } from '@/core/shared/numbers';
 import { formatLabel } from '@/core/shared/program';
 import { CircleAlert, CornerDownLeft, Play, Plus, X } from '@lucide/vue';
@@ -11,19 +9,19 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  builderOptions,
   filterOptions,
-  overflowingSize,
-  typingHint,
-  type BuilderDraft,
-  type BuilderOption
-} from '@/ui/x86Grammar';
+  type BuilderOption,
+  type DraftContext,
+  type InstructionGrammar
+} from '@/ui/builderGrammar';
 import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
 const props = defineProps<{
+  /** What the words of an instruction can be, on this architecture. */
+  grammar: InstructionGrammar<Action, Instruction>;
   /** Runs the instructions; returns false when the CPU rejected them. */
   run: (instructions: Instruction[]) => boolean;
   /** Adds the instructions to the program at `insertLine`. */
@@ -35,12 +33,13 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  /** The instruction as built so far, once it is complete; null while it is not. */
-  draft: [instruction: Instruction | null];
+  /** The instructions as built so far, once they are complete; null while they are not. */
+  draft: [instructions: Instruction[] | null];
 }>();
 
-const draft = useInstructionDraft();
-const { prefix, mnemonic, operands, pendingMemory, complete, built, tokens } = draft;
+// The grammar is fixed for the life of the builder: a new architecture gets a new builder.
+const draft = useInstructionDraft(props.grammar);
+const { chosen, complete, built, tokens } = draft;
 const filter = ref('');
 const input = ref<HTMLInputElement | null>(null);
 const card = ref<{ $el: HTMLElement } | null>(null);
@@ -82,33 +81,26 @@ function onFocusOut(): void {
   });
 }
 /** The option under the pointer or keyboard focus; its hint is previewed below the input. */
-const hovered = ref<BuilderOption | null>(null);
+const hovered = shallowRef<BuilderOption<Action> | null>(null);
 
 const typedNumber = computed(() => parseNumber(filter.value));
 
-const draftState = computed<BuilderDraft>(() => ({
-  prefix: prefix.value,
-  mnemonic: mnemonic.value,
-  operands: operands.value,
-  pendingMemory: pendingMemory.value,
+const context = computed<DraftContext>(() => ({
   typed: typedNumber.value,
   programLines: props.programLines
 }));
-const allOptions = computed(() => builderOptions(draftState.value));
+const allOptions = computed(() => props.grammar.options(chosen.value, context.value));
 const visibleOptions = computed(() =>
   filterOptions(allOptions.value, filter.value, typedNumber.value)
 );
 const groups = computed(() => groupBy(visibleOptions.value, (option) => option.group));
 
-const doesNotFit = computed(() => overflowingSize(draftState.value) !== null);
-const hint = computed(() => typingHint(draftState.value, filter.value, complete.value));
-
-const moreToChoose = computed(
-  () =>
-    mnemonic.value === null ||
-    pendingMemory.value !== null ||
-    hasMoreOperands(mnemonic.value, operands.value)
+const doesNotFit = computed(() => props.grammar.overflows(chosen.value, context.value));
+const hint = computed(() =>
+  props.grammar.hint(chosen.value, context.value, filter.value, complete.value)
 );
+
+const moreToChoose = computed(() => props.grammar.hasMore(chosen.value));
 
 /** The options in the order they appear on screen (grouped), which the arrow keys walk through. */
 const orderedOptions = computed(() => groups.value.flatMap(([, options]) => options));
@@ -158,10 +150,10 @@ function onArrow(event: KeyboardEvent): void {
  * instruction, else the option Enter would pick.
  */
 const preview = computed<{ label: string; text: string } | null>(() => {
-  const option = hovered.value ?? (mnemonic.value === null ? enterOption.value : null);
+  const described = props.grammar.describe(chosen.value);
+  const option = hovered.value ?? (described === null ? enterOption.value : null);
   if (option?.hint) return { label: option.label, text: option.hint };
-  if (mnemonic.value) return { label: mnemonic.value, text: getSpec(mnemonic.value).description };
-  return null;
+  return described;
 });
 
 function focusInput(): void {
@@ -181,7 +173,7 @@ defineExpose({
   fold
 });
 
-function choose(option: BuilderOption): void {
+function choose(option: BuilderOption<Action>): void {
   draft.apply(option.action);
   hovered.value = null;
   filter.value = '';
@@ -208,16 +200,16 @@ function clear(): void {
   focusInput();
 }
 
-watch(built, (instruction) => emit('draft', instruction));
+watch(built, (instructions) => emit('draft', instructions));
 
-/** Runs the instruction now, or adds it to the program. */
+/** Runs the instructions now, or adds them to the program. */
 function submit(toProgram: boolean): void {
-  const instruction = built.value;
-  if (!instruction) return;
+  const instructions = built.value;
+  if (!instructions) return;
   if (toProgram) {
-    props.add([instruction]);
+    props.add(instructions);
     clear();
-  } else if (props.run([instruction])) {
+  } else if (props.run(instructions)) {
     clear();
   }
 }

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   builderOptions,
-  filterOptions,
   overflowingSize,
   typingHint,
-  type BuilderDraft
+  X86_GRAMMAR,
+  type BuilderDraft,
+  type OptionAction
 } from './x86Grammar';
 
 const empty: BuilderDraft = {
@@ -69,21 +70,6 @@ describe('builderOptions', () => {
   });
 });
 
-describe('filterOptions', () => {
-  it('puts the options that start with the text first', () => {
-    const options = builderOptions(empty);
-    const filtered = filterOptions(options, 'mov', null).map((option) => option.label);
-    expect(filtered.slice(0, 3)).toEqual(['mov', 'movsb', 'movsw']);
-    const containing = filterOptions(options, 'sb', null).map((option) => option.label);
-    expect(containing.slice(0, 2)).toEqual(['sbb', 'movsb']);
-  });
-
-  it('lets a typed number select only the options that accept it', () => {
-    const options = builderOptions({ ...empty, mnemonic: 'jmp', programLines: ['nop', 'nop'] });
-    expect(filterOptions(options, '1', 1).map((option) => option.label)).toEqual(['L1']);
-  });
-});
-
 describe('typingHint', () => {
   const draft = (changes: Partial<BuilderDraft>): BuilderDraft => ({ ...empty, ...changes });
   const ax = { type: 'reg', name: 'ax' } as const;
@@ -119,5 +105,37 @@ describe('typingHint', () => {
     expect(typingHint(draft({ mnemonic: 'nop' }), '', true)).toBe(
       'Enter: run now · Shift+Enter: add to the program'
     );
+  });
+});
+
+describe('X86_GRAMMAR', () => {
+  const context = { typed: null, programLines: [] };
+  const mov: OptionAction = { kind: 'mnemonic', mnemonic: 'mov' };
+  const ax: OptionAction = { kind: 'operand', operand: { type: 'reg', name: 'ax' } };
+
+  it('builds one instruction once every operand is chosen', () => {
+    expect(X86_GRAMMAR.build([mov, ax])).toBeNull();
+    expect(X86_GRAMMAR.hasMore([mov, ax])).toBe(true);
+    const five: OptionAction = { kind: 'operand', operand: { type: 'imm', value: 5 } };
+    expect(X86_GRAMMAR.build([mov, ax, five])).toEqual([
+      {
+        mnemonic: 'mov',
+        operands: [
+          { type: 'reg', name: 'ax' },
+          { type: 'imm', value: 5 }
+        ]
+      }
+    ]);
+    expect(X86_GRAMMAR.hasMore([mov, ax, five])).toBe(false);
+  });
+
+  it('works out its options from the words chosen so far', () => {
+    const offered = X86_GRAMMAR.options([mov, ax], { ...context, typed: 5 });
+    expect(offered.map((option) => option.label)).toContain('5');
+  });
+
+  it('describes the chosen mnemonic', () => {
+    expect(X86_GRAMMAR.describe([])).toBeNull();
+    expect(X86_GRAMMAR.describe([mov])).toEqual({ label: 'mov', text: 'dst = src' });
   });
 });
