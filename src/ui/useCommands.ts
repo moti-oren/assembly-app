@@ -33,11 +33,15 @@ export interface PageActions {
   hasLastAccess: () => boolean;
 }
 
-/** Everything the command palette offers, labelled for the current state. */
+/**
+ * Everything the command palette offers, labelled for the current state. `extra` adds the
+ * commands of one architecture's own panels.
+ */
 export function useCommands(
   cpu: CpuControls,
   panels: Panels,
-  page: PageActions
+  page: PageActions,
+  extra: () => PaletteCommand[] = () => []
 ): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, cpuView, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
     usePreferences();
@@ -130,6 +134,7 @@ export function useCommands(
       moves: 'scroll',
       run: page.showLastAccess
     },
+    ...extra(),
     {
       group: 'Devices',
       label: devicesShown.value ? 'Hide the I/O devices' : 'Show the I/O devices',

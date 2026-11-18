@@ -1,7 +1,7 @@
 import { computed, ref, watch } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
-import { useCommands, type PageActions } from './useCommands';
+import { useCommands, type PageActions, type PaletteCommand } from './useCommands';
 import type { CpuControls } from './useCpu';
 import { usePanelColumns } from './usePanelOrder';
 import { usePanels, type UsesDevices } from './usePanels';
@@ -18,6 +18,8 @@ export interface WorkbenchHooks<Instruction, Record> {
   usesDevices: UsesDevices<Instruction, Record>;
   soundOf: SoundOf<Record>;
   page: WorkbenchPage;
+  /** Palette commands for the architecture's own panels, labelled for the current state. */
+  commands?: () => PaletteCommand[];
 }
 
 /**
@@ -45,13 +47,18 @@ export function useWorkbench<
     else resetAsked.value = true;
   }
 
-  const commands = useCommands(cpu, panels, {
-    ...hooks.page,
-    askClearProgram: () => {
-      clearAsked.value = true;
+  const commands = useCommands(
+    cpu,
+    panels,
+    {
+      ...hooks.page,
+      askClearProgram: () => {
+        clearAsked.value = true;
+      },
+      askReset
     },
-    askReset
-  });
+    hooks.commands
+  );
 
   // Stepping the program folds the builder's choices, so the line at IP stays in view below it.
   watch([() => cpu.history.value.length, () => cpu.pending.value?.phase], () => {
