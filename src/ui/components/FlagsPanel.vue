@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/flags';
-import { formatHex } from '@/core/numbers';
-import type { CpuState } from '@/core/state';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/x86/flags';
+import { formatHex } from '@/core/shared/numbers';
+import type { CpuState } from '@/core/x86/state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';

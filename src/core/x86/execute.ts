@@ -1,29 +1,16 @@
-import { CpuError, DivideError } from './cpuError';
+import { CpuError } from '../shared/cpuError';
+import { undo, type ExecutionRecord as SharedRecord } from '../shared/executionRecord';
+import { snapshot } from '../shared/state';
 import { DIVIDE_ERROR_INTERRUPT, ExecutionContext, type AluTrace } from './executionContext';
 import { HANDLERS } from './handlers';
 import { formatInstruction, instructionSize, isValid, type Instruction } from './instructions';
-import type { RegisterName } from './registers';
-import {
-  redoPortWrite,
-  snapshot,
-  undoPortWrite,
-  writeRegister,
-  type CpuSnapshot,
-  type CpuState,
-  type MemoryWrite,
-  type PortWrite
-} from './state';
+import { DivideError } from './multiplyDivide';
+import type { RegisterName, WordRegister } from './registers';
+import { writeRegister, type CpuState } from './state';
 import { repeat } from './stringInstructions';
 
-/** Everything needed to undo one executed instruction. */
-export interface ExecutionRecord {
-  instruction: Instruction;
-  /** The program line it was fetched from, or null when it was run directly. */
-  line: number | null;
-  before: CpuSnapshot;
-  memoryWrites: MemoryWrite[];
-  /** Bytes OUT latched into I/O ports. */
-  portWrites: PortWrite[];
+/** An executed 8086 instruction: what undo needs, and what explains the instruction afterwards. */
+export interface ExecutionRecord extends SharedRecord<Instruction, WordRegister> {
   /** Null when the instruction computed nothing in the ALU, e.g. MOV, a jump, or a shift by 0. */
   alu: AluTrace | null;
   /** The interrupt the instruction entered (INT n, INTO, a divide error), or null. */
@@ -91,34 +78,4 @@ export function execute(
   }
 
   return record;
-}
-
-export function undo(state: CpuState, record: ExecutionRecord): void {
-  Object.assign(state.registers, record.before.registers);
-  state.flags = record.before.flags;
-  for (let i = record.memoryWrites.length - 1; i >= 0; i--) {
-    const write = record.memoryWrites[i];
-    state.memory[write.address] = write.before;
-  }
-  if (record.memoryWrites.length > 0) {
-    state.memoryVersion++;
-  }
-  for (let i = record.portWrites.length - 1; i >= 0; i--) {
-    undoPortWrite(state, record.portWrites[i]);
-  }
-}
-
-/** Re-applies an undone record without running it again: the inverse of `undo`. */
-export function redo(state: CpuState, record: ExecutionRecord, after: CpuSnapshot): void {
-  Object.assign(state.registers, after.registers);
-  state.flags = after.flags;
-  for (const write of record.memoryWrites) {
-    state.memory[write.address] = write.after;
-  }
-  if (record.memoryWrites.length > 0) {
-    state.memoryVersion++;
-  }
-  for (const write of record.portWrites) {
-    redoPortWrite(state, write);
-  }
 }

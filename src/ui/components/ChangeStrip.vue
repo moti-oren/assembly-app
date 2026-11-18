@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ExecutionRecord } from '@/core/execute';
-import { FLAG_NAMES, isFlagSet } from '@/core/flags';
-import { formatInstruction } from '@/core/instructions';
-import { formatHex } from '@/core/numbers';
-import { changedRegisters } from '@/core/registers';
-import type { CpuState } from '@/core/state';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { FLAG_NAMES, isFlagSet } from '@/core/x86/flags';
+import { formatInstruction } from '@/core/x86/instructions';
+import { formatHex } from '@/core/shared/numbers';
+import { changedRegisters } from '@/core/x86/registers';
+import type { CpuState } from '@/core/x86/state';
 import { describeMemoryAccess } from '@/ui/describe';
 
 const props = defineProps<{

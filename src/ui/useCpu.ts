@@ -1,16 +1,19 @@
 import { computed, reactive, ref } from 'vue';
-import { CpuError } from '@/core/cpuError';
-import { execute, type ExecutionRecord } from '@/core/execute';
-import type { Instruction } from '@/core/instructions';
+import type { Architecture } from '@/core/shared/architecture';
+import { CpuError } from '@/core/shared/cpuError';
+import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import {
-  EXAMPLE_PROGRAMS,
   isFinished,
   MAX_RUN_WRITES,
   runToEnd,
   step,
-  tooManyWrites
-} from '@/core/program';
-import { createCpuState, setInputPort } from '@/core/state';
+  tooManyWrites,
+  type ProgramInstruction
+} from '@/core/shared/program';
+import { setInputPort, type CpuState } from '@/core/shared/state';
+import type { ExecutionRecord as X86Record } from '@/core/x86/execute';
+import type { Instruction as X86Instruction } from '@/core/x86/instructions';
+import type { CpuState as X86State } from '@/core/x86/state';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
 import { useProgramLines } from './useProgramLines';
@@ -20,20 +23,29 @@ import { useProgramRun } from './useProgramRun';
 export type ErrorSource = 'builder' | 'program';
 
 /**
- * Wraps the framework-free CPU core in Vue reactivity. The core mutates `state` through the
+ * Wraps a framework-free CPU core in Vue reactivity. The core mutates `state` through the
  * reactive proxy, so every panel re-renders by itself; nothing needs to emit events.
  */
-export function useCpu() {
-  const state = reactive(createCpuState());
-  const { history, lastRecord, future, memoryHeat, record, ...timeline } = useCpuHistory(state);
+export function useCpu<
+  Instruction extends ProgramInstruction,
+  State extends CpuState,
+  Record extends ExecutionRecord<Instruction>
+>(architecture: Architecture<Instruction, State, Record>) {
+  // The state holds no refs, so the reactive proxy has the same shape as the state itself.
+  const state = reactive(architecture.createState()) as State;
+  const { history, lastRecord, future, memoryHeat, record, ...timeline } =
+    useCpuHistory<Record>(state);
   const { program, insertAt, addToProgram, removeProgramLine, replaceProgram } = useProgramLines(
+    architecture,
     state,
     timeline.forgetFuture
   );
   const error = ref<string | null>(null);
   /** What raised `error`: the builder's own instruction, or the program. Each shows its own. */
   const errorFrom = ref<ErrorSource>('builder');
-  const finished = computed(() => isFinished(state, program.value));
+  /** The program line the instruction pointer points at: the one that runs next. */
+  const nextLine = computed(() => architecture.nextLine(state, program.value));
+  const finished = computed(() => isFinished(architecture, state, program.value));
 
   /** Runs a CPU operation, turning a CpuError into the visible error message. */
   function attempt(from: ErrorSource, operation: () => void): boolean {
@@ -52,26 +64,28 @@ export function useCpu() {
   }
 
   function run(instruction: Instruction): boolean {
-    return attempt('builder', () => record([execute(state, instruction)]));
+    return attempt('builder', () =>
+      record([architecture.execute(state, instruction, null, program.value)])
+    );
   }
 
   function stepProgram(): void {
     pause();
-    attempt('program', () => record([step(state, program.value)]));
+    attempt('program', () => record([step(architecture, state, program.value)]));
   }
 
   const { speed, running, pause, runProgram } = useProgramRun(finished, {
     stepLine(writes) {
-      let entry: ExecutionRecord | null = null;
+      let entry: Record | null = null;
       attempt('program', () => {
         if (writes >= MAX_RUN_WRITES) throw tooManyWrites();
-        entry = step(state, program.value);
+        entry = step(architecture, state, program.value);
         record([entry]);
       });
       return entry;
     },
     runToEnd() {
-      const result = runToEnd(state, program.value);
+      const result = runToEnd(architecture, state, program.value);
       record(result.records);
       error.value = result.error?.message ?? null;
       errorFrom.value = 'program';
@@ -79,7 +93,7 @@ export function useCpu() {
   });
 
   const { pending, stepPhase } = usePhaseStepping({
-    state,
+    nextLine,
     program,
     executed: () => history.value.length,
     finished,
@@ -94,7 +108,7 @@ export function useCpu() {
 
   function loadExample(index: number): void {
     reset();
-    replaceProgram(EXAMPLE_PROGRAMS[index].program);
+    replaceProgram(architecture.examples[index].program);
   }
 
   /** Moves through time: undoes or redoes until exactly `position` instructions have run. */
@@ -124,13 +138,14 @@ export function useCpu() {
   function reset(): void {
     pause();
     const inputs = state.io.in;
-    Object.assign(state, createCpuState());
+    Object.assign(state, architecture.createState());
     state.io.in = inputs;
     timeline.clear();
     error.value = null;
   }
 
   return {
+    architecture,
     state,
     history,
     error,
@@ -140,6 +155,7 @@ export function useCpu() {
     lastRecord,
     future,
     memoryHeat,
+    nextLine,
     finished,
     pending,
     speed,
@@ -161,4 +177,5 @@ export function useCpu() {
   };
 }
 
-export type Cpu = ReturnType<typeof useCpu>;
+/** The CPU the panels are built for: the 8086. */
+export type Cpu = ReturnType<typeof useCpu<X86Instruction, X86State, X86Record>>;

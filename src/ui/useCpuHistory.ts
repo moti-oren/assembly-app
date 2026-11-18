@@ -1,21 +1,21 @@
-import { computed, shallowRef } from 'vue';
-import { redo as redoRecord, undo, type ExecutionRecord } from '@/core/execute';
-import { snapshot, type CpuSnapshot, type CpuState } from '@/core/state';
+import { computed, shallowRef, type ShallowRef } from 'vue';
+import { redo as redoRecord, undo, type ExecutionRecord } from '@/core/shared/executionRecord';
+import { snapshot, type CpuSnapshot, type CpuState } from '@/core/shared/state';
 
 /** How many instructions back a memory write still shows as warm. */
 export const HEAT_STEPS = 6;
 
 /** An undone instruction, with the CPU as it left it, so it can be redone without re-running. */
-interface Undone {
-  record: ExecutionRecord;
+interface Undone<Record> {
+  record: Record;
   after: CpuSnapshot;
 }
 
 /** The executed instructions, and the undone ones that can still be redone. */
-export function useCpuHistory(state: CpuState) {
-  const history = shallowRef<ExecutionRecord[]>([]);
+export function useCpuHistory<Record extends ExecutionRecord>(state: CpuState) {
+  const history: ShallowRef<Record[]> = shallowRef([]);
   /** Undone instructions, the most recently undone last. */
-  const undone = shallowRef<Undone[]>([]);
+  const undone: ShallowRef<Undone<Record>[]> = shallowRef([]);
 
   const lastRecord = computed(() => history.value.at(-1) ?? null);
 
@@ -35,7 +35,7 @@ export function useCpuHistory(state: CpuState) {
   });
 
   /** Adds newly executed instructions; anything undone can no longer be redone. */
-  function record(records: ExecutionRecord[]): void {
+  function record(records: Record[]): void {
     if (records.length > 0) {
       history.value = [...history.value, ...records];
       undone.value = [];

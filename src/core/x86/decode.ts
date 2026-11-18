@@ -9,7 +9,7 @@ import {
   type Instruction,
   type Mnemonic
 } from './instructions';
-import type { Size } from './numbers';
+import type { Size } from '../shared/numbers';
 import { formatOperand, memorySegment, type OperandKind } from './operands';
 import { WORD_REGISTERS, wordOf, type WordRegister } from './registers';
 

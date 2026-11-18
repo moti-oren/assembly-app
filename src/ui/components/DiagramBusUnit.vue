@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { formatPhysical } from '@/core/address';
-import { formatBinary, formatHex, toSigned } from '@/core/numbers';
-import { REGISTER_DESCRIPTIONS, type WordRegister } from '@/core/registers';
+import { formatPhysical } from '@/core/x86/address';
+import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
+import { REGISTER_DESCRIPTIONS, type WordRegister } from '@/core/x86/registers';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import ChangeMark from './ChangeMark.vue';

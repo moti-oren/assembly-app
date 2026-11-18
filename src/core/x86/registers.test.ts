@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { changedRegisters, half, wordOf } from './registers';
-import { createCpuState, snapshot, writeRegister } from './state';
+import { createCpuState, writeRegister } from './state';
+import { snapshot } from '../shared/state';
 
 describe('changedRegisters', () => {
   it('lists the registers that differ, in register order', () => {

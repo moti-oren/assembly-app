@@ -1,0 +1,135 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { CpuError } from './cpuError';
+import type { ExecutionRecord } from './executionRecord';
+import {
+  insertLine,
+  isFinished,
+  lineAfterInsert,
+  lineAfterRemove,
+  removeLine,
+  runToEnd,
+  step,
+  type LabelOperand,
+  type LineRunner,
+  type Program
+} from './program';
+
+/** A toy CPU, just enough to run programs: it counts, jumps, writes memory and fails. */
+interface Toy {
+  op: 'inc' | 'jump' | 'write' | 'fail';
+  operands: (LabelOperand | { type: 'count'; value: number })[];
+}
+
+interface ToyState {
+  next: number;
+  total: number;
+}
+
+const toy: LineRunner<Toy, ToyState, ExecutionRecord<Toy>> = {
+  nextLine: (state) => state.next,
+  execute(state, instruction, line) {
+    if (instruction.op === 'fail') throw new CpuError('Toy failure');
+    if (line !== null) state.next = line + 1;
+    const [operand] = instruction.operands;
+    if (instruction.op === 'jump' && operand?.type === 'label') state.next = operand.target;
+    if (instruction.op === 'inc') state.total++;
+    const writes = instruction.op === 'write' && operand?.type === 'count' ? operand.value : 0;
+    return {
+      instruction,
+      line,
+      before: { registers: {}, flags: 0 },
+      memoryWrites: Array.from({ length: writes }, (_, address) => ({
+        address,
+        before: 0,
+        after: 1
+      })),
+      portWrites: [],
+      registersWritten: []
+    };
+  }
+};
+
+const label = (target: number): LabelOperand => ({ type: 'label', target });
+const inc: Toy = { op: 'inc', operands: [] };
+const jump = (target: number): Toy => ({ op: 'jump', operands: [label(target)] });
+const write = (value: number): Toy => ({ op: 'write', operands: [{ type: 'count', value }] });
+const fail: Toy = { op: 'fail', operands: [] };
+
+let state: ToyState;
+
+beforeEach(() => {
+  state = { next: 0, total: 0 };
+});
+
+describe('stepping', () => {
+  it('runs the line at the instruction pointer and stops at the end', () => {
+    const program: Program<Toy> = [inc, inc];
+    expect(step(toy, state, program).line).toBe(0);
+    expect(step(toy, state, program).line).toBe(1);
+    expect(state.total).toBe(2);
+    expect(isFinished(toy, state, program)).toBe(true);
+    expect(() => step(toy, state, program)).toThrow(CpuError);
+  });
+});
+
+describe('runToEnd', () => {
+  it('runs every line', () => {
+    const result = runToEnd(toy, state, [inc, jump(3), inc, inc]);
+    expect(result.error).toBeNull();
+    expect(result.records.map((record) => record.line)).toEqual([0, 1, 3]);
+    expect(state.total).toBe(2);
+  });
+
+  it('stops endless loops', () => {
+    const result = runToEnd(toy, state, [jump(0)], 50);
+    expect(result.records.length).toBe(50);
+    expect(result.error?.message).toContain('50 steps');
+  });
+
+  it('stops a loop that writes too much memory, long before the step limit', () => {
+    const result = runToEnd(toy, state, [write(100), jump(0)], 1000, 250);
+    // Three writes of 100 bytes pass the limit of 250; the run stops before the next step.
+    expect(result.records.length).toBe(5);
+    expect(result.records.reduce((sum, record) => sum + record.memoryWrites.length, 0)).toBe(300);
+    expect(result.error?.message).toContain('250 memory writes');
+  });
+
+  it('stops at the first error and keeps what ran before it', () => {
+    const result = runToEnd(toy, state, [inc, fail, inc]);
+    expect(result.records.length).toBe(1);
+    expect(result.error?.message).toBe('Toy failure');
+    expect(state.next).toBe(1);
+  });
+});
+
+describe('editing a program', () => {
+  const program: Program<Toy> = [inc, inc, jump(1), jump(4)]; // L4 = the end of the program
+
+  it('inserting keeps jumps on the same instructions', () => {
+    const edited = insertLine(program, 1, fail);
+    expect(edited[1]).toBe(fail);
+    expect(edited[3].operands[0]).toEqual(label(2)); // still points at the second inc
+    expect(edited[4].operands[0]).toEqual(label(5)); // still the end
+  });
+
+  it('labels in the inserted line refer to the program before the insert', () => {
+    // "jump L1" inserted above line 1 means "jump to the second inc", which moves to line 2.
+    const edited = insertLine(program, 1, jump(1));
+    expect(edited[1].operands[0]).toEqual(label(2));
+    expect(edited[2]).toBe(inc);
+  });
+
+  it('removing a line moves jumps to the line that replaced it', () => {
+    const edited = removeLine(program, 1);
+    expect(edited.length).toBe(3);
+    expect(edited[1].operands[0]).toEqual(label(1)); // now the jump itself
+    expect(edited[2].operands[0]).toEqual(label(3)); // still the end
+  });
+
+  it('keeps the instruction pointer on the same instruction', () => {
+    expect(lineAfterInsert(2, 1)).toBe(3);
+    expect(lineAfterInsert(4, 4)).toBe(4); // inserted at the next line: the new line runs next
+    expect(lineAfterRemove(3, 1)).toBe(2);
+    expect(lineAfterRemove(1, 1)).toBe(1);
+  });
+});

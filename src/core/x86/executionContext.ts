@@ -1,20 +1,17 @@
-import { CpuError } from './cpuError';
+import { CpuError } from '../shared/cpuError';
 import { FLAGS_MASK, FLAGS_RESERVED, type FlagName } from './flags';
-import { formatHex, hasEvenParity, mask, signBit, truncate, type Size } from './numbers';
+import { formatHex, hasEvenParity, mask, signBit, truncate, type Size } from '../shared/numbers';
 import { effectiveAddress, type Operand } from './operands';
 import type { RegisterName, SegmentRegister } from './registers';
 import {
   getFlag,
   physicalAddress,
-  readMemory,
   readRegister,
   setFlag,
-  writeMemory,
   writeRegister,
-  type CpuState,
-  type MemoryWrite,
-  type PortWrite
+  type CpuState
 } from './state';
+import { readMemory, writeMemory, type MemoryWrite, type PortWrite } from '../shared/state';
 
 /** What the ALU computed, kept so the flags it produced can be explained afterwards. */
 export type AluTrace =

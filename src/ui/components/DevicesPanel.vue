@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { DIGIT_COUNT, PORTS, litSegments, terminalText } from '@/core/devices';
-import { formatHex } from '@/core/numbers';
-import type { CpuState } from '@/core/state';
+import { DIGIT_COUNT, PORTS, litSegments, terminalText } from '@/core/shared/devices';
+import { formatHex } from '@/core/shared/numbers';
+import type { CpuState } from '@/core/x86/state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 

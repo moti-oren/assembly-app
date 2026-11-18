@@ -1,5 +1,5 @@
 import { matchingForms, type Mnemonic } from './instructions';
-import type { Size } from './numbers';
+import type { Size } from '../shared/numbers';
 import { matchesKind, type Operand, type OperandKind } from './operands';
 import {
   BYTE_REGISTERS,

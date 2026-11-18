@@ -1,4 +1,4 @@
-import { truncate } from './numbers';
+import { truncate } from '../shared/numbers';
 import type { MemoryBase, Operand } from './operands';
 import { MEMORY_SIZE, readRegister, type RegisterFile } from './state';
 

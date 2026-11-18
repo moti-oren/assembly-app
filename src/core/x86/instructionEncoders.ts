@@ -1,5 +1,5 @@
 import type { Mnemonic } from './instructions';
-import { truncate } from './numbers';
+import { truncate } from '../shared/numbers';
 import { formatLabel } from './operands';
 import { isSegmentRegister } from './registers';
 import {

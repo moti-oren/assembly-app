@@ -12,7 +12,7 @@ An interactive 8086 playground (Vue 3 + TypeScript + Vite): the user builds an i
 npm run dev          # start the app (vite)
 npm run build        # vue-tsc --noEmit && vite build
 npm test             # vitest run (tests: src/**/*.test.ts)
-npx vitest run src/core/execute.test.ts            # a single test file
+npx vitest run src/core/x86/execute.test.ts        # a single test file
 npx vitest run -t "some test name"                 # a single test by name
 npm run typecheck    # vue-tsc --noEmit
 npm run lint         # eslint . (flat config)
@@ -27,20 +27,24 @@ Style: Prettier with single quotes, semicolons, no trailing commas, 100 columns.
 
 Two layers; keep them separate.
 
-- `src/core/` is the CPU and **must not depend on Vue**. All logic is tested here.
-  - `state.ts`: registers (8-bit registers are views into AX..DX), FLAGS, 1MB memory, and the I/O ports (`io`).
-  - `instructions.ts`: the instruction set expressed as data; each mnemonic lists its legal operand forms. Adding an instruction starts here.
-  - `builder.ts`: given the words chosen so far, computes which operands may come next (drives the UI's word-by-word builder).
-  - `execute.ts`: runs one instruction and returns an **undo record** (history/undo depends on this); `undo` and `redo` apply it. Below it:
-    - `executionContext.ts`: what an instruction runs against (reads, writes, flags, ALU, stack, interrupts), recording everything the undo record needs; also the `AluTrace` and the `Handler` type.
-    - `handlers.ts`: the table of what every mnemonic does, with the larger handlers in `multiplyDivide.ts`, `shift.ts` and `stringInstructions.ts` (including the `rep` loop).
-    - `cpuError.ts`: `CpuError`, the error the CPU raises on purpose (and the divide error).
-  - `program.ts`: a program is a list of instructions; stepping, running, and edits that keep jump targets on the right lines. Also holds the example programs.
-  - `decode.ts`: what an instruction reads and writes (registers, memory, ports, flags, ALU), including registers it uses without naming them. The diagram and the fetch/decode/execute view are driven by it.
-  - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …), and `assemble` for a whole program. **Display only**; nothing executes these bytes. `encodingFields.ts` builds the fields (ModR/M, immediates, jump distances) and `instructionEncoders.ts` holds the opcode tables and one encoder per kind of instruction.
-  - `devices.ts`: the port numbers of the I/O devices (LEDs, switches, 7-segment digits, terminal) and how their bytes are shown.
-  - `address.ts` and `flagReasons.ts`: explanations for the UI, worked out from state and the undo record: how segment:offset becomes a 20-bit address, and why each flag got its value.
-- `src/ui/`: Vue components in `ui/components/`, composables (`use*.ts`) and plain helpers (the other `.ts` files). `useCpu.ts` wraps the core in Vue reactivity, built from `useCpuHistory.ts` (undo, redo, seek), `useProgramLines.ts` (editing the program), `useProgramRun.ts` (running on a timer) and `usePhaseStepping.ts` (fetch, decode, execute). `useCpuDiagram.ts` works out what the CPU diagram shows, and its parts (`Diagram*.vue`) only draw it. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
+- `src/core/` is the CPU and **must not depend on Vue**. All logic is tested here. It holds one folder per architecture, built on `shared/`.
+  - `shared/`: what every architecture is built on. It never imports an architecture.
+    - `architecture.ts`: the `Architecture` interface: an architecture's state, how it executes a program line, where its instruction pointer is in the program (`nextLine` / `setNextLine`), and its example programs.
+    - `program.ts`: a program is a list of instructions; stepping, running (with the step and memory-write limits), and edits that keep jump targets on the right lines.
+    - `state.ts`: the CPU state every architecture has (registers by name, flags, memory, I/O ports), snapshots, and memory and port access.
+    - `executionRecord.ts`: the **undo record** every architecture extends (history/undo depends on it), with `undo` and `redo`.
+    - `devices.ts` (the devices behind the ports), `numbers.ts`, `cpuError.ts` (`CpuError`, the error the CPU raises on purpose).
+  - `x86/`: the 8086. `architecture.ts` exports `X86`, and `examples.ts` its example programs.
+    - `state.ts`: the 8086 registers (8-bit registers are views into AX..DX), FLAGS, 1MB of memory and segment:offset addresses.
+    - `instructions.ts`: the instruction set expressed as data; each mnemonic lists its legal operand forms. Adding an instruction starts here.
+    - `builder.ts`: given the words chosen so far, computes which operands may come next (drives the UI's word-by-word builder).
+    - `execute.ts`: runs one instruction and returns its record, which adds the ALU trace and the interrupt to the shared one. Below it:
+      - `executionContext.ts`: what an instruction runs against (reads, writes, flags, ALU, stack, interrupts), recording everything the undo record needs; also the `AluTrace` and the `Handler` type.
+      - `handlers.ts`: the table of what every mnemonic does, with the larger handlers in `multiplyDivide.ts` (and the divide error), `shift.ts` and `stringInstructions.ts` (including the `rep` loop).
+    - `decode.ts`: what an instruction reads and writes (registers, memory, ports, flags, ALU), including registers it uses without naming them. The diagram and the fetch/decode/execute view are driven by it.
+    - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …), and `assemble` for a whole program. **Display only**; nothing executes these bytes. `encodingFields.ts` builds the fields (ModR/M, immediates, jump distances) and `instructionEncoders.ts` holds the opcode tables and one encoder per kind of instruction.
+    - `address.ts` and `flagReasons.ts`: explanations for the UI, worked out from state and the undo record: how segment:offset becomes a 20-bit address, and why each flag got its value.
+- `src/ui/`: Vue components in `ui/components/`, composables (`use*.ts`) and plain helpers (the other `.ts` files). The panels are built for the 8086 and import from `src/core/x86/`. `useCpu.ts` wraps an architecture in Vue reactivity (the app passes it `X86`), built from `useCpuHistory.ts` (undo, redo, seek), `useProgramLines.ts` (editing the program), `useProgramRun.ts` (running on a timer) and `usePhaseStepping.ts` (fetch, decode, execute). `useCpuDiagram.ts` works out what the CPU diagram shows, and its parts (`Diagram*.vue`) only draw it. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
 - `src/components/ui/`: shadcn-vue components (Tailwind v4 + reka-ui), generated with `npx shadcn-vue add <name>`. They are excluded from ESLint; don't hand-edit them casually. Config in `components.json`.
 
 ## Code structure
@@ -54,7 +58,7 @@ Every change, new code or an edit to existing code, must leave the structure mod
 | Components | `src/ui/components/*.vue`, `src/App.vue` | everything below, other components, `src/components/ui/` (shadcn) |
 | Composables | `src/ui/use*.ts` | composables, helpers, core, Vue/VueUse |
 | Helpers | other `src/ui/*.ts` (`describe.ts`, `sounds.ts`, …) | helpers, core. **No Vue**: plain functions over plain data |
-| Core | `src/core/*.ts` | core only |
+| Core | `src/core/**/*.ts` | core only: `shared/` only itself, an architecture folder only itself and `shared/` |
 
 ESLint enforces the import rules of the core, helper and composable layers, and the 500-line file limit below; `npm run lint` fails on a violation. The other rules here are on you.
 
@@ -79,7 +83,8 @@ ESLint enforces the import rules of the core, helper and composable layers, and 
 
 ## Execution model (non-obvious)
 
-- Instructions **run as data, not as bytes**. IP is the index of the next program line (L0, L1, …); jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it. The machine code from `encode.ts` is shown beside the program but never executed, and it is not written into memory.
+- Instructions **run as data, not as bytes**. On the 8086, IP is the index of the next program line (L0, L1, …); jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it. The machine code from `encode.ts` is shown beside the program but never executed, and it is not written into memory.
+- Shared code never reads an instruction pointer itself: it asks the architecture for `nextLine` and moves it with `setNextLine`. Each architecture decides how its instruction pointer maps to a program line (the 8086's IP simply is the line).
 - A label used as a value (`mov word [0x84], L8`) is the **line number** at run time, while `encode.ts` shows it as the byte offset of that line. Keep both in mind when touching either side.
 - An instruction runs immediately (Enter) or is appended to the program (Shift+Enter).
 - Memory operands are `byte`/`word` `[bx]`, `[si]`, `[di]`, `[bp]` or `[offset]`. `[bp]` uses SS; all others use DS.
@@ -126,7 +131,7 @@ ESLint enforces the import rules of the core, helper and composable layers, and 
 
 ## Conventions
 
-- **Adding an instruction:** define it in `instructions.ts`, implement it in `execute.ts`, then add tests in `execute.test.ts`. If it touches flags, test the flags too. Then give it an encoding in `encode.ts` (it throws for a mnemonic it does not know, and a test encodes every example program), and list any registers it uses implicitly in `decode.ts`.
+- **Adding an instruction** (to the 8086, in `src/core/x86/`): define it in `instructions.ts`, implement it in `execute.ts`, then add tests in `execute.test.ts`. If it touches flags, test the flags too. Then give it an encoding in `encode.ts` (it throws for a mnemonic it does not know, and a test encodes every example program), and list any registers it uses implicitly in `decode.ts`.
 - **Undo is a contract:** every path in `execute.ts` must return a complete undo record (registers, flags, memory writes, port writes and IP). A new path without one breaks history.
 - **Encodings follow NASM:** where the 8086 allows two encodings of one instruction, `encode.ts` produces the one NASM picks (checked against NASM 3.02 with `bits 16` / `cpu 8086`). Two deliberate exceptions: `int 3` is the one-byte `CC`, and a conditional jump out of short range is reported as a problem instead of being rewritten as an inverted jump over a `jmp`.
 - **Typed arrays are not reactive:** memory and port bytes live in `Uint8Array`s, so the UI depends on `memoryVersion` / `ioVersion`. Bump them on every write path.

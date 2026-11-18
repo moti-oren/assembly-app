@@ -1,6 +1,6 @@
-import { formatPhysical, type AddressBreakdown } from '@/core/address';
-import type { Decoded } from '@/core/decode';
-import type { ExecutionRecord } from '@/core/execute';
+import { formatPhysical, type AddressBreakdown } from '@/core/x86/address';
+import type { Decoded } from '@/core/x86/decode';
+import type { ExecutionRecord } from '@/core/x86/execute';
 import type { MemoryAccess, PortAccess } from './describe';
 
 /** The phase a program line is in while it is stepped one phase at a time, or null. */

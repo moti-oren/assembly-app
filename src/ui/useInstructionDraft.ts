@@ -4,9 +4,9 @@ import {
   type Instruction,
   type Mnemonic,
   type RepeatPrefix
-} from '@/core/instructions';
-import type { Size } from '@/core/numbers';
-import { formatOperand, type Operand } from '@/core/operands';
+} from '@/core/x86/instructions';
+import type { Size } from '@/core/shared/numbers';
+import { formatOperand, type Operand } from '@/core/x86/operands';
 import type { OptionAction } from './builderOptions';
 
 /** One word of the instruction as it is shown in the builder. */

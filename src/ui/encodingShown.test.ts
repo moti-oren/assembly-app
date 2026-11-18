@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { assemble } from '@/core/encode';
-import { execute } from '@/core/execute';
-import type { Instruction, Mnemonic } from '@/core/instructions';
-import type { Operand } from '@/core/operands';
-import { step } from '@/core/program';
-import type { RegisterName } from '@/core/registers';
-import { createCpuState } from '@/core/state';
+import { assemble } from '@/core/x86/encode';
+import { execute } from '@/core/x86/execute';
+import type { Instruction, Mnemonic } from '@/core/x86/instructions';
+import type { Operand } from '@/core/x86/operands';
+import { step } from '@/core/shared/program';
+import { X86 } from '@/core/x86/architecture';
+import type { RegisterName } from '@/core/x86/registers';
+import { createCpuState } from '@/core/x86/state';
 import { chooseEncoding, type EncodingSources } from './encodingShown';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
@@ -39,7 +40,7 @@ describe('chooseEncoding', () => {
 
   it('falls back to the last program line run once the program has finished', () => {
     const state = createCpuState();
-    const last = step(state, program);
+    const last = step(X86, state, program);
     const shown = chooseEncoding({ ...base, last });
     expect(shown?.instruction).toBe(program[0]);
     expect(shown?.where).toBe('line L0, the last one run');

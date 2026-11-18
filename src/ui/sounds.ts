@@ -1,9 +1,9 @@
-import { decode } from '@/core/decode';
-import type { ExecutionRecord } from '@/core/execute';
-import { isFlagSet } from '@/core/flags';
-import { INSTRUCTIONS } from '@/core/instructions';
-import { changedRegisters } from '@/core/registers';
-import type { CpuSnapshot } from '@/core/state';
+import { decode } from '@/core/x86/decode';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { isFlagSet } from '@/core/x86/flags';
+import { INSTRUCTIONS } from '@/core/x86/instructions';
+import { changedRegisters } from '@/core/x86/registers';
+import type { CpuSnapshot } from '@/core/x86/state';
 
 /** What one executed instruction sounds like. Every register shares one sound on purpose. */
 export type StepSound =

@@ -1,4 +1,4 @@
-import { operandChoices, type OperandChoices } from '@/core/builder';
+import { operandChoices, type OperandChoices } from '@/core/x86/builder';
 import {
   CATEGORY_LABELS,
   MNEMONICS,
@@ -7,8 +7,8 @@ import {
   prefixAllows,
   type Mnemonic,
   type RepeatPrefix
-} from '@/core/instructions';
-import { fitsIn, formatHex, type Size } from '@/core/numbers';
+} from '@/core/x86/instructions';
+import { fitsIn, formatHex, type Size } from '@/core/shared/numbers';
 import {
   MEMORY_BASES,
   formatImmediate,
@@ -16,8 +16,8 @@ import {
   memorySegment,
   type MemoryBase,
   type Operand
-} from '@/core/operands';
-import { isByteRegister, isSegmentRegister } from '@/core/registers';
+} from '@/core/x86/operands';
+import { isByteRegister, isSegmentRegister } from '@/core/x86/registers';
 
 /** The instruction builder's state: what has been chosen so far, and what is being typed. */
 export interface BuilderDraft {

@@ -1,10 +1,11 @@
 import { computed, reactive } from 'vue';
-import { explainAddress } from '@/core/address';
-import { CYCLE_PHASES, decode } from '@/core/decode';
-import type { ExecutionRecord } from '@/core/execute';
-import { isFlagSet, type FlagName } from '@/core/flags';
-import { WORD_REGISTERS, type RegisterName, type WordRegister } from '@/core/registers';
-import type { CpuState } from '@/core/state';
+import { explainAddress } from '@/core/x86/address';
+import { CYCLE_PHASES, decode } from '@/core/x86/decode';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { isFlagSet, type FlagName } from '@/core/x86/flags';
+import type { Instruction } from '@/core/x86/instructions';
+import { WORD_REGISTERS, type RegisterName, type WordRegister } from '@/core/x86/registers';
+import type { CpuState } from '@/core/x86/state';
 import {
   aluUse,
   describeEquation,
@@ -25,7 +26,7 @@ export interface CpuDiagramInput {
   /** The last executed instruction: it decides which wires light up. */
   record: ExecutionRecord | null;
   /** A program line being stepped by phase: until it executes, the wires show its plan. */
-  pending: PendingInstruction | null;
+  pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far. */
   tick: number;
 }

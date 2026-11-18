@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import type { ExecutionRecord } from '@/core/execute';
-import { formatInstruction } from '@/core/instructions';
-import { formatLabel } from '@/core/operands';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { formatInstruction } from '@/core/x86/instructions';
+import { formatLabel } from '@/core/x86/operands';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const props = defineProps<{

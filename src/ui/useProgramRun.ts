@@ -1,5 +1,5 @@
 import { onScopeDispose, ref, type Ref } from 'vue';
-import type { ExecutionRecord } from '@/core/execute';
+import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import { RUN_SPEEDS, type RunSpeed } from './runSpeeds';
 
 /** How the CPU runs program lines for the runner. */

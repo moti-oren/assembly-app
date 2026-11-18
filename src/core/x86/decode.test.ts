@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { decode } from './decode';
 import type { Instruction, Mnemonic } from './instructions';
 import type { Operand } from './operands';
-import { EXAMPLE_PROGRAMS } from './program';
+import { EXAMPLE_PROGRAMS } from './examples';
 import type { RegisterName } from './registers';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });

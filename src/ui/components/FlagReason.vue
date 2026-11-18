@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ExecutionRecord } from '@/core/execute';
-import { explainFlag } from '@/core/flagReasons';
-import { FLAG_INFO, type FlagName } from '@/core/flags';
-import { formatInstruction } from '@/core/instructions';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { explainFlag } from '@/core/x86/flagReasons';
+import { FLAG_INFO, type FlagName } from '@/core/x86/flags';
+import { formatInstruction } from '@/core/x86/instructions';
 
 const props = defineProps<{
   flag: FlagName;

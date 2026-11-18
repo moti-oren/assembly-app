@@ -1,8 +1,9 @@
 import type { FlagName } from './flags';
 import type { Mnemonic } from './instructions';
-import { truncate } from './numbers';
+import { truncate } from '../shared/numbers';
 import type { Operand } from './operands';
-import { readPort, readRegister, writePort } from './state';
+import { readRegister } from './state';
+import { readPort, writePort } from '../shared/state';
 import { OVERFLOW_INTERRUPT, type ExecutionContext, type Handler } from './executionContext';
 import { divide, multiply, signedDivide, signedMultiply } from './multiplyDivide';
 import { shift } from './shift';

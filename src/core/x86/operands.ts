@@ -1,4 +1,4 @@
-import { fitsIn, formatHex, type Size } from './numbers';
+import { fitsIn, formatHex, type Size } from '../shared/numbers';
 import {
   isByteRegister,
   isGeneralRegister,

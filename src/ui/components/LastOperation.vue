@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ExecutionRecord } from '@/core/execute';
-import { formatInstruction } from '@/core/instructions';
-import type { CpuState } from '@/core/state';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { formatInstruction } from '@/core/x86/instructions';
+import type { CpuState } from '@/core/x86/state';
 import { Card, CardContent } from '@/components/ui/card';
 import { describeEquation } from '@/ui/describe';
 

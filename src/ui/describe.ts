@@ -1,8 +1,8 @@
-import { explainOffset, type OffsetBreakdown } from '@/core/address';
-import { decode } from '@/core/decode';
-import type { ExecutionRecord } from '@/core/execute';
-import { getSpec, isStringCompare, type Mnemonic } from '@/core/instructions';
-import { formatHex, littleEndian, truncate } from '@/core/numbers';
+import { explainOffset, type OffsetBreakdown } from '@/core/x86/address';
+import { decode } from '@/core/x86/decode';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { getSpec, isStringCompare, type Mnemonic } from '@/core/x86/instructions';
+import { formatHex, littleEndian, truncate } from '@/core/shared/numbers';
 import {
   effectiveAddress,
   effectiveOffset,
@@ -10,15 +10,10 @@ import {
   memorySegment,
   operandSize,
   type Operand
-} from '@/core/operands';
-import { isByteRegister, wordOf, type RegisterName, type WordRegister } from '@/core/registers';
-import {
-  physicalAddress,
-  readMemory,
-  readRegister,
-  type CpuState,
-  type RegisterFile
-} from '@/core/state';
+} from '@/core/x86/operands';
+import { isByteRegister, wordOf, type RegisterName, type WordRegister } from '@/core/x86/registers';
+import { physicalAddress, readRegister, type CpuState, type RegisterFile } from '@/core/x86/state';
+import { readMemory } from '@/core/shared/state';
 
 /** Instructions whose result can be shown as `a <operator> b = result`. */
 const OPERATORS: Partial<Record<Mnemonic, string>> = {

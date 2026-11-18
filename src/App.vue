@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, useTemplateRef, watch } from 'vue';
-import { assemble } from '@/core/encode';
-import { formatInstruction, type Instruction } from '@/core/instructions';
+import { assemble } from '@/core/x86/encode';
+import { X86 } from '@/core/x86/architecture';
+import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppErrorNotice from '@/ui/components/AppErrorNotice.vue';
@@ -31,7 +32,7 @@ import { PANEL_LABELS, usePanelColumns } from '@/ui/usePanelOrder';
 import { usePanels } from '@/ui/usePanels';
 import { useSoundEffects } from '@/ui/useSoundEffects';
 
-const cpu = useCpu();
+const cpu = useCpu(X86);
 const {
   state,
   history,
@@ -42,6 +43,7 @@ const {
   lastRecord,
   future,
   memoryHeat,
+  nextLine,
   finished,
   pending,
   speed,
@@ -100,7 +102,7 @@ const encodingShown = computed(() =>
     lines: assembled.value.lines,
     draft: draft.value,
     inspected: inspectedLine.value,
-    next: finished.value ? null : state.registers.ip,
+    next: finished.value ? null : nextLine.value,
     last: lastRecord.value
   })
 );
@@ -112,6 +114,7 @@ const encodingShown = computed(() =>
     <div class="app-surface flex min-h-svh flex-col bg-muted/40 dark:bg-background">
       <AppHeader
         v-model:examples-open="examplesOpen"
+        :examples="cpu.architecture.examples"
         @reset="askReset"
         @load-example="cpu.loadExample"
         @commands="paletteOpen = true"
@@ -156,7 +159,7 @@ const encodingShown = computed(() =>
               v-model:insert-at="insertAt"
               :program="program"
               :assembled="assembled.lines"
-              :ip="state.registers.ip"
+              :ip="nextLine"
               :last-line="lastRecord?.line ?? null"
               :finished="finished"
               @clear="clearAsked = true"
