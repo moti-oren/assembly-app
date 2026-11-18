@@ -1,7 +1,7 @@
 import { shallowRef, ref } from 'vue';
-import type { Instruction } from '@/core/instructions';
-import { insertLine, ipAfterInsert, ipAfterRemove, removeLine } from '@/core/program';
-import type { CpuState } from '@/core/state';
+import type { Instruction } from '@/core/x86/instructions';
+import { insertLine, ipAfterInsert, ipAfterRemove, removeLine } from '@/core/x86/program';
+import type { CpuState } from '@/core/x86/state';
 
 /**
  * The program's lines and where new ones go. Editing keeps IP on the line it pointed at, and

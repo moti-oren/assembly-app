@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { explainAddress } from '@/core/address';
-import { decode } from '@/core/decode';
-import { execute } from '@/core/execute';
-import type { Instruction } from '@/core/instructions';
-import { createCpuState } from '@/core/state';
+import { explainAddress } from '@/core/x86/address';
+import { decode } from '@/core/x86/decode';
+import { execute } from '@/core/x86/execute';
+import type { Instruction } from '@/core/x86/instructions';
+import { createCpuState } from '@/core/x86/state';
 import { describeMemoryAccess, describePortAccess } from './describe';
 import { adderNote, aluNote, busText, planNote } from './diagramNotes';
 

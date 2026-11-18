@@ -1,4 +1,4 @@
-import { mask, signBit, type Size } from './numbers';
+import { mask, signBit, type Size } from '../shared/numbers';
 import { readRegister } from './state';
 import type { Handler } from './executionContext';
 

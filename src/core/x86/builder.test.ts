@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { hasMoreOperands, operandChoices } from './builder';
 import { isComplete } from './instructions';
-import { fitsIn, formatBinary, formatHex, parseNumber, toSigned } from './numbers';
+import { fitsIn, formatBinary, formatHex, parseNumber, toSigned } from '../shared/numbers';
 import type { Operand } from './operands';
 
 const reg = (name: Extract<Operand, { type: 'reg' }>['name']): Operand => ({ type: 'reg', name });

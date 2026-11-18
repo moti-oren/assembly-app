@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { assemble } from '@/core/encode';
-import { execute } from '@/core/execute';
-import type { Instruction, Mnemonic } from '@/core/instructions';
-import type { Operand } from '@/core/operands';
-import { step } from '@/core/program';
-import type { RegisterName } from '@/core/registers';
-import { createCpuState } from '@/core/state';
+import { assemble } from '@/core/x86/encode';
+import { execute } from '@/core/x86/execute';
+import type { Instruction, Mnemonic } from '@/core/x86/instructions';
+import type { Operand } from '@/core/x86/operands';
+import { step } from '@/core/x86/program';
+import type { RegisterName } from '@/core/x86/registers';
+import { createCpuState } from '@/core/x86/state';
 import { chooseEncoding, type EncodingSources } from './encodingShown';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BookOpen, Moon, RotateCcw, Search, Sun, Volume2, VolumeX } from '@lucide/vue';
-import { EXAMPLE_PROGRAMS } from '@/core/program';
+import { EXAMPLE_PROGRAMS } from '@/core/x86/program';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

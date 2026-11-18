@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { formatBinary, formatHex, toSigned } from '@/core/numbers';
+import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
 import {
   REGISTER_DESCRIPTIONS,
   SPLIT_REGISTERS,
   WORD_REGISTERS,
   half,
   type WordRegister
-} from '@/core/registers';
-import type { ExecutionRecord } from '@/core/execute';
-import type { CpuState } from '@/core/state';
+} from '@/core/x86/registers';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import type { CpuState } from '@/core/x86/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,

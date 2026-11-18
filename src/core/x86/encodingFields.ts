@@ -1,5 +1,5 @@
 import type { Mnemonic } from './instructions';
-import { formatBits, formatHex, toSigned, truncate, type Size } from './numbers';
+import { formatBits, formatHex, toSigned, truncate, type Size } from '../shared/numbers';
 import { formatLabel, formatOperand, type MemoryBase, type Operand } from './operands';
 import type { RegisterName } from './registers';
 

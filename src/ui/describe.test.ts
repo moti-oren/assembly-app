@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { execute } from '@/core/execute';
-import type { Mnemonic } from '@/core/instructions';
-import type { Operand } from '@/core/operands';
-import type { RegisterName } from '@/core/registers';
-import { createCpuState, writeRegister, type CpuState } from '@/core/state';
+import { execute } from '@/core/x86/execute';
+import type { Mnemonic } from '@/core/x86/instructions';
+import type { Operand } from '@/core/x86/operands';
+import type { RegisterName } from '@/core/x86/registers';
+import { createCpuState, writeRegister, type CpuState } from '@/core/x86/state';
 import { registersWritten, wasWritten } from './describe';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });

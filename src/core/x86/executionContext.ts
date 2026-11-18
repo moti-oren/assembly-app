@@ -1,6 +1,6 @@
-import { CpuError } from './cpuError';
+import { CpuError } from '../shared/cpuError';
 import { FLAGS_MASK, FLAGS_RESERVED, type FlagName } from './flags';
-import { formatHex, hasEvenParity, mask, signBit, truncate, type Size } from './numbers';
+import { formatHex, hasEvenParity, mask, signBit, truncate, type Size } from '../shared/numbers';
 import { effectiveAddress, type Operand } from './operands';
 import type { RegisterName, SegmentRegister } from './registers';
 import {

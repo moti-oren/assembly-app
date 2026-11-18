@@ -2,7 +2,7 @@ import type { ExecutionRecord } from './execute';
 import type { AluTrace } from './executionContext';
 import { isFlagSet, type FlagName } from './flags';
 import { getSpec, isStringCompare, type Mnemonic } from './instructions';
-import { formatBinary, formatHex, mask, signBit, toSigned, type Size } from './numbers';
+import { formatBinary, formatHex, mask, signBit, toSigned, type Size } from '../shared/numbers';
 
 /** Why one flag holds the value it does after an instruction. */
 export interface FlagReason {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FLAG_INFO, FLAG_NAMES } from '@/core/flags';
+import { FLAG_INFO, FLAG_NAMES } from '@/core/x86/flags';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import FlagReason from './FlagReason.vue';

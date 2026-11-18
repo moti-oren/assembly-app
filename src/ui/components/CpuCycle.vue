@@ -6,13 +6,13 @@ import {
   decode,
   type CyclePhase,
   type Decoded
-} from '@/core/decode';
-import type { ExecutionRecord } from '@/core/execute';
-import { CATEGORY_LABELS, formatInstruction } from '@/core/instructions';
-import { formatHex } from '@/core/numbers';
-import { formatLabel } from '@/core/operands';
-import { changedRegisters } from '@/core/registers';
-import type { CpuState } from '@/core/state';
+} from '@/core/x86/decode';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { CATEGORY_LABELS, formatInstruction } from '@/core/x86/instructions';
+import { formatHex } from '@/core/shared/numbers';
+import { formatLabel } from '@/core/x86/operands';
+import { changedRegisters } from '@/core/x86/registers';
+import type { CpuState } from '@/core/x86/state';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 
 const props = defineProps<{

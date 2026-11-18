@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { execute } from '@/core/execute';
-import type { Instruction, Mnemonic } from '@/core/instructions';
-import type { Operand } from '@/core/operands';
-import { step, type Program } from '@/core/program';
-import type { RegisterName } from '@/core/registers';
-import { createCpuState, writeRegister } from '@/core/state';
+import { execute } from '@/core/x86/execute';
+import type { Instruction, Mnemonic } from '@/core/x86/instructions';
+import type { Operand } from '@/core/x86/operands';
+import { step, type Program } from '@/core/x86/program';
+import type { RegisterName } from '@/core/x86/registers';
+import { createCpuState, writeRegister } from '@/core/x86/state';
 import { raisedOverflow, stepSound } from './sounds';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });

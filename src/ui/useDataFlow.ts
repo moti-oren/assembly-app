@@ -1,9 +1,9 @@
 import { onScopeDispose, watch, type ShallowRef } from 'vue';
-import { decode } from '@/core/decode';
-import type { ExecutionRecord } from '@/core/execute';
-import { formatHex } from '@/core/numbers';
-import { effectiveAddress, operandSize, type Operand } from '@/core/operands';
-import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/state';
+import { decode } from '@/core/x86/decode';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { formatHex } from '@/core/shared/numbers';
+import { effectiveAddress, operandSize, type Operand } from '@/core/x86/operands';
+import { physicalAddress, readMemory, readRegister, type CpuState } from '@/core/x86/state';
 import { usePreferences } from './usePreferences';
 
 /**

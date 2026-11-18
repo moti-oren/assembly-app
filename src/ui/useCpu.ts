@@ -1,7 +1,7 @@
 import { computed, reactive, ref } from 'vue';
-import { CpuError } from '@/core/cpuError';
-import { execute, type ExecutionRecord } from '@/core/execute';
-import type { Instruction } from '@/core/instructions';
+import { CpuError } from '@/core/shared/cpuError';
+import { execute, type ExecutionRecord } from '@/core/x86/execute';
+import type { Instruction } from '@/core/x86/instructions';
 import {
   EXAMPLE_PROGRAMS,
   isFinished,
@@ -9,8 +9,8 @@ import {
   runToEnd,
   step,
   tooManyWrites
-} from '@/core/program';
-import { createCpuState, setInputPort } from '@/core/state';
+} from '@/core/x86/program';
+import { createCpuState, setInputPort } from '@/core/x86/state';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
 import { useProgramLines } from './useProgramLines';

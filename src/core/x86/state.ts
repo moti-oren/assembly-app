@@ -1,6 +1,6 @@
-import { PORTS } from './devices';
+import { PORTS } from '../shared/devices';
 import { FLAGS_RESERVED, flagBit, isFlagSet, type FlagName } from './flags';
-import { truncate, type Size } from './numbers';
+import { truncate, type Size } from '../shared/numbers';
 import {
   BYTE_REGISTER_LOCATION,
   isByteRegister,

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { ArrowUpToLine, ChevronRight, Trash2, X } from '@lucide/vue';
-import type { AssembledLine } from '@/core/encode';
-import { formatInstruction, type Instruction } from '@/core/instructions';
-import { formatBytes, formatHex } from '@/core/numbers';
-import { formatLabel } from '@/core/operands';
+import type { AssembledLine } from '@/core/x86/encode';
+import { formatInstruction, type Instruction } from '@/core/x86/instructions';
+import { formatBytes, formatHex } from '@/core/shared/numbers';
+import { formatLabel } from '@/core/x86/operands';
 import { Button } from '@/components/ui/button';
 import {
   Card,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ExecutionRecord } from '@/core/execute';
-import type { CpuState } from '@/core/state';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import type { CpuState } from '@/core/x86/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCpuDiagram } from '@/ui/useCpuDiagram';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';

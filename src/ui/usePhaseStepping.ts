@@ -1,6 +1,6 @@
 import { computed, ref, watch, type Ref } from 'vue';
-import type { Instruction } from '@/core/instructions';
-import type { CpuState } from '@/core/state';
+import type { Instruction } from '@/core/x86/instructions';
+import type { CpuState } from '@/core/x86/state';
 
 /** A program line that is being stepped one phase at a time and has not been executed yet. */
 export interface PendingInstruction {

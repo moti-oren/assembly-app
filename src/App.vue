@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, useTemplateRef, watch } from 'vue';
-import { assemble } from '@/core/encode';
-import { formatInstruction, type Instruction } from '@/core/instructions';
+import { assemble } from '@/core/x86/encode';
+import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppErrorNotice from '@/ui/components/AppErrorNotice.vue';

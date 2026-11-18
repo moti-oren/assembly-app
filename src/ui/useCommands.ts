@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue';
-import { EXAMPLE_PROGRAMS } from '@/core/program';
+import { EXAMPLE_PROGRAMS } from '@/core/x86/program';
 import { describeMemoryAccess } from './describe';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
 import type { Cpu } from './useCpu';

@@ -1,4 +1,4 @@
-import { CpuError, DivideError } from './cpuError';
+import { CpuError, DivideError } from '../shared/cpuError';
 import { DIVIDE_ERROR_INTERRUPT, ExecutionContext, type AluTrace } from './executionContext';
 import { HANDLERS } from './handlers';
 import { formatInstruction, instructionSize, isValid, type Instruction } from './instructions';

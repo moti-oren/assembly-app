@@ -1,4 +1,4 @@
-import type { Size } from './numbers';
+import type { Size } from '../shared/numbers';
 
 export const GENERAL_REGISTERS = ['ax', 'bx', 'cx', 'dx', 'si', 'di', 'bp', 'sp'] as const;
 export const SEGMENT_REGISTERS = ['cs', 'ds', 'es', 'ss'] as const;

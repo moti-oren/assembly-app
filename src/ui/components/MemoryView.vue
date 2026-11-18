@@ -2,12 +2,12 @@
 import { computed, ref, useId } from 'vue';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import { Layers } from '@lucide/vue';
-import { explainAddress, formatPhysical } from '@/core/address';
-import { printable } from '@/core/devices';
-import type { ExecutionRecord } from '@/core/execute';
-import { formatHex, parseNumber } from '@/core/numbers';
-import type { SegmentRegister } from '@/core/registers';
-import { physicalAddress, type CpuState } from '@/core/state';
+import { explainAddress, formatPhysical } from '@/core/x86/address';
+import { printable } from '@/core/shared/devices';
+import type { ExecutionRecord } from '@/core/x86/execute';
+import { formatHex, parseNumber } from '@/core/shared/numbers';
+import type { SegmentRegister } from '@/core/x86/registers';
+import { physicalAddress, type CpuState } from '@/core/x86/state';
 import { describeMemoryAccess } from '@/ui/describe';
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
 import { Button } from '@/components/ui/button';

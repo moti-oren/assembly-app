@@ -1,5 +1,5 @@
-import { PORTS } from './devices';
-import { CpuError } from './cpuError';
+import { PORTS } from '../shared/devices';
+import { CpuError } from '../shared/cpuError';
 import { execute, type ExecutionRecord } from './execute';
 import { VECTOR_SIZE } from './executionContext';
 import type { Instruction, Mnemonic } from './instructions';

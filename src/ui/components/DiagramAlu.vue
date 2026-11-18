@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatInstruction } from '@/core/instructions';
+import { formatInstruction } from '@/core/x86/instructions';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import DiagramWire from './DiagramWire.vue';
 

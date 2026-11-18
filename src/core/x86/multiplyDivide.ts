@@ -1,5 +1,5 @@
-import { DivideError } from './cpuError';
-import { signBit, toSigned, type Size } from './numbers';
+import { DivideError } from '../shared/cpuError';
+import { signBit, toSigned, type Size } from '../shared/numbers';
 import { readRegister } from './state';
 import type { Handler } from './executionContext';
 

@@ -1,4 +1,4 @@
-import type { Size } from './numbers';
+import type { Size } from '../shared/numbers';
 import {
   formatOperand,
   matchesKind,

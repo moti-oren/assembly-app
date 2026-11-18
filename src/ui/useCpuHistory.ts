@@ -1,6 +1,6 @@
 import { computed, shallowRef } from 'vue';
-import { redo as redoRecord, undo, type ExecutionRecord } from '@/core/execute';
-import { snapshot, type CpuSnapshot, type CpuState } from '@/core/state';
+import { redo as redoRecord, undo, type ExecutionRecord } from '@/core/x86/execute';
+import { snapshot, type CpuSnapshot, type CpuState } from '@/core/x86/state';
 
 /** How many instructions back a memory write still shows as warm. */
 export const HEAT_STEPS = 6;

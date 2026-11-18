@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { hasMoreOperands } from '@/core/builder';
-import { getSpec, type Instruction } from '@/core/instructions';
-import { parseNumber } from '@/core/numbers';
-import { formatLabel } from '@/core/operands';
+import { hasMoreOperands } from '@/core/x86/builder';
+import { getSpec, type Instruction } from '@/core/x86/instructions';
+import { parseNumber } from '@/core/shared/numbers';
+import { formatLabel } from '@/core/x86/operands';
 import { CircleAlert, CornerDownLeft, Play, Plus, X } from '@lucide/vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';

@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from 'vue';
-import { decode } from '@/core/decode';
-import type { Instruction } from '@/core/instructions';
+import { decode } from '@/core/x86/decode';
+import type { Instruction } from '@/core/x86/instructions';
 import type { Cpu } from './useCpu';
 
 /** The panels that can be shown or hidden, and the program line whose bytes are on show. */
