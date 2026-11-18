@@ -234,7 +234,7 @@ function flagChanged(flag: FlagName): boolean {
               >
                 <span class="w-6" />
                 <span class="w-14">Hex</span>
-                <span class="flex w-11 justify-end whitespace-nowrap">Unsigned</span>
+                <span class="flex w-11 justify-end whitespace-nowrap">Decimal</span>
                 <span class="hidden @min-[36rem]:inline">Binary</span>
               </div>
               <div
@@ -427,7 +427,7 @@ function flagChanged(flag: FlagName): boolean {
                 <span class="-mr-0.5 hidden w-5 sm:block" />
                 <span class="w-6" />
                 <span class="w-10">Hex</span>
-                <span class="flex w-11 justify-end whitespace-nowrap">Unsigned</span>
+                <span class="flex w-11 justify-end whitespace-nowrap">Decimal</span>
                 <span class="hidden @min-[40rem]:inline">Binary</span>
               </div>
               <div
