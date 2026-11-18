@@ -15,6 +15,13 @@ export interface AddressBreakdown {
   wrapped: boolean;
 }
 
+/** A 20-bit physical address takes five hex digits. */
+const PHYSICAL_HEX_DIGITS = 5;
+
+export function formatPhysical(address: number): string {
+  return address.toString(16).toUpperCase().padStart(PHYSICAL_HEX_DIGITS, '0');
+}
+
 export function explainAddress(segment: number, offset: number): AddressBreakdown {
   const segment16 = truncate(segment, 16);
   const offset16 = truncate(offset, 16);

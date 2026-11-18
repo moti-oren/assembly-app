@@ -2,7 +2,7 @@
 import { computed, ref, useId } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
 import { Layers } from '@lucide/vue';
-import { explainAddress } from '@/core/address';
+import { explainAddress, formatPhysical } from '@/core/address';
 import type { ExecutionRecord } from '@/core/execute';
 import { formatHex, parseNumber } from '@/core/numbers';
 import type { SegmentRegister } from '@/core/registers';
@@ -115,10 +115,6 @@ const offsetNote = computed(() => {
   return parts.wrapped ? `${sum}, wraps at 64K` : sum;
 });
 
-function hex20(value: number): string {
-  return value.toString(16).toUpperCase().padStart(5, '0');
-}
-
 function showLastAccess(): void {
   const access = lastAccess.value;
   if (!access) return;
@@ -223,11 +219,13 @@ function ascii(value: number): string {
             <span class="text-muted-foreground">=</span>
             <template v-if="worked.sum.wrapped">
               <span class="text-muted-foreground line-through decoration-1"
-                >{{ hex20(worked.sum.sum) }}h</span
+                >{{ formatPhysical(worked.sum.sum) }}h</span
               >
               <span class="font-sans text-muted-foreground">wraps past 1MB to</span>
             </template>
-            <span class="font-semibold text-pointer">{{ hex20(worked.sum.physical) }}h</span>
+            <span class="font-semibold text-pointer"
+              >{{ formatPhysical(worked.sum.physical) }}h</span
+            >
           </span>
           <span
             v-if="offsetNote"
@@ -275,7 +273,7 @@ function ascii(value: number): string {
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
                 :class="{ 'pl-2.5': column === 8 }"
-                :title="`Physical ${hex20(byte.address)}h = ${byte.value}`"
+                :title="`Physical ${formatPhysical(byte.address)}h = ${byte.value}`"
                 @mouseenter="pointed = (row.offset + column) & 0xffff"
               >
                 <ChangeMark

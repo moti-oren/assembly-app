@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { explainAddress } from '@/core/address';
+import { explainAddress, formatPhysical } from '@/core/address';
 import { CYCLE_PHASES, decode } from '@/core/decode';
 import type { ExecutionRecord } from '@/core/execute';
 import { FLAG_INFO, FLAG_NAMES, isFlagSet, type FlagName } from '@/core/flags';
@@ -156,14 +156,10 @@ const busKind = computed<WireKind>(() => memoryKind.value ?? portKind.value);
 /** What is on the external bus: the address the CPU put there, then the data that followed. */
 const busText = computed(() => {
   if (memory.value && address.value) {
-    return `address ${hex20(address.value.physical)}h, data ${memory.value.value}`;
+    return `address ${formatPhysical(address.value.physical)}h, data ${memory.value.value}`;
   }
   return port.value ? `port ${port.value.port}h, data ${port.value.value}` : null;
 });
-
-function hex20(value: number): string {
-  return value.toString(16).toUpperCase().padStart(5, '0');
-}
 
 function value(name: WordRegister): number {
   return props.state.registers[name];
@@ -492,7 +488,7 @@ function flagChanged(flag: FlagName): boolean {
                   <span class="truncate font-sans text-xs text-muted-foreground">
                     {{ memory.segment.toUpperCase() }} × 10h
                   </span>
-                  <span class="text-right">{{ hex20(address.shifted) }}</span>
+                  <span class="text-right">{{ formatPhysical(address.shifted) }}</span>
                   <span class="truncate font-sans text-xs text-muted-foreground">+ offset</span>
                   <span class="text-right">{{ formatHex(address.offset, 16) }}</span>
                   <span class="col-span-2 my-0.5 border-t border-foreground/25" />
@@ -500,7 +496,7 @@ function flagChanged(flag: FlagName): boolean {
                     {{ address.wrapped ? 'wraps past 1MB to' : '20-bit address' }}
                   </span>
                   <span class="text-right font-semibold text-pointer">{{
-                    hex20(address.physical)
+                    formatPhysical(address.physical)
                   }}</span>
                 </div>
                 <p v-else class="mt-2 text-xs text-muted-foreground">{{ adderNote }}</p>
