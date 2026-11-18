@@ -1,4 +1,5 @@
 import { fitsIn, formatHex, type Size } from '../shared/numbers';
+import { formatLabel } from '../shared/program';
 import {
   isByteRegister,
   isGeneralRegister,
@@ -79,10 +80,6 @@ export function matchesKind(kind: OperandKind, operand: Operand): boolean {
     case 'label':
       return kind === 'label';
   }
-}
-
-export function formatLabel(target: number): string {
-  return `L${target}`;
 }
 
 /** Size of a register or memory operand; immediates take the size of the other operand. */

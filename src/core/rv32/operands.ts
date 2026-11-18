@@ -1,3 +1,4 @@
+import { formatLabel } from '../shared/program';
 import { fitsSigned, fitsUnsigned } from './bits';
 import { ABI_NAMES } from './registers';
 
@@ -39,10 +40,6 @@ export function matchesKind(kind: OperandKind, operand: Operand): boolean {
 
 export function formatRegister(index: number): string {
   return ABI_NAMES[index];
-}
-
-export function formatLabel(target: number): string {
-  return `L${target}`;
 }
 
 /** Small and negative numbers read best in decimal, larger ones in hex, as in a disassembly. */

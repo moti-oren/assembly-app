@@ -14,6 +14,11 @@ export interface LabelOperand {
   target: number;
 }
 
+/** How every architecture writes a program line: L0, L1, ... */
+export function formatLabel(target: number): string {
+  return `L${target}`;
+}
+
 /** What the program code needs of an instruction: operands it can look through for labels. */
 export interface ProgramInstruction {
   readonly operands: readonly { readonly type: string }[];

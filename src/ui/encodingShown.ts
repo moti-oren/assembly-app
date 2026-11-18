@@ -2,7 +2,7 @@ import type { AssembledLine } from '@/core/x86/encode';
 import { encode } from '@/core/x86/encode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { Instruction } from '@/core/x86/instructions';
-import { formatLabel } from '@/core/x86/operands';
+import { formatLabel } from '@/core/shared/program';
 
 /** An instruction on show in the machine code panel, and where it comes from. */
 export interface EncodingShown {

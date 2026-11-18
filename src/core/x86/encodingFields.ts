@@ -1,6 +1,7 @@
 import type { Mnemonic } from './instructions';
 import { formatBits, formatHex, toSigned, truncate, type Size } from '../shared/numbers';
-import { formatLabel, formatOperand, type MemoryBase, type Operand } from './operands';
+import { formatLabel } from '../shared/program';
+import { formatOperand, type MemoryBase, type Operand } from './operands';
 import type { RegisterName } from './registers';
 
 /** Which part of an instruction a field is; each is drawn in its own colour. */

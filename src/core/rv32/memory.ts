@@ -1,6 +1,6 @@
 import { CpuError } from '../shared/cpuError';
 import { littleEndian } from '../shared/numbers';
-import type { Program } from '../shared/program';
+import { formatLabel, type Program } from '../shared/program';
 import {
   readBytes,
   readPort,
@@ -12,7 +12,6 @@ import {
 import { formatHex32, u32 } from './bits';
 import { wordAt } from './encode';
 import type { Instruction } from './instructions';
-import { formatLabel } from './operands';
 import {
   addressOfLine,
   CODE_BASE,

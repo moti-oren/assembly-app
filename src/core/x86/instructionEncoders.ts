@@ -1,6 +1,6 @@
 import type { Mnemonic } from './instructions';
 import { truncate } from '../shared/numbers';
-import { formatLabel } from './operands';
+import { formatLabel } from '../shared/program';
 import { isSegmentRegister } from './registers';
 import {
   asMem,

@@ -4,7 +4,7 @@ import { ArrowUpToLine, ChevronRight, Trash2, X } from '@lucide/vue';
 import type { AssembledLine } from '@/core/x86/encode';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { formatBytes, formatHex } from '@/core/shared/numbers';
-import { formatLabel } from '@/core/x86/operands';
+import { formatLabel } from '@/core/shared/program';
 import { Button } from '@/components/ui/button';
 import {
   Card,

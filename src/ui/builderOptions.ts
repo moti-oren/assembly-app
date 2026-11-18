@@ -9,10 +9,10 @@ import {
   type RepeatPrefix
 } from '@/core/x86/instructions';
 import { fitsIn, formatHex, type Size } from '@/core/shared/numbers';
+import { formatLabel } from '@/core/shared/program';
 import {
   MEMORY_BASES,
   formatImmediate,
-  formatLabel,
   memorySegment,
   type MemoryBase,
   type Operand

@@ -10,7 +10,7 @@ import {
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { CATEGORY_LABELS, formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { formatHex } from '@/core/shared/numbers';
-import { formatLabel } from '@/core/x86/operands';
+import { formatLabel } from '@/core/shared/program';
 import { changedRegisters } from '@/core/x86/registers';
 import type { CpuState } from '@/core/x86/state';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
