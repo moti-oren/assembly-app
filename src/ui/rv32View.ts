@@ -1,17 +1,18 @@
-import { PORTS } from '@/core/shared/devices';
 import type { Program } from '@/core/shared/program';
 import { wordAt } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
-import { regionAt, type Region } from '@/core/rv32/memory';
-import { ABI_NAMES, registerKey, registerRole, type RegisterRole } from '@/core/rv32/registers';
+import { regionAt } from '@/core/rv32/memory';
+import { ABI_NAMES, registerKey, registerRole, SP, type RegisterRole } from '@/core/rv32/registers';
 import {
   CODE_BASE,
   DATA_BASE,
   DEVICE_BASE,
   INSTRUCTION_SIZE,
+  readRegister,
   type CpuState
 } from '@/core/rv32/state';
+import { deviceByte, type AddressFormat, type MemoryPlace, type ShownByte } from './flatMemory';
 
 /** One of the 32 registers, as the panels list it. */
 export interface RegisterRow {
@@ -56,25 +57,17 @@ export function wasWritten(record: ExecutionRecord | null, index: number): boole
   return record?.registersWritten.includes(registerKey(index)) ?? false;
 }
 
-/** The places in memory the memory panel can jump to. */
-export const MEMORY_PLACES = {
-  code: { label: 'Code', start: CODE_BASE },
-  data: { label: 'Data', start: DATA_BASE },
-  stack: { label: 'Stack', start: null },
-  devices: { label: 'Devices', start: DEVICE_BASE }
-} as const;
-
-export type MemoryPlace = keyof typeof MEMORY_PLACES;
-
-/** The switches are an input: the panel shows what they present, not what was written there. */
-const INPUT_PORTS = new Set<number>([PORTS.switches]);
-
-/** One byte of memory as the panel shows it; null where nothing is wired. */
-export interface ShownByte {
-  address: number;
-  value: number | null;
-  region: Region | null;
+/** Where the RISC-V memory panel can jump to. */
+export function rv32MemoryPlaces(state: CpuState): MemoryPlace[] {
+  return [
+    { label: 'Code', start: () => CODE_BASE },
+    { label: 'Data', start: () => DATA_BASE },
+    { label: 'Stack', start: () => readRegister(state, SP), stack: true },
+    { label: 'Devices', start: () => DEVICE_BASE }
+  ];
 }
+
+export const RV32_ADDRESSES: AddressFormat = { prefix: '0x', digits: 8 };
 
 /** The byte at an address: RAM, the program's machine code, or what a device shows. */
 export function byteAt(state: CpuState, program: Program<Instruction>, address: number): ShownByte {
@@ -85,23 +78,7 @@ export function byteAt(state: CpuState, program: Program<Instruction>, address: 
     const word = wordAt(program, Math.floor(offset / INSTRUCTION_SIZE));
     return { address, value: (word >>> (8 * (offset % INSTRUCTION_SIZE))) & 0xff, region };
   }
-  if (region === 'device') {
-    const port = address - DEVICE_BASE;
-    const value = INPUT_PORTS.has(port) ? state.io.in[port] : state.io.out[port];
-    return { address, value, region };
-  }
+  if (region === 'device')
+    return { address, value: deviceByte(state.io, address - DEVICE_BASE), region };
   return { address, value: null, region: null };
-}
-
-/** `count` rows of 16 bytes, from `start` rounded down to a row. */
-export function memoryRows(
-  state: CpuState,
-  program: Program<Instruction>,
-  start: number,
-  count: number
-): ShownByte[][] {
-  const first = Math.floor(start / 16) * 16;
-  return Array.from({ length: count }, (_, row) =>
-    Array.from({ length: 16 }, (_, column) => byteAt(state, program, first + 16 * row + column))
-  );
 }

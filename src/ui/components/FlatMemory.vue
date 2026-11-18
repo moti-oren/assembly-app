@@ -3,27 +3,35 @@ import { computed, ref, useId } from 'vue';
 import { Layers } from '@lucide/vue';
 import { printable } from '@/core/shared/devices';
 import { formatHex, parseNumber } from '@/core/shared/numbers';
-import { formatHex32 } from '@/core/rv32/bits';
-import type { ExecutionRecord } from '@/core/rv32/execute';
-import type { Instruction } from '@/core/rv32/instructions';
-import { SP } from '@/core/rv32/registers';
-import { readRegister, type CpuState } from '@/core/rv32/state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { describeAccess } from '@/ui/rv32Explain';
-import { MEMORY_PLACES, memoryRows, type MemoryPlace } from '@/ui/rv32View';
+import {
+  formatAddress,
+  memoryRows,
+  type AddressFormat,
+  type ByteAt,
+  type MemoryPlace
+} from '@/ui/flatMemory';
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import ChangeMark from './ChangeMark.vue';
 import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
-  state: CpuState;
-  program: Instruction[];
+  /** Its versions say when memory or a device changed: the byte arrays are not reactive. */
+  state: { memoryVersion: number; ioVersion: number };
+  byteAt: ByteAt;
+  places: MemoryPlace[];
+  format: AddressFormat;
+  /** Where the panel starts. */
+  initial: number;
   /** Recently written addresses, mapped to how many instructions ago (0 = the last). */
   heat: Map<number, number>;
-  record: ExecutionRecord | null;
+  /** The last load or store: its first byte, how many bytes it moved, and what it was in words. */
+  access: { address: number; size: number; text: string } | null;
+  /** What the panel says before any access: how this memory is laid out. */
+  intro: string;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -34,18 +42,22 @@ const COLUMNS = 16;
 const twoColumns = useTwoColumns();
 const rowCount = computed(() => (twoColumns.value ? WIDE_ROWS : COMPACT_ROWS));
 
-const addressText = ref(formatHex32(MEMORY_PLACES.data.start));
-/** The address box is always read as hex, with or without a 0x prefix. */
-const parsed = computed(() => parseNumber(`0x${addressText.value.replace(/^0x/i, '')}`));
+const hex = (address: number) => formatAddress({ ...props.format, prefix: '' }, address);
+
+// The first value only: after that the panel moves as the user asks.
+const addressText = ref(hex(props.initial));
+/** The address box is always read as hex, with or without its prefix. */
+const parsed = computed(() =>
+  parseNumber(`0x${addressText.value.trim().replace(/^(0x|\$)/i, '')}`)
+);
 const invalid = computed(() => addressText.value.trim() !== '' && parsed.value === null);
 const errorId = useId();
 const start = computed(() => (parsed.value ?? 0) >>> 0);
 
 const rows = computed(() => {
-  // These make the rows re-run after writes: the byte arrays themselves are not reactive.
   void props.state.memoryVersion;
   void props.state.ioVersion;
-  return memoryRows(props.state, props.program, start.value, rowCount.value);
+  return memoryRows(props.byteAt, start.value, rowCount.value);
 });
 
 /** A write cools down over the next few instructions instead of vanishing at once. */
@@ -58,28 +70,26 @@ function warmth(address: number): string | undefined {
 
 /** Bytes the last load or store touched. */
 function accessed(address: number): boolean {
-  const access = props.record?.access;
+  const { access } = props;
   return !!access && address >= access.address && address < access.address + access.size;
 }
 
-const lastAccess = computed(() => props.record && describeAccess(props.record));
-
 function go(place: MemoryPlace): void {
-  if (place === 'stack') {
-    showStackTop();
-    return;
-  }
-  addressText.value = formatHex32(MEMORY_PLACES[place].start);
+  const address = place.start();
+  // The stack grows down: its top goes on the last row, with what was pushed before it above.
+  const first = place.stack
+    ? Math.max(0, (address & ~0xf) - (rowCount.value - 1) * COLUMNS)
+    : address;
+  addressText.value = hex(first);
 }
 
 function showStackTop(): void {
-  const rowOfSp = readRegister(props.state, SP) & ~0xf;
-  addressText.value = formatHex32(Math.max(0, rowOfSp - (rowCount.value - 1) * COLUMNS));
+  const stack = props.places.find((place) => place.stack);
+  if (stack) go(stack);
 }
 
 function showLastAccess(): void {
-  const access = props.record?.access;
-  if (access) addressText.value = formatHex32(access.address & ~0xf);
+  if (props.access) addressText.value = hex(props.access.address & ~0xf);
 }
 
 const card = ref<{ $el: HTMLElement } | null>(null);
@@ -103,28 +113,29 @@ function reveal(jump: () => void): void {
         <CardTitle class="mr-1 group-data-[size=sm]/card:text-base">Memory</CardTitle>
         <div class="flex gap-1" role="group" aria-label="Go to">
           <Button
-            v-for="(place, key) in MEMORY_PLACES"
-            :key="key"
+            v-for="place in places"
+            :key="place.label"
             variant="ghost"
             size="sm"
             class="h-7 px-2 text-xs"
-            @click="go(key)"
+            @click="go(place)"
           >
-            <Layers v-if="key === 'stack'" />
+            <Layers v-if="place.stack" />
             {{ place.label }}
           </Button>
         </div>
         <div class="relative ml-auto">
           <span
             class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
-            >0x</span
+            >{{ format.prefix }}</span
           >
           <Input
             v-model="addressText"
-            class="h-7 w-28 pl-7 font-mono text-sm"
+            class="h-7 w-28 font-mono text-sm"
+            :class="format.prefix.length > 1 ? 'pl-7' : 'pl-5'"
             :aria-invalid="invalid || undefined"
             :aria-describedby="invalid ? errorId : undefined"
-            maxlength="10"
+            :maxlength="format.digits + format.prefix.length"
             autocomplete="off"
             autocapitalize="characters"
             autocorrect="off"
@@ -136,10 +147,11 @@ function reveal(jump: () => void): void {
 
       <p class="flex items-baseline gap-2 font-mono text-xs lg:h-5 lg:overflow-hidden">
         <span v-if="invalid" :id="errorId" class="font-sans text-destructive">
-          “{{ addressText }}” isn't a hex address (use 0–9 and A–F). Showing 0x00000000.
+          “{{ addressText }}” isn't a hex address (use 0–9 and A–F). Showing
+          {{ formatAddress(format, 0) }}.
         </span>
-        <template v-else-if="lastAccess">
-          <span class="truncate">{{ lastAccess }}</span>
+        <template v-else-if="access">
+          <span class="truncate">{{ access.text }}</span>
           <button
             type="button"
             class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -148,10 +160,7 @@ function reveal(jump: () => void): void {
             Show in table
           </button>
         </template>
-        <span v-else class="font-sans text-muted-foreground">
-          One flat space of 32-bit addresses: RAM from 0x00000000 (the code first), the devices at
-          0x10000000. Dots mark addresses with nothing wired to them.
-        </span>
+        <span v-else class="font-sans text-muted-foreground">{{ intro }}</span>
       </p>
 
       <div class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5">
@@ -173,7 +182,7 @@ function reveal(jump: () => void): void {
           <tbody>
             <tr v-for="row in rows" :key="row[0].address">
               <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
-                {{ formatHex32(row[0].address) }}
+                {{ hex(row[0].address) }}
               </th>
               <td
                 v-for="(byte, column) in row"
@@ -186,8 +195,8 @@ function reveal(jump: () => void): void {
                 }"
                 :title="
                   byte.value === null
-                    ? `${formatHex32(byte.address)}: nothing is wired here`
-                    : `${formatHex32(byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
+                    ? `${formatAddress(format, byte.address)}: nothing is wired here`
+                    : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
                 "
               >
                 <span v-if="byte.value === null" class="text-muted-foreground/50">··</span>
