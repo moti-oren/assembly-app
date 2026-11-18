@@ -28,7 +28,8 @@ defineProps<{ model: CpuDiagramModel }>();
     <div class="flex min-w-0 flex-col items-center">
       <DiagramWire class="hidden h-3 w-0.5 sm:block" :kind="model.memoryKind" :tick="model.pulse" />
       <div
-        class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
+        class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5 transition-opacity duration-300"
+        :class="{ 'unit-idle': !model.memoryKind }"
       >
         <span class="text-sm font-medium">Memory</span>
         <span v-if="model.memory" class="truncate font-mono text-code">
@@ -51,7 +52,8 @@ defineProps<{ model: CpuDiagramModel }>();
     <div class="flex min-w-0 flex-col items-center">
       <DiagramWire class="hidden h-3 w-0.5 sm:block" :kind="model.portKind" :tick="model.pulse" />
       <div
-        class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5"
+        class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5 transition-opacity duration-300"
+        :class="{ 'unit-idle': !model.portKind }"
       >
         <span class="text-sm font-medium">I/O ports</span>
         <span v-if="model.port" class="truncate font-mono text-code">

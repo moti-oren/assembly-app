@@ -363,6 +363,14 @@
     letter-spacing: 0;
   }
 
+  /*
+   * A unit the instruction on show does not use. It keeps its place and size, so nothing below
+   * moves from one step to the next, and steps back instead.
+   */
+  .unit-idle {
+    opacity: 0.6;
+  }
+
   /* One character of a number; see RollingDigits.vue. */
   .digit {
     position: relative;
