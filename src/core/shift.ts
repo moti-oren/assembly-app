@@ -1,8 +1,63 @@
-import { mask, signBit } from './numbers';
+import { mask, signBit, type Size } from './numbers';
 import { readRegister } from './state';
 import type { Handler } from './executionContext';
 
 type ShiftMnemonic = 'shl' | 'shr' | 'sar' | 'rol' | 'ror' | 'rcl' | 'rcr';
+
+/** One bit of a shift or rotate: the new value, and the bit that went out into CF. */
+function shiftOnce(
+  mnemonic: ShiftMnemonic,
+  value: number,
+  carry: boolean,
+  size: Size
+): { value: number; carry: boolean } {
+  const top = signBit(size);
+  const all = mask(size);
+  const outTop = (value & top) !== 0;
+  const outBottom = (value & 1) !== 0;
+  switch (mnemonic) {
+    case 'shl':
+      return { value: (value << 1) & all, carry: outTop };
+    case 'shr':
+      return { value: value >>> 1, carry: outBottom };
+    case 'sar':
+      return { value: (value >>> 1) | (value & top), carry: outBottom };
+    case 'rol':
+      return { value: ((value << 1) | (outTop ? 1 : 0)) & all, carry: outTop };
+    case 'ror':
+      return { value: (value >>> 1) | (outBottom ? top : 0), carry: outBottom };
+    case 'rcl':
+      return { value: ((value << 1) | (carry ? 1 : 0)) & all, carry: outTop };
+    case 'rcr':
+      return { value: (value >>> 1) | (carry ? top : 0), carry: outBottom };
+  }
+}
+
+/** OF after a shift or rotate by 1. The 8086 defines it only for that count. */
+function overflowAfterOne(
+  mnemonic: ShiftMnemonic,
+  original: number,
+  result: number,
+  carry: boolean,
+  size: Size
+): boolean {
+  const top = signBit(size);
+  const topBit = (result & top) !== 0;
+  const nextBit = (result & (top >> 1)) !== 0;
+  switch (mnemonic) {
+    case 'shl':
+    case 'rol':
+    case 'rcl':
+      return topBit !== carry;
+    case 'shr':
+      return (original & top) !== 0;
+    case 'sar':
+      return false;
+    case 'ror':
+    case 'rcr':
+      return topBit !== nextBit;
+  }
+}
 
 /** SHL, SHR, SAR and the four rotates, by 1 or by CL. */
 export const shift =
@@ -14,74 +69,19 @@ export const shift =
       return;
     }
 
-    const top = signBit(ctx.size);
-    const all = mask(ctx.size);
     const original = ctx.read(dst);
     let value = original;
     let carry = ctx.flag('CF');
-
     for (let i = 0; i < count; i++) {
-      const outTop = (value & top) !== 0;
-      const outBottom = (value & 1) !== 0;
-      switch (mnemonic) {
-        case 'shl':
-          value = (value << 1) & all;
-          carry = outTop;
-          break;
-        case 'shr':
-          value = value >>> 1;
-          carry = outBottom;
-          break;
-        case 'sar':
-          value = (value >>> 1) | (value & top);
-          carry = outBottom;
-          break;
-        case 'rol':
-          value = ((value << 1) | (outTop ? 1 : 0)) & all;
-          carry = outTop;
-          break;
-        case 'ror':
-          value = (value >>> 1) | (outBottom ? top : 0);
-          carry = outBottom;
-          break;
-        case 'rcl':
-          value = ((value << 1) | (carry ? 1 : 0)) & all;
-          carry = outTop;
-          break;
-        case 'rcr':
-          value = (value >>> 1) | (carry ? top : 0);
-          carry = outBottom;
-          break;
-      }
+      ({ value, carry } = shiftOnce(mnemonic, value, carry, ctx.size));
     }
 
     ctx.write(dst, value);
     ctx.setFlag('CF', carry);
     ctx.alu = { kind: 'shift', size: ctx.size, original, count, result: value, carry };
-
-    // OF is only defined for single-bit shifts and rotates.
     if (count === 1) {
-      const topBit = (value & top) !== 0;
-      const nextBit = (value & (top >> 1)) !== 0;
-      switch (mnemonic) {
-        case 'shl':
-        case 'rol':
-        case 'rcl':
-          ctx.setFlag('OF', topBit !== carry);
-          break;
-        case 'shr':
-          ctx.setFlag('OF', (original & top) !== 0);
-          break;
-        case 'sar':
-          ctx.setFlag('OF', false);
-          break;
-        case 'ror':
-        case 'rcr':
-          ctx.setFlag('OF', topBit !== nextBit);
-          break;
-      }
+      ctx.setFlag('OF', overflowAfterOne(mnemonic, original, value, carry, ctx.size));
     }
-
     // Rotates leave SF, ZF and PF alone.
     if (mnemonic === 'shl' || mnemonic === 'shr' || mnemonic === 'sar') {
       ctx.setResultFlags(value);
