@@ -44,6 +44,11 @@ Two layers; keep them separate.
     - `decode.ts`: what an instruction reads and writes (registers, memory, ports, flags, ALU), including registers it uses without naming them. The diagram and the fetch/decode/execute view are driven by it.
     - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …), and `assemble` for a whole program. **Display only**; nothing executes these bytes. `encodingFields.ts` builds the fields (ModR/M, immediates, jump distances) and `instructionEncoders.ts` holds the opcode tables and one encoder per kind of instruction.
     - `address.ts` and `flagReasons.ts`: explanations for the UI, worked out from state and the undo record: how segment:offset becomes a 20-bit address, and why each flag got its value.
+  - `rv32/`: RISC-V, RV32I with the M extension. `architecture.ts` exports `RV32`. Not wired into the UI yet.
+    - `registers.ts` (x0..x31 and their ABI names), `bits.ts` (32-bit arithmetic: values are kept unsigned with `u32`), `operands.ts`, `instructions.ts` (one form per mnemonic, and its format R/I/S/B/U/J).
+    - `state.ts`: the memory map (1MB RAM at 0, the devices at 0x10000000), PC and the line it points at.
+    - `execute.ts` runs an instruction, with the operations in `alu.ts` and loads and stores in `memory.ts` (alignment, access faults, devices, and the code read as its machine code).
+    - `encode.ts`: the 32-bit word and its fields as bit ranges; `pseudo.ts`: pseudo-instructions (`li`, `mv`, `j`, `ret`, `beqz`, …) and the real instructions they expand to; `examples.ts`.
 - `src/ui/`: Vue components in `ui/components/`, composables (`use*.ts`) and plain helpers (the other `.ts` files). The panels are built for the 8086 and import from `src/core/x86/`. `useCpu.ts` wraps an architecture in Vue reactivity (the app passes it `X86`), built from `useCpuHistory.ts` (undo, redo, seek), `useProgramLines.ts` (editing the program), `useProgramRun.ts` (running on a timer) and `usePhaseStepping.ts` (fetch, decode, execute). `useCpuDiagram.ts` works out what the CPU diagram shows, and its parts (`Diagram*.vue`) only draw it. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
 - `src/components/ui/`: shadcn-vue components (Tailwind v4 + reka-ui), generated with `npx shadcn-vue add <name>`. They are excluded from ESLint; don't hand-edit them casually. Config in `components.json`.
 
@@ -85,6 +90,7 @@ ESLint enforces the import rules of the core, helper and composable layers, and 
 
 - Instructions **run as data, not as bytes**. On the 8086, IP is the index of the next program line (L0, L1, …); jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it. The machine code from `encode.ts` is shown beside the program but never executed, and it is not written into memory.
 - Shared code never reads an instruction pointer itself: it asks the architecture for `nextLine` and moves it with `setNextLine`. Each architecture decides how its instruction pointer maps to a program line (the 8086's IP simply is the line).
+- On RISC-V, PC is a real byte address: line n is at 4n, so links (`jal`), `auipc` and `jalr` targets are real addresses. A jump to an address that is not the start of a line is a `CpuError`. The code is readable as memory (its encoding) but a store into it is a `CpuError`: the program cannot modify itself. Pseudo-instructions are expanded into real lines when added, so the program only holds real instructions.
 - A label used as a value (`mov word [0x84], L8`) is the **line number** at run time, while `encode.ts` shows it as the byte offset of that line. Keep both in mind when touching either side.
 - An instruction runs immediately (Enter) or is appended to the program (Shift+Enter).
 - Memory operands are `byte`/`word` `[bx]`, `[si]`, `[di]`, `[bp]` or `[offset]`. `[bp]` uses SS; all others use DS.
