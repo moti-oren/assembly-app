@@ -146,12 +146,13 @@ function onArrow(event: KeyboardEvent): void {
 }
 
 /**
- * One line that explains what you are looking at: the hovered option, else the chosen
- * instruction, else the option Enter would pick.
+ * One line that explains what you are looking at: the hovered option; while typing, the option
+ * Enter would pick; else the chosen instruction, or before one is chosen, Enter's option.
  */
 const preview = computed<{ label: string; text: string } | null>(() => {
   const described = props.grammar.describe(chosen.value);
-  const option = hovered.value ?? (described === null ? enterOption.value : null);
+  const typing = filter.value.trim() !== '';
+  const option = hovered.value ?? (described === null || typing ? enterOption.value : null);
   if (option?.hint) return { label: option.label, text: option.hint };
   return described;
 });
