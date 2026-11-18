@@ -7,7 +7,7 @@ import {
 } from '@/core/x86/instructions';
 import type { Size } from '@/core/shared/numbers';
 import { formatOperand, type Operand } from '@/core/x86/operands';
-import type { OptionAction } from './builderOptions';
+import type { OptionAction } from './x86Grammar';
 
 /** One word of the instruction as it is shown in the builder. */
 export interface DraftToken {

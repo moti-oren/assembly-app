@@ -17,7 +17,7 @@ import {
   typingHint,
   type BuilderDraft,
   type BuilderOption
-} from '@/ui/builderOptions';
+} from '@/ui/x86Grammar';
 import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
 import { useTwoColumns } from '@/ui/useTwoColumns';

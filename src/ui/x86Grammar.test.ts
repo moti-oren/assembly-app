@@ -5,7 +5,7 @@ import {
   overflowingSize,
   typingHint,
   type BuilderDraft
-} from './builderOptions';
+} from './x86Grammar';
 
 const empty: BuilderDraft = {
   prefix: null,
