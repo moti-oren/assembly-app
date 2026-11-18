@@ -36,6 +36,10 @@ function defaults(): Orders {
   return { left: [...DEFAULTS.left], diagram: [...DEFAULTS.diagram], table: [...DEFAULTS.table] };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 /** Anything unreadable in storage falls back to the defaults, column by column. */
 function read(raw: string): Orders {
   let parsed: unknown;
@@ -44,7 +48,7 @@ function read(raw: string): Orders {
   } catch {
     parsed = null;
   }
-  const stored = (parsed ?? {}) as Partial<Record<Column, unknown>>;
+  const stored: Record<string, unknown> = isRecord(parsed) ? parsed : {};
   return {
     left: sanitizeOrder(stored.left, DEFAULTS.left),
     diagram: sanitizeOrder(stored.diagram, DEFAULTS.diagram),
