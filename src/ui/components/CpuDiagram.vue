@@ -201,7 +201,7 @@ function flagChanged(flag: FlagName): boolean {
           read
         </span>
         <span class="hidden items-center gap-1.5 sm:flex">
-          <span class="inline-block h-0.5 w-3 rounded-full bg-changed-glow" aria-hidden="true" />
+          <span class="inline-block h-0.5 w-3 rounded-full bg-written" aria-hidden="true" />
           written
         </span>
         <CpuViewToggle />
@@ -358,7 +358,7 @@ function flagChanged(flag: FlagName): boolean {
 
             <span
               class="ml-[calc(50%-0.625rem)] hidden h-3 w-0.5 transition-colors duration-300 sm:block"
-              :class="changedFlags !== 0 ? 'bg-changed-glow' : 'bg-foreground/15'"
+              :class="changedFlags !== 0 ? 'bg-written' : 'bg-foreground/15'"
               aria-hidden="true"
             />
 

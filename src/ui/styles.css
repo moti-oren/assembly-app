@@ -51,6 +51,7 @@
   --color-changed: var(--changed);
   --color-changed-foreground: var(--changed-foreground);
   --color-changed-glow: var(--changed-glow);
+  --color-written: var(--written);
   --color-pointer: var(--pointer);
   --color-pointer-foreground: var(--pointer-foreground);
   --font-heading: var(--font-sans);
@@ -114,6 +115,11 @@
   --drag-shadow: 0 18px 40px -12px oklch(0.2 0.02 260 / 35%);
   /* Text on the glow, which is bright in both themes. */
   --changed-glow-foreground: oklch(0.25 0.05 70);
+  /*
+   * A wire, LED or segment that was written. Thin lines on the page need 3:1 against it, which
+   * the pale glow does not reach on white, so the light theme draws them in a deeper amber.
+   */
+  --written: oklch(0.666 0.179 58.318);
   --pointer: oklch(0.55 0.18 255);
   --pointer-foreground: oklch(0.985 0 0);
   --background: oklch(1 0 0);
@@ -163,6 +169,7 @@
   --changed: oklch(0.36 0.07 80);
   --changed-foreground: oklch(0.9 0.12 90);
   --changed-glow: oklch(0.84 0.16 85);
+  --written: var(--changed-glow);
   --card-sheen: oklch(1 0 0 / 3.5%);
   --overlay: oklch(0.1 0.02 305 / 55%);
   --drag-shadow: 0 18px 40px -12px oklch(0 0 0 / 60%);
@@ -315,7 +322,7 @@
     animation: wire-light 700ms ease-out;
   }
   .wire-lit[data-kind='write'] {
-    --kind-color: var(--changed-glow);
+    --kind-color: var(--written);
   }
   @keyframes wire-light {
     from {
@@ -468,7 +475,7 @@
       box-shadow 200ms;
   }
   .device-led.device-lit {
-    background: var(--changed-glow);
+    background: var(--written);
     box-shadow: 0 0 8px 1px var(--changed-glow);
   }
   .device-segments > * {
@@ -477,7 +484,7 @@
     transition: fill 200ms;
   }
   .device-segments > .device-lit {
-    fill: var(--changed-glow);
+    fill: var(--written);
     filter: drop-shadow(0 0 2px var(--changed-glow));
   }
   .device-switch {
