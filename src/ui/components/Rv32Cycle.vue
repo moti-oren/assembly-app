@@ -7,6 +7,7 @@ import type { CpuState } from '@/core/rv32/state';
 import { describeDecode, describeExecute, describeFetch } from '@/ui/rv32Explain';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import CycleStrip from './CycleStrip.vue';
+import Rv32CycleToggle from './Rv32CycleToggle.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -36,5 +37,7 @@ const detail = computed(() => {
 </script>
 
 <template>
-  <CycleStrip :active="active" :instruction="instruction" :detail="detail" />
+  <CycleStrip :active="active" :instruction="instruction" :detail="detail">
+    <template #actions><Rv32CycleToggle /></template>
+  </CycleStrip>
 </template>

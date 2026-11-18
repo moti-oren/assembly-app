@@ -148,6 +148,15 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The CPU diagram is the single-cycle datapath: the register file, the five stages (fetch,
   decode, execute in the ALU, memory, write back) and where the next PC comes from. Stepping by
   phase shows each stage's plan before it runs.
+- **Pipeline** on the Cycle card (or **Show the pipeline** in the command palette) shows the
+  instructions that ran as the classic five-stage pipeline would run them, IF, ID, EX, MEM and WB,
+  up to five at once, cycle by cycle. A dashed cell is a cycle spent waiting: an instruction that
+  needs a value a load has not brought yet waits one cycle in ID. A branch or jump changes PC in
+  EX, so when it is taken the two instructions fetched behind it are struck out (flushed). Turn
+  **Forwarding** off to see every instruction wait in ID until the one before it has written its
+  result back. Under the chart, a sentence says why each stall and flush happened, and a line adds
+  up the cycles. The CPU itself still runs one instruction at a time; the chart is worked out from
+  the history.
 - The **Machine code** panel shows the 32 bits of an instruction with each field over its bits:
   opcode, rd, funct3, rs1, rs2, funct7 and the pieces of the immediate, which B-type and J-type
   instructions split across the word.
@@ -327,6 +336,13 @@ npm run verify:6502 # check the 6502 core against py65
 - דיאגרמת ה-CPU היא מסלול הנתונים של מעבד single-cycle: קובץ הרגיסטרים, חמשת השלבים (fetch,
   decode, execute ב-ALU, memory, write back) ומאיפה מגיע ה-PC הבא. צעידה לפי שלבים מראה את
   התוכנית של כל שלב לפני שהוא רץ.
+- **Pipeline** בכרטיסיית ה-Cycle (או **Show the pipeline** בפלטת הפקודות) מציג את ההוראות שרצו
+  כפי שה-pipeline הקלאסי בן חמשת השלבים היה מריץ אותן, IF, ID, EX, MEM ו-WB, עד חמש בבת אחת, מחזור
+  אחר מחזור. משבצת מקווקוות היא מחזור של המתנה: הוראה שצריכה ערך שטעינה עוד לא הביאה מחכה מחזור
+  אחד ב-ID. ענף או קפיצה משנים את PC ב-EX, ולכן כשהם נלקחים שתי ההוראות שנשלפו אחריהם מסומנות בקו
+  (flush). כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. מתחת
+  לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים. המעבד עצמו עדיין מריץ
+  הוראה אחת בכל פעם; התרשים מחושב מתוך ההיסטוריה.
 - חלונית **Machine code** מציגה את 32 הסיביות של הוראה, וכל שדה מעל הסיביות שלו: opcode, rd,
   funct3, rs1, rs2, funct7 וחלקי ה-immediate, שהוראות B ו-J מפצלות לאורך המילה.
 - חלונית הזיכרון קופצת אל **Code**, **Data**, **Stack** או **Devices**. קוד מכונה מוצג בכחול,

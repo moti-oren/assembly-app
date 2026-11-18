@@ -47,6 +47,8 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       <span class="ml-auto truncate font-mono text-xs text-muted-foreground">{{
         instruction ?? 'idle'
       }}</span>
+      <!-- Controls an architecture adds to its own cycle card. -->
+      <slot name="actions" />
     </div>
     <!-- Three lines, whatever the text, so the panels below never move until it is opened. -->
     <details class="group mt-2 text-xs leading-4 text-muted-foreground">
