@@ -1,11 +1,11 @@
-import { nextTick } from 'vue';
-import { createGlobalState, useDark, useLocalStorage } from '@vueuse/core';
+import { computed, nextTick, watchEffect } from 'vue';
+import { createGlobalState, useDark, useLocalStorage, useMediaQuery } from '@vueuse/core';
 import type { SoundKind } from './sounds';
 import { playSound } from './synth';
 
 type CpuView = 'diagram' | 'table';
 
-/** Theme and sound, shared by the header and the command palette. Both are remembered. */
+/** Theme, sound, view and motion, shared by the header and the command palette. All are remembered. */
 export const usePreferences = createGlobalState(() => {
   /** Dark until the user picks a theme. */
   const isDark = useDark({ initialValue: 'dark' });
@@ -16,13 +16,24 @@ export const usePreferences = createGlobalState(() => {
     serializer: { read: (raw) => (raw === 'table' ? 'table' : 'diagram'), write: (view) => view }
   });
 
+  /** Asked for here; the system setting can ask for it too, and either one is enough. */
+  const reduceMotion = useLocalStorage('8086-reduce-motion', false);
+  const systemReducesMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  /** True when animations should be cut down, whoever asked. */
+  const calm = computed(() => reduceMotion.value || systemReducesMotion.value);
+
+  // The stylesheet reads this attribute rather than the media query, so both sources count.
+  watchEffect(() => {
+    if (calm.value) document.documentElement.dataset.motion = 'reduced';
+    else delete document.documentElement.dataset.motion;
+  });
+
   function toggleTheme(): void {
     const flip = async (): Promise<void> => {
       isDark.value = !isDark.value;
       await nextTick();
     };
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (calm || !('startViewTransition' in document)) {
+    if (calm.value || !('startViewTransition' in document)) {
       void flip();
     } else {
       // Cross-fades the whole page instead of snapping between the two palettes.
@@ -35,5 +46,14 @@ export const usePreferences = createGlobalState(() => {
     if (soundOn.value) playSound(kind, delay);
   }
 
-  return { isDark, soundOn, cpuView, toggleTheme, play };
+  return {
+    isDark,
+    soundOn,
+    cpuView,
+    reduceMotion,
+    systemReducesMotion,
+    calm,
+    toggleTheme,
+    play
+  };
 });

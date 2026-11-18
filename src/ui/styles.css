@@ -2,6 +2,8 @@
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
+/* Animations cut down, by the system setting or the app's own; see usePreferences.ts. */
+@custom-variant calm (&:is([data-motion='reduced'] *));
 
 /*
  * Local fonts reshaped to IBM Plex's metrics, used until Plex arrives. Without them the
@@ -242,7 +244,7 @@
   }
 
   /* The one page-load moment: the panels arrive in reading order. */
-  @media (prefers-reduced-motion: no-preference) {
+  :root:not([data-motion='reduced']) {
     .app-surface main > div > * {
       animation: panel-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
     }
@@ -629,7 +631,8 @@
     user-select: none;
   }
 
-  @media (prefers-reduced-motion: reduce) {
+  /* Set by the system setting or by the app's own preference; see usePreferences.ts. */
+  :root[data-motion='reduced'] {
     .sortable-item,
     .sortable-item > [data-slot='card'] {
       transition: none;

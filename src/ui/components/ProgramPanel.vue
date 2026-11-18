@@ -124,7 +124,7 @@ function machineCode(index: number): string {
       >
         <li
           v-if="marker"
-          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/15 pl-2 shadow-[inset_3px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out motion-reduce:transition-none"
+          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/15 pl-2 shadow-[inset_3px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out calm:transition-none"
           :style="{ translate: `0 ${marker.top}px`, height: `${marker.height}px` }"
           aria-hidden="true"
         >
