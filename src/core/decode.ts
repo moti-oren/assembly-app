@@ -147,39 +147,45 @@ function roles(mnemonic: Mnemonic, category: Category, count: number): OperandRo
   return [KEEPS_FIRST.has(mnemonic) ? 'source' : 'destination'];
 }
 
-export function decode(instruction: Instruction): Decoded {
-  const { prefix, mnemonic, operands } = instruction;
-  const form = matchingForms(mnemonic, operands).find((kinds) => kinds.length === operands.length);
-  if (!form) {
-    throw new Error(`Cannot decode an incomplete instruction: ${formatInstruction(instruction)}`);
-  }
+/** The registers and memory one instruction uses, filled in step by step. */
+interface Usage {
+  reads: Set<WordRegister>;
+  writes: Set<WordRegister>;
+  memory: { read: boolean; write: boolean };
+}
 
-  const spec = getSpec(mnemonic);
-  const { category } = spec;
-  const compares = isStringCompare(mnemonic);
-  const size = instructionSize(instruction);
-  const operandRoles = roles(mnemonic, category, operands.length);
-
-  const reads = new Set<WordRegister>();
-  const writes = new Set<WordRegister>();
-  const memory = { read: false, write: false };
-
+/** What the instruction's own operands read and write. */
+function explicitUse({ mnemonic, operands }: Instruction): Usage {
+  const usage: Usage = {
+    reads: new Set(),
+    writes: new Set(),
+    memory: { read: false, write: false }
+  };
   operands.forEach((operand, index) => {
     const first = index === 0;
     const isRead = !(first && OVERWRITES_FIRST.has(mnemonic));
     const isWritten = mnemonic === 'xchg' || (first && !KEEPS_FIRST.has(mnemonic));
     if (operand.type === 'reg') {
-      if (isRead) reads.add(wordOf(operand.name));
-      if (isWritten) writes.add(wordOf(operand.name));
+      if (isRead) usage.reads.add(wordOf(operand.name));
+      if (isWritten) usage.writes.add(wordOf(operand.name));
     } else if (operand.type === 'mem') {
       // Forming the address reads its registers, whichever way the data then moves.
-      reads.add(memorySegment(operand));
-      if (operand.base) reads.add(operand.base);
-      memory.read ||= isRead;
-      memory.write ||= isWritten;
+      usage.reads.add(memorySegment(operand));
+      if (operand.base) usage.reads.add(operand.base);
+      usage.memory.read ||= isRead;
+      usage.memory.write ||= isWritten;
     }
   });
+  return usage;
+}
 
+/** Adds what the instruction uses without naming it: the stack, CX, the vector table, AX and DX. */
+function addImplicitUse(
+  { reads, writes, memory }: Usage,
+  { prefix, mnemonic }: Instruction,
+  category: Category,
+  size: Size | null
+): void {
   const implicit = IMPLICIT[mnemonic];
   implicit?.reads.forEach((name) => reads.add(name));
   implicit?.writes.forEach((name) => writes.add(name));
@@ -204,10 +210,46 @@ export function decode(instruction: Instruction): Decoded {
       if (mnemonic === 'div' || mnemonic === 'idiv') reads.add('dx');
     }
   }
+}
+
+/** Whether the instruction reads and writes FLAGS. */
+function flagUse(
+  mnemonic: Mnemonic,
+  category: Category,
+  usesAlu: boolean
+): { readsFlags: boolean; writesFlags: boolean } {
+  return {
+    // Every string instruction reads DF for its direction; REPE and REPNE also test ZF.
+    readsFlags:
+      READS_FLAGS.has(mnemonic) ||
+      category === 'string' ||
+      (category === 'control' && !JUMPS_WITHOUT_FLAGS.has(mnemonic)),
+    writesFlags:
+      WRITES_FLAGS.has(mnemonic) ||
+      ((usesAlu || category === 'flags') && !KEEPS_FLAGS.has(mnemonic))
+  };
+}
+
+export function decode(instruction: Instruction): Decoded {
+  const { prefix, mnemonic, operands } = instruction;
+  const form = matchingForms(mnemonic, operands).find((kinds) => kinds.length === operands.length);
+  if (!form) {
+    throw new Error(`Cannot decode an incomplete instruction: ${formatInstruction(instruction)}`);
+  }
+
+  const spec = getSpec(mnemonic);
+  const { category } = spec;
+  const size = instructionSize(instruction);
+  const operandRoles = roles(mnemonic, category, operands.length);
+  const usage = explicitUse(instruction);
+  addImplicitUse(usage, instruction, category, size);
 
   const inOrder = (names: Set<WordRegister>) => WORD_REGISTERS.filter((name) => names.has(name));
   const usesAlu =
-    category === 'arithmetic' || category === 'logic' || category === 'shift' || compares;
+    category === 'arithmetic' ||
+    category === 'logic' ||
+    category === 'shift' ||
+    isStringCompare(mnemonic);
 
   return {
     mnemonic,
@@ -219,19 +261,12 @@ export function decode(instruction: Instruction): Decoded {
       kind: form[index],
       role: operandRoles[index]
     })),
-    reads: inOrder(reads),
-    writes: inOrder(writes),
-    memory,
+    reads: inOrder(usage.reads),
+    writes: inOrder(usage.writes),
+    memory: usage.memory,
     port: mnemonic === 'in' ? 'read' : mnemonic === 'out' ? 'write' : null,
     stack: STACK_WRITERS.has(mnemonic) ? 'push' : STACK_READERS.has(mnemonic) ? 'pop' : null,
-    // Every string instruction reads DF for its direction; REPE and REPNE also test ZF.
-    readsFlags:
-      READS_FLAGS.has(mnemonic) ||
-      category === 'string' ||
-      (category === 'control' && !JUMPS_WITHOUT_FLAGS.has(mnemonic)),
-    writesFlags:
-      WRITES_FLAGS.has(mnemonic) ||
-      ((usesAlu || category === 'flags') && !KEEPS_FLAGS.has(mnemonic)),
+    ...flagUse(mnemonic, category, usesAlu),
     usesAlu
   };
 }
