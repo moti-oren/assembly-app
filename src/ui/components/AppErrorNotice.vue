@@ -2,7 +2,7 @@
 import { CircleAlert } from '@lucide/vue';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { appError } from '@/ui/appError';
+import { appError } from '@/ui/useAppError';
 </script>
 
 <template>

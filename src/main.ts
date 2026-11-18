@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import { reportAppError } from './ui/appError';
+import { reportAppError } from './ui/useAppError';
 import './ui/styles.css';
 
 const app = createApp(App);
