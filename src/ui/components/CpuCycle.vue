@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import {
-  CYCLE_PHASES,
-  OPERAND_KIND_LABELS,
-  decode,
-  type CyclePhase,
-  type Decoded
-} from '@/core/x86/decode';
+import { CYCLE_PHASES, type CyclePhase } from '@/core/shared/cycle';
+import { OPERAND_KIND_LABELS, decode, type Decoded } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { CATEGORY_LABELS, formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { formatHex } from '@/core/shared/numbers';

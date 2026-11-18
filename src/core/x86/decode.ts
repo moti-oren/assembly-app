@@ -13,10 +13,6 @@ import type { Size } from '../shared/numbers';
 import { formatOperand, memorySegment, type OperandKind } from './operands';
 import { WORD_REGISTERS, wordOf, type WordRegister } from './registers';
 
-/** The steps a CPU repeats for every instruction. */
-export const CYCLE_PHASES = ['fetch', 'decode', 'execute'] as const;
-export type CyclePhase = (typeof CYCLE_PHASES)[number];
-
 export const OPERAND_KIND_LABELS: Record<OperandKind, string> = {
   r8: '8-bit register',
   r16: '16-bit register',

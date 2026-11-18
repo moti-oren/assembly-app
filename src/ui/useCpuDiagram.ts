@@ -1,6 +1,7 @@
 import { computed, reactive } from 'vue';
 import { explainAddress } from '@/core/x86/address';
-import { CYCLE_PHASES, decode } from '@/core/x86/decode';
+import { CYCLE_PHASES } from '@/core/shared/cycle';
+import { decode } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { isFlagSet, type FlagName } from '@/core/x86/flags';
 import type { Instruction } from '@/core/x86/instructions';
