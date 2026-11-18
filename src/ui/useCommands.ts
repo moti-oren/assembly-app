@@ -4,6 +4,7 @@ import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
 import type { CpuControls } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
 import { useComparison } from './useComparison';
+import { useLocale } from './useLocale';
 import type { Panels } from './usePanels';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
 
@@ -46,6 +47,7 @@ export function useCommands(
 ): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, cpuView, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
     usePreferences();
+  const { t, toggleLocale } = useLocale();
   const panelOrder = usePanelOrder();
   const comparison = useComparison();
   const { history, program, insertAt, future, finished, speed, running } = cpu;
@@ -178,6 +180,7 @@ export function useCommands(
       label: isDark.value ? 'Switch to light theme' : 'Switch to dark theme',
       run: toggleTheme
     },
+    { group: 'Preferences', label: t.value.language.switch, run: toggleLocale },
     {
       group: 'Preferences',
       label: cpuView.value === 'diagram' ? CPU_VIEW_LABELS.table : CPU_VIEW_LABELS.diagram,

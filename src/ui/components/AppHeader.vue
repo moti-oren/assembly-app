@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { BookOpen, Columns3, Moon, RotateCcw, Search, Sun, Volume2, VolumeX } from '@lucide/vue';
+import {
+  BookOpen,
+  Columns3,
+  Languages,
+  Moon,
+  RotateCcw,
+  Search,
+  Sun,
+  Volume2,
+  VolumeX
+} from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,7 +22,9 @@ import {
 import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
+import { LOCALE_NAMES } from '@/ui/locale';
 import { useComparison } from '@/ui/useComparison';
+import { useLocale } from '@/ui/useLocale';
 import { usePreferences } from '@/ui/usePreferences';
 
 defineProps<{
@@ -25,6 +37,7 @@ const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
 const { isDark, soundOn, architecture, toggleTheme } = usePreferences();
 const { open: comparisonOpen } = useComparison();
+const { otherLocale, t, toggleLocale } = useLocale();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
 const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
@@ -142,6 +155,25 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
           <TooltipContent>
             Clears registers, flags, memory and the history. The program is kept.
           </TooltipContent>
+        </Tooltip>
+
+        <!-- Named in the language it switches to, so a reader of either one can find it. -->
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              class="pointer-coarse:h-11"
+              :aria-label="t.language.switch"
+              @click="toggleLocale"
+            >
+              <Languages />
+              <span class="hidden sm:inline" :lang="otherLocale">
+                {{ LOCALE_NAMES[otherLocale] }}
+              </span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{{ t.language.switch }}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
