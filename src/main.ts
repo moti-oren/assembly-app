@@ -1,9 +1,10 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import { reportAppError } from './ui/useAppError';
+import { useAppError } from './ui/useAppError';
 import './ui/styles.css';
 
 const app = createApp(App);
+const { reportAppError } = useAppError();
 // Without these a bug would leave the page half-updated with nothing on screen to say so.
 app.config.errorHandler = reportAppError;
 // Running a program steps on timers, outside Vue's own handlers.
