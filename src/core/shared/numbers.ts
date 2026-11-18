@@ -40,7 +40,7 @@ export function fitsIn(value: number, size: Size): boolean {
 
 /**
  * Parses the number formats an assembly programmer is likely to type:
- * `42`, `-5`, `0x2A`, `2Ah`, `0b101010`, `101010b`.
+ * `42`, `-5`, `0x2A`, `2Ah`, `$2A` (as 6502 code writes it), `0b101010`, `101010b`.
  */
 export function parseNumber(text: string): number | null {
   const cleaned = text.trim().toLowerCase().replace(/_/g, '');
@@ -50,6 +50,8 @@ export function parseNumber(text: string): number | null {
   let value: number;
   if (/^0x[0-9a-f]+$/.test(body)) {
     value = parseInt(body.slice(2), 16);
+  } else if (/^\$[0-9a-f]+$/.test(body)) {
+    value = parseInt(body.slice(1), 16);
   } else if (/^0b[01]+$/.test(body)) {
     value = parseInt(body.slice(2), 2);
   } else if (/^[0-9][0-9a-f]*h$/.test(body)) {
