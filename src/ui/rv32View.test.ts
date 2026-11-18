@@ -4,7 +4,8 @@ import { setInputPort, writePort } from '@/core/shared/state';
 import { wordAt } from '@/core/rv32/encode';
 import type { Instruction } from '@/core/rv32/instructions';
 import { createCpuState, DATA_BASE, DEVICE_BASE, RAM_SIZE } from '@/core/rv32/state';
-import { byteAt, memoryRows, REGISTER_GROUPS } from './rv32View';
+import { memoryRows } from './flatMemory';
+import { byteAt, REGISTER_GROUPS } from './rv32View';
 
 const program: Instruction[] = [
   {
@@ -49,7 +50,8 @@ describe('byteAt', () => {
 
 describe('memoryRows', () => {
   it('starts at the row the address falls in', () => {
-    const rows = memoryRows(createCpuState(), program, DATA_BASE + 0x13, 2);
+    const state = createCpuState();
+    const rows = memoryRows((address) => byteAt(state, program, address), DATA_BASE + 0x13, 2);
     expect(rows.map((row) => row[0].address)).toEqual([DATA_BASE + 0x10, DATA_BASE + 0x20]);
     expect(rows[0].length).toBe(16);
   });

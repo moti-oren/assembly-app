@@ -1,3 +1,5 @@
+import type { ExecutionRecord as Mos6502Record } from '@/core/mos6502/executionContext';
+import type { CpuState as Mos6502State } from '@/core/mos6502/state';
 import type { ExecutionRecord as Rv32Record } from '@/core/rv32/execute';
 import { RA, ZERO } from '@/core/rv32/registers';
 import type { CpuState as Rv32State } from '@/core/rv32/state';
@@ -75,4 +77,26 @@ export function rv32StepSound(record: Rv32Record, after: Rv32State): StepSound {
     (key) => key !== 'pc' && after.registers[key as 'x1'] !== record.before.registers[key as 'x1']
   );
   return changed ? 'register' : 'idle';
+}
+
+/** What one 6502 instruction sounds like: JSR is a call, RTS and RTI returns, PHA and PLA the stack. */
+export function mos6502StepSound(record: Mos6502Record, after: Mos6502State): StepSound {
+  const { mnemonic } = record.instruction;
+  if (mnemonic === 'jsr' || mnemonic === 'brk') return 'call';
+  if (mnemonic === 'rts' || mnemonic === 'rti') return 'ret';
+  if (mnemonic === 'pha' || mnemonic === 'php') return 'push';
+  if (mnemonic === 'pla' || mnemonic === 'plp') return 'pop';
+  if (record.branch) {
+    if (!record.branch.taken) return 'no-jump';
+    return after.registers.pc > record.before.registers.pc ? 'jump-forward' : 'jump-back';
+  }
+  if (mnemonic === 'jmp') {
+    return after.registers.pc > record.before.registers.pc ? 'jump-forward' : 'jump-back';
+  }
+  if (record.access?.write) return 'memory';
+  const changed = (['a', 'x', 'y', 'sp'] as const).some(
+    (name) => after.registers[name] !== record.before.registers[name]
+  );
+  if (changed) return 'register';
+  return after.flags !== record.before.flags ? 'flags' : 'idle';
 }

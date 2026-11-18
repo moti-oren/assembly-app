@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatBits, formatBytes, littleEndian } from './numbers';
+import { formatBits, formatBytes, littleEndian, parseNumber } from './numbers';
 
 describe('littleEndian', () => {
   it('puts the first byte lowest', () => {
@@ -18,5 +18,14 @@ describe('formatBits and formatBytes', () => {
   it('writes bytes as spaced hex pairs', () => {
     expect(formatBytes([0xb8, 0x0a, 0x00])).toBe('B8 0A 00');
     expect(formatBytes([])).toBe('');
+  });
+});
+
+describe('parseNumber', () => {
+  it('reads $2A as hex, as 6502 code writes it', () => {
+    expect(parseNumber('$2A')).toBe(0x2a);
+    expect(parseNumber('$d010')).toBe(0xd010);
+    expect(parseNumber('-$10')).toBe(-16);
+    expect(parseNumber('$')).toBeNull();
   });
 });

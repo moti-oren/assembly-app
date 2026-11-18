@@ -1,6 +1,7 @@
 import { formatHex } from '@/core/shared/numbers';
 import { formatHex32 } from '@/core/rv32/bits';
 import type { AssembledLine as Rv32Line } from '@/core/rv32/encode';
+import type { AssembledLine as Mos6502Line } from '@/core/mos6502/encode';
 import type { AssembledLine as X86Line } from '@/core/x86/encode';
 
 /** The machine code shown beside one program line. */
@@ -26,3 +27,9 @@ export function rv32LineCode(line: Rv32Line): LineCode {
 }
 
 export const RV32_CODE_PLACE: CodePlace = (address) => `address 0x${formatHex32(address)}`;
+
+export function mos6502LineCode(line: Mos6502Line): LineCode {
+  return { address: line.address, bytes: line.encoding.bytes, problem: line.encoding.problem };
+}
+
+export const MOS6502_CODE_PLACE: CodePlace = (address) => `address $${formatHex(address, 16)}`;

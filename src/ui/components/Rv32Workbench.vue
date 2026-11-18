@@ -3,12 +3,14 @@ import { computed, shallowRef, useTemplateRef } from 'vue';
 import { assemble, encode } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
-import type { CpuState } from '@/core/rv32/state';
+import { DATA_BASE, type CpuState } from '@/core/rv32/state';
 import { Card, CardContent } from '@/components/ui/card';
 import { RV32_DEVICE_ACCESS } from '@/ui/deviceAccess';
 import { chooseEncoding } from '@/ui/encodingShown';
 import { RV32_CODE_PLACE, rv32LineCode } from '@/ui/programCode';
+import { describeAccess } from '@/ui/rv32Explain';
 import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
+import { byteAt, rv32MemoryPlaces, RV32_ADDRESSES } from '@/ui/rv32View';
 import { rv32StepSound } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
@@ -16,6 +18,7 @@ import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useWorkbench } from '@/ui/useWorkbench';
 import AppChrome from './AppChrome.vue';
 import DevicesPanel from './DevicesPanel.vue';
+import FlatMemory from './FlatMemory.vue';
 import HistoryLog from './HistoryLog.vue';
 import InstructionBuilder from './InstructionBuilder.vue';
 import ProgramPanel from './ProgramPanel.vue';
@@ -25,7 +28,6 @@ import Rv32Compare from './Rv32Compare.vue';
 import Rv32Cycle from './Rv32Cycle.vue';
 import Rv32Diagram from './Rv32Diagram.vue';
 import Rv32Encoding from './Rv32Encoding.vue';
-import Rv32Memory from './Rv32Memory.vue';
 import Rv32Registers from './Rv32Registers.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
@@ -82,6 +84,15 @@ const {
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, rightColumn, move } = columns;
+
+const memoryPlaces = rv32MemoryPlaces(state);
+const memoryAccess = computed(() => {
+  const record = lastRecord.value;
+  const access = record?.access;
+  return access && record
+    ? { address: access.address, size: access.size, text: describeAccess(record)! }
+    : null;
+});
 
 const programLines = computed(() => program.value.map(formatInstruction));
 
@@ -209,12 +220,16 @@ const encodingShown = computed(() =>
         <DevicesPanel :state="state" :access="RV32_DEVICE_ACCESS" @input="cpu.setInput" />
       </template>
       <template #memory>
-        <Rv32Memory
+        <FlatMemory
           ref="memoryView"
           :state="state"
-          :program="program"
+          :byte-at="(address) => byteAt(state, program, address)"
+          :places="memoryPlaces"
+          :format="RV32_ADDRESSES"
+          :initial="DATA_BASE"
           :heat="memoryHeat"
-          :record="lastRecord"
+          :access="memoryAccess"
+          intro="One flat space of 32-bit addresses: RAM from 0x00000000 (the code first), the devices at 0x10000000. Dots mark addresses with nothing wired to them."
           :tick="history.length"
         />
       </template>
