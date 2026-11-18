@@ -373,7 +373,8 @@ function flagChanged(flag: FlagName): boolean {
               aria-hidden="true"
             />
 
-            <div class="mt-3 grid grid-cols-9 gap-1 sm:mt-0 sm:mr-5">
+            <!-- Nine in a row only where the diagram is wide; on a phone they take two rows. -->
+            <div class="mt-3 grid grid-cols-5 gap-1 sm:mt-0 sm:mr-5 sm:grid-cols-9">
               <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
                 <TooltipTrigger as-child>
                   <div

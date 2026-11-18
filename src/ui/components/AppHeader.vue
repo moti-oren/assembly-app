@@ -27,7 +27,13 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
 </script>
 
 <template>
-  <header class="sticky top-0 z-(--z-sticky) border-b bg-background/85 backdrop-blur-sm">
+  <!--
+    Stays on screen only with two columns. On a phone or tablet it scrolls away and leaves the
+    room to the panels; the change strip takes its place at the top.
+  -->
+  <header
+    class="relative z-(--z-sticky) border-b bg-background/85 backdrop-blur-sm lg:sticky lg:top-0"
+  >
     <div class="mx-auto flex h-14 max-w-(--page-width) items-center gap-3 px-4 lg:px-6">
       <!--
         On a phone the buttons need the room: the badge goes, and the name shortens before it
