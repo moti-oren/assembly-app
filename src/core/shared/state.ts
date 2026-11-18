@@ -61,12 +61,10 @@ export function createIo(): IoState {
 
 /** Little-endian read of a byte or a word; addresses wrap around at the end of memory. */
 export function readMemory(state: CpuState, address: number, size: Size): number {
-  const { memory } = state;
-  const low = memory[address % memory.length];
-  if (size === 8) {
-    return low;
-  }
-  return low | (memory[(address + 1) % memory.length] << 8);
+  return readBytes(state, address, size / 8).reduce(
+    (value, byte, i) => value | (byte << (8 * i)),
+    0
+  );
 }
 
 /** Little-endian write of a byte or a word. Returns what changed, for undo and highlighting. */
@@ -76,11 +74,27 @@ export function writeMemory(
   size: Size,
   value: number
 ): MemoryWrite[] {
-  const { memory } = state;
   const bytes = size === 8 ? [value & 0xff] : [value & 0xff, (value >> 8) & 0xff];
-  const writes = bytes.map((after, i) => {
+  return writeBytes(state, address, bytes);
+}
+
+/** `count` bytes from `address` up, wrapping around at the end of memory. */
+export function readBytes(state: CpuState, address: number, count: number): number[] {
+  const { memory } = state;
+  return Array.from({ length: count }, (_, i) => memory[(address + i) % memory.length]);
+}
+
+/** Writes bytes from `address` up. Returns what changed, for undo and highlighting. */
+export function writeBytes(
+  state: CpuState,
+  address: number,
+  bytes: readonly number[]
+): MemoryWrite[] {
+  const { memory } = state;
+  const writes = bytes.map((value, i) => {
     const target = (address + i) % memory.length;
     const before = memory[target];
+    const after = value & 0xff;
     memory[target] = after;
     return { address: target, before, after };
   });
