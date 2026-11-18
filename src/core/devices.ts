@@ -16,7 +16,7 @@ export const PORTS = {
 export const DIGIT_COUNT = 2;
 
 /** Bit order of a 7-segment digit: a is the top bar, then clockwise, g the middle, dp the dot. */
-export const SEGMENTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'] as const;
+const SEGMENTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'] as const;
 export type Segment = (typeof SEGMENTS)[number];
 
 export function litSegments(value: number): Segment[] {
