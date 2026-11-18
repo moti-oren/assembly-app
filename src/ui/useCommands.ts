@@ -5,7 +5,7 @@ import { describeMemoryAccess } from './describe';
 import { RUN_SPEED_NAMES, SPEED_LABELS, type Cpu } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
 import type { Panels } from './usePanels';
-import { usePreferences } from './usePreferences';
+import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
 
 /** What the palette asks of components on the page, which own the state these act on. */
 export interface PageActions {
@@ -147,7 +147,7 @@ export function useCommands(
     },
     {
       group: 'Preferences',
-      label: cpuView.value === 'diagram' ? 'Show the CPU as tables' : 'Show the CPU as a diagram',
+      label: cpuView.value === 'diagram' ? CPU_VIEW_LABELS.table : CPU_VIEW_LABELS.diagram,
       run: () => {
         cpuView.value = cpuView.value === 'diagram' ? 'table' : 'diagram';
       }
