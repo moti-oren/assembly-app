@@ -42,6 +42,9 @@ export interface PendingInstruction {
   instruction: Instruction;
 }
 
+/** What raised the error on show: the builder's own instruction, or the program. */
+export type ErrorSource = 'builder' | 'program';
+
 /** An undone instruction, with the CPU as it left it, so it can be redone without re-running. */
 interface Undone {
   record: ExecutionRecord;
@@ -59,7 +62,7 @@ export function useCpu() {
   const undone = shallowRef<Undone[]>([]);
   const error = ref<string | null>(null);
   /** What raised `error`: the builder's own instruction, or the program. Each shows its own. */
-  const errorFrom = ref<'builder' | 'program'>('builder');
+  const errorFrom = ref<ErrorSource>('builder');
   const program = shallowRef<Instruction[]>([]);
   /** Line that new program lines are inserted before; null means "append at the end". */
   const insertAt = ref<number | null>(null);
@@ -117,7 +120,7 @@ export function useCpu() {
   }
 
   /** Runs a CPU operation, turning a CpuError into the visible error message. */
-  function attempt(from: 'builder' | 'program', operation: () => void): boolean {
+  function attempt(from: ErrorSource, operation: () => void): boolean {
     try {
       operation();
       error.value = null;
