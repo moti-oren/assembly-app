@@ -194,7 +194,7 @@ function flagChanged(flag: FlagName): boolean {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle>CPU</CardTitle>
+      <CardTitle class="group-data-[size=sm]/card:text-base">CPU</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-pointer" aria-hidden="true" />

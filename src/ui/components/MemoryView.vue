@@ -154,7 +154,7 @@ function ascii(value: number): string {
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="mr-1">Memory</CardTitle>
+        <CardTitle class="mr-1 group-data-[size=sm]/card:text-base">Memory</CardTitle>
         <Select v-model="segment">
           <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
@@ -194,19 +194,19 @@ function ascii(value: number): string {
           <Layers />
           Stack top
         </Button>
-        <!-- Always there, so a message appearing while typing does not push the table down. -->
-        <p :id="offsetErrorId" class="min-h-4 basis-full text-xs text-destructive">
-          <template v-if="offsetInvalid">
-            “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
-          </template>
-        </p>
       </div>
 
-      <!-- segment:offset worked out into the 20-bit address that goes onto the bus. -->
+      <!--
+        segment:offset worked out into the 20-bit address that goes onto the bus. An offset that
+        cannot be read takes this line, so the message needs no row of its own.
+      -->
       <p
         class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 font-mono text-xs lg:h-5 lg:flex-nowrap lg:overflow-hidden lg:whitespace-nowrap"
       >
-        <template v-if="worked">
+        <span v-if="offsetInvalid" :id="offsetErrorId" class="font-sans text-destructive">
+          “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+        </span>
+        <template v-else-if="worked">
           <span
             class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 lg:shrink-0 lg:flex-nowrap"
           >

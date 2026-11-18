@@ -20,6 +20,7 @@ import LastOperation from '@/ui/components/LastOperation.vue';
 import MemoryView from '@/ui/components/MemoryView.vue';
 import ProgramPanel from '@/ui/components/ProgramPanel.vue';
 import RegistersPanel from '@/ui/components/RegistersPanel.vue';
+import ResetCpuDialog from '@/ui/components/ResetCpuDialog.vue';
 import SortableColumn from '@/ui/components/SortableColumn.vue';
 import TransportBar from '@/ui/components/TransportBar.vue';
 import { chooseEncoding } from '@/ui/encodingShown';
@@ -59,11 +60,22 @@ const builder = useTemplateRef('builder');
 const memoryView = useTemplateRef('memoryView');
 /** True while the user is asked to confirm clearing the program. */
 const clearAsked = ref(false);
+/** True while the user is asked to confirm a reset, which would lose the history. */
+const resetAsked = ref(false);
+/** Instructions a reset would lose, undone ones included. */
+const historyLength = computed(() => history.value.length + future.value.length);
+
+/** With nothing in the history there is nothing to lose, so the reset happens at once. */
+function askReset(): void {
+  if (historyLength.value === 0) cpu.reset();
+  else resetAsked.value = true;
+}
 const commands = useCommands(cpu, panels, {
   focusBuilder: () => builder.value?.focus(),
   askClearProgram: () => {
     clearAsked.value = true;
   },
+  askReset,
   showStackTop: () => memoryView.value?.showStackTop(),
   showLastAccess: () => memoryView.value?.showLastAccess()
 });
@@ -120,7 +132,7 @@ const encodingShown = computed(() =>
     <div class="app-surface flex min-h-svh flex-col bg-muted/40 dark:bg-background">
       <AppHeader
         v-model:examples-open="examplesOpen"
-        @reset="cpu.reset"
+        @reset="askReset"
         @load-example="cpu.loadExample"
         @commands="paletteOpen = true"
       />
@@ -129,6 +141,11 @@ const encodingShown = computed(() =>
         v-model:open="clearAsked"
         :lines="program.length"
         @confirm="cpu.clearProgram"
+      />
+      <ResetCpuDialog
+        v-model:open="resetAsked"
+        :instructions="historyLength"
+        @confirm="cpu.reset"
       />
       <AppErrorNotice />
       <ChangeStrip class="lg:hidden" :state="state" :record="lastRecord" />

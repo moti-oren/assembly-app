@@ -96,10 +96,9 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
               <span class="hidden sm:inline">Reset</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent
-            >Clears registers, flags, memory and the history. The program is kept. This can't be
-            undone.</TooltipContent
-          >
+          <TooltipContent>
+            Clears registers, flags, memory and the history. The program is kept.
+          </TooltipContent>
         </Tooltip>
 
         <Tooltip>

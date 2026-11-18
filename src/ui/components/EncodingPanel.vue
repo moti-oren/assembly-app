@@ -31,7 +31,7 @@ const summary = computed(() => {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle>Machine code</CardTitle>
+      <CardTitle class="group-data-[size=sm]/card:text-base">Machine code</CardTitle>
       <CardDescription v-if="shown">
         <span class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</span>
         · {{ summary }}

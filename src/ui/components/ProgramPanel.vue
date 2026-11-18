@@ -165,40 +165,54 @@ function machineCode(index: number): string {
             <span class="truncate" :class="{ 'font-semibold': lastLine === index }"
               ><span :data-loc="`line:${index}`">{{ formatInstruction(instruction) }}</span></span
             >
-            <button
-              v-if="assembled[index]"
-              type="button"
-              class="hidden max-w-36 truncate rounded-sm px-1 text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
-              :class="{ 'text-destructive': assembled[index].encoding.problem }"
-              :title="`Machine code at offset ${formatHex(assembled[index].offset, 16)}h. Click to take it apart.`"
-              @click="emit('inspect', index)"
-            >
-              {{ machineCode(index) }}
-            </button>
+            <Tooltip v-if="assembled[index]">
+              <TooltipTrigger as-child>
+                <button
+                  type="button"
+                  class="hidden max-w-36 truncate rounded-sm px-1 text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
+                  :class="{ 'text-destructive': assembled[index].encoding.problem }"
+                  @click="emit('inspect', index)"
+                >
+                  {{ machineCode(index) }}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Machine code at offset {{ formatHex(assembled[index].offset, 16) }}h. Click to take
+                it apart.
+              </TooltipContent>
+            </Tooltip>
             <span v-else />
             <span
               class="flex opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100"
             >
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                class="pointer-coarse:size-11"
-                title="Insert new lines above this one"
-                aria-label="Insert new lines above this one"
-                @click="emit('update:insertAt', index)"
-              >
-                <ArrowUpToLine />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                class="hover:text-destructive pointer-coarse:size-11"
-                title="Delete this line"
-                aria-label="Delete this line"
-                @click="emit('remove', index)"
-              >
-                <X />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    class="pointer-coarse:size-11"
+                    aria-label="Insert new lines above this one"
+                    @click="emit('update:insertAt', index)"
+                  >
+                    <ArrowUpToLine />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Insert new lines above this one</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    class="hover:text-destructive pointer-coarse:size-11"
+                    aria-label="Delete this line"
+                    @click="emit('remove', index)"
+                  >
+                    <X />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete this line</TooltipContent>
+              </Tooltip>
             </span>
           </li>
         </template>

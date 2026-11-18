@@ -41,6 +41,9 @@ npm run lint
 - On a wide screen, stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
+- **Reset** sets registers, flags and memory back to their start values and clears the history;
+  the program is kept. When the history holds instructions it asks first, since Undo cannot
+  bring them back.
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
   fetch, decode, then execute. Fetch and decode show what is about to happen in the CPU panel's
   **Cycle** box and on the wires; the registers, flags and memory change only at execute.
@@ -138,6 +141,8 @@ npm run lint
 - בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש טקסט בתיבה, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt הם עורכים את הטקסט.
 - במסך רחב, הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
+- **Reset** מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את ההיסטוריה; התוכנית נשמרת.
+  כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
 - אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
   fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בתיבת **Cycle** שבחלונית
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.
