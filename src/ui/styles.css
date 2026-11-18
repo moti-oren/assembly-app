@@ -696,6 +696,17 @@
   opacity: 0.4;
   pointer-events: none;
 }
+/*
+ * shadcn's small button sets 0.8rem, a size between text-xs and text-code that nothing else uses.
+ * Unlayered, like the palette above, so it beats the generated utility without editing it. `cn`
+ * drops that class wherever a button sets a size of its own, so this never overrides one.
+ */
+.text-\[0\.8rem\] {
+  font-size: var(--text-xs);
+}
+.text-\[0\.8rem\].font-mono {
+  font-size: var(--text-code);
+}
 .dark [data-slot='dialog-overlay'] {
   background: var(--overlay);
 }
