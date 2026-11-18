@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
-import { useMediaQuery } from '@vueuse/core';
+import { useTwoColumns } from '@/ui/layout';
 import { Layers } from '@lucide/vue';
 import { explainAddress, formatPhysical } from '@/core/address';
 import { printable } from '@/core/devices';
@@ -42,7 +42,7 @@ const SEGMENTS: SegmentRegister[] = ['ds', 'es', 'ss', 'cs'];
 const segment = ref<SegmentRegister>('ds');
 const offsetText = ref('0000');
 
-const twoColumns = useMediaQuery('(min-width: 64rem)');
+const twoColumns = useTwoColumns();
 const rowCount = computed(() => (twoColumns.value ? WIDE_ROWS : COMPACT_ROWS));
 
 /** The offset box is always read as hex, with or without a 0x prefix or h suffix. */

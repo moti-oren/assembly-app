@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { useMediaQuery } from '@vueuse/core';
+import { useTwoColumns } from '@/ui/layout';
 import { hasMoreOperands, operandChoices } from '@/core/builder';
 import {
   getSpec,
@@ -60,7 +60,7 @@ const active = ref(false);
  * one column they fold away when the builder is not in use, so the CPU panels are not pushed
  * off screen.
  */
-const twoColumns = useMediaQuery('(min-width: 64rem)');
+const twoColumns = useTwoColumns();
 /**
  * With two columns, set while the program is being stepped, so the program below moves up and
  * the line at IP stays in view. Only working in the builder opens them again: a click, a key or
