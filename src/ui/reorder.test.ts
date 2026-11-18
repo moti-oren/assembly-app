@@ -1,7 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { dragTarget, moveAmongVisible, sanitizeOrder, settleOffset, shiftFor } from './reorder';
+import {
+  dragTarget,
+  keyTarget,
+  moveAmongVisible,
+  sanitizeOrder,
+  settleOffset,
+  shiftFor,
+  withMoved
+} from './reorder';
 
 const DEFAULTS = ['a', 'b', 'c', 'd'] as const;
+
+describe('withMoved', () => {
+  it('puts the key at its new index', () => {
+    expect(withMoved(DEFAULTS, 'a', 2)).toEqual(['b', 'c', 'a', 'd']);
+    expect(withMoved(DEFAULTS, 'd', 0)).toEqual(['d', 'a', 'b', 'c']);
+  });
+});
+
+describe('keyTarget', () => {
+  it('moves one place with the arrows and to either end with Home and End', () => {
+    expect(keyTarget('ArrowUp', 2, 4)).toBe(1);
+    expect(keyTarget('ArrowDown', 2, 4)).toBe(3);
+    expect(keyTarget('Home', 2, 4)).toBe(0);
+    expect(keyTarget('End', 2, 4)).toBe(3);
+    expect(keyTarget('a', 2, 4)).toBeNull();
+  });
+});
 
 describe('sanitizeOrder', () => {
   it('keeps a valid stored order', () => {

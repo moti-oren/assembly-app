@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="K extends string">
 import { nextTick, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue';
 import { GripHorizontal } from '@lucide/vue';
-import { dragTarget, settleOffset, shiftFor, type Slot } from '@/ui/reorder';
+import { dragTarget, keyTarget, settleOffset, shiftFor, withMoved, type Slot } from '@/ui/reorder';
 import { usePreferences } from '@/ui/usePreferences';
 
 /**
@@ -181,10 +181,8 @@ function drop(): void {
 async function commit(key: K, to: number): Promise<void> {
   instant.value = true;
   if (to !== home) {
-    const order = props.keys.filter((item) => item !== key);
-    order.splice(to, 0, key);
     emit('move', key, to);
-    announce(key, order);
+    announce(key, withMoved(props.keys, key, to));
   }
   active.value = null;
   dragY.value = 0;
@@ -252,21 +250,11 @@ async function reorder(change: () => void): Promise<void> {
 
 function onHandleKey(event: KeyboardEvent, key: K): void {
   const index = props.keys.indexOf(key);
-  const to =
-    event.key === 'ArrowUp'
-      ? index - 1
-      : event.key === 'ArrowDown'
-        ? index + 1
-        : event.key === 'Home'
-          ? 0
-          : event.key === 'End'
-            ? props.keys.length - 1
-            : null;
+  const to = keyTarget(event.key, index, props.keys.length);
   if (to === null) return;
   event.preventDefault();
   if (active.value !== null || to < 0 || to >= props.keys.length || to === index) return;
-  const order = props.keys.filter((item) => item !== key);
-  order.splice(to, 0, key);
+  const order = withMoved(props.keys, key, to);
   void reorder(() => emit('move', key, to)).then(() => {
     // Moving the card in the page takes focus off its grip; give it back.
     handle(key)?.focus();

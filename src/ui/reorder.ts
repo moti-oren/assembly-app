@@ -11,6 +11,29 @@ export function sanitizeOrder<K extends string>(stored: unknown, defaults: reado
   return [...unique, ...defaults.filter((key) => !unique.includes(key))];
 }
 
+/** `keys` with `key` taken out and put back at index `to`. */
+export function withMoved<K>(keys: readonly K[], key: K, to: number): K[] {
+  const order = keys.filter((item) => item !== key);
+  order.splice(to, 0, key);
+  return order;
+}
+
+/** The place a key on a card's grip moves the card to, from `index` among `count`; null for other keys. */
+export function keyTarget(key: string, index: number, count: number): number | null {
+  switch (key) {
+    case 'ArrowUp':
+      return index - 1;
+    case 'ArrowDown':
+      return index + 1;
+    case 'Home':
+      return 0;
+    case 'End':
+      return count - 1;
+    default:
+      return null;
+  }
+}
+
 /**
  * Moves `key` so that it becomes visible card number `to` (0-based) among `visible`. Hidden
  * cards keep their places in the full order, so they come back where they were.
