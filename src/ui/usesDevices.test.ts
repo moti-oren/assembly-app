@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { MOS6502 } from '@/core/mos6502/architecture';
 import { RV32 } from '@/core/rv32/architecture';
 import type { Instruction as Rv32Instruction } from '@/core/rv32/instructions';
 import { X86 } from '@/core/x86/architecture';
-import { rv32UsesDevices, x86UsesDevices } from './usesDevices';
+import { mos6502UsesDevices, rv32UsesDevices, x86UsesDevices } from './usesDevices';
 
 const example = <I>(examples: readonly { name: string; program: readonly I[] }[], name: string) =>
   examples.find((candidate) => candidate.name === name)!.program;
@@ -32,5 +33,12 @@ describe('rv32UsesDevices', () => {
     };
     const record = RV32.execute(state, load, null, []);
     expect(rv32UsesDevices([], record)).toBe(true);
+  });
+});
+
+describe('mos6502UsesDevices', () => {
+  it('sees an absolute address among the devices', () => {
+    expect(mos6502UsesDevices(example(MOS6502.examples, 'Running light'), null)).toBe(true);
+    expect(mos6502UsesDevices(example(MOS6502.examples, 'Sum 1..10'), null)).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import { formatHex } from '@/core/shared/numbers';
 import { formatHex32 } from '@/core/rv32/bits';
 import { DEVICE_BASE } from '@/core/rv32/state';
+import { DEVICE_BASE as MOS6502_DEVICE_BASE } from '@/core/mos6502/state';
 
 /** How a CPU reaches the devices: with I/O instructions and port numbers, or through memory. */
 export interface DeviceAccess {
@@ -26,4 +27,12 @@ export const RV32_DEVICE_ACCESS: DeviceAccess = {
   read: 'lbu',
   noun: 'device address',
   address: (port) => `0x${formatHex32(DEVICE_BASE + port)}`
+};
+
+/** Nor has the 6502: its devices are bytes of memory from $D000 up, reached with STA and LDA. */
+export const MOS6502_DEVICE_ACCESS: DeviceAccess = {
+  write: 'sta',
+  read: 'lda',
+  noun: 'device address',
+  address: (port) => `$${formatHex(MOS6502_DEVICE_BASE + port, 16)}`
 };

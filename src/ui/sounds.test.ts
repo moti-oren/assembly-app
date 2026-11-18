@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { MOS6502 } from '@/core/mos6502/architecture';
+import type { Instruction as Mos6502Instruction } from '@/core/mos6502/instructions';
 import { RV32 } from '@/core/rv32/architecture';
 import type {
   Instruction as Rv32Instruction,
@@ -13,7 +15,7 @@ import { step, type Program } from '@/core/shared/program';
 import { X86 } from '@/core/x86/architecture';
 import type { RegisterName } from '@/core/x86/registers';
 import { createCpuState, writeRegister } from '@/core/x86/state';
-import { raisedOverflow, rv32StepSound, stepSound } from './sounds';
+import { mos6502StepSound, raisedOverflow, rv32StepSound, stepSound } from './sounds';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -125,5 +127,22 @@ describe('rv32StepSound', () => {
     expect(soundOfLine(1)).toBe('register');
     expect(soundOfLine(3)).toBe('jump-back');
     expect(soundOfLine(3, (state) => (state.registers.x10 = 1))).toBe('no-jump');
+  });
+});
+
+describe('mos6502StepSound', () => {
+  const program: Mos6502Instruction[] = [
+    { mnemonic: 'jsr', operands: [{ type: 'label', target: 2 }] },
+    { mnemonic: 'nop', operands: [] },
+    { mnemonic: 'rts', operands: [] }
+  ];
+
+  it('hears JSR as a call, RTS as a return, and PHA as a push', () => {
+    const state = MOS6502.createState();
+    const call = step(MOS6502, state, program);
+    expect(mos6502StepSound(call, state)).toBe('call');
+    expect(mos6502StepSound(step(MOS6502, state, program), state)).toBe('ret');
+    const push = MOS6502.execute(state, { mnemonic: 'pha', operands: [] }, null, []);
+    expect(mos6502StepSound(push, state)).toBe('push');
   });
 });
