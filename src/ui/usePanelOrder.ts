@@ -1,6 +1,8 @@
 import { computed } from 'vue';
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
-import { sanitizeOrder } from './reorder';
+import { moveAmongVisible, sanitizeOrder } from './reorder';
+import type { Panels } from './usePanels';
+import { usePreferences } from './usePreferences';
 
 /**
  * The cards of each column, in their default order. The right column has one order per CPU
@@ -76,3 +78,36 @@ export const usePanelOrder = createGlobalState(() => {
 
   return { orders, isDefault, setOrder, reset };
 });
+
+/**
+ * The cards each column shows, in their order, leaving out the ones that are hidden, and how to
+ * move one of them. The right column follows the CPU view, which has an order of its own.
+ */
+export function usePanelColumns(panels: Panels) {
+  const { orders, setOrder } = usePanelOrder();
+  const { cpuView } = usePreferences();
+  const rightColumn = computed<Column>(() => cpuView.value);
+
+  /** The cards that can be hidden, and whether each one is hidden now. */
+  const hidden = computed<Partial<Record<PanelKey, boolean>>>(() => ({
+    history: !panels.historyShown.value,
+    encoding: !panels.bytesShown.value,
+    devices: !panels.devicesShown.value
+  }));
+
+  function visible(column: Column): PanelKey[] {
+    return orders.value[column].filter((key) => !hidden.value[key]);
+  }
+
+  /** Makes `key` visible card number `to`; hidden cards keep their places. */
+  function move(column: Column, key: PanelKey, to: number): void {
+    setOrder(column, moveAmongVisible(orders.value[column], visible(column), key, to));
+  }
+
+  return {
+    leftKeys: computed(() => visible('left')),
+    rightKeys: computed(() => visible(rightColumn.value)),
+    rightColumn,
+    move
+  };
+}
