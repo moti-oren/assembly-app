@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
-import { useTwoColumns } from '@/ui/layout';
+import { useTwoColumns } from '@/ui/useTwoColumns';
 import { Layers } from '@lucide/vue';
 import { explainAddress, formatPhysical } from '@/core/address';
 import { printable } from '@/core/devices';
