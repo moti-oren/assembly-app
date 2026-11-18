@@ -1,7 +1,6 @@
 import { computed, type ComputedRef } from 'vue';
-import { describeMemoryAccess } from './describe';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
-import type { Cpu } from './useCpu';
+import type { CpuControls } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
 import type { Panels } from './usePanels';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
@@ -29,25 +28,22 @@ export interface PageActions {
   askReset: () => void;
   showStackTop: () => void;
   showLastAccess: () => void;
+  /** Whether the last instruction read or wrote memory, so there is an access to show. */
+  hasLastAccess: () => boolean;
 }
 
 /** Everything the command palette offers, labelled for the current state. */
 export function useCommands(
-  cpu: Cpu,
+  cpu: CpuControls,
   panels: Panels,
   page: PageActions
 ): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, cpuView, reduceMotion, systemReducesMotion, toggleTheme } =
     usePreferences();
   const panelOrder = usePanelOrder();
-  const { state, history, program, insertAt, lastRecord, future, finished, speed, running } = cpu;
+  const { history, program, insertAt, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
-
-  /** Whether the last instruction read or wrote memory, so there is an access to show. */
-  const hasLastAccess = computed(() => {
-    void state.memoryVersion;
-    return lastRecord.value !== null && describeMemoryAccess(state, lastRecord.value) !== null;
-  });
+  const hasLastAccess = computed(page.hasLastAccess);
 
   return computed<PaletteCommand[]>(() => [
     { group: 'Program', label: 'Write an instruction', moves: 'focus', run: page.focusBuilder },

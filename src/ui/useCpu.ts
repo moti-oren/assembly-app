@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, type Ref } from 'vue';
 import type { Architecture } from '@/core/shared/architecture';
 import { CpuError } from '@/core/shared/cpuError';
 import { undo, type ExecutionRecord } from '@/core/shared/executionRecord';
@@ -11,13 +11,11 @@ import {
   type ProgramInstruction
 } from '@/core/shared/program';
 import { setInputPort, type CpuState } from '@/core/shared/state';
-import type { ExecutionRecord as X86Record } from '@/core/x86/execute';
-import type { Instruction as X86Instruction } from '@/core/x86/instructions';
-import type { CpuState as X86State } from '@/core/x86/state';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
 import { useProgramLines } from './useProgramLines';
 import { useProgramRun } from './useProgramRun';
+import type { RunSpeed } from './runSpeeds';
 
 /** What raised the error on show: the builder's own instruction, or the program. */
 export type ErrorSource = 'builder' | 'program';
@@ -190,5 +188,45 @@ export function useCpu<
   };
 }
 
-/** The CPU the panels are built for: the 8086. */
-export type Cpu = ReturnType<typeof useCpu<X86Instruction, X86State, X86Record>>;
+/** A CPU of one architecture, with everything its panels can use. */
+export type CpuOf<
+  Instruction extends ProgramInstruction,
+  State extends CpuState,
+  Record extends ExecutionRecord<Instruction>
+> = ReturnType<typeof useCpu<Instruction, State, Record>>;
+
+/**
+ * What the page around the panels needs of a CPU, whatever its architecture: the program and
+ * its history, and the controls that step, run and rewind them.
+ */
+export interface CpuControls<
+  Instruction = ProgramInstruction,
+  Record extends ExecutionRecord = ExecutionRecord
+> {
+  architecture: {
+    id: string;
+    name: string;
+    examples: readonly { name: string; description: string }[];
+  };
+  program: Readonly<Ref<readonly Instruction[]>>;
+  history: Readonly<Ref<readonly Record[]>>;
+  future: Readonly<Ref<readonly Record[]>>;
+  lastRecord: Readonly<Ref<Record | null>>;
+  insertAt: Ref<number | null>;
+  error: Readonly<Ref<string | null>>;
+  errorFrom: Readonly<Ref<ErrorSource>>;
+  finished: Readonly<Ref<boolean>>;
+  running: Readonly<Ref<boolean>>;
+  speed: Ref<RunSpeed>;
+  pending: Readonly<Ref<{ phase: 'fetch' | 'decode' } | null>>;
+  pause(): void;
+  stepProgram(): void;
+  stepPhase(): void;
+  runProgram(): void;
+  undoLast(): void;
+  redo(): void;
+  seek(position: number): void;
+  clearProgram(): void;
+  loadExample(index: number): void;
+  reset(): void;
+}
