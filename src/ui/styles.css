@@ -99,6 +99,8 @@
 
 :root {
   --radius: 0.625rem;
+  /* How wide the header, the panels and the bottom bar may grow; they share it to stay aligned. */
+  --page-width: 80rem;
   /* The two semantic accents: what just changed, and where execution is. */
   --changed: oklch(0.94 0.09 92);
   --changed-foreground: oklch(0.42 0.09 70);
@@ -145,6 +147,13 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+}
+
+/* A wide screen gives the panels its width rather than a margin on each side. */
+@media (min-width: 96rem) {
+  :root {
+    --page-width: 96rem;
+  }
 }
 
 /* The purple-grey ceramic and gold lid of an early Intel C8086 package. */

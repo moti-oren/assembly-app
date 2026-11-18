@@ -28,7 +28,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
 
 <template>
   <header class="sticky top-0 z-(--z-sticky) border-b bg-background/85 backdrop-blur-sm">
-    <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 lg:px-6">
+    <div class="mx-auto flex h-14 max-w-(--page-width) items-center gap-3 px-4 lg:px-6">
       <!--
         On a phone the buttons need the room: the badge goes, and the name shortens before it
         wraps. From md the tagline is on show, and it is the one that shortens.
