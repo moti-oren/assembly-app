@@ -18,6 +18,7 @@ npm run typecheck    # vue-tsc --noEmit
 npm run lint         # eslint . (flat config)
 npm run format       # prettier --write src
 npm run verify:rv32  # RISC-V core vs Capstone and Unicorn (Python: pip install capstone unicorn)
+npm run verify:6502  # 6502 core vs py65's assembler and simulator (Python: pip install py65)
 ```
 
 When a change adds, renames or removes a command (an npm script in `package.json`, or a command developers now run), update this list in the same change. Also update the commands in `README.md`, in both languages.
@@ -154,6 +155,7 @@ ESLint enforces the import rules of the core, helper and composable layers, and 
 - **Adding an instruction** (to the 8086, in `src/core/x86/`): define it in `instructions.ts`, implement it in `execute.ts`, then add tests in `execute.test.ts`. If it touches flags, test the flags too. Then give it an encoding in `encode.ts` (it throws for a mnemonic it does not know, and a test encodes every example program), and list any registers it uses implicitly in `decode.ts`.
 - **Undo is a contract:** every path in `execute.ts` must return a complete undo record (registers, flags, memory writes, port writes and IP). A new path without one breaks history.
 - **RISC-V is checked against real tools:** after changing anything in `src/core/rv32/` that encodes or executes, run `npm run verify:rv32` (Capstone reads the encodings back, Unicorn runs random programs from their bytes) and a few seeds (`npm run verify:rv32 -- 7`). It needs Python with `capstone` and `unicorn`. LLVM's `clang` is installed but blocked by Windows Application Control on this machine, so it cannot be used.
+- **The 6502 is checked against py65:** after changing anything in `src/core/mos6502/` that encodes or executes, run `npm run verify:6502` and a few seeds. It compares registers, flags, memory and cycle counts. Two known py65 differences are handled in the script, not in the core: its cycle table has DEC absolute ($CE) at 3 cycles (the data sheet says 6), and its decimal mode does not reproduce the NMOS N, V and Z, so BCD sums are compared on A and C only.
 - **Encodings follow NASM:** where the 8086 allows two encodings of one instruction, `encode.ts` produces the one NASM picks (checked against NASM 3.02 with `bits 16` / `cpu 8086`). Two deliberate exceptions: `int 3` is the one-byte `CC`, and a conditional jump out of short range is reported as a problem instead of being rewritten as an inverted jump over a `jmp`.
 - **Typed arrays are not reactive:** memory and port bytes live in `Uint8Array`s, so the UI depends on `memoryVersion` / `ioVersion`. Bump them on every write path.
 - **8086 fidelity:** flag behavior (AF, OF, CF, etc.) follows real 8086 semantics, not whatever is convenient. When unsure, check the 8086 reference instead of guessing.

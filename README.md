@@ -15,12 +15,18 @@ npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
 npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
+npm run verify:6502 # check the 6502 core against py65
 ```
 
 `npm run verify:rv32` needs Python with `pip install capstone unicorn`. It encodes every RISC-V
 instruction with varied operands and has Capstone read the bytes back, then runs random programs
 from their bytes in Unicorn and compares registers, PC and memory with the playground's. An
 optional seed gives another set of cases: `npm run verify:rv32 -- 7`.
+
+`npm run verify:6502` needs Python with `pip install py65`. It has py65's assembler assemble every
+6502 opcode the playground encodes, and runs random programs from their bytes in py65's simulator,
+comparing A, X, Y, SP, P, PC, memory and the cycle count. In decimal mode py65 does not reproduce
+the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## Layout
 
@@ -170,6 +176,7 @@ npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
 npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
+npm run verify:6502 # check the 6502 core against py65
 ```
 
 <div dir="rtl">
@@ -183,6 +190,10 @@ npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
   `pip install capstone unicorn`. הפקודה מקודדת כל הוראת RISC-V עם אופרנדים שונים ונותנת ל-Capstone
   לקרוא את הבתים בחזרה, ואז מריצה תוכניות אקראיות מהבתים שלהן ב-Unicorn ומשווה רגיסטרים, PC
   וזיכרון לאלה של האפליקציה. seed אופציונלי נותן סט מקרים אחר: `npm run verify:rv32 -- 7`.
+- `npm run verify:6502`: בדיקת ליבת ה-6502 מול py65. צריך Python עם `pip install py65`. האסמבלר של
+  py65 מרכיב כל opcode של 6502 שהאפליקציה מקודדת, והסימולטור שלו מריץ תוכניות אקראיות מהבתים שלהן
+  ומשווה A, X, Y, SP, P, PC, זיכרון ומספר מחזורי שעון. במצב עשרוני py65 לא משחזר את N, V ו-Z של שבב
+  ה-NMOS, ולכן סכומי BCD מושווים רק ב-A ובנשא.
 
 ## מבנה הפרויקט
 
