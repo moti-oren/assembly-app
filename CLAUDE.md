@@ -31,13 +31,16 @@ Two layers; keep them separate.
   - `state.ts`: registers (8-bit registers are views into AX..DX), FLAGS, 1MB memory, and the I/O ports (`io`).
   - `instructions.ts`: the instruction set expressed as data; each mnemonic lists its legal operand forms. Adding an instruction starts here.
   - `builder.ts`: given the words chosen so far, computes which operands may come next (drives the UI's word-by-word builder).
-  - `execute.ts`: runs one instruction, computes flags, and returns an **undo record** (history/undo depends on this).
+  - `execute.ts`: runs one instruction and returns an **undo record** (history/undo depends on this); `undo` and `redo` apply it. Below it:
+    - `executionContext.ts`: what an instruction runs against (reads, writes, flags, ALU, stack, interrupts), recording everything the undo record needs; also the `AluTrace` and the `Handler` type.
+    - `handlers.ts`: the table of what every mnemonic does, with the larger handlers in `multiplyDivide.ts`, `shift.ts` and `stringInstructions.ts` (including the `rep` loop).
+    - `cpuError.ts`: `CpuError`, the error the CPU raises on purpose (and the divide error).
   - `program.ts`: a program is a list of instructions; stepping, running, and edits that keep jump targets on the right lines. Also holds the example programs.
   - `decode.ts`: what an instruction reads and writes (registers, memory, ports, flags, ALU), including registers it uses without naming them. The diagram and the fetch/decode/execute view are driven by it.
-  - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …). **Display only**; nothing executes these bytes.
+  - `encode.ts`: the 8086 machine code of an instruction, split into fields (prefix, opcode, ModR/M, …), and `assemble` for a whole program. **Display only**; nothing executes these bytes. `encodingFields.ts` builds the fields (ModR/M, immediates, jump distances) and `instructionEncoders.ts` holds the opcode tables and one encoder per kind of instruction.
   - `devices.ts`: the port numbers of the I/O devices (LEDs, switches, 7-segment digits, terminal) and how their bytes are shown.
   - `address.ts` and `flagReasons.ts`: explanations for the UI, worked out from state and the undo record: how segment:offset becomes a 20-bit address, and why each flag got its value.
-- `src/ui/`: Vue components in `ui/components/` and `useCpu.ts`, which wraps the core in Vue reactivity. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
+- `src/ui/`: Vue components in `ui/components/`, composables (`use*.ts`) and plain helpers (the other `.ts` files). `useCpu.ts` wraps the core in Vue reactivity, built from `useCpuHistory.ts` (undo, redo, seek), `useProgramLines.ts` (editing the program), `useProgramRun.ts` (running on a timer) and `usePhaseStepping.ts` (fetch, decode, execute). `useCpuDiagram.ts` works out what the CPU diagram shows, and its parts (`Diagram*.vue`) only draw it. `useCommands.ts` builds the Ctrl+K command palette. Theme tokens (including the app accents `--changed` and `--pointer`) live in `src/ui/styles.css`.
 - `src/components/ui/`: shadcn-vue components (Tailwind v4 + reka-ui), generated with `npx shadcn-vue add <name>`. They are excluded from ESLint; don't hand-edit them casually. Config in `components.json`.
 
 ## Code structure
@@ -51,7 +54,9 @@ Every change, new code or an edit to existing code, must leave the structure mod
 | Components | `src/ui/components/*.vue`, `src/App.vue` | everything below, other components, `src/components/ui/` (shadcn) |
 | Composables | `src/ui/use*.ts` | composables, helpers, core, Vue/VueUse |
 | Helpers | other `src/ui/*.ts` (`describe.ts`, `sounds.ts`, …) | helpers, core. **No Vue**: plain functions over plain data |
-| Core | `src/core/*.ts` | core only (enforced by ESLint) |
+| Core | `src/core/*.ts` | core only |
+
+ESLint enforces the import rules of the core, helper and composable layers, and the 500-line file limit below; `npm run lint` fails on a violation. The other rules here are on you.
 
 - **Anything reactive is a composable:** code that holds `ref` / `computed` / `watch` state or uses VueUse lives in a `use*.ts` file and is named `useX`. A helper never imports Vue.
 - **Components wire, they don't compute:** a `.vue` file binds state to markup. Calculations, decisions and text formatting go in a helper or composable, where they can be unit-tested. If a function in `<script setup>` would deserve a test, it belongs in a `.ts` file.
