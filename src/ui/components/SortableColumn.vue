@@ -29,8 +29,17 @@ defineSlots<Record<K, () => unknown>>();
 /** Edge of the window, in pixels, where holding a dragged card scrolls the page. */
 const EDGE = 120;
 const MAX_SCROLL_STEP = 18;
-/** How long a dropped card takes to settle; matches the transitions in styles.css. */
+/** How long a dropped card takes to glide into its place. */
 const SETTLE_MS = 200;
+/** How long the other cards take to slide aside, and a card moved by the keyboard to glide. */
+const SLIDE_MS = 220;
+const SLIDE_EASING = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
+/** The same timings for the transitions in styles.css, so the two cannot drift apart. */
+const TIMING_VARS = {
+  '--sortable-settle': `${SETTLE_MS}ms`,
+  '--sortable-slide': `${SLIDE_MS}ms`,
+  '--sortable-easing': SLIDE_EASING
+};
 
 const root = ref<HTMLElement | null>(null);
 /** The card being dragged, or settling into place after a drop. */
@@ -243,7 +252,7 @@ async function reorder(change: () => void): Promise<void> {
     element.style.transition = 'none';
     element.style.transform = `translateY(${delta}px)`;
     void element.offsetHeight;
-    element.style.transition = 'transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)';
+    element.style.transition = `transform ${SLIDE_MS}ms ${SLIDE_EASING}`;
     element.style.transform = '';
   }
 }
@@ -269,6 +278,7 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
     ref="root"
     class="relative flex min-w-0 flex-col gap-4"
     :class="{ 'sortable-instant': instant }"
+    :style="TIMING_VARS"
   >
     <div
       v-for="(key, index) in keys"

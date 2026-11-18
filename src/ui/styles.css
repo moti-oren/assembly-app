@@ -603,9 +603,9 @@
       inset: -1.75rem -0.5rem -0.125rem;
     }
   }
-  /* The other cards slide aside as the dragged one passes them. */
+  /* The other cards slide aside as the dragged one passes them. Timings come from SortableColumn. */
   .sortable-item {
-    transition: translate 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: translate var(--sortable-slide) var(--sortable-easing);
   }
   .sortable-item > [data-slot='card'] {
     transition: box-shadow 200ms ease-out;
@@ -623,8 +623,8 @@
   .sortable-settling {
     z-index: var(--z-drag);
     transition:
-      translate 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      scale 200ms ease-out;
+      translate var(--sortable-settle) var(--sortable-easing),
+      scale var(--sortable-settle) ease-out;
   }
   .sortable-instant .sortable-item,
   .sortable-instant .sortable-item > [data-slot='card'] {
