@@ -45,6 +45,17 @@ export const REGISTER_DESCRIPTIONS: Record<WordRegister, string> = {
 /** The word registers whose two halves are byte registers of their own (AH and AL for AX). */
 export const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
 
+/** The high or low byte of a split register: `half('ax', 'h')` is AH. */
+export function half(name: WordRegister, part: 'h' | 'l'): ByteRegister {
+  const found = BYTE_REGISTERS.find(
+    (byte) =>
+      BYTE_REGISTER_LOCATION[byte].parent === name &&
+      BYTE_REGISTER_LOCATION[byte].high === (part === 'h')
+  );
+  if (!found) throw new Error(`${name.toUpperCase()} has no byte halves`);
+  return found;
+}
+
 /** The registers whose value differs between two moments, in the usual register order. */
 export function changedRegisters(
   before: Record<WordRegister, number>,
