@@ -1,0 +1,121 @@
+<script setup lang="ts">
+import { formatPhysical } from '@/core/address';
+import { formatBinary, formatHex, toSigned } from '@/core/numbers';
+import { REGISTER_DESCRIPTIONS, type WordRegister } from '@/core/registers';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
+import ChangeMark from './ChangeMark.vue';
+import DiagramWire from './DiagramWire.vue';
+import RollingDigits from './RollingDigits.vue';
+
+defineProps<{
+  model: CpuDiagramModel;
+  /** Number of instructions executed so far; replays the flashes. */
+  tick: number;
+}>();
+
+/** The bus interface unit holds what an address is made of: the segments and IP. */
+const BIU_REGISTERS: readonly WordRegister[] = ['cs', 'ds', 'ss', 'es', 'ip'];
+/** IP starts a group of its own. */
+const GROUP_START: WordRegister = 'ip';
+</script>
+
+<template>
+  <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->
+  <section class="flex flex-col sm:w-(--biu-width)" aria-label="Bus interface unit">
+    <h3 class="unit-title sm:pl-7">Bus interface unit <span>BIU</span></h3>
+    <div class="flex flex-col font-mono text-code">
+      <div
+        class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
+      >
+        <span class="-mr-0.5 hidden w-5 sm:block" />
+        <span class="w-6" />
+        <span class="w-10">Hex</span>
+        <span class="flex w-11 justify-end whitespace-nowrap">Decimal</span>
+        <span class="hidden @min-[40rem]:inline">Binary</span>
+      </div>
+      <div
+        v-for="name in BIU_REGISTERS"
+        :key="name"
+        class="flex h-5 items-center gap-2.5"
+        :class="{ 'mt-1.5': name === GROUP_START }"
+      >
+        <DiagramWire
+          class="-mr-0.5 hidden w-5 sm:block"
+          :kind="model.use(name)"
+          :tick="model.pulse"
+        />
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <span
+              tabindex="0"
+              class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+              >{{ name.toUpperCase() }}</span
+            >
+          </TooltipTrigger>
+          <TooltipContent side="left">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+        </Tooltip>
+        <span class="w-10">
+          <ChangeMark
+            :on="model.changedBits(name) !== 0"
+            :written="model.wrote(name)"
+            :tick="tick"
+            :data-loc="`reg:${name}`"
+          >
+            <RollingDigits :text="formatHex(model.value(name), 16)" />
+          </ChangeMark>
+        </span>
+        <span
+          class="w-11 text-right text-xs text-muted-foreground tabular-nums"
+          :title="`${model.value(name)} unsigned, ${toSigned(model.value(name), 16)} signed`"
+        >
+          <RollingDigits :text="String(model.value(name))" />
+        </span>
+        <!-- Only where both units fit their bits side by side; the EU's bits come first. -->
+        <span class="hidden text-2xs @min-[40rem]:inline">
+          <RollingDigits
+            effect="flip"
+            dim-zeros
+            :text="formatBinary(model.value(name), 16)"
+            :marks="formatBinary(model.changedBits(name), 16)"
+          />
+        </span>
+      </div>
+    </div>
+
+    <!-- The segment drops down into the adder; the offset comes in off the internal bus. -->
+    <DiagramWire
+      class="ml-[calc(50%+0.625rem)] hidden h-auto min-h-3 w-0.5 flex-1 sm:block"
+      :kind="model.adderKind"
+      :tick="model.pulse"
+    />
+    <div class="mt-3 flex items-center sm:mt-0">
+      <DiagramWire class="hidden w-5 sm:block" :kind="model.adderKind" :tick="model.pulse" />
+      <div class="h-32 min-w-0 flex-1 rounded-lg border bg-card px-3 py-2.5">
+        <div class="flex items-baseline justify-between gap-3">
+          <span class="text-sm font-medium">Address adder</span>
+          <span class="font-mono text-xs text-muted-foreground" aria-hidden="true">Σ</span>
+        </div>
+        <div
+          v-if="model.memory && model.address"
+          class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
+        >
+          <span class="truncate font-sans text-xs text-muted-foreground">
+            {{ model.memory.segment.toUpperCase() }} × 10h
+          </span>
+          <span class="text-right">{{ formatPhysical(model.address.shifted) }}</span>
+          <span class="truncate font-sans text-xs text-muted-foreground">+ offset</span>
+          <span class="text-right">{{ formatHex(model.address.offset, 16) }}</span>
+          <span class="col-span-2 my-0.5 border-t border-foreground/25" />
+          <span class="truncate font-sans text-xs text-muted-foreground">
+            {{ model.address.wrapped ? 'wraps past 1MB to' : '20-bit address' }}
+          </span>
+          <span class="text-right font-semibold text-pointer">{{
+            formatPhysical(model.address.physical)
+          }}</span>
+        </div>
+        <p v-else class="mt-2 text-xs text-muted-foreground">{{ model.notes.adder }}</p>
+      </div>
+    </div>
+  </section>
+</template>
