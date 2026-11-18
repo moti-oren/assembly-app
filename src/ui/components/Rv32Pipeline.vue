@@ -41,7 +41,7 @@ const summary = computed(() => pipelineSummary(timing.value));
 </script>
 
 <template>
-  <div class="rounded-lg border bg-muted/30 px-3 py-2.5">
+  <div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
       <span class="text-sm font-medium">Pipeline</span>
       <Button

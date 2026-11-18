@@ -18,7 +18,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
 </script>
 
 <template>
-  <div class="rounded-lg border bg-muted/30 px-3 py-2.5">
+  <div>
     <div class="flex items-center gap-3">
       <span class="text-sm font-medium">Cycle</span>
       <ol class="flex items-center gap-1 text-xs" aria-label="Instruction cycle">
