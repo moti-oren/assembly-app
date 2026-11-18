@@ -15,6 +15,7 @@ import { rv32StepSound } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { rv32UsesDevices } from '@/ui/usesDevices';
+import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import { useWorkbench } from '@/ui/useWorkbench';
 import AppChrome from './AppChrome.vue';
 import DevicesPanel from './DevicesPanel.vue';
@@ -28,6 +29,7 @@ import Rv32Compare from './Rv32Compare.vue';
 import Rv32Cycle from './Rv32Cycle.vue';
 import Rv32Diagram from './Rv32Diagram.vue';
 import Rv32Encoding from './Rv32Encoding.vue';
+import Rv32Pipeline from './Rv32Pipeline.vue';
 import Rv32Registers from './Rv32Registers.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
@@ -58,6 +60,7 @@ const {
 /** RISC-V has no flags: that card explains the comparisons that take their place. */
 const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
 
+const pipeline = useRv32Pipeline();
 const builder = useTemplateRef('builder');
 const memoryView = useTemplateRef('memoryView');
 
@@ -74,6 +77,7 @@ const {
 } = useWorkbench(cpu, {
   usesDevices: rv32UsesDevices,
   soundOf: (record) => ({ step: rv32StepSound(record, state), overflow: false }),
+  commands: pipeline.commands,
   page: {
     focusBuilder: () => builder.value?.focus(),
     foldBuilder: () => builder.value?.fold(),
@@ -84,6 +88,7 @@ const {
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, rightColumn, move } = columns;
+const { shown: pipelineShown } = pipeline;
 
 const memoryPlaces = rv32MemoryPlaces(state);
 const memoryAccess = computed(() => {
@@ -198,7 +203,14 @@ const encodingShown = computed(() =>
       <template #cycle>
         <Card size="sm">
           <CardContent>
-            <Rv32Cycle :state="state" :program="program" :record="lastRecord" :pending="pending" />
+            <Rv32Pipeline v-if="pipelineShown" :history="history" :program="program" />
+            <Rv32Cycle
+              v-else
+              :state="state"
+              :program="program"
+              :record="lastRecord"
+              :pending="pending"
+            />
           </CardContent>
         </Card>
       </template>
