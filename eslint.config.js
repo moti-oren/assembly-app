@@ -16,5 +16,26 @@ export default tseslint.config(
   {
     languageOptions: { globals: globals.browser }
   },
+  // src/core is the CPU: it may import only itself, never Vue or the layers built on top of it.
+  {
+    files: ['src/core/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['vue', '@vue/*', '@vueuse/*', 'reka-ui', '@lucide/*'],
+              message: 'src/core must not depend on Vue or UI libraries.'
+            },
+            {
+              group: ['@/*', '!@/core', '!@/core/*', '../*'],
+              message: 'src/core may import only from src/core.'
+            }
+          ]
+        }
+      ]
+    }
+  },
   prettier
 );
