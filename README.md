@@ -13,7 +13,13 @@ npm run dev        # start the app
 npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
+npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
 ```
+
+`npm run verify:rv32` needs Python with `pip install capstone unicorn`. It encodes every RISC-V
+instruction with varied operands and has Capstone read the bytes back, then runs random programs
+from their bytes in Unicorn and compares registers, PC and memory with the playground's. An
+optional seed gives another set of cases: `npm run verify:rv32 -- 7`.
 
 ## Layout
 
@@ -119,6 +125,7 @@ npm run dev        # start the app
 npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
+npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
 ```
 
 <div dir="rtl">
@@ -128,6 +135,10 @@ npm run lint
 - `npm test`: בדיקות יחידה ללב ה-CPU.
 - `npm run typecheck`: בדיקת טיפוסים (vue-tsc).
 - `npm run lint`: בדיקת קוד עם ESLint.
+- `npm run verify:rv32`: בדיקת ליבת ה-RISC-V מול Capstone ו-Unicorn. צריך Python עם
+  `pip install capstone unicorn`. הפקודה מקודדת כל הוראת RISC-V עם אופרנדים שונים ונותנת ל-Capstone
+  לקרוא את הבתים בחזרה, ואז מריצה תוכניות אקראיות מהבתים שלהן ב-Unicorn ומשווה רגיסטרים, PC
+  וזיכרון לאלה של האפליקציה. seed אופציונלי נותן סט מקרים אחר: `npm run verify:rv32 -- 7`.
 
 ## מבנה הפרויקט
 
