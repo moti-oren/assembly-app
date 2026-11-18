@@ -1,6 +1,7 @@
 import { computed, nextTick, watchEffect } from 'vue';
 import { createGlobalState, useDark, useLocalStorage, useMediaQuery } from '@vueuse/core';
 import type { SoundKind } from './sounds';
+import { STORAGE_KEYS } from './storageKeys';
 import { playSound } from './synth';
 
 type CpuView = 'diagram' | 'table';
@@ -9,15 +10,15 @@ type CpuView = 'diagram' | 'table';
 export const usePreferences = createGlobalState(() => {
   /** Dark until the user picks a theme. */
   const isDark = useDark({ initialValue: 'dark' });
-  const soundOn = useLocalStorage('8086-sound', false);
+  const soundOn = useLocalStorage(STORAGE_KEYS.sound, false);
   /** The CPU's state as one wired diagram, or as the separate register and flag tables. */
-  const cpuView = useLocalStorage<CpuView>('8086-cpu-view', 'diagram', {
+  const cpuView = useLocalStorage<CpuView>(STORAGE_KEYS.cpuView, 'diagram', {
     // Anything else in storage (an old or hand-edited value) falls back to the diagram.
     serializer: { read: (raw) => (raw === 'table' ? 'table' : 'diagram'), write: (view) => view }
   });
 
   /** Asked for here; the system setting can ask for it too, and either one is enough. */
-  const reduceMotion = useLocalStorage('8086-reduce-motion', false);
+  const reduceMotion = useLocalStorage(STORAGE_KEYS.reduceMotion, false);
   const systemReducesMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   /** True when animations should be cut down, whoever asked. */
   const calm = computed(() => reduceMotion.value || systemReducesMotion.value);

@@ -1,6 +1,7 @@
 import { computed } from 'vue';
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import { moveAmongVisible, sanitizeOrder } from './reorder';
+import { STORAGE_KEYS } from './storageKeys';
 import type { Panels } from './usePanels';
 import { usePreferences } from './usePreferences';
 
@@ -60,7 +61,7 @@ function read(raw: string): Orders {
 
 /** The order the user dragged the cards into, remembered between visits. */
 export const usePanelOrder = createGlobalState(() => {
-  const orders = useLocalStorage<Orders>('8086-panel-order', defaults(), {
+  const orders = useLocalStorage<Orders>(STORAGE_KEYS.panelOrder, defaults(), {
     serializer: { read, write: (value) => JSON.stringify(value) }
   });
 
