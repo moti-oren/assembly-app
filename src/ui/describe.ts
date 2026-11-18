@@ -11,7 +11,12 @@ import {
   operandSize,
   type Operand
 } from '@/core/operands';
-import type { WordRegister } from '@/core/registers';
+import {
+  BYTE_REGISTER_LOCATION,
+  isByteRegister,
+  type RegisterName,
+  type WordRegister
+} from '@/core/registers';
 import {
   physicalAddress,
   readMemory,
@@ -234,9 +239,27 @@ export function registersRead(record: ExecutionRecord): Set<WordRegister> {
 }
 
 /**
- * The registers an instruction writes. They count as written even when the value happens to
- * stay the same, e.g. `xor ax, ax` on an AX that is already 0.
+ * The registers an instruction wrote, as words: writing AL writes part of AX. They count as
+ * written even when the value stayed the same, e.g. `xor ax, ax` on an AX that is already 0.
  */
 export function registersWritten(record: ExecutionRecord): Set<WordRegister> {
-  return new Set(decode(record.instruction).writes);
+  return new Set(
+    record.registersWritten.map((name) =>
+      isByteRegister(name) ? BYTE_REGISTER_LOCATION[name].parent : name
+    )
+  );
+}
+
+/**
+ * Whether the instruction wrote `name`: a word counts when either of its halves was written,
+ * and a half counts when its whole word was.
+ */
+export function wasWritten(record: ExecutionRecord | null, name: RegisterName): boolean {
+  if (!record) return false;
+  const written = record.registersWritten;
+  if (written.includes(name)) return true;
+  if (isByteRegister(name)) return written.includes(BYTE_REGISTER_LOCATION[name].parent);
+  return written.some(
+    (other) => isByteRegister(other) && BYTE_REGISTER_LOCATION[other].parent === name
+  );
 }
