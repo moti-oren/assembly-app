@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { changedRegisters, half } from './registers';
+import { changedRegisters, half, wordOf } from './registers';
 import { createCpuState, snapshot, writeRegister } from './state';
 
 describe('changedRegisters', () => {
@@ -10,6 +10,14 @@ describe('changedRegisters', () => {
     writeRegister(cpu, 'bl', 1);
     writeRegister(cpu, 'ax', 0);
     expect(changedRegisters(before.registers, cpu.registers)).toEqual(['bx', 'ip']);
+  });
+});
+
+describe('wordOf', () => {
+  it('names the word register a byte register lives in', () => {
+    expect(wordOf('ah')).toBe('ax');
+    expect(wordOf('dl')).toBe('dx');
+    expect(wordOf('si')).toBe('si');
   });
 });
 
