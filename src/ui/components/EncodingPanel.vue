@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { FieldKind } from '@/core/encode';
+import type { FieldKind } from '@/core/encodingFields';
 import { formatInstruction } from '@/core/instructions';
 import { formatBits, formatBytes, formatHex } from '@/core/numbers';
 import type { EncodingShown } from '@/ui/encodingShown';
