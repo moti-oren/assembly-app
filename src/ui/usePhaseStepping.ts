@@ -1,16 +1,15 @@
 import { computed, ref, watch, type Ref } from 'vue';
-import type { Instruction } from '@/core/x86/instructions';
-import type { CpuState } from '@/core/x86/state';
 
 /** A program line that is being stepped one phase at a time and has not been executed yet. */
-export interface PendingInstruction {
+export interface PendingInstruction<Instruction> {
   phase: 'fetch' | 'decode';
   line: number;
   instruction: Instruction;
 }
 
-interface PhaseSteppingOptions {
-  state: CpuState;
+interface PhaseSteppingOptions<Instruction> {
+  /** The program line the instruction pointer points at. */
+  nextLine: Readonly<Ref<number>>;
   program: Readonly<Ref<Instruction[]>>;
   /** How many instructions have run; any change starts the cycle over. */
   executed: () => number;
@@ -24,19 +23,19 @@ interface PhaseSteppingOptions {
  * Steps the line at IP through fetch, decode and execute. Fetch and decode only show what is
  * about to happen: the CPU itself changes at execute, exactly as with a whole step.
  */
-export function usePhaseStepping(options: PhaseSteppingOptions) {
-  const { state, program, executed, finished, pause, stepProgram } = options;
-  const phase = ref<PendingInstruction['phase'] | null>(null);
+export function usePhaseStepping<Instruction>(options: PhaseSteppingOptions<Instruction>) {
+  const { nextLine, program, executed, finished, pause, stepProgram } = options;
+  const phase = ref<PendingInstruction<Instruction>['phase'] | null>(null);
 
-  const pending = computed<PendingInstruction | null>(() => {
-    const line = state.registers.ip;
+  const pending = computed<PendingInstruction<Instruction> | null>(() => {
+    const line = nextLine.value;
     const instruction = program.value[line];
     return phase.value && instruction ? { phase: phase.value, line, instruction } : null;
   });
 
   // Running an instruction, moving through history or editing the program starts the cycle over.
   watch(
-    [executed, program, () => state.registers.ip],
+    [executed, program, nextLine],
     () => {
       phase.value = null;
     },

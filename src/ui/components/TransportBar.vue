@@ -30,7 +30,7 @@ const props = defineProps<{
   /** True while the program is running line by line. */
   running: boolean;
   /** The phase the line at IP has reached when stepping by phase; null between instructions. */
-  phase: PendingInstruction['phase'] | null;
+  phase: PendingInstruction<unknown>['phase'] | null;
   speed: RunSpeed;
   /** How many instructions have run, and how many undone ones could run again. */
   executed: number;

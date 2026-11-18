@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { execute } from '@/core/x86/execute';
 import type { Instruction, Mnemonic } from '@/core/x86/instructions';
 import type { Operand } from '@/core/x86/operands';
-import { step, type Program } from '@/core/x86/program';
+import { step, type Program } from '@/core/shared/program';
+import { X86 } from '@/core/x86/architecture';
 import type { RegisterName } from '@/core/x86/registers';
 import { createCpuState, writeRegister } from '@/core/x86/state';
 import { raisedOverflow, stepSound } from './sounds';
@@ -25,10 +26,10 @@ function soundOf(instruction: Instruction) {
 }
 
 /** Steps a program `count` times and returns the sound of the last step. */
-function soundAfterSteps(program: Program, count: number) {
+function soundAfterSteps(program: Program<Instruction>, count: number) {
   const state = createCpuState();
-  let record = step(state, program);
-  for (let i = 1; i < count; i++) record = step(state, program);
+  let record = step(X86, state, program);
+  for (let i = 1; i < count; i++) record = step(X86, state, program);
   return stepSound(record, state);
 }
 
@@ -69,7 +70,7 @@ describe('stepSound', () => {
   });
 
   it('marks CALL and RET', () => {
-    const program: Program = [line('call', label(2)), line('nop'), line('ret')];
+    const program: Program<Instruction> = [line('call', label(2)), line('nop'), line('ret')];
     expect(soundAfterSteps(program, 1)).toBe('call');
     expect(soundAfterSteps(program, 2)).toBe('ret');
   });

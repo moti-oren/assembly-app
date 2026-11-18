@@ -8,7 +8,7 @@ import {
   type Decoded
 } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
-import { CATEGORY_LABELS, formatInstruction } from '@/core/x86/instructions';
+import { CATEGORY_LABELS, formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { formatHex } from '@/core/shared/numbers';
 import { formatLabel } from '@/core/x86/operands';
 import { changedRegisters } from '@/core/x86/registers';
@@ -20,7 +20,7 @@ const props = defineProps<{
   /** The last executed instruction: with nothing pending, the cycle rests on its execute phase. */
   record: ExecutionRecord | null;
   /** The program line being stepped by phase, if any. */
-  pending: PendingInstruction | null;
+  pending: PendingInstruction<Instruction> | null;
 }>();
 
 const PHASE_LABELS: Record<CyclePhase, string> = {

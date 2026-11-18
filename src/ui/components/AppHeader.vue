@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { BookOpen, Moon, RotateCcw, Search, Sun, Volume2, VolumeX } from '@lucide/vue';
-import { EXAMPLE_PROGRAMS } from '@/core/x86/program';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,6 +13,10 @@ import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { usePreferences } from '@/ui/usePreferences';
 
+defineProps<{
+  /** The example programs of the architecture on show, by name. */
+  examples: readonly { name: string; description: string }[];
+}>();
 defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
 /** The examples menu, which the empty program panel can also open. */
 const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
@@ -78,7 +81,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              v-for="(example, index) in EXAMPLE_PROGRAMS"
+              v-for="(example, index) in examples"
               :key="example.name"
               class="flex-col items-start gap-0.5"
               @select="$emit('loadExample', index)"

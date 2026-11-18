@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ExecutionRecord } from '@/core/x86/execute';
+import type { Instruction } from '@/core/x86/instructions';
 import type { CpuState } from '@/core/x86/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCpuDiagram } from '@/ui/useCpuDiagram';
@@ -15,7 +16,7 @@ const props = defineProps<{
   /** The last executed instruction: it decides which wires light up. */
   record: ExecutionRecord | null;
   /** A program line being stepped by phase: until it executes, the wires show its plan. */
-  pending: PendingInstruction | null;
+  pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes and the wire pulses. */
   tick: number;
 }>();
