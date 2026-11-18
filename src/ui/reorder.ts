@@ -69,7 +69,7 @@ export interface Slot {
  * a short way into a tall card, so a drag never needs more than a small move; half of a
  * short one, so the swap does not happen the moment the edges touch.
  */
-export const SWAP_DISTANCE = 48;
+const SWAP_DISTANCE = 48;
 
 function reach(slot: Slot): number {
   return Math.min(slot.height / 2, SWAP_DISTANCE);
