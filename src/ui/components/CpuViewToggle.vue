@@ -2,13 +2,13 @@
 import { Cpu, Table2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { usePreferences } from '@/ui/usePreferences';
+import { CPU_VIEW_LABELS, usePreferences } from '@/ui/usePreferences';
 
 const { cpuView } = usePreferences();
 
 const VIEWS = [
-  { value: 'diagram', label: 'Show the CPU as a diagram', icon: Cpu },
-  { value: 'table', label: 'Show the CPU as tables', icon: Table2 }
+  { value: 'diagram', label: CPU_VIEW_LABELS.diagram, icon: Cpu },
+  { value: 'table', label: CPU_VIEW_LABELS.table, icon: Table2 }
 ] as const;
 </script>
 

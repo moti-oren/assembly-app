@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { explainAddress, explainOffset } from './address';
+import { explainAddress, explainOffset, formatPhysical } from './address';
 import { effectiveAddress, effectiveOffset, type Operand } from './operands';
 import { createCpuState, physicalAddress, snapshot, writeRegister } from './state';
 
@@ -41,6 +41,13 @@ describe('explainAddress', () => {
     for (const [segment, offset] of pairs) {
       expect(explainAddress(segment, offset).physical).toBe(physicalAddress(segment, offset));
     }
+  });
+});
+
+describe('formatPhysical', () => {
+  it('writes a 20-bit address as five hex digits', () => {
+    expect(formatPhysical(0x1234)).toBe('01234');
+    expect(formatPhysical(0xfffff)).toBe('FFFFF');
   });
 });
 

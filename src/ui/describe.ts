@@ -11,12 +11,7 @@ import {
   operandSize,
   type Operand
 } from '@/core/operands';
-import {
-  BYTE_REGISTER_LOCATION,
-  isByteRegister,
-  type RegisterName,
-  type WordRegister
-} from '@/core/registers';
+import { isByteRegister, wordOf, type RegisterName, type WordRegister } from '@/core/registers';
 import {
   physicalAddress,
   readMemory,
@@ -243,11 +238,7 @@ export function registersRead(record: ExecutionRecord): Set<WordRegister> {
  * written even when the value stayed the same, e.g. `xor ax, ax` on an AX that is already 0.
  */
 export function registersWritten(record: ExecutionRecord): Set<WordRegister> {
-  return new Set(
-    record.registersWritten.map((name) =>
-      isByteRegister(name) ? BYTE_REGISTER_LOCATION[name].parent : name
-    )
-  );
+  return new Set(record.registersWritten.map(wordOf));
 }
 
 /**
@@ -258,8 +249,6 @@ export function wasWritten(record: ExecutionRecord | null, name: RegisterName): 
   if (!record) return false;
   const written = record.registersWritten;
   if (written.includes(name)) return true;
-  if (isByteRegister(name)) return written.includes(BYTE_REGISTER_LOCATION[name].parent);
-  return written.some(
-    (other) => isByteRegister(other) && BYTE_REGISTER_LOCATION[other].parent === name
-  );
+  if (isByteRegister(name)) return written.includes(wordOf(name));
+  return written.some((other) => isByteRegister(other) && wordOf(other) === name);
 }

@@ -11,13 +11,7 @@ import {
 } from './instructions';
 import type { Size } from './numbers';
 import { formatOperand, memorySegment, type OperandKind } from './operands';
-import {
-  BYTE_REGISTER_LOCATION,
-  WORD_REGISTERS,
-  isByteRegister,
-  type RegisterName,
-  type WordRegister
-} from './registers';
+import { WORD_REGISTERS, wordOf, type WordRegister } from './registers';
 
 /** The steps a CPU repeats for every instruction. */
 export const CYCLE_PHASES = ['fetch', 'decode', 'execute'] as const;
@@ -153,10 +147,6 @@ function roles(mnemonic: Mnemonic, category: Category, count: number): OperandRo
   return [KEEPS_FIRST.has(mnemonic) ? 'source' : 'destination'];
 }
 
-function parent(name: RegisterName): WordRegister {
-  return isByteRegister(name) ? BYTE_REGISTER_LOCATION[name].parent : name;
-}
-
 export function decode(instruction: Instruction): Decoded {
   const { prefix, mnemonic, operands } = instruction;
   const form = matchingForms(mnemonic, operands).find((kinds) => kinds.length === operands.length);
@@ -179,8 +169,8 @@ export function decode(instruction: Instruction): Decoded {
     const isRead = !(first && OVERWRITES_FIRST.has(mnemonic));
     const isWritten = mnemonic === 'xchg' || (first && !KEEPS_FIRST.has(mnemonic));
     if (operand.type === 'reg') {
-      if (isRead) reads.add(parent(operand.name));
-      if (isWritten) writes.add(parent(operand.name));
+      if (isRead) reads.add(wordOf(operand.name));
+      if (isWritten) writes.add(wordOf(operand.name));
     } else if (operand.type === 'mem') {
       // Forming the address reads its registers, whichever way the data then moves.
       reads.add(memorySegment(operand));

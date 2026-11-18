@@ -45,6 +45,11 @@ export const REGISTER_DESCRIPTIONS: Record<WordRegister, string> = {
 /** The word registers whose two halves are byte registers of their own (AH and AL for AX). */
 export const SPLIT_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx'];
 
+/** The word register a name lives in: AX for AL and AH, the register itself otherwise. */
+export function wordOf(name: RegisterName): WordRegister {
+  return isByteRegister(name) ? BYTE_REGISTER_LOCATION[name].parent : name;
+}
+
 /** The high or low byte of a split register: `half('ax', 'h')` is AH. */
 export function half(name: WordRegister, part: 'h' | 'l'): ByteRegister {
   const found = BYTE_REGISTERS.find(

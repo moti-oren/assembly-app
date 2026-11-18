@@ -27,10 +27,8 @@ import { chooseEncoding } from '@/ui/encodingShown';
 import { useCommands } from '@/ui/useCommands';
 import { useCpu } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
-import { moveAmongVisible } from '@/ui/reorder';
-import { PANEL_LABELS, usePanelOrder, type Column, type PanelKey } from '@/ui/usePanelOrder';
+import { PANEL_LABELS, usePanelColumns } from '@/ui/usePanelOrder';
 import { usePanels } from '@/ui/usePanels';
-import { usePreferences } from '@/ui/usePreferences';
 import { useSoundEffects } from '@/ui/useSoundEffects';
 
 const cpu = useCpu();
@@ -53,7 +51,6 @@ const {
 useDataFlow(state, history);
 useSoundEffects(cpu);
 
-const { cpuView } = usePreferences();
 const panels = usePanels(cpu);
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const builder = useTemplateRef('builder');
@@ -95,24 +92,7 @@ const assembled = computed(() => assemble(program.value));
 /** The complete instruction sitting in the builder, if any. */
 const draft = shallowRef<Instruction | null>(null);
 
-const { orders, setOrder } = usePanelOrder();
-/** The cards that can be hidden, and whether each one is on show. */
-const hidden = computed<Partial<Record<PanelKey, boolean>>>(() => ({
-  history: !historyShown.value,
-  encoding: !bytesShown.value,
-  devices: !devicesShown.value
-}));
-const rightColumn = computed<Column>(() => (cpuView.value === 'diagram' ? 'diagram' : 'table'));
-
-function visible(column: Column): PanelKey[] {
-  return orders.value[column].filter((key) => !hidden.value[key]);
-}
-const leftKeys = computed(() => visible('left'));
-const rightKeys = computed(() => visible(rightColumn.value));
-
-function move(column: Column, key: PanelKey, to: number): void {
-  setOrder(column, moveAmongVisible(orders.value[column], visible(column), key, to));
-}
+const { leftKeys, rightKeys, rightColumn, move } = usePanelColumns(panels);
 
 const encodingShown = computed(() =>
   chooseEncoding({

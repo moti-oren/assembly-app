@@ -1,29 +1,20 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { useMediaQuery } from '@vueuse/core';
 import { hasMoreOperands, operandChoices } from '@/core/builder';
-import {
-  getSpec,
-  isComplete,
-  type Instruction,
-  type Mnemonic,
-  type RepeatPrefix
-} from '@/core/instructions';
+import { getSpec, type Instruction } from '@/core/instructions';
 import { fitsIn, parseNumber, type Size } from '@/core/numbers';
-import { formatLabel, formatOperand, type Operand } from '@/core/operands';
+import { formatLabel } from '@/core/operands';
 import { CircleAlert, CornerDownLeft, Play, Plus, X } from '@lucide/vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  builderOptions,
-  filterOptions,
-  type BuilderOption,
-  type OptionAction
-} from '@/ui/builderOptions';
+import { builderOptions, filterOptions, type BuilderOption } from '@/ui/builderOptions';
+import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
+import { useTwoColumns } from '@/ui/layout';
+import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
 const props = defineProps<{
   /** Runs the instruction; returns false when the CPU rejected it. */
@@ -43,12 +34,8 @@ const emit = defineEmits<{
 
 const READY_HINT = 'Enter: run now · Shift+Enter: add to the program';
 
-/** A repeat prefix chosen before the mnemonic; it narrows the mnemonics to the ones it fits. */
-const prefix = ref<RepeatPrefix | null>(null);
-const mnemonic = ref<Mnemonic | null>(null);
-const operands = ref<Operand[]>([]);
-/** Set after choosing "byte [ ]" / "word [ ]", until the address inside the brackets is chosen. */
-const pendingMemory = ref<Size | null>(null);
+const draft = useInstructionDraft();
+const { prefix, mnemonic, operands, pendingMemory, complete, built, tokens } = draft;
 const filter = ref('');
 const input = ref<HTMLInputElement | null>(null);
 const card = ref<{ $el: HTMLElement } | null>(null);
@@ -60,7 +47,7 @@ const active = ref(false);
  * one column they fold away when the builder is not in use, so the CPU panels are not pushed
  * off screen.
  */
-const twoColumns = useMediaQuery('(min-width: 64rem)');
+const twoColumns = useTwoColumns();
 /**
  * With two columns, set while the program is being stepped, so the program below moves up and
  * the line at IP stays in view. Only working in the builder opens them again: a click, a key or
@@ -92,19 +79,7 @@ function onFocusOut(): void {
 /** The option under the pointer or keyboard focus; its hint is previewed below the input. */
 const hovered = ref<BuilderOption | null>(null);
 
-const complete = computed(
-  () =>
-    mnemonic.value !== null &&
-    pendingMemory.value === null &&
-    isComplete(mnemonic.value, operands.value)
-);
-
 const typedNumber = computed(() => parseNumber(filter.value));
-
-function addOperand(operand: Operand): void {
-  operands.value = [...operands.value, operand];
-  pendingMemory.value = null;
-}
 
 const allOptions = computed(() =>
   builderOptions({
@@ -176,31 +151,6 @@ const enterOption = computed(() =>
     : (orderedOptions.value[selectedIndex.value] ?? null)
 );
 
-/** The index of the button on the next row up or down, in the column nearest to `from`. */
-function rowNeighbour(buttons: HTMLElement[], from: number, down: boolean): number {
-  const current = buttons[from].getBoundingClientRect();
-  const centre = current.left + current.width / 2;
-  let rowTop: number | null = null;
-  for (const button of buttons) {
-    const top = button.getBoundingClientRect().top;
-    const beyond = down ? top > current.top + 1 : top < current.top - 1;
-    if (beyond && (rowTop === null || (down ? top < rowTop : top > rowTop))) rowTop = top;
-  }
-  if (rowTop === null) return from;
-  let best = from;
-  let distance = Infinity;
-  buttons.forEach((button, index) => {
-    const rect = button.getBoundingClientRect();
-    if (Math.abs(rect.top - rowTop) > 1) return;
-    const gap = Math.abs(rect.left + rect.width / 2 - centre);
-    if (gap < distance) {
-      distance = gap;
-      best = index;
-    }
-  });
-  return best;
-}
-
 /**
  * Arrows walk the options: Left/Right one at a time, Up/Down by row. While there is text to
  * edit, the plain arrows stay with the input and only Alt+arrow navigates.
@@ -215,7 +165,8 @@ function onArrow(event: KeyboardEvent): void {
   if (vertical) {
     const buttons = [...(card.value?.$el.querySelectorAll<HTMLElement>('[data-option]') ?? [])];
     if (buttons.length === count) {
-      selectedIndex.value = rowNeighbour(buttons, selectedIndex.value, forward);
+      const boxes = buttons.map((button) => button.getBoundingClientRect());
+      selectedIndex.value = rowNeighbour(boxes, selectedIndex.value, forward);
     }
   } else {
     selectedIndex.value = (selectedIndex.value + (forward ? 1 : -1) + count) % count;
@@ -236,17 +187,6 @@ const preview = computed<{ label: string; text: string } | null>(() => {
   return null;
 });
 
-const tokens = computed(() => {
-  const list: { label: string; pending?: boolean; head?: boolean }[] = [];
-  if (prefix.value) list.push({ label: prefix.value, head: true });
-  if (mnemonic.value) list.push({ label: mnemonic.value, head: true });
-  operands.value.forEach((operand) => list.push({ label: formatOperand(operand) }));
-  if (pendingMemory.value !== null) {
-    list.push({ label: `${pendingMemory.value === 8 ? 'byte' : 'word'} [ ? ]`, pending: true });
-  }
-  return list;
-});
-
 function focusInput(): void {
   nextTick(() => input.value?.focus());
 }
@@ -264,25 +204,8 @@ defineExpose({
   fold
 });
 
-function apply(action: OptionAction): void {
-  switch (action.kind) {
-    case 'prefix':
-      prefix.value = action.prefix;
-      return;
-    case 'mnemonic':
-      mnemonic.value = action.mnemonic;
-      return;
-    case 'operand':
-      addOperand(action.operand);
-      return;
-    case 'memory':
-      pendingMemory.value = action.size;
-      return;
-  }
-}
-
 function choose(option: BuilderOption): void {
-  apply(option.action);
+  draft.apply(option.action);
   hovered.value = null;
   filter.value = '';
   focusInput();
@@ -294,13 +217,7 @@ function truncateTo(index: number): void {
     clear();
     return;
   }
-  pendingMemory.value = null;
-  if (prefix.value && index === 1) {
-    mnemonic.value = null;
-    operands.value = [];
-  } else {
-    operands.value = operands.value.slice(0, index - (prefix.value ? 2 : 1));
-  }
+  draft.truncateTo(index);
   focusInput();
 }
 
@@ -309,20 +226,10 @@ function back(): void {
 }
 
 function clear(): void {
-  prefix.value = null;
-  mnemonic.value = null;
-  operands.value = [];
-  pendingMemory.value = null;
+  draft.clear();
   filter.value = '';
   focusInput();
 }
-
-const built = computed<Instruction | null>(() => {
-  if (!complete.value || mnemonic.value === null) return null;
-  const instruction: Instruction = { mnemonic: mnemonic.value, operands: operands.value };
-  if (prefix.value) instruction.prefix = prefix.value;
-  return instruction;
-});
 
 watch(built, (instruction) => emit('draft', instruction));
 
