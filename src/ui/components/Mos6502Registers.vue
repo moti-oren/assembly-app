@@ -124,7 +124,7 @@ function written(name: RegisterName): boolean {
             Program counter: the 16-bit address of the next instruction
           </TooltipContent>
         </Tooltip>
-        <ChangeMark :on="changed('pc')" :tick="tick" data-loc="reg:pc">
+        <ChangeMark class="justify-self-start" :on="changed('pc')" :tick="tick" data-loc="reg:pc">
           <RollingDigits :text="formatHex(state.registers.pc, 16)" />
         </ChangeMark>
       </div>
