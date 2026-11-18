@@ -3,6 +3,8 @@ import { computed, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { assemble } from '@/core/x86/encode';
 import { X86 } from '@/core/x86/architecture';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
+import { X86_DEVICE_ACCESS } from '@/ui/deviceAccess';
+import { X86_CODE_PLACE, x86LineCode } from '@/ui/programCode';
 import { X86_GRAMMAR } from '@/ui/x86Grammar';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -160,7 +162,9 @@ const encodingShown = computed(() =>
             <ProgramPanel
               v-model:insert-at="insertAt"
               :program="program"
-              :assembled="assembled.lines"
+              :format="formatInstruction"
+              :code="assembled.lines.map(x86LineCode)"
+              :code-place="X86_CODE_PLACE"
               :ip="nextLine"
               :last-line="lastRecord?.line ?? null"
               :finished="finished"
@@ -171,7 +175,12 @@ const encodingShown = computed(() =>
             />
           </template>
           <template #history>
-            <HistoryLog :history="history" :future="future" @seek="cpu.seek" />
+            <HistoryLog
+              :history="history"
+              :future="future"
+              :format="formatInstruction"
+              @seek="cpu.seek"
+            />
           </template>
           <template #encoding>
             <EncodingPanel :shown="encodingShown" />
@@ -218,7 +227,7 @@ const encodingShown = computed(() =>
             />
           </template>
           <template #devices>
-            <DevicesPanel :state="state" @input="cpu.setInput" />
+            <DevicesPanel :state="state" :access="X86_DEVICE_ACCESS" @input="cpu.setInput" />
           </template>
           <template #memory>
             <MemoryView

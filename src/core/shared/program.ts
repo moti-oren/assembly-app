@@ -56,7 +56,7 @@ export function tooManyWrites(maxWrites = MAX_RUN_WRITES): CpuError {
   );
 }
 
-function isLabel(operand: { readonly type: string }): operand is LabelOperand {
+export function isLabel(operand: { readonly type: string }): operand is LabelOperand {
   return operand.type === 'label';
 }
 
