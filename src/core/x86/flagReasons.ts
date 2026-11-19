@@ -1,35 +1,46 @@
 import type { ExecutionRecord } from './execute';
 import type { AluTrace } from './executionContext';
+import { FLAG_REASON_TEXTS, type FlagReasonKey } from './flagReasonTexts';
 import { isFlagSet, type FlagName } from './flags';
 import { getSpec, isStringCompare, type Mnemonic } from './instructions';
 import { formatBinary, formatHex, mask, signBit, toSigned, type Size } from '../shared/numbers';
+import { fillText, type TextParams } from '../shared/text';
 
 /** Why one flag holds the value it does after an instruction. */
 export interface FlagReason {
   /** The value the instruction gave the flag, or null when it left the flag as it was. */
   value: boolean | null;
+  /** Which sentence, and what goes in its holes: another language words it by these. */
+  key: FlagReasonKey;
+  params: TextParams;
+  /** The sentence in English. */
   text: string;
 }
 
-const set = (value: boolean, text: string): FlagReason => ({ value, text });
-const kept = (text: string): FlagReason => ({ value: null, text });
+function reason(value: boolean | null, key: FlagReasonKey, params: TextParams = {}): FlagReason {
+  return { value, key, params, text: fillText(FLAG_REASON_TEXTS[key], params) };
+}
+
+const set = (value: boolean, key: FlagReasonKey, params?: TextParams) => reason(value, key, params);
+const kept = (key: FlagReasonKey, params?: TextParams) => reason(null, key, params);
 
 const hex = (value: number, size: Size): string => `${formatHex(value, size)}h`;
 /** Negative numbers with a real minus sign, the one the operators in the text use. */
 const decimal = (value: number): string => (value < 0 ? `−${-value}` : String(value));
 /** A signed number that can sit after an operator: `5 − (−3)`. */
 const signed = (value: number): string => (value < 0 ? `(${decimal(value)})` : String(value));
+const upperHex = (value: number): string => value.toString(16).toUpperCase();
 
 const FLAG_CONTROL: Partial<
-  Record<Mnemonic, { flag: FlagName; value: boolean | null; text: string }>
+  Record<Mnemonic, { flag: FlagName; value: boolean | null; key: FlagReasonKey }>
 > = {
-  clc: { flag: 'CF', value: false, text: 'CLC clears CF.' },
-  stc: { flag: 'CF', value: true, text: 'STC sets CF.' },
-  cmc: { flag: 'CF', value: null, text: 'CMC flips CF.' },
-  cld: { flag: 'DF', value: false, text: 'CLD clears DF: string instructions count up.' },
-  std: { flag: 'DF', value: true, text: 'STD sets DF: string instructions count down.' },
-  cli: { flag: 'IF', value: false, text: 'CLI clears IF: maskable interrupts are ignored.' },
-  sti: { flag: 'IF', value: true, text: 'STI sets IF: maskable interrupts are allowed.' }
+  clc: { flag: 'CF', value: false, key: 'clc' },
+  stc: { flag: 'CF', value: true, key: 'stc' },
+  cmc: { flag: 'CF', value: null, key: 'cmc' },
+  cld: { flag: 'DF', value: false, key: 'cld' },
+  std: { flag: 'DF', value: true, key: 'std' },
+  cli: { flag: 'IF', value: false, key: 'cli' },
+  sti: { flag: 'IF', value: true, key: 'sti' }
 };
 
 /** ZF, SF and PF depend only on the result, whatever operation produced it. */
@@ -38,26 +49,27 @@ function resultFlag(flag: 'ZF' | 'SF' | 'PF', result: number, size: Size): FlagR
   switch (flag) {
     case 'ZF':
       return result === 0
-        ? set(true, `The result ${shown} is zero.`)
-        : set(false, `The result ${shown} is not zero.`);
+        ? set(true, 'zero', { result: shown })
+        : set(false, 'notZero', { result: shown });
     case 'SF': {
       const top = size - 1;
       return (result & signBit(size)) !== 0
-        ? set(
-            true,
-            `Bit ${top} of the result ${shown} is 1: as a signed number it is ${decimal(toSigned(result, size))}.`
-          )
-        : set(false, `Bit ${top} of the result ${shown} is 0: not negative.`);
+        ? set(true, 'negative', { top, result: shown, signed: decimal(toSigned(result, size)) })
+        : set(false, 'notNegative', { top, result: shown });
     }
     case 'PF': {
       const low = result & 0xff;
       const ones = low.toString(2).replace(/0/g, '').length;
       const even = ones % 2 === 0;
-      const byte = size === 16 ? 'Only the low byte counts: ' : 'The result ';
-      return set(
-        even,
-        `${byte}${formatBinary(low, 8)} has ${ones} one bit${ones === 1 ? '' : 's'}, an ${even ? 'even' : 'odd'} number.`
-      );
+      const key =
+        size === 16
+          ? even
+            ? 'parityLowByteEven'
+            : 'parityLowByteOdd'
+          : even
+            ? 'parityResultEven'
+            : 'parityResultOdd';
+      return set(even, key, { byte: formatBinary(low, 8), ones });
     }
   }
 }
@@ -78,22 +90,16 @@ function sumText({ kind, size, a, b, carryIn }: ArithmeticTrace): {
 function carryReason(alu: ArithmeticTrace, name: string): FlagReason {
   const { size, a, b, carryIn, result } = alu;
   const { sum } = sumText(alu);
-  if (!alu.updatesCarry) return kept(`${name} never changes CF.`);
+  if (!alu.updatesCarry) return kept('neverCarry', { name });
   if (alu.kind === 'add') {
     const raw = a + b + carryIn;
     return raw > mask(size)
-      ? set(
-          true,
-          `${sum} = ${raw.toString(16).toUpperCase()}h needs more than ${size} bits: the carry out of bit ${size - 1} goes into CF.`
-        )
-      : set(
-          false,
-          `${sum} = ${hex(result, size)} fits in ${size} bits, so nothing is carried out.`
-        );
+      ? set(true, 'carryOut', { sum, raw: upperHex(raw), size, top: size - 1 })
+      : set(false, 'noCarryOut', { sum, result: hex(result, size), size });
   }
   return a - b - carryIn < 0
-    ? set(true, `${sum} needs a borrow: as unsigned numbers ${a} is less than ${b + carryIn}.`)
-    : set(false, `${sum} needs no borrow: as unsigned numbers ${a} is at least ${b + carryIn}.`);
+    ? set(true, 'borrow', { sum, a, b: b + carryIn })
+    : set(false, 'noBorrow', { sum, a, b: b + carryIn });
 }
 
 function overflowReason(alu: ArithmeticTrace): FlagReason {
@@ -104,14 +110,21 @@ function overflowReason(alu: ArithmeticTrace): FlagReason {
   const exact = alu.kind === 'add' ? signedA + signedB + carryIn : signedA - signedB - carryIn;
   const lowest = -signBit(size);
   const highest = signBit(size) - 1;
-  const range = `${decimal(lowest)}…${highest}`;
-  const working = `As signed numbers ${signed(signedA)} ${operator} ${signed(signedB)}${carry} = ${signed(exact)}`;
+  const params = {
+    a: signed(signedA),
+    operator,
+    b: signed(signedB),
+    carry,
+    exact: signed(exact),
+    range: `${decimal(lowest)}…${highest}`
+  };
   return exact < lowest || exact > highest
-    ? set(
-        true,
-        `${working}, outside ${range}: the result ${hex(result, size)} reads as ${decimal(toSigned(result, size))}.`
-      )
-    : set(false, `${working}, which fits in ${range}.`);
+    ? set(true, 'overflow', {
+        ...params,
+        result: hex(result, size),
+        signed: decimal(toSigned(result, size))
+      })
+    : set(false, 'noOverflow', params);
 }
 
 function auxiliaryCarryReason(alu: ArithmeticTrace): FlagReason {
@@ -119,17 +132,16 @@ function auxiliaryCarryReason(alu: ArithmeticTrace): FlagReason {
   const { operator, carry } = sumText(alu);
   const lowA = a & 0xf;
   const lowB = b & 0xf;
-  const nibbles = `Low digits: ${lowA.toString(16).toUpperCase()}h ${operator} ${lowB.toString(16).toUpperCase()}h${carry}`;
+  const params = { a: upperHex(lowA), operator, b: upperHex(lowB), carry };
   if (alu.kind === 'add') {
-    const raw = lowA + lowB + carryIn;
-    const shown = `${nibbles} = ${raw.toString(16).toUpperCase()}h`;
-    return raw > 0xf
-      ? set(true, `${shown}, a carry out of bit 3.`)
-      : set(false, `${shown}, no carry out of bit 3.`);
+    const raw = upperHex(lowA + lowB + carryIn);
+    return lowA + lowB + carryIn > 0xf
+      ? set(true, 'auxCarry', { ...params, raw })
+      : set(false, 'noAuxCarry', { ...params, raw });
   }
   return lowA - lowB - carryIn < 0
-    ? set(true, `${nibbles} needs a borrow from bit 4.`)
-    : set(false, `${nibbles} needs no borrow from bit 4.`);
+    ? set(true, 'auxBorrow', params)
+    : set(false, 'noAuxBorrow', params);
 }
 
 function arithmeticFlag(alu: ArithmeticTrace, flag: FlagName, name: string): FlagReason {
@@ -145,7 +157,7 @@ function arithmeticFlag(alu: ArithmeticTrace, flag: FlagName, name: string): Fla
     case 'PF':
       return resultFlag(flag, alu.result, alu.size);
     default:
-      return kept(`${name} does not change ${flag}.`);
+      return kept('unchanged', { name, flag });
   }
 }
 
@@ -156,29 +168,20 @@ const bit = (value: number, position: number): number => ((value & position) !==
 function shiftOverflowReason(alu: ShiftTrace, mnemonic: Mnemonic, left: boolean): FlagReason {
   const { size, original, count, result } = alu;
   const top = signBit(size);
-  if (count !== 1) {
-    return kept('OF is only defined for a count of 1; here it keeps its old value.');
-  }
+  if (count !== 1) return kept('shiftOverflowCount');
   if (left) {
     const was = bit(original, top);
     const now = bit(result, top);
-    return was !== now
-      ? set(true, `The top bit went from ${was} to ${now}: the sign changed.`)
-      : set(false, `The top bit stayed ${now}: the sign did not change.`);
+    return was !== now ? set(true, 'signChanged', { was, now }) : set(false, 'signKept', { now });
   }
   if (mnemonic === 'shr') {
     const was = bit(original, top);
-    return set(was === 1, `SHR by 1 copies the original top bit (${was}) into OF.`);
+    return set(was === 1, 'shrOverflow', { was });
   }
-  if (mnemonic === 'sar') {
-    return set(false, 'SAR by 1 always clears OF: it keeps the sign bit.');
-  }
+  if (mnemonic === 'sar') return set(false, 'sarOverflow');
   const first = bit(result, top);
   const second = bit(result, top >> 1);
-  return set(
-    first !== second,
-    `OF is the XOR of the two top bits of the result (${first} and ${second}).`
-  );
+  return set(first !== second, 'rotateOverflow', { first, second });
 }
 
 function shiftFlag(alu: ShiftTrace, flag: FlagName, mnemonic: Mnemonic, name: string): FlagReason {
@@ -188,24 +191,20 @@ function shiftFlag(alu: ShiftTrace, flag: FlagName, mnemonic: Mnemonic, name: st
 
   switch (flag) {
     case 'CF':
-      return set(
-        carry,
-        `CF takes the last bit pushed out of the ${left ? 'top' : 'bottom'} of ${hex(original, size)}: ${carry ? 1 : 0}.`
-      );
+      return set(carry, left ? 'shiftCarryTop' : 'shiftCarryBottom', {
+        original: hex(original, size),
+        carry: carry ? 1 : 0
+      });
     case 'OF':
       return shiftOverflowReason(alu, mnemonic, left);
     case 'AF':
-      return kept(
-        rotate
-          ? `${name} does not change AF.`
-          : `${name} leaves AF undefined on a real 8086; here it keeps its old value.`
-      );
+      return rotate ? kept('unchanged', { name, flag }) : kept('undefinedKept', { name, flag });
     case 'ZF':
     case 'SF':
     case 'PF':
-      return rotate ? kept('Rotates only change CF and OF.') : resultFlag(flag, result, size);
+      return rotate ? kept('rotateOnly') : resultFlag(flag, result, size);
     default:
-      return kept(`${name} does not change ${flag}.`);
+      return kept('unchanged', { name, flag });
   }
 }
 
@@ -215,29 +214,20 @@ function multiplyFlag(
   name: string
 ): FlagReason {
   if (flag !== 'CF' && flag !== 'OF') {
-    return kept(
-      flag === 'TF' || flag === 'IF' || flag === 'DF'
-        ? `${name} does not change ${flag}.`
-        : `${name} leaves ${flag} undefined on a real 8086; here it keeps its old value.`
-    );
+    return flag === 'TF' || flag === 'IF' || flag === 'DF'
+      ? kept('unchanged', { name, flag })
+      : kept('undefinedKept', { name, flag });
   }
   const low = alu.size === 8 ? 'AL' : 'AX';
   const high = alu.size === 8 ? 'AH' : 'DX';
   if (alu.signed) {
+    const params = { product: decimal(alu.product), low, high };
     return alu.overflow
-      ? set(
-          true,
-          `The product ${decimal(alu.product)} does not fit in ${low} as a signed number, so ${high} holds part of it.`
-        )
-      : set(
-          false,
-          `The product ${decimal(alu.product)} fits in ${low} as a signed number: ${high} is only its sign.`
-        );
+      ? set(true, 'productSignedOverflow', params)
+      : set(false, 'productSignedFits', params);
   }
-  const product = `${alu.product.toString(16).toUpperCase()}h`;
-  return alu.overflow
-    ? set(true, `The product ${product} does not fit in ${low}: ${high} is not zero.`)
-    : set(false, `The product ${product} fits in ${low}: ${high} is zero.`);
+  const params = { product: `${upperHex(alu.product)}h`, low, high };
+  return alu.overflow ? set(true, 'productOverflow', params) : set(false, 'productFits', params);
 }
 
 function logicFlag(
@@ -245,30 +235,20 @@ function logicFlag(
   flag: FlagName,
   name: string
 ): FlagReason {
-  if (flag === 'CF' || flag === 'OF') return set(false, `${name} always clears ${flag}.`);
-  if (flag === 'AF') {
-    return set(false, `${name} leaves AF undefined on a real 8086; here it is cleared.`);
-  }
+  if (flag === 'CF' || flag === 'OF') return set(false, 'alwaysClears', { name, flag });
+  if (flag === 'AF') return set(false, 'auxCleared', { name });
   if (flag === 'ZF' || flag === 'SF' || flag === 'PF') {
     return resultFlag(flag, alu.result, alu.size);
   }
-  return kept(`${name} does not change ${flag}.`);
+  return kept('unchanged', { name, flag });
 }
 
 /** Why the flags kept their values when the instruction computed nothing in the ALU. */
 function withoutAlu(mnemonic: Mnemonic, name: string): FlagReason {
-  if (mnemonic === 'div' || mnemonic === 'idiv') {
-    return kept(
-      `${name} leaves the flags undefined on a real 8086; here they keep their old values.`
-    );
-  }
-  if (isStringCompare(mnemonic)) {
-    return kept('CX was 0, so the repeat compared nothing and the flags were left alone.');
-  }
-  if (getSpec(mnemonic).category === 'shift') {
-    return kept('A count of 0 changes nothing, the flags included.');
-  }
-  return kept(`${name} does not change the flags.`);
+  if (mnemonic === 'div' || mnemonic === 'idiv') return kept('divideUndefined', { name });
+  if (isStringCompare(mnemonic)) return kept('repeatZero');
+  if (getSpec(mnemonic).category === 'shift') return kept('countZero');
+  return kept('noFlagsChange', { name });
 }
 
 /**
@@ -282,16 +262,13 @@ export function explainFlag(record: ExecutionRecord, flag: FlagName): FlagReason
   const control = FLAG_CONTROL[mnemonic];
   if (control) {
     return control.flag === flag
-      ? set(control.value ?? (record.before.flags & 1) === 0, control.text)
-      : kept(`${name} only changes ${control.flag}.`);
+      ? set(control.value ?? (record.before.flags & 1) === 0, control.key)
+      : kept('onlyChanges', { name, flag: control.flag });
   }
 
   const { alu } = record;
   if (record.interrupt !== null && (flag === 'IF' || flag === 'TF')) {
-    return set(
-      false,
-      `Entering an interrupt clears ${flag}, so the handler is not itself interrupted.`
-    );
+    return set(false, 'interruptClears', { flag });
   }
   if (!alu) return withoutAlu(mnemonic, name);
 
@@ -306,9 +283,6 @@ export function explainFlag(record: ExecutionRecord, flag: FlagName): FlagReason
     case 'multiply':
       return multiplyFlag(alu, flag, name);
     case 'restore':
-      return set(
-        isFlagSet(alu.flags, flag),
-        `${name} loads every flag from the FLAGS word it pops off the stack.`
-      );
+      return set(isFlagSet(alu.flags, flag), 'restored', { name });
   }
 }
