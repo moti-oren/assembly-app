@@ -18,7 +18,6 @@ import { boxMove, keyHints } from '@/ui/builderKeys';
 import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
 import { isApple } from '@/ui/platform';
-import { groupTone } from '@/ui/builderTones';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
@@ -386,15 +385,9 @@ function onBackspace(event: KeyboardEvent): void {
         v-if="moreToChoose && choicesShown"
         class="scroll-fade -mx-1 max-h-[min(21rem,40svh)] scroll-pb-7 overflow-y-auto px-1"
       >
-        <!-- A family of instructions keeps one colour: the dot here, and the edge of each choice. -->
-        <div
-          v-for="[group, options] in groups"
-          :key="group"
-          class="mb-4 last:mb-0"
-          :data-tone="groupTone(group) ?? undefined"
-        >
-          <h3 class="mb-2 flex items-center gap-1.5 text-xs font-semibold text-foreground/85">
-            <span v-if="groupTone(group)" class="tone-dot" aria-hidden="true" />
+        <!-- Families are told apart by their headings and the space between them, not by colour. -->
+        <div v-for="[group, options] in groups" :key="group" class="mb-4 last:mb-0">
+          <h3 class="mb-2 text-2xs font-semibold tracking-[0.06em] text-muted-foreground uppercase">
             {{ group }}
           </h3>
           <div class="flex flex-wrap gap-1.5">
@@ -408,7 +401,7 @@ function onBackspace(event: KeyboardEvent): void {
               data-option
               :class="
                 option === enterOption
-                  ? 'border-pointer/70 bg-pointer/12 text-foreground dark:border-pointer/60 dark:bg-pointer/15'
+                  ? 'border-foreground/70 bg-muted text-foreground dark:border-foreground/60 dark:bg-muted'
                   : ''
               "
               @click="choose(option)"
@@ -420,7 +413,7 @@ function onBackspace(event: KeyboardEvent): void {
               {{ option.label }}
               <CornerDownLeft
                 v-if="option === enterOption"
-                class="text-pointer"
+                class="text-foreground"
                 aria-label="Enter picks this"
               />
             </Button>
@@ -446,7 +439,7 @@ function onBackspace(event: KeyboardEvent): void {
     <!-- In a narrow pane the buttons take a row of their own rather than being cut off. -->
     <CardFooter class="flex-wrap justify-between gap-x-3 gap-y-2">
       <!-- The keys that do something right now; see builderKeys.ts. -->
-      <div class="hidden items-center gap-3 text-xs text-foreground/80 sm:flex">
+      <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
         <span v-for="keyHint in hints" :key="keyHint.label" class="flex items-center gap-1.5">
           <KbdGroup
             ><Kbd v-for="key in keyHint.keys" :key="key">{{ key }}</Kbd></KbdGroup

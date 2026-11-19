@@ -70,9 +70,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - On a wide screen, stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
-- Each family of instructions has a colour of its own in the choices (transfers, arithmetic,
-  logic, shifts, jumps and branches, the stack): a dot before the family's name and the left edge
-  of each of its instructions.
+- The choices are grouped by family (transfers, arithmetic, logic, shifts, jumps and branches,
+  the stack), each under its own heading. Colour is kept for what the CPU does: blue where it reads
+  and where execution is, orange where it writes.
 - **Reset**, in the bottom bar next to Undo, sets registers, flags and memory back to their start
   values and clears the history; the program is kept. When the history holds instructions it
   asks first, since Undo cannot bring them back.
@@ -291,8 +291,9 @@ npm run verify:6502 # check the 6502 core against py65
 - בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש בתיבה מילים או טקסט, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt, ימינה ושמאלה עוברים בין המילים ובתוך הטקסט, ולמעלה ולמטה מגיעים לתחילת התיבה ולסופה. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע.
 - במסך רחב, הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
-- לכל משפחת הוראות יש צבע משלה בין האפשרויות (העברות, חשבון, לוגיקה, הזזות, קפיצות וענפים,
-  המחסנית): נקודה לפני שם המשפחה, והקצה השמאלי של כל אחת מההוראות שלה.
+- האפשרויות מקובצות לפי משפחה (העברות, חשבון, לוגיקה, הזזות, קפיצות וענפים, המחסנית), כל אחת
+  תחת כותרת משלה. הצבע שמור למה שהמעבד עושה: כחול במקום שבו הוא קורא ובמקום שבו נמצא הביצוע,
+  כתום במקום שבו הוא כותב.
 - **Reset**, בסרגל התחתון ליד Undo, מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את
   ההיסטוריה; התוכנית נשמרת.
   כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
