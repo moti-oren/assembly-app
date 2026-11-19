@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { formatPhysical } from '@/core/x86/address';
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
-import { REGISTER_DESCRIPTIONS, type WordRegister } from '@/core/x86/registers';
+import type { WordRegister } from '@/core/x86/registers';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import ChangeMark from './ChangeMark.vue';
@@ -56,7 +56,7 @@ const GROUP_START: WordRegister = 'ip';
               >{{ name.toUpperCase() }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="left">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+          <TooltipContent side="left">{{ t.x86Text.register(name) }}</TooltipContent>
         </Tooltip>
         <span class="w-10">
           <ChangeMark

@@ -1,6 +1,5 @@
 import { hasMoreOperands, operandChoices, type OperandChoices } from '@/core/x86/builder';
 import {
-  CATEGORY_LABELS,
   MNEMONICS,
   REPEAT_PREFIXES,
   getSpec,
@@ -55,7 +54,7 @@ function prefixOptions(m: Messages): X86Option[] {
     key: `prefix-${prefix}`,
     label: prefix,
     group: m.builderX86.repeatPrefix,
-    hint: m.builderX86.prefixHint(REPEAT_PREFIXES[prefix]),
+    hint: m.builderX86.prefixHint(m.x86Text.prefix(prefix)),
     action: { kind: 'prefix', prefix }
   }));
 }
@@ -64,11 +63,11 @@ function mnemonicOptions(m: Messages, chosen: RepeatPrefix | null): X86Option[] 
   const options: X86Option[] = [];
   let prefixesOffered = chosen !== null;
   for (const mnemonic of MNEMONICS) {
-    const { category, description } = getSpec(mnemonic);
+    const { category } = getSpec(mnemonic);
     // The prefixes sit right after the string instructions they repeat.
     if (
       !prefixesOffered &&
-      options.at(-1)?.group === CATEGORY_LABELS.string &&
+      options.at(-1)?.group === m.x86Text.category('string') &&
       category !== 'string'
     ) {
       options.push(...prefixOptions(m));
@@ -78,8 +77,8 @@ function mnemonicOptions(m: Messages, chosen: RepeatPrefix | null): X86Option[] 
     options.push({
       key: mnemonic,
       label: mnemonic,
-      group: CATEGORY_LABELS[category],
-      hint: description,
+      group: m.x86Text.category(category),
+      hint: m.x86Text.description(mnemonic),
       action: { kind: 'mnemonic', mnemonic }
     });
   }
@@ -297,8 +296,8 @@ export const X86_GRAMMAR: InstructionGrammar<OptionAction, Instruction> = {
   overflows: (chosen, context) => overflowingSize(wordsOf(chosen, context)) !== null,
   hint: (chosen, context, filter, complete) =>
     typingHint(context.messages, wordsOf(chosen, context), filter, complete),
-  describe(chosen) {
+  describe(chosen, m) {
     const { mnemonic } = wordsOf(chosen, NO_CONTEXT);
-    return mnemonic ? { label: mnemonic, text: getSpec(mnemonic).description } : null;
+    return mnemonic ? { label: mnemonic, text: m.x86Text.description(mnemonic) } : null;
   }
 };

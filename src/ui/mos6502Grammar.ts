@@ -1,6 +1,5 @@
 import { formatLabel } from '@/core/shared/program';
 import {
-  CATEGORY_LABELS,
   MNEMONICS,
   getSpec,
   isBranch,
@@ -122,14 +121,14 @@ const NUMBER_MODES: {
 const takesLine = (mnemonic: Mnemonic) =>
   isBranch(mnemonic) || mnemonic === 'jsr' || mnemonic === 'jmp';
 
-function mnemonicOptions(): Option[] {
+function mnemonicOptions(m: Messages): Option[] {
   return MNEMONICS.map((mnemonic) => {
-    const { category, description } = getSpec(mnemonic);
+    const { category } = getSpec(mnemonic);
     return {
       key: mnemonic,
       label: mnemonic,
-      group: CATEGORY_LABELS[category],
-      hint: description,
+      group: m.mos6502Text.category(category),
+      hint: m.mos6502Text.description(mnemonic),
       action: { kind: 'mnemonic', mnemonic }
     };
   });
@@ -168,7 +167,7 @@ function lineOptions(m: Messages, mnemonic: Mnemonic, programLines: readonly str
 function options(chosen: readonly Mos6502Action[], context: DraftContext): Option[] {
   const m = context.messages;
   const { mnemonic, operand } = wordsOf(chosen);
-  if (mnemonic === null) return mnemonicOptions();
+  if (mnemonic === null) return mnemonicOptions(m);
   if (operand) return [];
   const list: Option[] = [];
   if (takesLine(mnemonic)) list.push(...lineOptions(m, mnemonic, context.programLines));
@@ -234,7 +233,7 @@ export const MOS6502_GRAMMAR: InstructionGrammar<Mos6502Action, Instruction> = {
   describe(chosen, m) {
     const { mnemonic, operand } = wordsOf(chosen);
     if (mnemonic === null) return null;
-    const { description } = getSpec(mnemonic);
+    const description = m.mos6502Text.description(mnemonic);
     const instruction: Instruction = { mnemonic, operands: operand ? [operand] : [] };
     const opcode = opcodeOf(instruction);
     if (!operand || !opcode) {

@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
-import {
-  REGISTER_DESCRIPTIONS,
-  SPLIT_REGISTERS,
-  half,
-  type WordRegister
-} from '@/core/x86/registers';
+import { SPLIT_REGISTERS, half, type WordRegister } from '@/core/x86/registers';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import ChangeMark from './ChangeMark.vue';
@@ -56,7 +51,7 @@ const GROUP_START: WordRegister = 'sp';
               >{{ name.toUpperCase() }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+          <TooltipContent side="right">{{ t.x86Text.register(name) }}</TooltipContent>
         </Tooltip>
 
         <span class="w-14">

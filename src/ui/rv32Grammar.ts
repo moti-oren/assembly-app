@@ -1,7 +1,6 @@
 import { formatLabel } from '@/core/shared/program';
 import { fitsSigned } from '@/core/rv32/bits';
 import {
-  CATEGORY_LABELS,
   MNEMONICS,
   formatInstruction,
   getSpec,
@@ -84,12 +83,12 @@ const anyNumber = () => true;
 
 function mnemonicOptions(m: Messages): Option[] {
   const real: Option[] = MNEMONICS.map((mnemonic) => {
-    const { category, format, description } = getSpec(mnemonic);
+    const { category, format } = getSpec(mnemonic);
     return {
       key: mnemonic,
       label: mnemonic,
-      group: CATEGORY_LABELS[category],
-      hint: m.builderRv32.withFormat(description, format),
+      group: m.rv32Text.category(category),
+      hint: m.builderRv32.withFormat(m.rv32Text.description(mnemonic), format),
       action: { kind: 'mnemonic', mnemonic }
     };
   });
@@ -97,7 +96,7 @@ function mnemonicOptions(m: Messages): Option[] {
     key: `pseudo-${mnemonic}`,
     label: mnemonic,
     group: m.builderRv32.pseudo,
-    hint: pseudoSpec(mnemonic).description,
+    hint: m.rv32Text.pseudo(mnemonic),
     action: { kind: 'pseudo', mnemonic }
   }));
   return [...real, ...pseudo];
@@ -256,14 +255,17 @@ export const RV32_GRAMMAR: InstructionGrammar<Rv32Action, Instruction> = {
   describe(chosen, m) {
     const { mnemonic, pseudo } = wordsOf(chosen);
     if (mnemonic) {
-      const { description, format } = getSpec(mnemonic);
-      return { label: mnemonic, text: m.builderRv32.withFormat(description, format) };
+      const { format } = getSpec(mnemonic);
+      return {
+        label: mnemonic,
+        text: m.builderRv32.withFormat(m.rv32Text.description(mnemonic), format)
+      };
     }
     if (!pseudo) return null;
     const expanded = build(chosen);
     const text = expanded
       ? m.builderRv32.becomes(expanded.map((line) => m.common.code(formatInstruction(line))))
-      : pseudoSpec(pseudo).description;
+      : m.rv32Text.pseudo(pseudo);
     return { label: pseudo, text };
   }
 };

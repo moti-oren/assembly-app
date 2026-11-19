@@ -1,6 +1,6 @@
-import { OPERAND_KIND_LABELS, decode, type Decoded } from '@/core/x86/decode';
+import { decode, type Decoded } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
-import { CATEGORY_LABELS, type Instruction } from '@/core/x86/instructions';
+import type { Instruction } from '@/core/x86/instructions';
 import { formatHex } from '@/core/shared/numbers';
 import { formatLabel } from '@/core/shared/program';
 import { changedRegisters } from '@/core/x86/registers';
@@ -22,7 +22,7 @@ export function describeDecode(m: Messages, decoded: Decoded): string {
   const c = m.x86Cycle;
   const operands = decoded.operands
     .map((operand) =>
-      c.operand(operand.text, c.roles[operand.role], OPERAND_KIND_LABELS[operand.kind])
+      c.operand(operand.text, c.roles[operand.role], m.x86Text.operandKind(operand.kind))
     )
     .join(', ');
   const names = (registers: string[]) => registers.map((name) => name.toUpperCase());
@@ -39,7 +39,11 @@ export function describeDecode(m: Messages, decoded: Decoded): string {
     decoded.writesFlags && c.flags
   ]);
   return m.common.sentences([
-    c.kind(CATEGORY_LABELS[decoded.category], decoded.size, decoded.description),
+    c.kind(
+      m.x86Text.category(decoded.category),
+      decoded.size,
+      m.x86Text.description(decoded.mnemonic, decoded.prefix)
+    ),
     operands !== '' && c.here(operands),
     reads.length > 0 && c.willRead(m.common.list(reads)),
     writes.length > 0 && c.willWrite(m.common.list(writes))

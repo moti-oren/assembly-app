@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FLAG_INFO, FLAG_NAMES } from '@/core/x86/flags';
+import { FLAG_NAMES } from '@/core/x86/flags';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import FlagReason from './FlagReason.vue';
@@ -36,7 +36,7 @@ defineProps<{
                 ? 'border-foreground/20 bg-secondary'
                 : 'border-border bg-card'
           ]"
-          :aria-label="t.flags.value(FLAG_INFO[flag].label, model.isSet(flag) ? 1 : 0)"
+          :aria-label="t.flags.value(t.x86Text.flagLabel(flag), model.isSet(flag) ? 1 : 0)"
         >
           <span
             v-if="model.flagChanged(flag)"

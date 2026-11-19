@@ -2,6 +2,7 @@ import type { Messages } from '../en';
 import { app } from './app';
 import { architectures } from './architectures';
 import { builder } from './builder';
+import { coreText } from './coreText';
 import { explain6502 } from './explain6502';
 import { explainRv32 } from './explainRv32';
 import { explainX86 } from './explainX86';
@@ -15,5 +16,6 @@ export const he: Messages = {
   ...explainX86,
   ...explainRv32,
   ...explain6502,
-  ...builder
+  ...builder,
+  ...coreText
 };

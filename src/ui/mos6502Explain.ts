@@ -4,7 +4,7 @@ import type { AddressTrace } from '@/core/mos6502/addressing';
 import { decode } from '@/core/mos6502/decode';
 import { codeByte } from '@/core/mos6502/encode';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
-import { CATEGORY_LABELS, opcodeOf, type Instruction } from '@/core/mos6502/instructions';
+import { opcodeOf, type Instruction } from '@/core/mos6502/instructions';
 import { addressOfLine, lineAt } from '@/core/mos6502/layout';
 import { hex, MODE_NAMES } from '@/core/mos6502/operands';
 import { DEVICE_BASE, type CpuState, type RegisterName } from '@/core/mos6502/state';
@@ -49,7 +49,11 @@ export function describeDecode(m: Messages, instruction: Instruction): string {
   const decoded = decode(instruction);
   const names = (registers: RegisterName[]) => registers.map((name) => REGISTER_LABELS[name]);
   return m.common.sentences([
-    e.kind(CATEGORY_LABELS[decoded.category], decoded.modeName, decoded.description),
+    e.kind(
+      m.mos6502Text.category(decoded.category),
+      decoded.modeName,
+      m.mos6502Text.description(instruction.mnemonic)
+    ),
     decoded.reads.length > 0 && e.reads(list(names(decoded.reads))),
     decoded.memory.read && e.readsMemory,
     decoded.memory.write && e.writesMemory,

@@ -5,7 +5,7 @@ import { formatHex32, s32 } from '@/core/rv32/bits';
 import { decode } from '@/core/rv32/decode';
 import { wordAt } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
-import { CATEGORY_LABELS, type Instruction, type Mnemonic } from '@/core/rv32/instructions';
+import type { Instruction, Mnemonic } from '@/core/rv32/instructions';
 import { formatRegister } from '@/core/rv32/operands';
 import { REGISTER_KEYS } from '@/core/rv32/registers';
 import { addressOfLine, DEVICE_BASE, lineAt, type CpuState } from '@/core/rv32/state';
@@ -41,7 +41,11 @@ export function describeDecode(m: Messages, instruction: Instruction): string {
   const reads = decoded.reads.map(formatRegister);
   const writes = decoded.writes.map(formatRegister);
   return m.common.sentences([
-    e.kind(CATEGORY_LABELS[decoded.category], decoded.format, decoded.description),
+    e.kind(
+      m.rv32Text.category(decoded.category),
+      decoded.format,
+      m.rv32Text.description(instruction.mnemonic)
+    ),
     fields.length > 0 && e.fields(list(fields)),
     immediate !== null && e.immediate(hex(immediate), s32(immediate)),
     reads.length > 0 && e.willRead(list(reads)),

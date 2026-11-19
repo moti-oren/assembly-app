@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
-import {
-  REGISTER_DESCRIPTIONS,
-  SPLIT_REGISTERS,
-  WORD_REGISTERS,
-  half,
-  type WordRegister
-} from '@/core/x86/registers';
+import { SPLIT_REGISTERS, WORD_REGISTERS, half, type WordRegister } from '@/core/x86/registers';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { CpuState } from '@/core/x86/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -104,7 +98,7 @@ function changedBits(name: WordRegister): number {
                     >{{ name.toUpperCase() }}</span
                   >
                 </TooltipTrigger>
-                <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+                <TooltipContent side="right">{{ t.x86Text.register(name) }}</TooltipContent>
               </Tooltip>
             </TableCell>
             <TableCell class="py-1">

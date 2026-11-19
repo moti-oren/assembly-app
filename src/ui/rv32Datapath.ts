@@ -160,7 +160,11 @@ export function datapathView(m: Messages, input: DatapathInput): DatapathView {
   return {
     instruction: formatInstruction(instruction),
     fetch,
-    decode: { use: 'read', text: decoded.description, fields: fields(decoded) },
+    decode: {
+      use: 'read',
+      text: m.rv32Text.description(instruction.mnemonic),
+      fields: fields(decoded)
+    },
     ...stages,
     reads: decoded.reads,
     writes: pending ? [] : decoded.writes
