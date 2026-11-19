@@ -13,6 +13,7 @@ import { raisedOverflow, stepSound } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
+import { usePreferences } from '@/ui/usePreferences';
 import { x86UsesDevices } from '@/ui/usesDevices';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { X86_GRAMMAR } from '@/ui/x86Grammar';
@@ -57,6 +58,8 @@ const {
 
 useDataFlow(state, history);
 
+const { registerBits } = usePreferences();
+
 const builder = useTemplateRef('builder');
 const memoryView = useTemplateRef('memoryView');
 
@@ -72,6 +75,15 @@ const {
   askReset
 } = useWorkbench(cpu, {
   usesDevices: x86UsesDevices,
+  commands: () => [
+    {
+      group: 'CPU',
+      label: registerBits.value ? 'Hide the register bits' : 'Show the register bits',
+      run: () => {
+        registerBits.value = !registerBits.value;
+      }
+    }
+  ],
   soundOf: (record) => ({
     step: stepSound(record, state),
     overflow: raisedOverflow(record, state)
