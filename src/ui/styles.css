@@ -232,16 +232,6 @@
 
 /* In the components layer so Tailwind utilities on the same element still win. */
 @layer components {
-  /* A faint pin grid behind the panels. */
-  .app-surface {
-    background-image: radial-gradient(
-      circle,
-      color-mix(in oklch, var(--foreground) 10%, transparent) 1px,
-      transparent 1.5px
-    );
-    background-size: 22px 22px;
-  }
-
   /* A little light from above, so the panels read as raised rather than flat. */
   .dark [data-slot='card'] {
     background-image: linear-gradient(to bottom, var(--card-sheen), transparent 5rem);
