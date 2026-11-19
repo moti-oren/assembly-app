@@ -11,40 +11,41 @@
 @custom-variant calm (&:is([data-motion='reduced'] *));
 
 /*
- * Local fonts reshaped to IBM Plex's metrics, used until Plex arrives. Without them the
- * character-aligned columns (registers, hex dump) jump when the font swaps in. Each face names
- * one local font, so a missing one is skipped. Overrides are divided by size-adjust.
+ * Local fonts reshaped to the metrics of Inter and JetBrains Mono, used until those arrive.
+ * Without them the character-aligned columns (registers, hex dump) jump when the font swaps in.
+ * Each face names one local font, so a missing one is skipped. Overrides are divided by
+ * size-adjust.
  */
 @font-face {
-  font-family: 'Plex Mono Fallback Consolas';
+  font-family: 'Mono Fallback Consolas';
   src: local('Consolas');
   size-adjust: 109.1%;
-  ascent-override: 93.9%;
-  descent-override: 25.2%;
+  ascent-override: 93.5%;
+  descent-override: 27.5%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Plex Mono Fallback Menlo';
+  font-family: 'Mono Fallback Menlo';
   src: local('Menlo'), local('DejaVu Sans Mono');
   size-adjust: 99.7%;
-  ascent-override: 102.8%;
-  descent-override: 27.6%;
+  ascent-override: 102.3%;
+  descent-override: 30.1%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Plex Sans Fallback Segoe';
+  font-family: 'Sans Fallback Segoe';
   src: local('Segoe UI');
-  size-adjust: 104.8%;
-  ascent-override: 97.8%;
-  descent-override: 26.2%;
+  size-adjust: 110.1%;
+  ascent-override: 88%;
+  descent-override: 21.9%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Plex Sans Fallback Arial';
+  font-family: 'Sans Fallback Arial';
   src: local('Arial');
-  size-adjust: 102%;
-  ascent-override: 100.5%;
-  descent-override: 27%;
+  size-adjust: 107.1%;
+  ascent-override: 90.4%;
+  descent-override: 22.5%;
   line-gap-override: 0%;
 }
 
@@ -68,11 +69,9 @@
 
 @theme inline {
   --font-sans:
-    'IBM Plex Sans', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
-    system-ui, sans-serif;
+    'Inter', 'Sans Fallback Segoe', 'Sans Fallback Arial', ui-sans-serif, system-ui, sans-serif;
   --font-mono:
-    'IBM Plex Mono', 'Plex Mono Fallback Consolas', 'Plex Mono Fallback Menlo', ui-monospace,
-    monospace;
+    'JetBrains Mono', 'Mono Fallback Consolas', 'Mono Fallback Menlo', ui-monospace, monospace;
   --color-changed: var(--changed);
   --color-changed-foreground: var(--changed-foreground);
   --color-changed-glow: var(--changed-glow);
@@ -491,6 +490,7 @@
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     font-weight: 600;
+    font-variant-ligatures: none;
     font-feature-settings: 'zero';
     box-shadow:
       inset 0 1px 0 oklch(1 0 0 / 45%),
