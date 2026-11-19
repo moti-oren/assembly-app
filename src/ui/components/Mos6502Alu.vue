@@ -22,12 +22,15 @@ const text = computed(() => equation.value && equationText(t.value, equation.val
     <CardContent class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-code">
       <template v-if="record">
         <span class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
-        <span v-if="equation" class="ms-auto flex flex-wrap items-center gap-x-2">
-          <span class="rounded-sm bg-changed px-1 font-semibold text-changed-foreground">{{
-            text
-          }}</span>
-          <span class="font-sans text-xs text-muted-foreground">
-            {{ equation.destination }}{{ equation.note ? ` (${equation.note})` : '' }}
+        <span v-if="equation" class="ms-auto">
+          <!-- An equation reads left to right in every language. -->
+          <span dir="ltr" class="flex flex-wrap items-center gap-x-2">
+            <span class="rounded-sm bg-changed px-1 font-semibold text-changed-foreground">{{
+              text
+            }}</span>
+            <span class="ui-auto font-sans text-xs text-muted-foreground">
+              {{ equation.destination }}{{ equation.note ? ` (${equation.note})` : '' }}
+            </span>
           </span>
         </span>
         <span v-else class="ms-auto font-sans text-xs text-muted-foreground">
