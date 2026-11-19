@@ -93,6 +93,9 @@ function showLastAccess(): void {
   if (props.access) addressText.value = hex(props.access.address & ~0xf);
 }
 
+/** The address of the byte under the mouse, in the hex columns or in the text beside them. */
+const pointed = ref<number | null>(null);
+
 const card = ref<{ $el: HTMLElement } | null>(null);
 
 /** For the command palette: jump, then bring the memory into view, which may be off screen. */
@@ -123,9 +126,9 @@ function reveal(jump: () => void): void {
           <Button
             v-for="place in places"
             :key="place.label"
-            variant="ghost"
+            variant="outline"
             size="sm"
-            class="h-7 px-2 text-xs"
+            class="h-6 rounded-full px-2.5 text-xs text-muted-foreground hover:text-foreground"
             @click="go(place)"
           >
             <Layers v-if="place.stack" />
@@ -170,8 +173,8 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
-        <table class="w-full font-mono text-xs">
+      <div class="well overflow-auto rounded-lg px-2.5 py-1.5">
+        <table class="w-full font-mono text-xs whitespace-nowrap">
           <thead>
             <tr class="text-muted-foreground">
               <th class="py-1 pr-3 text-left font-normal">address</th>
@@ -179,14 +182,14 @@ function reveal(jump: () => void): void {
                 v-for="column in COLUMNS"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'pl-2.5': column === 9 }"
+                :class="{ 'pl-3': column === 9, 'pl-2': column === 5 || column === 13 }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
               <th class="py-1 pl-3 text-left font-normal">ascii</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody @mouseleave="pointed = null">
             <tr v-for="row in rows" :key="row[0].address">
               <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
                 {{ hex(row[0].address) }}
@@ -196,7 +199,8 @@ function reveal(jump: () => void): void {
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
                 :class="{
-                  'pl-2.5': column === 8,
+                  'pl-3': column === 8,
+                  'pl-2': column === 4 || column === 12,
                   'text-pointer': byte.region === 'code',
                   'text-written': byte.region === 'device'
                 }"
@@ -205,6 +209,7 @@ function reveal(jump: () => void): void {
                     ? `${formatAddress(format, byte.address)}: nothing is wired here`
                     : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
                 "
+                @mouseenter="pointed = byte.address"
               >
                 <span v-if="byte.value === null" class="text-muted-foreground/50">··</span>
                 <ChangeMark
@@ -214,6 +219,7 @@ function reveal(jump: () => void): void {
                   :data-loc="`mem:${byte.address}`"
                   :style="{ backgroundColor: warmth(byte.address) }"
                   :class="{
+                    'byte-pointed': pointed === byte.address,
                     'font-semibold': heat.get(byte.address) === 0 || accessed(byte.address),
                     underline: accessed(byte.address),
                     'byte-zero': byte.value === 0 && byte.region === 'ram'
@@ -222,10 +228,15 @@ function reveal(jump: () => void): void {
                   <RollingDigits :text="formatHex(byte.value, 8)" />
                 </ChangeMark>
               </td>
+              <!-- A character and its byte light up together, whichever one is pointed at. -->
               <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
-                {{
-                  row.map((byte) => (byte.value === null ? ' ' : printable(byte.value))).join('')
-                }}
+                <span
+                  v-for="byte in row"
+                  :key="byte.address"
+                  :class="{ 'byte-pointed': pointed === byte.address }"
+                  @mouseenter="pointed = byte.address"
+                  >{{ byte.value === null ? ' ' : printable(byte.value) }}</span
+                >
               </td>
             </tr>
           </tbody>

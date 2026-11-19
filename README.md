@@ -96,7 +96,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   and everything else uses DS.
 - The Memory panel works out how `segment:offset` becomes a 20-bit physical address
   (`segment × 10h + offset`, wrapping past 1MB) for the last memory access, or for any byte you
-  point at. **Show in table** scrolls the table to the last access.
+  point at. **Show in table** scrolls the table to the last access. Pointing at a byte also
+  marks its character in the ascii column, and the other way round.
 - Shift counts are `1` or `CL`, as on the 8086.
 - String instructions (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) read from DS:SI, write to ES:DI and step by DF. Pick `rep`, `repe` or `repne`
@@ -307,7 +308,8 @@ npm run verify:6502 # check the 6502 core against py65
   `[bp]` משתמש ב-SS וכל האחרים משתמשים ב-DS.
 - חלונית הזיכרון מפרטת איך `segment:offset` הופך לכתובת פיזית של 20 סיביות
   (`segment × 10h + offset`, עם גלישה מעבר ל-1MB) עבור הגישה האחרונה לזיכרון, או עבור כל בית
-  שמצביעים עליו. **Show in table** גולל את הטבלה אל הגישה האחרונה.
+  שמצביעים עליו. **Show in table** גולל את הטבלה אל הגישה האחרונה. הצבעה על בית מסמנת גם
+  את התו שלו בעמודת ה-ascii, ולהפך.
 - ספירת הזזה היא `1` או `CL`, כמו ב-8086.
 - פקודות המחרוזת (`movsb`/`movsw`, `stosb`/`stosw`, `lodsb`/`lodsw`, `scasb`/`scasw`,
   `cmpsb`/`cmpsw`) קוראות מ-DS:SI, כותבות ל-ES:DI ומתקדמות לפי DF. בוחרים קודם `rep`, `repe` או

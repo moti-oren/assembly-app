@@ -245,8 +245,8 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
-        <table class="w-full font-mono text-xs">
+      <div class="well overflow-auto rounded-lg px-2.5 py-1.5">
+        <table class="w-full font-mono text-xs whitespace-nowrap">
           <thead>
             <tr class="text-muted-foreground">
               <th class="py-1 pr-3 text-left font-normal">offset</th>
@@ -254,7 +254,7 @@ function reveal(jump: () => void): void {
                 v-for="column in COLUMNS"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'pl-2.5': column === 9 }"
+                :class="{ 'pl-3': column === 9, 'pl-2': column === 5 || column === 13 }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
@@ -270,7 +270,7 @@ function reveal(jump: () => void): void {
                 v-for="(byte, column) in row.bytes"
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
-                :class="{ 'pl-2.5': column === 8 }"
+                :class="{ 'pl-3': column === 8, 'pl-2': column === 4 || column === 12 }"
                 :title="`Physical ${formatPhysical(byte.address)}h = ${byte.value}`"
                 @mouseenter="pointed = (row.offset + column) & 0xffff"
               >
@@ -279,19 +279,27 @@ function reveal(jump: () => void): void {
                   :tick="tick"
                   :data-loc="`mem:${byte.address}`"
                   :style="{ backgroundColor: warmth(byte.address) }"
-                  :class="
+                  :class="[
                     heat.get(byte.address) === 0
                       ? 'font-semibold'
                       : byte.value === 0
                         ? 'byte-zero'
-                        : ''
-                  "
+                        : '',
+                    { 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }
+                  ]"
                 >
                   <RollingDigits :text="formatHex(byte.value, 8)" />
                 </ChangeMark>
               </td>
+              <!-- A character and its byte light up together, whichever one is pointed at. -->
               <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
-                {{ row.bytes.map((byte) => printable(byte.value)).join('') }}
+                <span
+                  v-for="(byte, column) in row.bytes"
+                  :key="byte.address"
+                  :class="{ 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }"
+                  @mouseenter="pointed = (row.offset + column) & 0xffff"
+                  >{{ printable(byte.value) }}</span
+                >
               </td>
             </tr>
           </tbody>
