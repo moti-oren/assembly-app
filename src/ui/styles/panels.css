@@ -1,0 +1,39 @@
+/* Details of the program list and the memory tables. */
+
+@layer components {
+  /* Where execution is in the program: a lit bar on each edge of the line, and a tint between. */
+  .ip-marker {
+    background: linear-gradient(
+      to right,
+      color-mix(in oklch, var(--pointer) 22%, transparent),
+      color-mix(in oklch, var(--pointer) 9%, transparent)
+    );
+  }
+  .ip-marker::before,
+  .ip-marker::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: var(--pointer);
+    box-shadow: 0 0 10px 0 var(--pointer);
+  }
+  .ip-marker::before {
+    left: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+  }
+  .ip-marker::after {
+    right: 0;
+    width: 2px;
+    opacity: 0.55;
+  }
+
+  /* The byte under the pointer, in the hex columns and in the text beside them. */
+  .byte-pointed {
+    border-radius: var(--radius-sm);
+    background: color-mix(in oklch, var(--pointer) 24%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--pointer) 70%, transparent);
+    color: var(--foreground);
+  }
+}

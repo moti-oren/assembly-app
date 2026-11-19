@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import './styles/surfaces.css';
+@import './styles/controls.css';
+@import './styles/panels.css';
+@import './styles/diagram.css';
+@import './styles/devices.css';
 
 @custom-variant dark (&:is(.dark *));
 /* Animations cut down, by the system setting or the app's own; see usePreferences.ts. */
@@ -43,6 +48,12 @@
   line-gap-override: 0%;
 }
 
+/* A surface set into its card: a list, a table, an input, the CPU package. */
+@utility well {
+  background-color: var(--inset);
+  box-shadow: var(--shadow-well);
+}
+
 @theme inline {
   --font-sans:
     'IBM Plex Sans', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
@@ -58,6 +69,7 @@
   --color-pointer-foreground: var(--pointer-foreground);
   --color-page: var(--page);
   --color-inset: var(--inset);
+  --color-raised: var(--raised);
   --font-heading: var(--font-sans);
   /* Code and values, and the smallest labels. No line height: they keep their parent's. */
   --text-code: 0.8125rem;
@@ -107,8 +119,8 @@
   /* How wide the header, the panels and the bottom bar may grow; they share it to stay aligned. */
   --page-width: 80rem;
   /* The two semantic accents: what just changed, and where execution is. */
-  --changed: oklch(0.94 0.09 92);
-  --changed-foreground: oklch(0.42 0.09 70);
+  --changed: oklch(0.945 0.085 92);
+  --changed-foreground: oklch(0.4 0.095 66);
   /* The brief peak of the flash a value gives off as it changes. */
   --changed-glow: oklch(0.86 0.16 90);
   /* Stacking, lowest first. Dialogs, menus and tooltips (shadcn) sit at 50, above all of these. */
@@ -123,8 +135,8 @@
    * A wire, LED or segment that was written. Thin lines on the page need 3:1 against it, which
    * the pale glow does not reach on white, so the light theme draws them in a deeper amber.
    */
-  --written: oklch(0.666 0.179 58.318);
-  --pointer: oklch(0.55 0.18 255);
+  --written: oklch(0.65 0.17 60);
+  --pointer: oklch(0.52 0.17 248);
   --pointer-foreground: oklch(0.985 0 0);
   /* A memory byte that holds 0. Muted text is already near 4.5:1 on the inset, so no fainter. */
   --zero-byte: var(--muted-foreground);
@@ -132,9 +144,29 @@
    * Three surfaces, each a clear step from the next: the page, the cards on it, and the tables,
    * lists and diagrams set into a card. Inputs and the bars keep --background.
    */
-  --page: oklch(0.952 0.003 286);
-  --inset: oklch(0.972 0.002 286);
+  --page: oklch(0.958 0.005 290);
+  --inset: oklch(0.973 0.004 290);
+  /* A block standing on the inset: the units inside the CPU package, a control's thumb. */
+  --raised: oklch(1 0 0);
   --background: oklch(1 0 0);
+  /* The dots of the drawing grid, on the page and inside the CPU package. */
+  --grid-dot: oklch(0.3 0.03 290 / 9%);
+  /* Light from above: the top edge of anything raised. The light theme uses shadows instead. */
+  --edge: oklch(1 0 0 / 0%);
+  --shadow-card: 0 1px 2px oklch(0.3 0.04 290 / 7%), 0 8px 24px -14px oklch(0.3 0.04 290 / 22%);
+  --shadow-well: inset 0 1px 2px oklch(0.3 0.04 290 / 8%), inset 0 0 0 1px oklch(0.3 0.04 290 / 7%);
+  --shadow-thumb: 0 1px 2px oklch(0.3 0.04 290 / 18%), 0 0 0 1px oklch(0.3 0.04 290 / 8%);
+  --shadow-overlay: 0 2px 6px oklch(0.3 0.04 290 / 8%), 0 24px 60px -16px oklch(0.3 0.04 290 / 30%);
+  /* Menus, dialogs and the dock: see-through, over a blur of what is behind them. */
+  --glass: oklch(1 0 0 / 78%);
+  --overlay: oklch(0.3 0.03 290 / 22%);
+  /* The glow behind the CPU diagram. */
+  --ambient: oklch(0.52 0.17 248 / 7%);
+  /* The lid and pins of the chip in the header. */
+  --die-pin: oklch(0.62 0.02 290);
+  /* The dark glass of the 7-segment display and the terminal, the same in both themes. */
+  --screen: oklch(0.17 0.02 300);
+  --screen-foreground: oklch(0.93 0.04 90);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
@@ -145,18 +177,19 @@
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.53 0.016 285.938);
+  --muted-foreground: oklch(0.48 0.018 288);
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
+  --border: oklch(0.3 0.03 290 / 11%);
+  --input: oklch(0.3 0.03 290 / 16%);
   --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* One colour per field of an instruction and per pipeline stage: one lightness, five hues. */
+  --chart-1: oklch(0.56 0.16 250);
+  --chart-2: oklch(0.56 0.11 190);
+  --chart-3: oklch(0.56 0.16 305);
+  --chart-4: oklch(0.62 0.15 70);
+  --chart-5: oklch(0.58 0.17 15);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-primary: oklch(0.21 0.006 285.885);
@@ -178,23 +211,33 @@
 .dark {
   color-scheme: dark;
   scrollbar-color: oklch(0.95 0.03 300 / 22%) transparent;
-  --changed: oklch(0.36 0.07 80);
-  --changed-foreground: oklch(0.9 0.12 90);
-  --changed-glow: oklch(0.84 0.16 85);
+  --changed: oklch(0.35 0.075 80);
+  --changed-foreground: oklch(0.91 0.13 90);
+  --changed-glow: oklch(0.85 0.155 86);
   --written: var(--changed-glow);
-  --card-sheen: oklch(1 0 0 / 3.5%);
-  --overlay: oklch(0.1 0.02 305 / 55%);
+  --card-sheen: oklch(1 0 0 / 3%);
+  --overlay: oklch(0.08 0.02 305 / 48%);
+  --raised: oklch(0.232 0.026 303);
+  --grid-dot: oklch(0.95 0.03 300 / 7%);
+  --edge: oklch(1 0 0 / 7%);
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 30%), 0 12px 28px -16px oklch(0 0 0 / 55%);
+  --shadow-well: inset 0 1px 3px oklch(0 0 0 / 35%), inset 0 0 0 1px oklch(0 0 0 / 22%);
+  --shadow-thumb: inset 0 1px 0 oklch(1 0 0 / 9%), 0 1px 2px oklch(0 0 0 / 45%);
+  --shadow-overlay: 0 2px 8px oklch(0 0 0 / 35%), 0 28px 70px -16px oklch(0 0 0 / 70%);
+  --glass: oklch(0.215 0.026 303 / 72%);
+  --ambient: oklch(0.8 0.11 228 / 9%);
+  --die-pin: oklch(0.6 0.03 300);
   --drag-shadow: 0 18px 40px -12px oklch(0 0 0 / 60%);
-  --pointer: oklch(0.76 0.12 235);
+  --pointer: oklch(0.8 0.11 228);
   --pointer-foreground: oklch(0.18 0.02 260);
   /* As faint as an unlit digit (.digit-off), still above 4.5:1 on the memory table. */
   --zero-byte: color-mix(in oklch, var(--foreground) 55%, transparent);
   /* The inset is darker than the card in this theme: set into it, not raised from it. */
-  --page: oklch(0.13 0.02 305);
-  --inset: oklch(0.175 0.022 305);
+  --page: oklch(0.125 0.018 303);
+  --inset: oklch(0.158 0.021 303);
   --background: oklch(0.16 0.02 305);
   --foreground: oklch(0.95 0.012 90);
-  --card: oklch(0.215 0.024 305);
+  --card: oklch(0.207 0.024 303);
   --card-foreground: oklch(0.95 0.012 90);
   --popover: oklch(0.23 0.026 305);
   --popover-foreground: oklch(0.95 0.012 90);
@@ -203,18 +246,18 @@
   --secondary: oklch(0.27 0.03 305);
   --secondary-foreground: oklch(0.95 0.012 90);
   --muted: oklch(0.27 0.03 305);
-  --muted-foreground: oklch(0.72 0.03 300);
+  --muted-foreground: oklch(0.74 0.028 300);
   --accent: oklch(0.27 0.03 305);
   --accent-foreground: oklch(0.95 0.012 90);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.95 0.03 300 / 11%);
+  --border: oklch(0.95 0.03 300 / 10%);
   --input: oklch(0.95 0.03 300 / 16%);
   --ring: oklch(0.6 0.05 300);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --chart-1: oklch(0.78 0.11 245);
+  --chart-2: oklch(0.78 0.1 190);
+  --chart-3: oklch(0.78 0.11 305);
+  --chart-4: oklch(0.82 0.13 85);
+  --chart-5: oklch(0.78 0.12 15);
   --sidebar: oklch(0.2 0.024 305);
   --sidebar-foreground: oklch(0.95 0.012 90);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -231,6 +274,8 @@
   }
   html {
     @apply font-sans antialiased;
+    /* Every number keeps its width, so nothing shifts while a program runs. */
+    font-variant-numeric: tabular-nums;
   }
   body {
     @apply bg-background text-foreground;
@@ -247,11 +292,6 @@
 
 /* In the components layer so Tailwind utilities on the same element still win. */
 @layer components {
-  /* A little light from above, so the panels read as raised rather than flat. */
-  .dark [data-slot='card'] {
-    background-image: linear-gradient(to bottom, var(--card-sheen), transparent 5rem);
-  }
-
   /* The one page-load moment: the panels arrive in reading order. */
   :root:not([data-motion='reduced']) {
     .app-surface main > div > * {
@@ -317,64 +357,6 @@
         0 0 0 0 var(--changed-glow),
         0 0 0 0 var(--changed-glow);
     }
-  }
-
-  /*
-   * A connection in the CPU diagram. When the last instruction used it, it lights up in the
-   * colour of that use: a short glow, then a steady light until the next instruction.
-   */
-  .wire {
-    position: relative;
-    height: 2px;
-    border-radius: 1px;
-    background: color-mix(in oklch, var(--foreground) 15%, transparent);
-  }
-  .wire-lit {
-    --kind-color: var(--pointer);
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--kind-color);
-    animation: wire-light 700ms ease-out;
-  }
-  .wire-lit[data-kind='write'] {
-    --kind-color: var(--written);
-  }
-  @keyframes wire-light {
-    from {
-      opacity: 0;
-    }
-    30% {
-      opacity: 1;
-      box-shadow: 0 0 10px 2px var(--kind-color);
-    }
-    to {
-      box-shadow: 0 0 0 0 var(--kind-color);
-    }
-  }
-
-  /* The name of one of the two units inside the CPU diagram. */
-  .unit-title {
-    margin-bottom: 0.5rem;
-    color: var(--muted-foreground);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  /* The unit's short name: told apart by its font, not by a frame of its own. */
-  .unit-title > span {
-    margin-left: 0.375rem;
-    font-family: var(--font-mono);
-    letter-spacing: 0;
-  }
-
-  /*
-   * A unit the instruction on show does not use. It keeps its place and size, so nothing below
-   * moves from one step to the next, and steps back instead.
-   */
-  .unit-idle {
-    opacity: 0.6;
   }
 
   /* One character of a number; see RollingDigits.vue. */
@@ -464,94 +446,19 @@
     position: absolute;
     top: 0;
     left: 0;
-    border-radius: var(--radius-sm);
-    padding: 0.0625rem 0.3125rem;
+    border-radius: 9999px;
+    padding: 0.0625rem 0.4375rem;
     background: var(--changed-glow);
     color: var(--changed-glow-foreground);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     font-weight: 600;
     font-feature-settings: 'zero';
-    box-shadow: 0 0 14px 1px var(--changed-glow);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 45%),
+      0 0 0 1px color-mix(in oklch, var(--changed-glow) 60%, black),
+      0 0 18px 2px color-mix(in oklch, var(--changed-glow) 70%, transparent);
     will-change: transform;
-  }
-
-  /* The I/O devices: lit parts glow in the "written" colour, like a wire that was just driven. */
-  .device-title {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    margin-bottom: 0.375rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-  .device-port {
-    color: var(--muted-foreground);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 400;
-  }
-  .device-led {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 9999px;
-    background: color-mix(in oklch, var(--foreground) 12%, transparent);
-    transition:
-      background-color 200ms,
-      box-shadow 200ms;
-  }
-  .device-led.device-lit {
-    background: var(--written);
-    box-shadow: 0 0 8px 1px var(--changed-glow);
-  }
-  .device-segments > * {
-    fill: color-mix(in oklch, var(--foreground) 10%, transparent);
-    rx: 1.5px;
-    transition: fill 200ms;
-  }
-  .device-segments > .device-lit {
-    fill: var(--written);
-    filter: drop-shadow(0 0 2px var(--changed-glow));
-  }
-  .device-switch {
-    position: relative;
-    display: flex;
-    align-items: flex-end;
-    width: 1rem;
-    height: 1.75rem;
-    border: 1px solid var(--input);
-    border-radius: var(--radius-sm);
-    padding: 2px;
-    background: color-mix(in oklch, var(--foreground) 6%, transparent);
-    outline: none;
-    transition:
-      background-color 200ms,
-      border-color 200ms;
-  }
-  /* A finger needs more than the drawn 16×28: the hit area (36×44) reaches into the wider gap. */
-  @media (pointer: coarse) {
-    .device-switch::after {
-      content: '';
-      position: absolute;
-      inset: -0.5rem -0.625rem;
-    }
-  }
-  .device-switch:focus-visible {
-    box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
-  }
-  .device-switch-on {
-    align-items: flex-start;
-    border-color: transparent;
-    background: var(--pointer);
-  }
-  .device-knob {
-    width: 100%;
-    height: 0.625rem;
-    border-radius: calc(var(--radius-sm) - 2px);
-    background: var(--muted-foreground);
-  }
-  .device-switch-on .device-knob {
-    background: var(--pointer-foreground);
   }
 
   /*
@@ -633,9 +540,6 @@
     z-index: var(--z-drag);
     scale: 1.01;
     transition: scale 150ms ease-out;
-  }
-  .sortable-lifted > [data-slot='card'] {
-    box-shadow: var(--drag-shadow);
   }
   /* Dropped: it glides into its place and settles back down. */
   .sortable-settling {
@@ -723,55 +627,4 @@
       transition: none;
     }
   }
-}
-
-/*
- * The command palette, roomier than the shadcn default. Unlayered and scoped to the palette so
- * it overrides the generated components' utilities without hand-editing them.
- */
-.command-palette [data-slot='command'] {
-  padding: 0.75rem;
-}
-.command-palette [data-slot='command-input-wrapper'] {
-  padding: 0 0 0.5rem;
-}
-.command-palette [data-slot='input-group'] {
-  height: 2.75rem !important;
-}
-.command-palette [data-slot='command-input'] {
-  font-size: 0.9375rem;
-}
-.command-palette [data-slot='command-group'] {
-  padding: 0.5rem 0 0.25rem;
-}
-.command-palette [data-slot='command-group-heading'] {
-  padding: 0.375rem 0.75rem;
-  color: var(--muted-foreground);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-.command-palette [data-slot='command-item'][data-disabled] {
-  opacity: 0.4;
-  pointer-events: none;
-}
-/*
- * shadcn's small button sets 0.8rem, a size between text-xs and text-code that nothing else uses.
- * Unlayered, like the palette above, so it beats the generated utility without editing it. `cn`
- * drops that class wherever a button sets a size of its own, so this never overrides one.
- */
-.text-\[0\.8rem\] {
-  font-size: var(--text-xs);
-}
-.text-\[0\.8rem\].font-mono {
-  font-size: var(--text-code);
-}
-/*
- * A card is set off from the page by its surface (--card on --page), so the outline shadcn draws
- * around it goes. Only its colour is cleared, which keeps the shadow of a card being dragged.
- */
-[data-slot='card'] {
-  --tw-ring-color: transparent;
-}
-.dark [data-slot='dialog-overlay'] {
-  background: var(--overlay);
 }

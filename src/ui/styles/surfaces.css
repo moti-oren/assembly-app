@@ -1,0 +1,100 @@
+/* The surfaces of the app: the page, the cards on it, and the glass of whatever floats above. */
+
+@layer components {
+  /* The page is a drawing sheet: a faint grid of dots under everything. */
+  .app-surface {
+    background-image: radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+
+  /* A little light from above, so the panels read as raised rather than flat. */
+  .dark [data-slot='card'] {
+    background-image: linear-gradient(to bottom, var(--card-sheen), transparent 5rem);
+  }
+
+  /* The CPU is what the page is about: its card alone has a glow behind the diagram. */
+  [data-slot='card'].cpu-stage {
+    background-image:
+      radial-gradient(70% 22rem at 50% 0%, var(--ambient), transparent),
+      linear-gradient(to bottom, var(--card-sheen, transparent), transparent 5rem);
+  }
+
+  [data-slot='kbd'] {
+    box-shadow:
+      inset 0 -1px 0 oklch(0 0 0 / 18%),
+      0 0 0 1px var(--border);
+  }
+}
+
+/*
+ * A card is set off from the page by its surface, a hairline and a shadow. Unlayered, and through
+ * Tailwind's own shadow variables, so the generated component's ring utility composes them
+ * without being hand-edited.
+ */
+[data-slot='card'] {
+  --tw-ring-color: var(--border);
+  --tw-shadow: var(--shadow-card);
+  --tw-inset-shadow: inset 0 1px 0 var(--edge);
+}
+.sortable-lifted > [data-slot='card'] {
+  --tw-shadow: var(--drag-shadow);
+}
+
+[data-slot='dialog-overlay'],
+[data-slot='alert-dialog-overlay'] {
+  background: var(--overlay);
+}
+
+/* Everything that floats over the page is the same glass as the command palette. */
+[data-slot='dialog-content'],
+[data-slot='alert-dialog-content'],
+[data-slot='dropdown-menu-content'],
+[data-slot='select-content'] {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.6);
+  --tw-ring-color: var(--border);
+  --tw-shadow: var(--shadow-overlay);
+  --tw-inset-shadow: inset 0 1px 0 var(--edge);
+}
+
+/*
+ * The command palette, roomier than the shadcn default. Unlayered and scoped to the palette so
+ * it overrides the generated components' utilities without hand-editing them.
+ */
+.command-palette [data-slot='command'] {
+  padding: 0.75rem;
+  background: transparent;
+}
+.command-palette [data-slot='command-input-wrapper'] {
+  padding: 0 0 0.5rem;
+}
+.command-palette [data-slot='input-group'] {
+  height: 2.75rem !important;
+}
+.command-palette [data-slot='command-input'] {
+  font-size: 0.9375rem;
+}
+.command-palette [data-slot='command-group'] {
+  padding: 0.5rem 0 0.25rem;
+}
+.command-palette [data-slot='command-group-heading'] {
+  padding: 0.375rem 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.command-palette [data-slot='command-item'][data-disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+/*
+ * shadcn's small button sets 0.8rem, a size between text-xs and text-code that nothing else uses.
+ * Unlayered, like the palette above, so it beats the generated utility without editing it. `cn`
+ * drops that class wherever a button sets a size of its own, so this never overrides one.
+ */
+.text-\[0\.8rem\] {
+  font-size: var(--text-xs);
+}
+.text-\[0\.8rem\].font-mono {
+  font-size: var(--text-code);
+}
