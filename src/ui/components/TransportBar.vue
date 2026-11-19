@@ -237,6 +237,12 @@ const toggles = computed(() => [
         >
           {{ executed }} / {{ total }}
         </span>
+      </div>
+
+      <span class="hidden h-6 w-px bg-border lg:block" aria-hidden="true" />
+
+      <!-- What the page shows, apart from the controls that drive the program. -->
+      <div class="flex items-center gap-1.5" role="group" aria-label="Panels">
         <!-- Icons only below xl, so the name moves into the label and a tooltip. -->
         <Tooltip v-for="toggle in toggles" :key="toggle.label">
           <TooltipTrigger as-child>
