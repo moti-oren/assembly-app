@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   registerBits: '8086-register-bits',
   reduceMotion: '8086-reduce-motion',
   panelOrder: '8086-panel-order',
+  sidebarLayout: '8086-sidebar-layout',
   architecture: '8086-architecture',
   rv32Pipeline: '8086-rv32-pipeline',
   rv32Forwarding: '8086-rv32-forwarding'
