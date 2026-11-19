@@ -44,10 +44,10 @@
 }
 
 @theme inline {
-  /* Plex Sans has no Hebrew letters; the browser takes those from Plex Sans Hebrew. */
+  /* Plex Sans has no Hebrew letters; the browser takes those from Heebo, which is clean and modern. */
   --font-sans:
-    'IBM Plex Sans', 'IBM Plex Sans Hebrew', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial',
-    ui-sans-serif, system-ui, sans-serif;
+    'IBM Plex Sans', 'Heebo', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
+    system-ui, sans-serif;
   --font-mono:
     'IBM Plex Mono', 'Plex Mono Fallback Consolas', 'Plex Mono Fallback Menlo', ui-monospace,
     monospace;
