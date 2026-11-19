@@ -56,6 +56,8 @@
   --color-written: var(--written);
   --color-pointer: var(--pointer);
   --color-pointer-foreground: var(--pointer-foreground);
+  --color-page: var(--page);
+  --color-inset: var(--inset);
   --font-heading: var(--font-sans);
   /* Code and values, and the smallest labels. No line height: they keep their parent's. */
   --text-code: 0.8125rem;
@@ -124,8 +126,14 @@
   --written: oklch(0.666 0.179 58.318);
   --pointer: oklch(0.55 0.18 255);
   --pointer-foreground: oklch(0.985 0 0);
-  /* A memory byte that holds 0. Muted text on white is already near 4.5:1, so no fainter here. */
+  /* A memory byte that holds 0. Muted text is already near 4.5:1 on the inset, so no fainter. */
   --zero-byte: var(--muted-foreground);
+  /*
+   * Three surfaces, each a clear step from the next: the page, the cards on it, and the tables,
+   * lists and diagrams set into a card. Inputs and the bars keep --background.
+   */
+  --page: oklch(0.952 0.003 286);
+  --inset: oklch(0.972 0.002 286);
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
@@ -137,7 +145,7 @@
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
+  --muted-foreground: oklch(0.53 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
@@ -181,9 +189,12 @@
   --pointer-foreground: oklch(0.18 0.02 260);
   /* As faint as an unlit digit (.digit-off), still above 4.5:1 on the memory table. */
   --zero-byte: color-mix(in oklch, var(--foreground) 55%, transparent);
+  /* The inset is darker than the card in this theme: set into it, not raised from it. */
+  --page: oklch(0.13 0.02 305);
+  --inset: oklch(0.175 0.022 305);
   --background: oklch(0.16 0.02 305);
   --foreground: oklch(0.95 0.012 90);
-  --card: oklch(0.2 0.024 305);
+  --card: oklch(0.215 0.024 305);
   --card-foreground: oklch(0.95 0.012 90);
   --popover: oklch(0.23 0.026 305);
   --popover-foreground: oklch(0.95 0.012 90);

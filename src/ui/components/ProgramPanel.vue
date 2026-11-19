@@ -122,7 +122,7 @@ function machineCode(index: number): string {
     <CardContent>
       <ol
         ref="list"
-        class="relative max-h-80 overflow-y-auto rounded-lg lg:max-h-112 bg-muted/30 py-1 font-mono text-code"
+        class="relative max-h-80 overflow-y-auto rounded-lg lg:max-h-112 bg-inset py-1 font-mono text-code"
         aria-label="Program lines"
       >
         <li
