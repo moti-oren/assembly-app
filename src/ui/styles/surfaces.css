@@ -17,6 +17,8 @@
   .workbench-pane {
     --pane: var(--page);
     min-width: 0;
+    /* A card lifted by a drag grows a little past the pane; that must not add a scrollbar. */
+    overflow-x: clip;
     background: var(--pane);
   }
   /* What you write: a recessed pane. Its lists stand out of it as crisp wells. */
