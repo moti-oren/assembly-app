@@ -1,5 +1,6 @@
 import { en, type Messages } from './messages/en';
 import { he } from './messages/he';
+import { hebrewText, mapTexts } from './hebrewText';
 
 /** The languages the interface can be shown in. */
 export const LOCALES = ['en', 'he'] as const;
@@ -9,7 +10,7 @@ export type Locale = (typeof LOCALES)[number];
 /** Each language's name in itself, as a switch to it is labelled whatever the interface shows. */
 export const LOCALE_NAMES: Record<Locale, string> = { en: 'English', he: 'עברית' };
 
-const MESSAGES: Record<Locale, Messages> = { en, he };
+const MESSAGES: Record<Locale, Messages> = { en, he: mapTexts(he, hebrewText) };
 
 export function isLocale(value: unknown): value is Locale {
   return LOCALES.some((locale) => locale === value);
