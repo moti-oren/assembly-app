@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { COMPARISON_TASKS } from '@/core/comparisonTasks';
+import { cpuError } from '@/core/shared/cpuError';
+import { CPU_ERROR_TEXTS } from '@/core/shared/cpuErrorTexts';
 import { MOS6502_ENCODING_TEXTS } from '@/core/mos6502/encodingTexts';
 import { RV32_ENCODING_TEXTS } from '@/core/rv32/encodingTexts';
 import { ENCODING_TEXTS } from '@/core/x86/encodingTexts';
@@ -19,6 +21,7 @@ import {
   RV32_ENCODING_TEXTS as HEBREW_RV32,
   X86_ENCODING_TEXTS as HEBREW_X86
 } from './messages/he/encodingTexts';
+import { CPU_ERROR_TEXTS as HEBREW_ERRORS } from './messages/he/cpuErrors';
 import { FLAG_REASON_TEXTS as HEBREW_FLAG_REASONS } from './messages/he/flagReasons';
 
 describe('instruction texts', () => {
@@ -127,5 +130,30 @@ describe('machine code texts', () => {
     expect(messagesFor('en').x86Text.encoding('portNumber', {})).toBe('The port number');
     expect(he.mos6502Text.encoding('cyclesPage', { cycles: 4 })).toContain('4');
     expect(he.rv32Text.encoding('register', { abi: 'a0', index: 10 })).toBe('a0 (x10)');
+  });
+});
+
+describe('CPU errors', () => {
+  it('fill the same holes in Hebrew as in English', () => {
+    const holes = (template: string) =>
+      [...template.matchAll(/\{(\w+)\}/g)].map((hole) => hole[1]).sort();
+    for (const key of Object.keys(CPU_ERROR_TEXTS) as (keyof typeof CPU_ERROR_TEXTS)[]) {
+      expect(holes(HEBREW_ERRORS[key]), key).toEqual(holes(CPU_ERROR_TEXTS[key]));
+    }
+  });
+
+  it('keep the English message and say which sentence it is', () => {
+    const error = cpuError('tooManySteps', { count: 5 });
+    expect(error.message).toBe(
+      'Stopped after 5 steps, which usually means an endless loop. Use Step to see which jump keeps repeating.'
+    );
+    expect(error.said).toEqual({ key: 'tooManySteps', params: { count: 5 } });
+  });
+
+  it('are worded in the language of the interface', () => {
+    const { key, params } = cpuError('noLineAt', { at: '0x00000004' }).said!;
+    expect(messagesFor('en').cpuError(key, params)).toContain('No program line at 0x00000004');
+    expect(messagesFor('he').cpuError(key, params)).toContain('0x00000004');
+    expect(messagesFor('he').cpuError(key, params)).toContain('אין שורה');
   });
 });

@@ -2,6 +2,7 @@ import type { CoreTextMessages } from '../en/coreText';
 import { coreText as english } from '../en/coreText';
 import { EXAMPLE_TEXTS, TASK_TEXTS } from './examples';
 import { MOS6502_ENCODING_TEXTS, RV32_ENCODING_TEXTS, X86_ENCODING_TEXTS } from './encodingTexts';
+import { CPU_ERROR_TEXTS } from './cpuErrors';
 import { FLAG_REASON_TEXTS } from './flagReasons';
 import { fillText } from '@/core/shared/text';
 import type { FlagName } from '@/core/x86/flags';
@@ -322,6 +323,7 @@ const MOS6502_DESCRIPTIONS: Record<Mos6502Mnemonic, string> = {
 };
 
 export const coreText: CoreTextMessages = {
+  cpuError: (key, params) => fillText(CPU_ERROR_TEXTS[key], params),
   x86Text: {
     category: (category) => X86_CATEGORIES[category],
     description: (mnemonic, prefix) =>

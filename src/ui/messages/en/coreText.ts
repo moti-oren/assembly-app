@@ -4,6 +4,7 @@ import { MOS6502 } from '@/core/mos6502/architecture';
 import { RV32 } from '@/core/rv32/architecture';
 import { X86 } from '@/core/x86/architecture';
 import type { ArchitectureId } from '../../architectures';
+import { CPU_ERROR_TEXTS, type CpuErrorKey } from '@/core/shared/cpuErrorTexts';
 import { fillText, type TextParams } from '@/core/shared/text';
 import { OPERAND_KIND_LABELS } from '@/core/x86/decode';
 import { ENCODING_TEXTS, type EncodingTextKey } from '@/core/x86/encodingTexts';
@@ -55,6 +56,8 @@ function taskOf(id: string) {
  * each, typed by the same keys, so a mnemonic or flag missing from it is a type error.
  */
 export const coreText = {
+  /** What the CPU says when it refuses an instruction. */
+  cpuError: (key: CpuErrorKey, params: TextParams) => fillText(CPU_ERROR_TEXTS[key], params),
   x86Text: {
     category: (category: X86Category) => X86_CATEGORIES[category],
     description: (mnemonic: X86Mnemonic, prefix?: RepeatPrefix | null) =>
