@@ -127,7 +127,7 @@ const toggles = computed(() => [
       <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Run">
         <Button
           size="sm"
-          class="px-3 pointer-coarse:h-11"
+          class="quiet-disabled px-3 pointer-coarse:h-11 hover:bg-primary/85 disabled:opacity-100"
           :disabled="finished"
           @click="emit('step')"
         >

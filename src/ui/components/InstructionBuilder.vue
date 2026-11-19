@@ -459,7 +459,7 @@ function onBackspace(event: KeyboardEvent): void {
         <Button
           variant="outline"
           size="sm"
-          class="disabled:text-muted-foreground disabled:opacity-100"
+          class="quiet-disabled disabled:opacity-100"
           :disabled="!complete"
           @click="submit(true)"
         >
@@ -468,7 +468,7 @@ function onBackspace(event: KeyboardEvent): void {
         </Button>
         <Button
           size="sm"
-          class="px-3 disabled:bg-primary/15 disabled:text-primary disabled:opacity-100"
+          class="quiet-disabled px-3 hover:bg-primary/85 disabled:opacity-100"
           :disabled="!complete"
           @click="submit(false)"
         >

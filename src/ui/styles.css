@@ -54,6 +54,18 @@
   box-shadow: var(--shadow-well);
 }
 
+/*
+ * A button not usable yet, told by a flat quiet fill rather than by fading, which reads as
+ * broken. Paired with disabled:opacity-100, which drops the button's own fade.
+ */
+@utility quiet-disabled {
+  &:disabled {
+    border-color: var(--disabled-border);
+    background-color: var(--disabled);
+    color: var(--disabled-foreground);
+  }
+}
+
 @theme inline {
   --font-sans:
     'IBM Plex Sans', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
