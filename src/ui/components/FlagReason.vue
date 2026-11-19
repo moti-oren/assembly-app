@@ -30,7 +30,7 @@ const reason = computed(() => props.record && explainFlag(props.record, props.fl
         {{ reason.value === null ? t.flags.unchanged(flag) : `${flag} = ${reason.value ? 1 : 0}` }}
       </span>
       <br />
-      {{ reason.text }}
+      {{ t.x86Text.flagReason(reason.key, reason.params) }}
     </p>
   </div>
 </template>

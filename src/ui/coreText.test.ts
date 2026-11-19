@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COMPARISON_TASKS } from '@/core/comparisonTasks';
+import { FLAG_REASON_TEXTS } from '@/core/x86/flagReasonTexts';
 import { decode } from '@/core/x86/decode';
 import { X86 } from '@/core/x86/architecture';
 import { RV32 } from '@/core/rv32/architecture';
@@ -10,6 +11,7 @@ import { MNEMONICS as RV32_MNEMONICS } from '@/core/rv32/instructions';
 import { PSEUDO_MNEMONICS } from '@/core/rv32/pseudo';
 import { MNEMONICS as MOS6502_MNEMONICS } from '@/core/mos6502/instructions';
 import { LOCALES, messagesFor } from './locale';
+import { FLAG_REASON_TEXTS as HEBREW_FLAG_REASONS } from './messages/he/flagReasons';
 
 describe('instruction texts', () => {
   it('describe every instruction of every architecture in every language', () => {
@@ -75,5 +77,22 @@ describe('example and task texts', () => {
       const ids = architecture.examples.map((example) => example.id);
       expect(new Set(ids).size).toBe(ids.length);
     }
+  });
+});
+
+describe('flag reasons', () => {
+  const holes = (template: string) => [...template.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+
+  it('fill the same holes in Hebrew as in English', () => {
+    for (const key of Object.keys(FLAG_REASON_TEXTS) as (keyof typeof FLAG_REASON_TEXTS)[]) {
+      expect(holes(HEBREW_FLAG_REASONS[key]), key).toEqual(holes(FLAG_REASON_TEXTS[key]));
+    }
+  });
+
+  it('are worded in the language of the interface', () => {
+    const params = { result: '00h' };
+    expect(messagesFor('en').x86Text.flagReason('zero', params)).toBe('The result 00h is zero.');
+    expect(messagesFor('he').x86Text.flagReason('zero', params)).toContain('00h');
+    expect(messagesFor('he').x86Text.flagReason('zero', params)).toContain('אפס');
   });
 });

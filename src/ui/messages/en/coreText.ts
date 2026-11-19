@@ -4,7 +4,9 @@ import { MOS6502 } from '@/core/mos6502/architecture';
 import { RV32 } from '@/core/rv32/architecture';
 import { X86 } from '@/core/x86/architecture';
 import type { ArchitectureId } from '../../architectures';
+import { fillText, type TextParams } from '@/core/shared/text';
 import { OPERAND_KIND_LABELS } from '@/core/x86/decode';
+import { FLAG_REASON_TEXTS, type FlagReasonKey } from '@/core/x86/flagReasonTexts';
 import { FLAG_INFO, type FlagName } from '@/core/x86/flags';
 import {
   CATEGORY_LABELS as X86_CATEGORIES,
@@ -60,7 +62,8 @@ export const coreText = {
     operandKind: (kind: OperandKind) => OPERAND_KIND_LABELS[kind],
     flagLabel: (flag: FlagName) => FLAG_INFO[flag].label,
     flagDescription: (flag: FlagName) => FLAG_INFO[flag].description,
-    register: (register: WordRegister) => REGISTER_DESCRIPTIONS[register]
+    register: (register: WordRegister) => REGISTER_DESCRIPTIONS[register],
+    flagReason: (key: FlagReasonKey, params: TextParams) => fillText(FLAG_REASON_TEXTS[key], params)
   },
   rv32Text: {
     category: (category: Rv32Category) => RV32_CATEGORIES[category],
