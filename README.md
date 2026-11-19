@@ -70,9 +70,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - On a wide screen, stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
-- Each family of instructions has a colour of its own in the choices (transfers, arithmetic,
-  logic, shifts, jumps and branches, the stack): a dot before the family's name and the left edge
-  of each of its instructions.
+- The choices are grouped by family (transfers, arithmetic, logic, shifts, jumps and branches,
+  the stack), each under its own heading. Colour is kept for what the CPU does: blue where it reads
+  and where execution is, orange where it writes.
 - **Reset**, in the bottom bar next to Undo, sets registers, flags and memory back to their start
   values and clears the history; the program is kept. When the history holds instructions it
   asks first, since Undo cannot bring them back.
@@ -125,7 +125,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   on its own, so the program stays in view under a long CPU column, and the bottom bar sits below
   both.
 - The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
-  the command palette has them too.
+  the command palette has them too. The app starts in the light theme until you pick one.
 - **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
   flashes and the glowing wires; the changed values stay marked. It is remembered, and it is on by
   itself when the system asks for reduced motion.
@@ -168,14 +168,15 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   EX, so when it is taken the two instructions fetched behind it are struck out (flushed). Turn
   **Forwarding** off to see every instruction wait in ID until the one before it has written its
   result back. With it on, a blue line down the chart joins an EX to the stage above it that handed
-  it a result before that result was written back. Under the chart, a sentence says why each stall and flush happened, and a line adds
+  it a result before that result was written back. The stages of the last instruction run are
+  tinted blue. Under the chart, a sentence says why each stall and flush happened, and a line adds
   up the cycles. The CPU itself still runs one instruction at a time; the chart is worked out from
   the history.
 - The **Machine code** panel shows the 32 bits of an instruction with each field over its bits:
   opcode, rd, funct3, rs1, rs2, funct7 and the pieces of the immediate, which B-type and J-type
   instructions split across the word.
 - The Memory panel jumps to the **Code**, **Data**, **Stack** or **Devices**. Machine code is blue,
-  device registers amber, and dots mark addresses with nothing wired to them.
+  device registers orange, and dots mark addresses with nothing wired to them.
 
 ## 6502 mode
 
@@ -291,8 +292,9 @@ npm run verify:6502 # check the 6502 core against py65
 - בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש בתיבה מילים או טקסט, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt, ימינה ושמאלה עוברים בין המילים ובתוך הטקסט, ולמעלה ולמטה מגיעים לתחילת התיבה ולסופה. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע.
 - במסך רחב, הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
-- לכל משפחת הוראות יש צבע משלה בין האפשרויות (העברות, חשבון, לוגיקה, הזזות, קפיצות וענפים,
-  המחסנית): נקודה לפני שם המשפחה, והקצה השמאלי של כל אחת מההוראות שלה.
+- האפשרויות מקובצות לפי משפחה (העברות, חשבון, לוגיקה, הזזות, קפיצות וענפים, המחסנית), כל אחת
+  תחת כותרת משלה. הצבע שמור למה שהמעבד עושה: כחול במקום שבו הוא קורא ובמקום שבו נמצא הביצוע,
+  כתום במקום שבו הוא כותב.
 - **Reset**, בסרגל התחתון ליד Undo, מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את
   ההיסטוריה; התוכנית נשמרת.
   כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
@@ -343,7 +345,7 @@ npm run verify:6502 # check the 6502 core against py65
   (Ctrl+K) מחזירה אותו לברירת המחדל. במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת גלויה
   לצד עמודת CPU ארוכה, והסרגל התחתון נמצא מתחת לשתיהן.
 - תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
-  הפקודות מציעה אותם.
+  הפקודות מציעה אותם. האפליקציה נפתחת בערכת הנושא הבהירה עד שבוחרים אחרת.
 - **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
   הזוהרים; הערכים שהשתנו נשארים מסומנים. ההגדרה נשמרת, והיא פועלת מעצמה כשהמערכת מבקשת להפחית
   תנועה.
@@ -380,13 +382,14 @@ npm run verify:6502 # check the 6502 core against py65
   אחר מחזור. משבצת מקווקוות היא מחזור של המתנה: הוראה שצריכה ערך שטעינה עוד לא הביאה מחכה מחזור
   אחד ב-ID. ענף או קפיצה משנים את PC ב-EX, ולכן כשהם נלקחים שתי ההוראות שנשלפו אחריהם מסומנות בקו
   (flush). כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. כשהוא
-  פועל, קו כחול לאורך התרשים מחבר EX לשלב שמעליו שמסר לו תוצאה לפני שנכתבה חזרה. מתחת
+  פועל, קו כחול לאורך התרשים מחבר EX לשלב שמעליו שמסר לו תוצאה לפני שנכתבה חזרה. השלבים של
+  ההוראה האחרונה שרצה צבועים בכחול. מתחת
   לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים. המעבד עצמו עדיין מריץ
   הוראה אחת בכל פעם; התרשים מחושב מתוך ההיסטוריה.
 - חלונית **Machine code** מציגה את 32 הסיביות של הוראה, וכל שדה מעל הסיביות שלו: opcode, rd,
   funct3, rs1, rs2, funct7 וחלקי ה-immediate, שהוראות B ו-J מפצלות לאורך המילה.
 - חלונית הזיכרון קופצת אל **Code**, **Data**, **Stack** או **Devices**. קוד מכונה מוצג בכחול,
-  רגיסטרים של התקנים בענבר, ונקודות מסמנות כתובות שאין בהן כלום.
+  רגיסטרים של התקנים בכתום, ונקודות מסמנות כתובות שאין בהן כלום.
 
 ## מצב 6502
 

@@ -2,8 +2,8 @@
 
 @layer components {
   /*
-   * The app's mark: a chip seen from above, with the gold lid of an early ceramic 8086 and a row
-   * of pins on each side. The pins sit behind the lid, so only their ends show.
+   * The app's mark: a chip seen from above, an ink lid with its pin-1 dot and a row of pins on
+   * each side. The pins sit behind the lid, so only their ends show.
    */
   .die-mark {
     position: relative;
@@ -14,10 +14,13 @@
     margin: 0.1875rem;
     border-radius: 0.25rem;
     background:
-      radial-gradient(circle at 5px 5px, oklch(0.3 0.06 70 / 55%) 1.1px, transparent 1.7px),
-      linear-gradient(150deg, oklch(0.9 0.11 92), oklch(0.76 0.13 76));
-    box-shadow: inset 0 0 0 1px oklch(0.4 0.08 70 / 45%);
-    color: oklch(0.27 0.05 70);
+      radial-gradient(
+        circle at 5px 5px,
+        color-mix(in oklch, var(--die-lid-foreground) 45%, transparent) 1.1px,
+        transparent 1.7px
+      ),
+      var(--die-lid);
+    color: var(--die-lid-foreground);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     font-weight: 700;

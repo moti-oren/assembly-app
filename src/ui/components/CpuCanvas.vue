@@ -22,8 +22,7 @@ import CpuViewToggle from './CpuViewToggle.vue';
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
-    <!-- The one surface with a drawing grid, so the chip on it is what the eye goes to. -->
-    <CardContent class="cpu-canvas border-t py-4">
+    <CardContent class="border-t py-4">
       <slot />
     </CardContent>
   </Card>

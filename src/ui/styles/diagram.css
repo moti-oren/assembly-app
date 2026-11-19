@@ -1,15 +1,9 @@
 /* The CPU diagrams: the canvas, the chip on it, the units inside, and the wires between them. */
 
 @layer components {
-  /* The one place with a drawing grid: the sheet the CPU is drawn on. */
-  .cpu-canvas {
-    background-image: radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
-    background-size: 14px 14px;
-    background-position: 7px 7px;
-  }
-  /* The chip itself: a plain surface on the sheet, so its tables are read without the dots. */
+  /* The chip itself: a plain surface on the flat sheet, edged by one hairline. */
   .chip-package {
-    border: 1px solid var(--input);
+    border: 1px solid var(--border);
     background-color: var(--card);
   }
   /* A unit (the ALU, the adder, a stage): on the sheet a surface, inside the chip set into it. */
@@ -17,9 +11,26 @@
     border-color: var(--input);
     background-color: var(--card);
   }
+  /* Inside the chip, a unit is set apart by its fill, not by a frame within the frame. */
   .chip-package .chip-block {
-    border-color: var(--border);
-    background-color: var(--page);
+    border-color: var(--block-edge);
+    background-color: var(--recessed);
+  }
+
+  /*
+   * The tag of a pipeline stage: neutral, until the stage is the one at work. Doubled up to win
+   * over the colour of a unit's short name, which it also is.
+   */
+  .stage-chip.stage-chip {
+    border-radius: var(--radius-sm);
+    padding-inline: 0.25rem;
+    background: var(--stage-chip);
+    color: var(--stage-chip-foreground);
+  }
+  .stage-chip.stage-chip-active {
+    background: var(--pointer-soft);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--pointer) 45%, transparent);
+    color: var(--foreground);
   }
 
   /*
@@ -86,7 +97,7 @@
 
   /* A place a value will be once there is one: the standby reading of a unit. */
   .standby {
-    color: var(--muted-foreground);
+    color: var(--tertiary-foreground);
     letter-spacing: 0.08em;
   }
 

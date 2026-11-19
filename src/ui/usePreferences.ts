@@ -15,8 +15,8 @@ export const CPU_VIEW_LABELS: Record<CpuView, string> = {
 
 /** Theme, sound, view and motion, shared by the header and the command palette. All are remembered. */
 export const usePreferences = createGlobalState(() => {
-  /** Dark until the user picks a theme. */
-  const isDark = useDark({ initialValue: 'dark' });
+  /** Light until the user picks a theme. */
+  const isDark = useDark({ initialValue: 'light' });
   const soundOn = useLocalStorage(STORAGE_KEYS.sound, false);
   /** The CPU's state as one wired diagram, or as the separate register and flag tables. */
   const cpuView = useLocalStorage<CpuView>(STORAGE_KEYS.cpuView, 'diagram', {
@@ -44,17 +44,15 @@ export const usePreferences = createGlobalState(() => {
     else delete document.documentElement.dataset.motion;
   });
 
-  function toggleTheme(): void {
-    const flip = async (): Promise<void> => {
-      isDark.value = !isDark.value;
-      await nextTick();
-    };
-    if (calm.value || !('startViewTransition' in document)) {
-      void flip();
-    } else {
-      // Cross-fades the whole page instead of snapping between the two palettes.
-      document.startViewTransition(flip);
-    }
+  /** Switches at once: transitions are held off for a frame, so no control fades through grey. */
+  async function toggleTheme(): Promise<void> {
+    const root = document.documentElement;
+    root.dataset.themeSwitch = '';
+    isDark.value = !isDark.value;
+    await nextTick();
+    // Styles are worked out once with the new palette while transitions are still off.
+    void document.body.offsetHeight;
+    setTimeout(() => delete root.dataset.themeSwitch, 1);
   }
 
   /** Does nothing while sound is off. */

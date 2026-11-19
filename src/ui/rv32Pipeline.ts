@@ -11,18 +11,6 @@ export const STAGE_INFO: Record<PipelineStage, string> = {
   WB: 'write the result to a register'
 };
 
-/**
- * The colour each stage is set in, the same in the pipeline chart and in the datapath diagram, so
- * a stage is found in either by its colour.
- */
-export const STAGE_TINTS: Record<PipelineStage, string> = {
-  IF: 'bg-chart-1/25',
-  ID: 'bg-chart-3/25',
-  EX: 'bg-chart-4/25',
-  MEM: 'bg-chart-2/25',
-  WB: 'bg-chart-5/25'
-};
-
 /** A cycle in a stage: doing its work, waiting there, or on an instruction that was flushed. */
 export interface PipelineCell {
   stage: PipelineStage;

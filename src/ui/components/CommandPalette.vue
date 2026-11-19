@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onActivated, onDeactivated, ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import {
   Command,
@@ -25,7 +25,13 @@ const open = defineModel<boolean>('open', { required: true });
 
 const groups = computed(() => groupBy(props.commands, (command) => command.group));
 
+// A workbench kept alive while another is shown keeps its palette too: only the shown one listens.
+const shown = ref(true);
+onActivated(() => (shown.value = true));
+onDeactivated(() => (shown.value = false));
+
 useEventListener(window, 'keydown', (event: KeyboardEvent) => {
+  if (!shown.value) return;
   // `code` is the physical key, so the shortcut also works on a non-Latin keyboard layout.
   if (event.code === 'KeyK' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();

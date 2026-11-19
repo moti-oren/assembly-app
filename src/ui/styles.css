@@ -11,40 +11,41 @@
 @custom-variant calm (&:is([data-motion='reduced'] *));
 
 /*
- * Local fonts reshaped to IBM Plex's metrics, used until Plex arrives. Without them the
- * character-aligned columns (registers, hex dump) jump when the font swaps in. Each face names
- * one local font, so a missing one is skipped. Overrides are divided by size-adjust.
+ * Local fonts reshaped to the metrics of Inter and JetBrains Mono, used until those arrive.
+ * Without them the character-aligned columns (registers, hex dump) jump when the font swaps in.
+ * Each face names one local font, so a missing one is skipped. Overrides are divided by
+ * size-adjust.
  */
 @font-face {
-  font-family: 'Plex Mono Fallback Consolas';
+  font-family: 'Mono Fallback Consolas';
   src: local('Consolas');
   size-adjust: 109.1%;
-  ascent-override: 93.9%;
-  descent-override: 25.2%;
+  ascent-override: 93.5%;
+  descent-override: 27.5%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Plex Mono Fallback Menlo';
+  font-family: 'Mono Fallback Menlo';
   src: local('Menlo'), local('DejaVu Sans Mono');
   size-adjust: 99.7%;
-  ascent-override: 102.8%;
-  descent-override: 27.6%;
+  ascent-override: 102.3%;
+  descent-override: 30.1%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Plex Sans Fallback Segoe';
+  font-family: 'Sans Fallback Segoe';
   src: local('Segoe UI');
-  size-adjust: 104.8%;
-  ascent-override: 97.8%;
-  descent-override: 26.2%;
+  size-adjust: 110.1%;
+  ascent-override: 88%;
+  descent-override: 21.9%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Plex Sans Fallback Arial';
+  font-family: 'Sans Fallback Arial';
   src: local('Arial');
-  size-adjust: 102%;
-  ascent-override: 100.5%;
-  descent-override: 27%;
+  size-adjust: 107.1%;
+  ascent-override: 90.4%;
+  descent-override: 22.5%;
   line-gap-override: 0%;
 }
 
@@ -54,19 +55,32 @@
   box-shadow: var(--shadow-well);
 }
 
+/*
+ * A button not usable yet, told by a flat quiet fill rather than by fading, which reads as
+ * broken. Paired with disabled:opacity-100, which drops the button's own fade.
+ */
+@utility quiet-disabled {
+  &:disabled {
+    border-color: var(--disabled-border);
+    background-color: var(--disabled);
+    color: var(--disabled-foreground);
+  }
+}
+
 @theme inline {
   --font-sans:
-    'IBM Plex Sans', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
-    system-ui, sans-serif;
+    'Inter', 'Sans Fallback Segoe', 'Sans Fallback Arial', ui-sans-serif, system-ui, sans-serif;
   --font-mono:
-    'IBM Plex Mono', 'Plex Mono Fallback Consolas', 'Plex Mono Fallback Menlo', ui-monospace,
-    monospace;
+    'JetBrains Mono', 'Mono Fallback Consolas', 'Mono Fallback Menlo', ui-monospace, monospace;
   --color-changed: var(--changed);
   --color-changed-foreground: var(--changed-foreground);
   --color-changed-glow: var(--changed-glow);
   --color-written: var(--written);
   --color-pointer: var(--pointer);
   --color-pointer-foreground: var(--pointer-foreground);
+  --color-pointer-soft: var(--pointer-soft);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-recessed: var(--recessed);
   --color-page: var(--page);
   --color-inset: var(--inset);
   --color-raised: var(--raised);
@@ -117,154 +131,179 @@
 }
 
 /*
- * A workbench in two materials. Light: warm stone and white, like the casing of a bench
- * instrument. Dark: matte slate. Colour is kept for what the CPU is doing: blue where it reads
- * and where execution is, orange where it writes.
+ * Cool precision: white and cool slate in the light theme, near-black in the dark one, no warm
+ * greys. Colour is kept for what the CPU is doing: blue where it reads and where execution is,
+ * orange where it writes. Everything else is ink on a neutral surface.
  */
 :root {
   --radius: 0.375rem;
+  scrollbar-color: #d0d5dd transparent;
   /* The two semantic accents: what just changed, and where execution is. */
-  --changed: oklch(0.945 0.055 72);
-  --changed-foreground: oklch(0.45 0.13 48);
+  --changed: #fff7ed;
+  /* Orange text: deeper than the #ea580c accent, which is under 4.5:1 on white. */
+  --changed-foreground: #c2410c;
   /* The brief peak of the flash a value gives off as it changes. */
-  --changed-glow: oklch(0.82 0.15 66);
+  --changed-glow: #fdba74;
   /* Text on the glow, which is bright in both themes. */
-  --changed-glow-foreground: oklch(0.25 0.06 55);
+  --changed-glow-foreground: #431407;
   /* Stacking, lowest first. Dialogs, menus and tooltips (shadcn) sit at 50, above all of these. */
   --z-drag: 5;
   --z-strip: 10;
   --z-sticky: 20;
   --z-flight: 40;
-  --drag-shadow: 0 18px 40px -12px oklch(0.25 0.01 90 / 35%);
-  /*
-   * A wire, LED or segment that was written. Thin lines need 3:1 against the surface, which the
-   * pale glow does not reach on white, so the light theme draws them in a deeper orange.
-   */
-  --written: oklch(0.63 0.18 48);
-  --pointer: oklch(0.52 0.16 250);
+  --drag-shadow: 0 18px 40px -12px rgb(16 24 40 / 22%);
+  /* A wire, LED or segment that was written: the orange accent, 3:1 on white as a line needs. */
+  --written: #ea580c;
+  --pointer: #0066ff;
   --pointer-foreground: #ffffff;
-  /* A connection nothing is using: still a line to follow, 3:1 on the surface behind it. */
-  --wire: #8e8b82;
-  /* A memory byte that holds 0. Muted text is the faintest that still reads, so no fainter. */
-  --zero-byte: var(--muted-foreground);
   /*
-   * The surfaces: the canvas the stage is drawn on, the panels beside and on it, and the lists
-   * and tables set into a panel. Each pane sets --inset to the one that contrasts with it.
+   * The pale wash under the line or stage execution is at: about #eff6ff on white, but see-through,
+   * since the program's marker lies over the line it marks.
    */
-  --page: #f6f5f2;
-  --inset: #f6f5f2;
+  --pointer-soft: rgb(0 102 255 / 6.5%);
+  /* A connection nothing is using: still a line to follow, 3:1 on the surfaces behind it. */
+  --wire: #7f899a;
+  /* Idle text: a zero byte, a standby reading. The faintest that still reads. */
+  --tertiary-foreground: #667085;
+  --zero-byte: var(--tertiary-foreground);
+  /*
+   * The surfaces: the canvas the stage is drawn on, the recessed sidebar beside it, and the lists
+   * and tables set into a pane. Each pane sets --inset to the one that contrasts with it.
+   */
+  --page: #ffffff;
+  --recessed: #f5f6f8;
+  --inset: #f5f6f8;
+  --sidebar-inset: #ffffff;
   /* A block standing on a surface: a control's thumb, a chosen word. */
   --raised: #ffffff;
   --background: #ffffff;
-  /* The dots of the drawing grid behind the CPU diagram, and nowhere else. */
-  --grid-dot: oklch(0.3 0.01 90 / 20%);
+  /* The edge of a unit inside the chip: none on white, where the fill alone sets it apart. */
+  --block-edge: transparent;
   --shadow-well: inset 0 0 0 1px var(--border);
-  --shadow-thumb: 0 1px 2px oklch(0.25 0.01 90 / 16%), 0 0 0 1px oklch(0.25 0.01 90 / 9%);
-  --shadow-overlay: 0 2px 6px oklch(0.25 0.01 90 / 8%), 0 20px 50px -16px oklch(0.25 0.01 90 / 30%);
+  --shadow-thumb: 0 1px 2px rgb(16 24 40 / 10%), 0 0 0 1px rgb(16 24 40 / 8%);
+  --shadow-overlay: 0 2px 6px rgb(16 24 40 / 6%), 0 20px 50px -16px rgb(16 24 40 / 24%);
   /* Menus and dialogs: all but opaque, over a blur of what is behind them. */
-  --glass: oklch(1 0 0 / 92%);
-  --overlay: oklch(0.25 0.01 90 / 28%);
-  /* The pins of the chip in the header. */
-  --die-pin: #8e8b82;
-  /* The glass of the 7-segment display and the terminal: graphite here, not black. */
-  --screen: #2b2d33;
-  --screen-foreground: #f3efe6;
-  --screen-unlit: oklch(1 0 0 / 13%);
-  --foreground: #18181b;
+  --glass: rgb(255 255 255 / 92%);
+  --overlay: rgb(16 24 40 / 24%);
+  /* The chip in the header: an ink lid and its pins. */
+  --die-pin: #98a2b3;
+  --die-lid: #0a0b0d;
+  --die-lid-foreground: #ffffff;
+  /* The glass of the 7-segment display and the terminal. */
+  --screen: #111318;
+  --screen-border: #232730;
+  --screen-foreground: #f8fafc;
+  --screen-unlit: rgb(255 255 255 / 12%);
+  /* A button that cannot be used yet: flat and quiet, but still a button. */
+  --disabled: #f2f4f7;
+  --disabled-foreground: #98a2b3;
+  --disabled-border: #e4e7ec;
+  /* The tag of a pipeline stage (IF, ID, EX, MEM, WB): one neutral chip for all five. */
+  --stage-chip: #f2f4f7;
+  --stage-chip-foreground: #344054;
+  --foreground: #0a0b0d;
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #0a0b0d;
   --popover: #ffffff;
-  --popover-foreground: #18181b;
-  /* The one filled button: the colour of the execution pointer it moves. */
-  --primary: oklch(0.5 0.16 250);
+  --popover-foreground: #0a0b0d;
+  /* The filled button: ink, the strongest thing on the page after the CPU's own signals. */
+  --primary: #0a0b0d;
   --primary-foreground: #ffffff;
-  --secondary: #efede8;
-  --secondary-foreground: #18181b;
-  --muted: #efede8;
-  --muted-foreground: #62605a;
-  --accent: #efede8;
-  --accent-foreground: #18181b;
-  --destructive: oklch(0.55 0.21 27);
-  --border: #e5e3dc;
-  --input: #d6d3ca;
-  --ring: oklch(0.6 0.11 250);
+  --secondary: #f2f4f7;
+  --secondary-foreground: #0a0b0d;
+  --muted: #f2f4f7;
+  --muted-foreground: #475467;
+  --accent: #f2f4f7;
+  --accent-foreground: #0a0b0d;
+  --destructive: #d92d20;
+  --border: #e4e7ec;
+  --input: #d0d5dd;
+  --ring: #0066ff;
   /*
-   * One colour per family of instructions, per field of an encoding and per pipeline stage: one
-   * lightness, six hues.
+   * One colour per field of an encoding, the only place hues still tell things apart: muted, so
+   * they never compete with the read and write accents.
    */
-  --chart-1: oklch(0.56 0.16 250);
-  --chart-2: oklch(0.56 0.11 195);
-  --chart-3: oklch(0.56 0.16 305);
-  --chart-4: oklch(0.64 0.15 70);
-  --chart-5: oklch(0.58 0.17 15);
-  --chart-6: oklch(0.56 0.13 150);
-  --sidebar: #ffffff;
-  --sidebar-foreground: #18181b;
-  --sidebar-primary: oklch(0.5 0.16 250);
+  --chart-1: oklch(0.6 0.1 255);
+  --chart-2: oklch(0.62 0.07 200);
+  --chart-3: oklch(0.6 0.09 295);
+  --chart-4: oklch(0.68 0.08 85);
+  --chart-5: oklch(0.62 0.09 15);
+  --chart-6: oklch(0.62 0.08 155);
+  --sidebar: #f5f6f8;
+  --sidebar-foreground: #0a0b0d;
+  --sidebar-primary: #0a0b0d;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #efede8;
-  --sidebar-accent-foreground: #18181b;
-  --sidebar-border: #e5e3dc;
-  --sidebar-ring: oklch(0.6 0.11 250);
+  --sidebar-accent: #f2f4f7;
+  --sidebar-accent-foreground: #0a0b0d;
+  --sidebar-border: #e4e7ec;
+  --sidebar-ring: #0066ff;
 }
 
 .dark {
   color-scheme: dark;
-  scrollbar-color: #3a4150 transparent;
-  --changed: oklch(0.37 0.075 58);
-  --changed-foreground: oklch(0.91 0.1 72);
-  --changed-glow: oklch(0.8 0.15 64);
-  --written: var(--changed-glow);
-  --overlay: oklch(0.1 0.01 260 / 55%);
-  --raised: #1f242d;
-  --grid-dot: oklch(0.9 0.02 260 / 15%);
-  --shadow-thumb: inset 0 1px 0 oklch(1 0 0 / 7%), 0 1px 2px oklch(0 0 0 / 45%);
-  --shadow-overlay: 0 2px 8px oklch(0 0 0 / 35%), 0 24px 60px -16px oklch(0 0 0 / 70%);
-  --glass: oklch(0.22 0.012 262 / 92%);
-  --die-pin: #6b7280;
-  --drag-shadow: 0 18px 40px -12px oklch(0 0 0 / 60%);
-  --pointer: oklch(0.8 0.11 228);
-  --pointer-foreground: #0e1014;
-  --wire: #5d6473;
-  /* As faint as an unlit digit (.digit-off), still above 4.5:1 on the memory table. */
-  --zero-byte: color-mix(in oklch, var(--foreground) 62%, transparent);
-  --page: #0e1014;
-  --inset: #0e1014;
-  --background: #15181f;
-  --screen: #08090c;
-  --screen-foreground: #eceef2;
-  --screen-unlit: oklch(1 0 0 / 15%);
-  --foreground: #eceef2;
-  --card: #15181f;
-  --card-foreground: #eceef2;
-  --popover: #1a1e26;
-  --popover-foreground: #eceef2;
-  --primary: oklch(0.78 0.11 232);
-  --primary-foreground: #0e1014;
-  --secondary: #1f242d;
-  --secondary-foreground: #eceef2;
-  --muted: #1f242d;
-  --muted-foreground: #a2a9b6;
-  --accent: #1f242d;
-  --accent-foreground: #eceef2;
-  --destructive: oklch(0.72 0.18 22);
-  --border: #262b36;
-  --input: #363d4a;
-  --ring: oklch(0.68 0.09 232);
-  --chart-1: oklch(0.78 0.11 245);
-  --chart-2: oklch(0.78 0.1 195);
-  --chart-3: oklch(0.78 0.11 305);
-  --chart-4: oklch(0.82 0.13 80);
-  --chart-5: oklch(0.78 0.12 15);
-  --chart-6: oklch(0.78 0.12 150);
-  --sidebar: #15181f;
-  --sidebar-foreground: #eceef2;
-  --sidebar-primary: oklch(0.78 0.11 232);
-  --sidebar-primary-foreground: #0e1014;
-  --sidebar-accent: #1f242d;
-  --sidebar-accent-foreground: #eceef2;
-  --sidebar-border: #262b36;
-  --sidebar-ring: oklch(0.68 0.09 232);
+  scrollbar-color: #343a46 transparent;
+  --changed: #362218;
+  --changed-foreground: #f97316;
+  --changed-glow: #fb923c;
+  --written: #f97316;
+  --overlay: rgb(0 0 0 / 55%);
+  --raised: #1d222b;
+  --block-edge: #232730;
+  --shadow-thumb: inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px rgb(0 0 0 / 45%);
+  --shadow-overlay: 0 2px 8px rgb(0 0 0 / 35%), 0 24px 60px -16px rgb(0 0 0 / 70%);
+  --glass: rgb(17 19 24 / 92%);
+  --die-pin: #475467;
+  --die-lid: #f8fafc;
+  --die-lid-foreground: #090a0d;
+  --drag-shadow: 0 18px 40px -12px rgb(0 0 0 / 60%);
+  --pointer: #3b82f6;
+  --pointer-foreground: #090a0d;
+  --pointer-soft: rgb(59 130 246 / 14%);
+  --wire: #626d80;
+  --tertiary-foreground: #64748b;
+  --page: #090a0d;
+  --recessed: #111318;
+  --inset: #161920;
+  --sidebar-inset: #161920;
+  --background: #090a0d;
+  --screen-border: #343a46;
+  --screen-unlit: rgb(255 255 255 / 13%);
+  --disabled: #161920;
+  --disabled-foreground: #475467;
+  --disabled-border: #232730;
+  --stage-chip: #1d222b;
+  --stage-chip-foreground: #cbd5e1;
+  --foreground: #f8fafc;
+  --card: #111318;
+  --card-foreground: #f8fafc;
+  --popover: #111318;
+  --popover-foreground: #f8fafc;
+  --primary: #f8fafc;
+  --primary-foreground: #090a0d;
+  --secondary: #1d222b;
+  --secondary-foreground: #f8fafc;
+  --muted: #1d222b;
+  --muted-foreground: #94a3b8;
+  --accent: #1d222b;
+  --accent-foreground: #f8fafc;
+  --destructive: #f97066;
+  --border: #232730;
+  --input: #343a46;
+  --ring: #3b82f6;
+  --chart-1: oklch(0.74 0.09 255);
+  --chart-2: oklch(0.75 0.07 200);
+  --chart-3: oklch(0.74 0.08 295);
+  --chart-4: oklch(0.78 0.08 85);
+  --chart-5: oklch(0.74 0.08 15);
+  --chart-6: oklch(0.75 0.08 155);
+  --sidebar: #111318;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #f8fafc;
+  --sidebar-primary-foreground: #090a0d;
+  --sidebar-accent: #1d222b;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #232730;
+  --sidebar-ring: #3b82f6;
 }
 
 @layer base {
@@ -291,29 +330,12 @@
 
 /* In the components layer so Tailwind utilities on the same element still win. */
 @layer components {
-  /* The one page-load moment: the panels arrive in reading order. */
-  :root:not([data-motion='reduced']) {
-    .app-surface main > div > * {
-      animation: panel-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-    }
-    .app-surface main > div > :nth-child(2) {
-      animation-delay: 90ms;
-    }
-    .app-surface main > div > :nth-child(3) {
-      animation-delay: 180ms;
-    }
-    .app-surface main > div > :nth-child(4) {
-      animation-delay: 270ms;
-    }
-    .app-surface main > div:nth-child(2) > :first-child {
-      animation-delay: 45ms;
-    }
-  }
-  @keyframes panel-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
+  /*
+   * While the theme flips, nothing eases between the two palettes: the page changes at once
+   * instead of passing through grey (see usePreferences.ts).
+   */
+  :root[data-theme-switch] * {
+    transition: none !important;
   }
 
   /* A value the last instruction changed: a resting tint, plus a flash each time it changes. */
@@ -328,10 +350,9 @@
       color 300ms,
       border-color 300ms;
   }
-  /* Written with the value it already had: outlined, so it is not mistaken for a change. */
+  /* Written with the value it already had: underlined, so it is not mistaken for a change. */
   .change-mark-written {
-    outline: 1px dashed var(--changed-foreground);
-    outline-offset: -1px;
+    box-shadow: inset 0 -1px 0 var(--changed-foreground);
   }
   .change-flash {
     position: absolute;
@@ -452,6 +473,7 @@
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     font-weight: 600;
+    font-variant-ligatures: none;
     font-feature-settings: 'zero';
     box-shadow:
       inset 0 1px 0 oklch(1 0 0 / 45%),
@@ -509,9 +531,13 @@
   .sortable-lifted > .sortable-handle {
     opacity: 1;
   }
+  /* Under the pointer the grip firms up: a raised chip with a stronger edge, in full ink. */
   .sortable-handle:hover,
   .sortable-lifted > .sortable-handle {
-    background: var(--muted);
+    background: var(--raised);
+    box-shadow:
+      0 0 0 1px var(--input),
+      var(--shadow-thumb);
     color: var(--foreground);
   }
   .sortable-handle:focus-visible {
