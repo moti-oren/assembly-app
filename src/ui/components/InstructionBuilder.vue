@@ -299,6 +299,7 @@ function onBackspace(event: KeyboardEvent): void {
       <!-- The instruction so far, word by word, followed by the filter input. -->
       <div
         ref="box"
+        dir="ltr"
         data-loc="builder"
         class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-input bg-background px-2 py-1.5 font-mono text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30"
         @click="focusInput"
@@ -324,6 +325,7 @@ function onBackspace(event: KeyboardEvent): void {
         <input
           ref="input"
           v-model="filter"
+          dir="auto"
           class="h-7 min-w-40 flex-1 bg-transparent px-1 outline-none placeholder:font-sans placeholder:text-muted-foreground"
           :placeholder="moreToChoose ? hint : t.builder.ready"
           :aria-invalid="doesNotFit || undefined"

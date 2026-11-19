@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultLocale, isLocale, LOCALES, messagesFor } from './locale';
+import { DIRECTIONS, defaultLocale, isLocale, LOCALES, messagesFor } from './locale';
 
 /** Every text in a messages object (a string, or a function of its values), by its path. */
 function leaves(value: unknown, path = ''): [string, unknown][] {
@@ -53,5 +53,13 @@ describe('Hebrew messages', () => {
   it('read right with the Latin words in them', () => {
     expect(messagesFor('he').x86Cycle.nextLine('L1')).toContain('ב-\u2060L1');
     expect(messagesFor('en').x86Cycle.nextLine('L1')).not.toMatch(/[\u200f\u2060]/);
+  });
+});
+
+describe('DIRECTIONS', () => {
+  it('names a direction for every language, Hebrew running right to left', () => {
+    for (const locale of LOCALES) expect(['ltr', 'rtl']).toContain(DIRECTIONS[locale]);
+    expect(DIRECTIONS.en).toBe('ltr');
+    expect(DIRECTIONS.he).toBe('rtl');
   });
 });

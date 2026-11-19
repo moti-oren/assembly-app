@@ -131,6 +131,7 @@ function placeText(address: number): string {
     <CardContent>
       <ol
         ref="list"
+        dir="ltr"
         class="relative max-h-80 overflow-y-auto rounded-lg lg:max-h-112 bg-inset py-1 font-mono text-code"
         :aria-label="t.program.lines"
       >

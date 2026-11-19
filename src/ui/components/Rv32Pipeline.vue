@@ -70,7 +70,7 @@ const summary = computed(() => pipelineSummary(t.value, timing.value));
       {{ t.cycle.nothingYet }}
     </p>
     <template v-else>
-      <div class="mt-2 overflow-x-auto">
+      <div dir="ltr" class="mt-2 overflow-x-auto">
         <table class="border-separate border-spacing-0.5 font-mono text-2xs">
           <thead>
             <tr class="text-muted-foreground">

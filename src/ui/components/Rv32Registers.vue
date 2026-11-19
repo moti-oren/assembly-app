@@ -40,7 +40,7 @@ function changed(key: RegisterName): boolean {
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
-    <CardContent class="@container">
+    <CardContent dir="ltr" class="@container">
       <!-- 31 registers alike to the hardware, grouped as the calling convention uses them. -->
       <div class="grid gap-x-6 gap-y-3 font-mono text-code @min-[34rem]:grid-cols-2">
         <section

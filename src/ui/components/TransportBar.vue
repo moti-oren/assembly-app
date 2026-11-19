@@ -126,7 +126,7 @@ const toggles = computed(() => [
     >
       <div class="flex flex-wrap items-center gap-1.5">
         <Button size="sm" class="pointer-coarse:h-11" :disabled="finished" @click="emit('step')">
-          <StepForward />
+          <StepForward class="rtl:-scale-x-100" />
           {{ t.transport.step }}
         </Button>
         <Tooltip>
@@ -165,7 +165,7 @@ const toggles = computed(() => [
           :disabled="finished"
           @click="emit('run')"
         >
-          <FastForward />
+          <FastForward class="rtl:-scale-x-100" />
           <span class="sm:hidden">{{ t.transport.run }}</span>
           <span class="hidden sm:inline">{{ t.transport.runProgram }}</span>
         </Button>
@@ -226,7 +226,7 @@ const toggles = computed(() => [
               :disabled="executed === 0"
               @click="emit('undo')"
             >
-              <Undo2 />
+              <Undo2 class="rtl:-scale-x-100" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{{ t.transport.undo }}</TooltipContent>
@@ -241,13 +241,14 @@ const toggles = computed(() => [
               :disabled="undone === 0"
               @click="emit('redo')"
             >
-              <Redo2 />
+              <Redo2 class="rtl:-scale-x-100" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{{ t.transport.redo }}</TooltipContent>
         </Tooltip>
         <input
           type="range"
+          dir="ltr"
           class="timeline mx-1.5 h-4 w-10 flex-1 cursor-pointer disabled:cursor-default disabled:opacity-40 sm:w-16 pointer-coarse:h-11"
           :style="{ '--progress': progress }"
           min="0"

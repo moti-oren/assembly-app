@@ -101,7 +101,7 @@ const rows = computed(() => metricRows(t.value, measurements.value));
             <h3 class="text-sm font-semibold">{{ architectureLabel(id) }}</h3>
             <p class="text-xs text-muted-foreground">{{ t.compare.traits[id] }}</p>
           </header>
-          <ol class="flex-1 overflow-x-auto px-3 py-2 font-mono text-xs leading-6">
+          <ol dir="ltr" class="flex-1 overflow-x-auto px-3 py-2 font-mono text-xs leading-6">
             <li
               v-for="(line, index) in measurements[id].listing"
               :key="index"
@@ -129,7 +129,7 @@ const rows = computed(() => metricRows(t.value, measurements.value));
               @click="emit('load', task, id)"
             >
               {{ t.compare.load(architectureLabel(id)) }}
-              <ArrowRight />
+              <ArrowRight class="rtl:-scale-x-100" />
             </Button>
           </footer>
         </section>

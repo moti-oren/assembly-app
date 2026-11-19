@@ -42,7 +42,7 @@ const summary = computed(() => {
 
     <CardContent v-if="shown" class="flex flex-col gap-2">
       <!-- One box per field, in the order the bytes sit in memory. -->
-      <ol class="flex flex-wrap items-stretch gap-2" :aria-label="t.encoding.fields">
+      <ol dir="ltr" class="flex flex-wrap items-stretch gap-2" :aria-label="t.encoding.fields">
         <li
           v-for="(field, index) in shown.assembled.encoding.fields"
           :key="index"

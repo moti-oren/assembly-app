@@ -154,7 +154,7 @@ function reveal(jump: () => void): void {
         <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.memory.title }}</CardTitle>
         <InfoTip :label="t.memory.about">{{ t.memory.x86Intro }}</InfoTip>
         <Select v-model="segment">
-          <SelectTrigger size="sm" class="w-36 font-mono" :aria-label="t.memory.segment">
+          <SelectTrigger size="sm" dir="ltr" class="w-36 font-mono" :aria-label="t.memory.segment">
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
             <SelectValue>
               {{ segment.toUpperCase() }}
@@ -163,14 +163,14 @@ function reveal(jump: () => void): void {
               }}</span>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent dir="ltr">
             <SelectItem v-for="name in SEGMENTS" :key="name" :value="name" class="font-mono">
               {{ name.toUpperCase() }}
               <span class="text-muted-foreground">{{ formatHex(state.registers[name], 16) }}</span>
             </SelectItem>
           </SelectContent>
         </Select>
-        <div class="relative">
+        <div dir="ltr" class="relative">
           <span
             class="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-xs text-muted-foreground"
             >{{ t.memory.offset }}</span
@@ -199,6 +199,7 @@ function reveal(jump: () => void): void {
         cannot be read takes this line, so the message needs no row of its own.
       -->
       <p
+        dir="ltr"
         class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 font-mono text-xs lg:h-5 lg:flex-nowrap lg:overflow-hidden lg:whitespace-nowrap"
       >
         <span v-if="offsetInvalid" :id="offsetErrorId" class="ui-text font-sans text-destructive">{{
@@ -246,7 +247,7 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
+      <div dir="ltr" class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">

@@ -39,7 +39,7 @@ const reasons = computed(() => {
       <CardDescription class="ui-text">{{ t.mos6502.flagsIntro }}</CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-3">
-      <div class="flex gap-1.5 font-mono" role="list" :aria-label="t.mos6502.flagsList">
+      <div dir="ltr" class="flex gap-1.5 font-mono" role="list" :aria-label="t.mos6502.flagsList">
         <div
           v-for="flag in FLAG_NAMES"
           :key="flag"

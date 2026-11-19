@@ -135,7 +135,7 @@ function reveal(jump: () => void): void {
             {{ t.memory.places[place.id] }}
           </Button>
         </div>
-        <div class="relative ml-auto">
+        <div dir="ltr" class="relative ms-auto">
           <span
             class="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-xs text-muted-foreground"
             >{{ format.prefix }}</span
@@ -156,7 +156,7 @@ function reveal(jump: () => void): void {
         </div>
       </div>
 
-      <p class="flex items-baseline gap-2 font-mono text-xs lg:h-5 lg:overflow-hidden">
+      <p dir="ltr" class="flex items-baseline gap-2 font-mono text-xs lg:h-5 lg:overflow-hidden">
         <span v-if="invalid" :id="errorId" class="ui-text font-sans text-destructive">
           {{ t.memory.badAddress(addressText, formatAddress(format, 0)) }}
         </span>
@@ -172,7 +172,7 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
+      <div dir="ltr" class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">

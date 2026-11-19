@@ -10,6 +10,9 @@ export type Locale = (typeof LOCALES)[number];
 /** Each language's name in itself, as a switch to it is labelled whatever the interface shows. */
 export const LOCALE_NAMES: Record<Locale, string> = { en: 'English', he: 'עברית' };
 
+/** The direction each language is written in; the whole page follows it. */
+export const DIRECTIONS: Record<Locale, 'ltr' | 'rtl'> = { en: 'ltr', he: 'rtl' };
+
 const MESSAGES: Record<Locale, Messages> = { en, he: mapTexts(he, hebrewText) };
 
 export function isLocale(value: unknown): value is Locale {

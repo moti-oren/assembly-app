@@ -41,7 +41,7 @@ function changed(flag: FlagName): boolean {
         </Badge>
       </CardAction>
     </CardHeader>
-    <CardContent>
+    <CardContent dir="ltr">
       <div class="grid grid-cols-3 gap-1.5 sm:grid-cols-5 xl:grid-cols-9">
         <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
           <TooltipTrigger as-child>

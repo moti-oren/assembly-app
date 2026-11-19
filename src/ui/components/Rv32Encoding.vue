@@ -62,7 +62,7 @@ function bitOf(bit: number): number {
 
     <CardContent v-if="shown && encoding" class="flex flex-col gap-3">
       <!-- The word bit by bit, 31 on the left as it is written, with each field over its bits. -->
-      <div class="overflow-x-auto">
+      <div dir="ltr" class="overflow-x-auto">
         <div
           class="grid min-w-[30rem] grid-cols-[repeat(32,minmax(0,1fr))] gap-y-1 font-mono text-2xs"
           :aria-label="t.rv32.bits"
@@ -109,7 +109,7 @@ function bitOf(bit: number): number {
         </span>
       </p>
 
-      <ol class="grid gap-1.5 text-xs sm:grid-cols-2" :aria-label="t.encoding.fields">
+      <ol dir="ltr" class="grid gap-1.5 text-xs sm:grid-cols-2" :aria-label="t.encoding.fields">
         <li
           v-for="field in encoding.fields"
           :key="`${field.label}-${field.high}`"

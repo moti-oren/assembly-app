@@ -1,6 +1,6 @@
 import { computed, watchEffect } from 'vue';
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
-import { defaultLocale, isLocale, messagesFor, type Locale } from './locale';
+import { DIRECTIONS, defaultLocale, isLocale, messagesFor, type Locale } from './locale';
 import { STORAGE_KEYS } from './storageKeys';
 
 /** The interface language, remembered, and its texts. */
@@ -11,15 +11,18 @@ export const useLocale = createGlobalState(() => {
   });
   /** The texts of the current language: `t.value.language.switch`. */
   const t = computed(() => messagesFor(locale.value));
+  /** Which way the page runs: the layout mirrors for a right-to-left language. */
+  const direction = computed(() => DIRECTIONS[locale.value]);
 
-  // Screen readers and the browser's font choice go by the page's language.
+  // Screen readers, the browser's font choice and the layout all go by these two.
   watchEffect(() => {
     document.documentElement.lang = locale.value;
+    document.documentElement.dir = direction.value;
   });
 
   function toggleLocale(): void {
     locale.value = locale.value === 'en' ? 'he' : 'en';
   }
 
-  return { locale, t, toggleLocale };
+  return { locale, direction, t, toggleLocale };
 });

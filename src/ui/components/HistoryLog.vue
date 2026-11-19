@@ -72,6 +72,7 @@ watch(
     <CardContent v-if="total > 0">
       <div
         ref="list"
+        dir="ltr"
         :style="{ '--number-column': numberColumn }"
         class="relative max-h-56 overflow-y-auto rounded-lg bg-inset py-1 lg:max-h-80"
       >

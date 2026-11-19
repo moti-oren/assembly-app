@@ -82,7 +82,7 @@ const flagChanged = (bit: number) =>
       </CardAction>
     </CardHeader>
 
-    <CardContent class="@container flex flex-col gap-3">
+    <CardContent dir="ltr" class="@container flex flex-col gap-3">
       <div class="grid gap-3 @min-[40rem]:grid-cols-[auto_minmax(0,1fr)]">
         <!-- Three 8-bit registers do all the work; SP and PC point at the stack and the code. -->
         <section

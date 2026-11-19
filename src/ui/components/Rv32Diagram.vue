@@ -78,7 +78,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
       </CardAction>
     </CardHeader>
 
-    <CardContent class="@container flex flex-col gap-3">
+    <CardContent dir="ltr" class="@container flex flex-col gap-3">
       <!-- The register file: 32 registers with two read ports (rs1, rs2) and one write port (rd). -->
       <section
         class="rounded-xl border border-foreground/20 bg-inset p-2.5"

@@ -45,7 +45,7 @@ const model = useCpuDiagram(props);
       </CardAction>
     </CardHeader>
 
-    <CardContent class="flex flex-col gap-4">
+    <CardContent dir="ltr" class="flex flex-col gap-4">
       <!-- The BIU's width, set on the children so the container query can switch it. -->
       <div class="@container *:[--biu-width:15rem] @min-[40rem]:*:[--biu-width:18.5rem]">
         <!-- The package: the two units of an 8086 and the internal bus that joins them. -->

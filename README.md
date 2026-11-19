@@ -128,8 +128,11 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **Language** in the settings menu (the gear in the header), or **Switch the interface to
   Hebrew** in the command palette, switches the interface between English and Hebrew. In Hebrew
   the texts and explanations are translated, while code, registers, flags, numbers and technical
-  terms (pipeline, ALU, opcode, …) stay in English. The choice is remembered; on a first visit the
-  app follows the browser's language.
+  terms (pipeline, ALU, opcode, …) stay in English. In Hebrew the whole page mirrors and runs right
+  to left, while what reads the same in any language keeps left to right: the CPU diagrams, the
+  register, flag and memory tables, the program and history listings, the machine code and the
+  pipeline chart. The choice is remembered; on a first visit the app follows the browser's
+  language.
 
 ## RISC-V mode
 
@@ -344,8 +347,10 @@ npm run verify:6502 # check the 6502 core against py65
   הזמן.
 - **שפה** בתפריט ההגדרות (גלגל השיניים בראש העמוד), או **החלפת הממשק לאנגלית** בפלטת הפקודות, מחליף
   את שפת הממשק בין אנגלית לעברית. בעברית הטקסטים וההסברים מתורגמים, ואילו הקוד, הרגיסטרים, הדגלים,
-  המספרים והמונחים המקצועיים (pipeline,‏ ALU,‏ opcode, …) נשארים באנגלית. הבחירה נשמרת, ובביקור
-  הראשון האפליקציה הולכת לפי שפת הדפדפן.
+  המספרים והמונחים המקצועיים (pipeline,‏ ALU,‏ opcode, …) נשארים באנגלית. בעברית כל העמוד מתהפך
+  ונכתב מימין לשמאל, ומה שנקרא אותו דבר בכל שפה נשאר משמאל לימין: דיאגרמות המעבד, טבלאות
+  הרגיסטרים, הדגלים והזיכרון, רשימות התוכנית וההיסטוריה, קוד המכונה ותרשים ה-pipeline. הבחירה
+  נשמרת, ובביקור הראשון האפליקציה הולכת לפי שפת הדפדפן.
 
 ## מצב RISC-V
 

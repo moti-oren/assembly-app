@@ -65,7 +65,7 @@ function changedBits(name: WordRegister): number {
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
-    <CardContent>
+    <CardContent dir="ltr">
       <Table class="font-mono text-code">
         <TableHeader>
           <TableRow class="hover:bg-transparent">

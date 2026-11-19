@@ -49,7 +49,7 @@ function written(name: RegisterName): boolean {
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
-    <CardContent class="flex flex-col gap-1 font-mono text-code">
+    <CardContent dir="ltr" class="flex flex-col gap-1 font-mono text-code">
       <div
         class="grid grid-cols-[2.5rem_3rem_3rem_3rem_minmax(0,1fr)] gap-x-3 font-sans text-xs text-muted-foreground"
       >
