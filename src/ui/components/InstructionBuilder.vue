@@ -383,6 +383,7 @@ function onBackspace(event: KeyboardEvent): void {
 
       <div
         v-if="moreToChoose && choicesShown"
+        data-fill
         class="scroll-fade -mx-1 max-h-[min(21rem,40svh)] scroll-pb-7 overflow-y-auto px-1"
       >
         <!-- Families are told apart by their headings and the space between them, not by colour. -->

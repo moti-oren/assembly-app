@@ -1,16 +1,18 @@
-import { computed } from 'vue';
+import { computed, watch, type Ref } from 'vue';
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import { moveAmongVisible, sanitizeOrder } from './reorder';
+import { isSidebarKey, SIDEBAR_PANELS, type SidebarKey } from './sidebarLayout';
 import { STORAGE_KEYS } from './storageKeys';
 import type { Panels } from './usePanels';
 import { usePreferences } from './usePreferences';
+import { useSidebarLayout } from './useSidebarLayout';
 
 /**
  * The cards of each column, in their default order. The right column has one order per CPU
  * view, since the diagram and the tables show different cards.
  */
 const DEFAULTS = {
-  left: ['builder', 'program', 'history', 'encoding'],
+  left: SIDEBAR_PANELS,
   diagram: ['cycle', 'cpu', 'devices', 'memory'],
   table: ['cycle', 'registers', 'operation', 'flags', 'devices', 'memory']
 } as const;
@@ -87,17 +89,31 @@ export const usePanelOrder = createGlobalState(() => {
 export function usePanelColumns(panels: Panels) {
   const { orders, setOrder } = usePanelOrder();
   const { cpuView } = usePreferences();
+  const sidebar = useSidebarLayout();
   const rightColumn = computed<Column>(() => cpuView.value);
 
-  /** The cards that can be hidden, and whether each one is hidden now. */
-  const hidden = computed<Partial<Record<PanelKey, boolean>>>(() => ({
-    history: !panels.historyShown.value,
-    encoding: !panels.bytesShown.value,
-    devices: !panels.devicesShown.value
-  }));
+  /** The cards that can be hidden, and whether each one is on show now. */
+  const shown: Partial<Record<PanelKey, Ref<boolean>>> = {
+    history: panels.historyShown,
+    encoding: panels.bytesShown,
+    devices: panels.devicesShown
+  };
+  const closable = SIDEBAR_PANELS.filter((key) => shown[key] !== undefined);
+
+  // A sidebar panel asked for again opens up, even if it was collapsed when it was closed.
+  for (const key of closable) {
+    watch(shown[key]!, (on) => {
+      if (on) sidebar.expand(key);
+    });
+  }
 
   function visible(column: Column): PanelKey[] {
-    return orders.value[column].filter((key) => !hidden.value[key]);
+    return orders.value[column].filter((key) => shown[key]?.value !== false);
+  }
+
+  function close(key: SidebarKey): void {
+    const panel = shown[key];
+    if (panel) panel.value = false;
   }
 
   /** Makes `key` visible card number `to`; hidden cards keep their places. */
@@ -106,9 +122,12 @@ export function usePanelColumns(panels: Panels) {
   }
 
   return {
-    leftKeys: computed(() => visible('left')),
+    leftKeys: computed(() => visible('left').filter(isSidebarKey)),
     rightKeys: computed(() => visible(rightColumn.value)),
     rightColumn,
-    move
+    /** The sidebar panels that can be closed, not only collapsed. */
+    closable,
+    move,
+    close
   };
 }

@@ -122,6 +122,7 @@ function machineCode(index: number): string {
     <CardContent>
       <ol
         ref="list"
+        data-fill
         class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
       >

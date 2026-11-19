@@ -29,6 +29,7 @@ import Mos6502Diagram from './Mos6502Diagram.vue';
 import Mos6502Encoding from './Mos6502Encoding.vue';
 import Mos6502Flags from './Mos6502Flags.vue';
 import Mos6502Registers from './Mos6502Registers.vue';
+import SidebarColumn from './SidebarColumn.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
 
@@ -85,7 +86,7 @@ const {
   }
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
-const { leftKeys, rightKeys, rightColumn, move } = columns;
+const { leftKeys, rightKeys, rightColumn, closable, move, close } = columns;
 
 const memoryPlaces = mos6502MemoryPlaces(state);
 const memoryAccess = computed(() => {
@@ -137,12 +138,14 @@ const encodingShown = computed(() =>
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
   <main class="workbench">
     <!-- Each pane's panels can be dragged into any order, but never into the other pane. -->
-    <SortableColumn
+    <SidebarColumn
       class="workbench-pane"
       data-pane="sidebar"
       :keys="leftKeys"
       :labels="LABELS"
+      :closable="closable"
       @move="(key, to) => move('left', key, to)"
+      @close="close"
     >
       <template #builder>
         <InstructionBuilder
@@ -183,7 +186,7 @@ const encodingShown = computed(() =>
       <template #encoding>
         <Mos6502Encoding :shown="encodingShown" />
       </template>
-    </SortableColumn>
+    </SidebarColumn>
 
     <SortableColumn
       class="workbench-pane"

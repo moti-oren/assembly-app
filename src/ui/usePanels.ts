@@ -1,6 +1,7 @@
 import { ref, watch, type Ref } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { CpuControls } from './useCpu';
+import { useSidebarLayout } from './useSidebarLayout';
 
 /** The panels that can be shown or hidden, and the program line whose bytes are on show. */
 export interface Panels {
@@ -29,6 +30,7 @@ export function usePanels<Instruction, Record extends ExecutionRecord>(
   const bytesShown = ref(false);
   const devicesShown = ref(false);
   const inspectedLine = ref<number | null>(null);
+  const sidebar = useSidebarLayout();
 
   watch([() => history.value.length, program], () => {
     inspectedLine.value = null;
@@ -41,6 +43,7 @@ export function usePanels<Instruction, Record extends ExecutionRecord>(
   function inspect(line: number): void {
     inspectedLine.value = line;
     bytesShown.value = true;
+    sidebar.expand('encoding');
   }
 
   return { historyShown, bytesShown, devicesShown, inspectedLine, inspect };

@@ -30,6 +30,7 @@ import LastOperation from './LastOperation.vue';
 import MemoryView from './MemoryView.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import RegistersPanel from './RegistersPanel.vue';
+import SidebarColumn from './SidebarColumn.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
 
@@ -100,7 +101,7 @@ const {
   }
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
-const { leftKeys, rightKeys, rightColumn, move } = columns;
+const { leftKeys, rightKeys, rightColumn, closable, move, close } = columns;
 
 const programLines = computed(() => program.value.map(formatInstruction));
 
@@ -144,12 +145,14 @@ const encodingShown = computed(() =>
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
   <main class="workbench">
     <!-- Each pane's panels can be dragged into any order, but never into the other pane. -->
-    <SortableColumn
+    <SidebarColumn
       class="workbench-pane"
       data-pane="sidebar"
       :keys="leftKeys"
       :labels="PANEL_LABELS"
+      :closable="closable"
       @move="(key, to) => move('left', key, to)"
+      @close="close"
     >
       <template #builder>
         <InstructionBuilder
@@ -190,7 +193,7 @@ const encodingShown = computed(() =>
       <template #encoding>
         <EncodingPanel :shown="encodingShown" />
       </template>
-    </SortableColumn>
+    </SidebarColumn>
 
     <SortableColumn
       class="workbench-pane"

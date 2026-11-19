@@ -25,6 +25,8 @@ const props = defineProps<{
   /** The cards on show, in order; each one is the name of a slot. */
   keys: K[];
   labels: Record<K, string>;
+  /** A card's own style, under what a drag adds to it. */
+  itemStyle?: (key: K) => Record<string, string> | undefined;
 }>();
 
 const emit = defineEmits<{
@@ -304,7 +306,7 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
         'sortable-lifted': key === active && phase === 'dragging',
         'sortable-settling': key === active && phase === 'settling'
       }"
-      :style="cardStyle(key, index)"
+      :style="[itemStyle?.(key), cardStyle(key, index)]"
     >
       <button
         type="button"
