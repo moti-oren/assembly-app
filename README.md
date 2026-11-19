@@ -66,7 +66,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 ## Model
 
 - An instruction can run immediately (Enter) or be added to the program (Shift+Enter).
-- In the instruction box, the arrow keys move through the choices below it (Left/Right one at a time, Up/Down by row) and Enter picks the highlighted one. While the box has text, hold Alt to use the arrows this way; without Alt they edit the text. The row of keys under the box shows the ones that work at that moment, Alt and the arrows included.
+- In the instruction box, the arrow keys move through the choices below it (Left/Right one at a time, Up/Down by row) and Enter picks the highlighted one. Once the box holds words or text, hold Alt to use the arrows this way; without Alt, Left and Right move between the words and through the text, and Up and Down go to the start and the end of the box. The row of keys under the box shows the ones that work at that moment.
 - On a wide screen, stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
@@ -280,7 +280,7 @@ npm run verify:6502 # check the 6502 core against py65
 ## המודל
 
 - אפשר להריץ הוראה מיד (Enter) או להוסיף אותה לתוכנית (Shift+Enter).
-- בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש טקסט בתיבה, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt הם עורכים את הטקסט. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע, כולל Alt והחיצים.
+- בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש בתיבה מילים או טקסט, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt, ימינה ושמאלה עוברים בין המילים ובתוך הטקסט, ולמעלה ולמטה מגיעים לתחילת התיבה ולסופה. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע.
 - במסך רחב, הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
 - **Reset**, בסרגל התחתון ליד Undo, מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את
