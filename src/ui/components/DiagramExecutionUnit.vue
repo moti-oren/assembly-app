@@ -8,6 +8,7 @@ import {
 } from '@/core/x86/registers';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
+import { usePreferences } from '@/ui/usePreferences';
 import ChangeMark from './ChangeMark.vue';
 import DiagramAlu from './DiagramAlu.vue';
 import DiagramFlags from './DiagramFlags.vue';
@@ -19,6 +20,8 @@ defineProps<{
   /** Number of instructions executed so far; replays the flashes. */
   tick: number;
 }>();
+
+const { registerBits } = usePreferences();
 
 /** The execution unit holds the data, pointer and index registers, the ALU and the flags. */
 const EU_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx', 'sp', 'bp', 'si', 'di'];
@@ -32,12 +35,12 @@ const GROUP_START: WordRegister = 'sp';
     <div class="flex flex-col font-mono text-code">
       <!-- The number system of each column, as in the register table. -->
       <div
-        class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
+        class="mb-1 flex h-5 items-center gap-2.5 border-b font-sans text-xs text-muted-foreground"
       >
         <span class="w-6" />
         <span class="w-14">Hex</span>
         <span class="flex w-11 justify-end whitespace-nowrap">Decimal</span>
-        <span class="hidden @min-[36rem]:inline">Binary</span>
+        <span v-if="registerBits" class="hidden @min-[36rem]:inline">Binary</span>
       </div>
       <div
         v-for="name in EU_REGISTERS"
@@ -99,7 +102,7 @@ const GROUP_START: WordRegister = 'sp';
           <RollingDigits :text="String(model.value(name))" />
         </span>
 
-        <span class="hidden text-2xs @min-[36rem]:inline">
+        <span v-if="registerBits" class="hidden text-2xs @min-[36rem]:inline">
           <RollingDigits
             effect="flip"
             dim-zeros

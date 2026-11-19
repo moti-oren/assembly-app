@@ -70,6 +70,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - On a wide screen, stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
+- Each family of instructions has a colour of its own in the choices (transfers, arithmetic,
+  logic, shifts, jumps and branches, the stack): a dot before the family's name and the left edge
+  of each of its instructions.
 - **Reset**, in the bottom bar next to Undo, sets registers, flags and memory back to their start
   values and clears the history; the program is kept. When the history holds instructions it
   asks first, since Undo cannot bring them back.
@@ -84,7 +87,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   last memory access. An internal bus joins the two units, and one external address/data bus
   leaves the adder for the memory and the I/O ports. Each wire lights up as read or written. A
   port number skips the adder, and fetching a line forms no address, because the program is not
-  stored in memory.
+  stored in memory. The registers are shown in hex and decimal; **BIN** in the CPU panel's header
+  (or **Show the register bits** in the command palette) adds each one's 16 bits.
 - Instructions are not run from bytes, so IP is the index of the next program line (L0, L1, …),
   and jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it.
 - The Program panel still shows the machine code each line would assemble to on a real 8086.
@@ -117,7 +121,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The cards in each column can be put in any order: drag the grip on a card's top edge, or focus
   it and use the arrow keys (Home and End move it to the top or bottom). A card stays in its own
   column. The order is remembered, separately for the CPU diagram and the tables, and **Reset the
-  card order** in the command palette (Ctrl+K) puts it back.
+  card order** in the command palette (Ctrl+K) puts it back. On a wide screen each column scrolls
+  on its own, so the program stays in view under a long CPU column, and the bottom bar sits below
+  both.
 - The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
   the command palette has them too.
 - **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
@@ -161,7 +167,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   needs a value a load has not brought yet waits one cycle in ID. A branch or jump changes PC in
   EX, so when it is taken the two instructions fetched behind it are struck out (flushed). Turn
   **Forwarding** off to see every instruction wait in ID until the one before it has written its
-  result back. Under the chart, a sentence says why each stall and flush happened, and a line adds
+  result back. With it on, a blue line down the chart joins an EX to the stage above it that handed
+  it a result before that result was written back. Under the chart, a sentence says why each stall and flush happened, and a line adds
   up the cycles. The CPU itself still runs one instruction at a time; the chart is worked out from
   the history.
 - The **Machine code** panel shows the 32 bits of an instruction with each field over its bits:
@@ -284,6 +291,8 @@ npm run verify:6502 # check the 6502 core against py65
 - בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש בתיבה מילים או טקסט, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt, ימינה ושמאלה עוברים בין המילים ובתוך הטקסט, ולמעלה ולמטה מגיעים לתחילת התיבה ולסופה. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע.
 - במסך רחב, הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
+- לכל משפחת הוראות יש צבע משלה בין האפשרויות (העברות, חשבון, לוגיקה, הזזות, קפיצות וענפים,
+  המחסנית): נקודה לפני שם המשפחה, והקצה השמאלי של כל אחת מההוראות שלה.
 - **Reset**, בסרגל התחתון ליד Undo, מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את
   ההיסטוריה; התוכנית נשמרת.
   כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
@@ -297,7 +306,9 @@ npm run verify:6502 # check the 6502 core against py65
   הסגמנט, את IP ואת **מחבר הכתובות** (Address adder), שמציג את `segment × 10h + offset` של
   הגישה האחרונה לזיכרון. bus פנימי מחבר בין שתי היחידות, ו-bus חיצוני אחד של כתובות ונתונים
   יוצא מהמחבר אל הזיכרון ואל פורטי ה-I/O. כל חיווט נדלק כקריאה או ככתיבה. מספר פורט מדלג על
-  המחבר, ושליפת שורה אינה יוצרת כתובת, כי התוכנית אינה שמורה בזיכרון.
+  המחבר, ושליפת שורה אינה יוצרת כתובת, כי התוכנית אינה שמורה בזיכרון. הרגיסטרים מוצגים ב-hex
+  ובעשרוני; הכפתור **BIN** בכותרת חלונית ה-CPU (או **Show the register bits** בפלטת הפקודות)
+  מוסיף את 16 הסיביות של כל אחד.
 - הוראות אינן מורצות מתוך בתים, ולכן IP הוא האינדקס של שורת התוכנית הבאה (L0, L1, …), ויעדי
   jump/call הם שורות. CALL דוחף את השורה הבאה למחסנית ו-RET שולף אותה.
 - חלונית התוכנית מציגה בכל זאת את קוד המכונה שכל שורה הייתה מתורגמת אליו ב-8086 אמיתי. כפתור
@@ -329,7 +340,8 @@ npm run verify:6502 # check the 6502 core against py65
 - אפשר לסדר את הכרטיסיות בכל עמודה בכל סדר: גוררים את הידית שבקצה העליון של הכרטיסייה, או ממקדים
   אותה ומשתמשים במקשי החיצים (Home ו-End מעבירים אותה לראש העמודה או לסופה). כרטיסייה נשארת בעמודה
   שלה. הסדר נשמר, בנפרד לדיאגרמת ה-CPU ולטבלאות, והפקודה **Reset the card order** בפלטת הפקודות
-  (Ctrl+K) מחזירה אותו לברירת המחדל.
+  (Ctrl+K) מחזירה אותו לברירת המחדל. במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת גלויה
+  לצד עמודת CPU ארוכה, והסרגל התחתון נמצא מתחת לשתיהן.
 - תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
   הפקודות מציעה אותם.
 - **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
@@ -367,7 +379,8 @@ npm run verify:6502 # check the 6502 core against py65
   כפי שה-pipeline הקלאסי בן חמשת השלבים היה מריץ אותן, IF, ID, EX, MEM ו-WB, עד חמש בבת אחת, מחזור
   אחר מחזור. משבצת מקווקוות היא מחזור של המתנה: הוראה שצריכה ערך שטעינה עוד לא הביאה מחכה מחזור
   אחד ב-ID. ענף או קפיצה משנים את PC ב-EX, ולכן כשהם נלקחים שתי ההוראות שנשלפו אחריהם מסומנות בקו
-  (flush). כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. מתחת
+  (flush). כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. כשהוא
+  פועל, קו כחול לאורך התרשים מחבר EX לשלב שמעליו שמסר לו תוצאה לפני שנכתבה חזרה. מתחת
   לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים. המעבד עצמו עדיין מריץ
   הוראה אחת בכל פעם; התרשים מחושב מתוך ההיסטוריה.
 - חלונית **Machine code** מציגה את 32 הסיביות של הוראה, וכל שדה מעל הסיביות שלו: opcode, rd,

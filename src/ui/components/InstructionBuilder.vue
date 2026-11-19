@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, shallowRef, watch } from 'vue';
 import { parseNumber } from '@/core/shared/numbers';
 import { formatLabel } from '@/core/shared/program';
-import { CircleAlert, CornerDownLeft, Play, Plus, X } from '@lucide/vue';
+import { ChevronDown, CircleAlert, CornerDownLeft, Play, Plus, X } from '@lucide/vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,7 @@ import { boxMove, keyHints } from '@/ui/builderKeys';
 import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
 import { isApple } from '@/ui/platform';
+import { groupTone } from '@/ui/builderTones';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
@@ -354,15 +355,27 @@ function onBackspace(event: KeyboardEvent): void {
         </Tooltip>
       </div>
 
-      <p class="min-h-5 truncate text-sm text-muted-foreground" aria-live="polite">
-        <template v-if="doesNotFit">
-          <span class="text-destructive">{{ hint }}</span>
-        </template>
-        <template v-else-if="preview">
-          <span class="mr-2 font-mono font-medium text-foreground">{{ preview.label }}</span>
-          {{ preview.text }}
-        </template>
-      </p>
+      <!-- With the choices folded away their button shares this line, so the fold leaves no gap. -->
+      <div class="flex items-baseline gap-3">
+        <p class="min-h-5 min-w-0 flex-1 truncate text-sm text-muted-foreground" aria-live="polite">
+          <template v-if="doesNotFit">
+            <span class="text-destructive">{{ hint }}</span>
+          </template>
+          <template v-else-if="preview">
+            <span class="mr-2 font-mono font-semibold text-foreground">{{ preview.label }}</span>
+            {{ preview.text }}
+          </template>
+        </p>
+        <button
+          v-if="moreToChoose && !choicesShown && twoColumns"
+          type="button"
+          class="flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-pointer outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+          @click="unfold"
+        >
+          Show the choices
+          <ChevronDown class="size-3.5" aria-hidden="true" />
+        </button>
+      </div>
 
       <Alert v-if="error" variant="destructive" role="alert">
         <CircleAlert />
@@ -371,10 +384,19 @@ function onBackspace(event: KeyboardEvent): void {
 
       <div
         v-if="moreToChoose && choicesShown"
-        class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80"
+        class="scroll-fade -mx-1 max-h-[min(21rem,40svh)] scroll-pb-7 overflow-y-auto px-1"
       >
-        <div v-for="[group, options] in groups" :key="group" class="mb-3 last:mb-0">
-          <h3 class="mb-1.5 text-xs font-medium text-muted-foreground">{{ group }}</h3>
+        <!-- A family of instructions keeps one colour: the dot here, and the edge of each choice. -->
+        <div
+          v-for="[group, options] in groups"
+          :key="group"
+          class="mb-4 last:mb-0"
+          :data-tone="groupTone(group) ?? undefined"
+        >
+          <h3 class="mb-2 flex items-center gap-1.5 text-xs font-semibold text-foreground/85">
+            <span v-if="groupTone(group)" class="tone-dot" aria-hidden="true" />
+            {{ group }}
+          </h3>
           <div class="flex flex-wrap gap-1.5">
             <Button
               v-for="option in options"
@@ -413,15 +435,6 @@ function onBackspace(event: KeyboardEvent): void {
           <template v-else>{{ hint }}</template>
         </p>
       </div>
-      <!-- Takes the place of the choices, so the program below stays where the fold left it. -->
-      <button
-        v-else-if="moreToChoose && twoColumns"
-        type="button"
-        class="self-start rounded-sm text-sm text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-        @click="unfold"
-      >
-        Show the choices
-      </button>
       <div v-else-if="!moreToChoose" class="text-sm text-muted-foreground">
         <p>
           Complete. Run it now, or add it to the program at line
@@ -430,9 +443,10 @@ function onBackspace(event: KeyboardEvent): void {
       </div>
     </CardContent>
 
-    <CardFooter class="justify-between gap-3">
+    <!-- In a narrow pane the buttons take a row of their own rather than being cut off. -->
+    <CardFooter class="flex-wrap justify-between gap-x-3 gap-y-2">
       <!-- The keys that do something right now; see builderKeys.ts. -->
-      <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
+      <div class="hidden items-center gap-3 text-xs text-foreground/80 sm:flex">
         <span v-for="keyHint in hints" :key="keyHint.label" class="flex items-center gap-1.5">
           <KbdGroup
             ><Kbd v-for="key in keyHint.keys" :key="key">{{ key }}</Kbd></KbdGroup
@@ -441,11 +455,23 @@ function onBackspace(event: KeyboardEvent): void {
         </span>
       </div>
       <div class="ml-auto flex gap-2">
-        <Button variant="outline" size="sm" :disabled="!complete" @click="submit(true)">
+        <!-- Not yet usable is said by colour, not by fading: a faded button reads as broken. -->
+        <Button
+          variant="outline"
+          size="sm"
+          class="disabled:text-muted-foreground disabled:opacity-100"
+          :disabled="!complete"
+          @click="submit(true)"
+        >
           <Plus />
           Add at {{ formatLabel(insertLine) }}
         </Button>
-        <Button size="sm" :disabled="!complete" @click="submit(false)">
+        <Button
+          size="sm"
+          class="px-3 disabled:bg-primary/15 disabled:text-primary disabled:opacity-100"
+          :disabled="!complete"
+          @click="submit(false)"
+        >
           <Play />
           Run now
         </Button>

@@ -66,12 +66,24 @@ let gap = 0;
 let minY = 0;
 let maxY = 0;
 let start = { pointerId: -1, pageY: 0 };
+/** What scrolls under the drag: the column, where it is a pane with a scroll of its own. */
+let scroller: HTMLElement | null = null;
 let pointerY = 0;
 let scrollFrame = 0;
 let settleTimer = 0;
 
 const { calm: calmRef } = usePreferences();
 const calm = (): boolean => calmRef.value;
+
+/** The column when it scrolls by itself (a pane of the workbench); null when the page does. */
+function ownScroller(column: HTMLElement): HTMLElement | null {
+  const overflow = getComputedStyle(column).overflowY;
+  return overflow === 'auto' || overflow === 'scroll' ? column : null;
+}
+
+function scrolled(): number {
+  return scroller ? scroller.scrollTop : window.scrollY;
+}
 
 function card(key: K): HTMLElement | null {
   return root.value?.querySelector<HTMLElement>(`[data-sortable="${key}"]`) ?? null;
@@ -112,7 +124,8 @@ function onPointerDown(event: PointerEvent, key: K): void {
   minY = slots[0].top - slots[home].top;
   maxY = last.top + last.height - (slots[home].top + slots[home].height);
 
-  start = { pointerId: event.pointerId, pageY: event.clientY + window.scrollY };
+  scroller = ownScroller(column);
+  start = { pointerId: event.pointerId, pageY: event.clientY + scrolled() };
   pointerY = event.clientY;
   target.value = home;
   dragY.value = 0;
@@ -125,7 +138,7 @@ function onPointerDown(event: PointerEvent, key: K): void {
   window.addEventListener('pointercancel', cancel);
   window.addEventListener('keydown', onDragKey);
   window.addEventListener('blur', cancel);
-  window.addEventListener('scroll', follow, { passive: true });
+  (scroller ?? window).addEventListener('scroll', follow, { passive: true });
   scrollFrame = requestAnimationFrame(autoScroll);
 }
 
@@ -138,16 +151,19 @@ function onPointerMove(event: PointerEvent): void {
 /** Keeps the dragged card under the pointer, and the others out of its way. */
 function follow(): void {
   if (active.value === null || phase.value !== 'dragging') return;
-  const travelled = pointerY + window.scrollY - start.pageY;
+  const travelled = pointerY + scrolled() - start.pageY;
   dragY.value = Math.min(maxY, Math.max(minY, travelled));
   target.value = dragTarget(slots, home, dragY.value);
 }
 
-/** Scrolls the page while the dragged card is held near the top or bottom of the window. */
+/** Scrolls while the dragged card is held near the top or bottom of what it scrolls in. */
 function autoScroll(): void {
   if (active.value === null || phase.value !== 'dragging') return;
-  const step = autoScrollStep(pointerY, window.innerHeight);
-  if (step !== 0) window.scrollBy(0, step);
+  const box = scroller?.getBoundingClientRect();
+  const step = box
+    ? autoScrollStep(pointerY - box.top, box.height)
+    : autoScrollStep(pointerY, window.innerHeight);
+  if (step !== 0) (scroller ?? window).scrollBy(0, step);
   scrollFrame = requestAnimationFrame(autoScroll);
 }
 
@@ -208,7 +224,7 @@ function stopListening(): void {
   window.removeEventListener('pointercancel', cancel);
   window.removeEventListener('keydown', onDragKey);
   window.removeEventListener('blur', cancel);
-  window.removeEventListener('scroll', follow);
+  (scroller ?? window).removeEventListener('scroll', follow);
 }
 
 /** A card shown or hidden mid-drag (the I/O panel opens by itself) ends the drag at once. */
@@ -275,7 +291,7 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
 <template>
   <div
     ref="root"
-    class="relative flex min-w-0 flex-col gap-4"
+    class="relative flex min-w-0 flex-col *:shrink-0"
     :class="{ 'sortable-instant': instant }"
     :style="TIMING_VARS"
   >

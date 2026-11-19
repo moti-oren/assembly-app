@@ -2,6 +2,7 @@
 export const STORAGE_KEYS = {
   sound: '8086-sound',
   cpuView: '8086-cpu-view',
+  registerBits: '8086-register-bits',
   reduceMotion: '8086-reduce-motion',
   panelOrder: '8086-panel-order',
   architecture: '8086-architecture',

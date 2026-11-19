@@ -24,6 +24,9 @@ export const usePreferences = createGlobalState(() => {
     serializer: { read: (raw) => (raw === 'table' ? 'table' : 'diagram'), write: (view) => view }
   });
 
+  /** Whether the 8086 diagram spells each register out in bits, beside its hex and decimal. */
+  const registerBits = useLocalStorage(STORAGE_KEYS.registerBits, false);
+
   /** The CPU on show. Each one keeps its own program and history while the other is shown. */
   const architecture = useLocalStorage<ArchitectureId>(STORAGE_KEYS.architecture, 'x86', {
     serializer: { read: (raw) => (isArchitectureId(raw) ? raw : 'x86'), write: (id) => id }
@@ -63,6 +66,7 @@ export const usePreferences = createGlobalState(() => {
     isDark,
     soundOn,
     cpuView,
+    registerBits,
     architecture,
     reduceMotion,
     systemReducesMotion,

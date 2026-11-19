@@ -55,8 +55,36 @@ describe('pipelineGrid', () => {
     expect(grid.rows[2].cells[2]).toEqual({ stage: 'IF', kind: 'flushed' });
   });
 
+  it('joins an EX to the stage a result was forwarded from, in the same cycle', () => {
+    const grid = pipelineGrid(timing([li(T0, 1), use]), 10);
+    // The add is in EX in cycle 4, while the addi above it is in MEM.
+    expect(grid.rows[1].cells[3]).toEqual({
+      stage: 'EX',
+      kind: 'run',
+      forwarded: [{ rows: 1, text: 't0 forwarded from L0 (addi t0, zero, 1), in MEM' }]
+    });
+    expect(grid.rows[0].cells[3]).toEqual({ stage: 'MEM', kind: 'run', source: true });
+    expect(grid.forwards).toBe(true);
+  });
+
+  it('draws no line to an instruction that is not among the rows shown', () => {
+    const grid = pipelineGrid(timing([li(T0, 1), use]), 1);
+    expect(grid.rows[0].cells.find((cell) => cell?.stage === 'EX')?.forwarded?.[0].rows).toBe(0);
+  });
+
+  it('has no forwards when forwarding is off', () => {
+    const grid = pipelineGrid(timing([li(T0, 1), use], false), 10);
+    expect(grid.forwards).toBe(false);
+    expect(grid.rows.flatMap((row) => row.cells).some((cell) => cell?.forwarded)).toBe(false);
+  });
+
   it('is empty before anything has run', () => {
-    expect(pipelineGrid(timing([]), 10)).toEqual({ from: 0, cycles: [], rows: [] });
+    expect(pipelineGrid(timing([]), 10)).toEqual({
+      from: 0,
+      cycles: [],
+      rows: [],
+      forwards: false
+    });
   });
 });
 

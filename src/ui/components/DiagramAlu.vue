@@ -8,9 +8,12 @@ defineProps<{ model: CpuDiagramModel }>();
 
 <template>
   <div class="mt-3 flex items-stretch">
-    <!-- A fixed height, sized for the longest sum, so nothing below moves as the text changes. -->
+    <!--
+      The sum on one line, where the unit is wide enough for it. With nothing to compute the line
+      holds its outline in dashes, and the reason beside it, so the unit keeps its size.
+    -->
     <div
-      class="h-36 min-w-0 flex-1 chip-block rounded-lg border px-3 py-2.5 transition-opacity duration-300"
+      class="chip-block min-h-16 min-w-0 flex-1 rounded-lg border px-3 py-2"
       :class="{ 'unit-idle': !model.equation && !model.alu.input && !model.alu.output }"
     >
       <div class="flex items-baseline justify-between gap-3">
@@ -25,24 +28,21 @@ defineProps<{ model: CpuDiagramModel }>();
       </div>
       <div
         v-if="model.equation"
-        class="mt-2 grid grid-cols-[auto_auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
+        class="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-code"
       >
-        <span />
-        <span class="text-right">{{ model.equation.left }}</span>
-        <span />
+        <span>{{ model.equation.left }}</span>
         <span class="text-muted-foreground">{{ model.equation.operator }}</span>
-        <span class="text-right">{{ model.equation.right }}</span>
-        <span />
+        <span>{{ model.equation.right }}</span>
         <template v-if="model.equation.carry !== null">
           <span class="text-muted-foreground">{{ model.equation.operator }}</span>
-          <span class="text-right">{{ model.equation.carry }}</span>
-          <span class="font-sans text-xs text-muted-foreground">CF</span>
+          <span
+            >{{ model.equation.carry }}
+            <span class="font-sans text-xs text-muted-foreground">CF</span></span
+          >
         </template>
-        <span class="col-span-2 my-0.5 border-t border-foreground/25" />
-        <span />
         <span class="text-muted-foreground">=</span>
         <span
-          class="-mx-1 rounded-sm px-1 text-right font-semibold"
+          class="rounded-sm px-1 font-semibold"
           :class="
             model.equation.discarded
               ? 'text-muted-foreground line-through decoration-1'
@@ -50,7 +50,7 @@ defineProps<{ model: CpuDiagramModel }>();
           "
           >{{ model.equation.result }}</span
         >
-        <span class="truncate font-sans text-xs text-muted-foreground">
+        <span class="font-sans text-xs text-muted-foreground">
           {{
             model.equation.discarded
               ? 'only the flags are kept'
@@ -58,7 +58,14 @@ defineProps<{ model: CpuDiagramModel }>();
           }}
         </span>
       </div>
-      <p v-else class="mt-2 text-xs text-muted-foreground">{{ model.notes.alu }}</p>
+      <div v-else class="mt-1.5 flex items-baseline gap-x-3 font-mono text-code">
+        <span class="standby shrink-0" aria-hidden="true">---- op ---- = ----</span>
+        <span
+          class="min-w-0 truncate font-sans text-xs text-muted-foreground"
+          :title="model.notes.alu"
+          >{{ model.notes.alu }}</span
+        >
+      </div>
     </div>
     <!-- Operands come in off the bus; the result goes back onto it. -->
     <div class="hidden w-5 flex-col justify-center gap-4 sm:flex" aria-hidden="true">

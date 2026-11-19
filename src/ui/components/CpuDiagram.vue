@@ -2,10 +2,11 @@
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { Instruction } from '@/core/x86/instructions';
 import type { CpuState } from '@/core/x86/state';
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useCpuDiagram } from '@/ui/useCpuDiagram';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
-import CpuViewToggle from './CpuViewToggle.vue';
+import { usePreferences } from '@/ui/usePreferences';
+import CpuCanvas from './CpuCanvas.vue';
 import DiagramBusUnit from './DiagramBusUnit.vue';
 import DiagramExecutionUnit from './DiagramExecutionUnit.vue';
 import DiagramExternalBus from './DiagramExternalBus.vue';
@@ -23,48 +24,54 @@ const props = defineProps<{
 
 /** The CPU as two units and the buses between them; the parts below draw it. */
 const model = useCpuDiagram(props);
+
+const { registerBits } = usePreferences();
 </script>
 
 <template>
-  <Card size="sm" class="cpu-stage">
-    <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">CPU</CardTitle>
-      <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
-        <span class="hidden items-center gap-1.5 sm:flex">
-          <span class="inline-block h-0.5 w-3 rounded-full bg-pointer" aria-hidden="true" />
-          read
-        </span>
-        <span class="hidden items-center gap-1.5 sm:flex">
-          <span class="inline-block h-0.5 w-3 rounded-full bg-written" aria-hidden="true" />
-          written
-        </span>
-        <CpuViewToggle />
-      </CardAction>
-    </CardHeader>
+  <CpuCanvas>
+    <template #actions>
+      <!-- Sixteen bits a row crowd the registers, so they are shown only when asked for. -->
+      <Button
+        variant="outline"
+        size="xs"
+        class="font-mono pointer-coarse:h-11"
+        :class="registerBits ? 'border-pointer/60 bg-pointer/12 text-foreground' : ''"
+        :aria-pressed="registerBits"
+        aria-label="Show the registers in binary"
+        title="Show the registers in binary"
+        @click="registerBits = !registerBits"
+      >
+        BIN
+      </Button>
+    </template>
 
-    <CardContent class="flex flex-col gap-4">
-      <!-- The BIU's width, set on the children so the container query can switch it. -->
-      <div class="@container *:[--biu-width:15rem] @min-[40rem]:*:[--biu-width:18.5rem]">
-        <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
-        <div
-          class="grid gap-y-5 chip-package rounded-xl p-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
-        >
-          <DiagramExecutionUnit :model="model" :tick="tick" />
+    <!-- The BIU's width, set on the children so the container query can switch it. -->
+    <div
+      class="@container"
+      :class="
+        registerBits
+          ? '*:[--biu-width:15rem] @min-[40rem]:*:[--biu-width:18.5rem]'
+          : '*:[--biu-width:14rem]'
+      "
+    >
+      <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
+      <div class="chip-package grid gap-y-5 rounded-lg p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <DiagramExecutionUnit :model="model" :tick="tick" />
 
-          <DiagramWire
-            class="hidden h-auto w-0.5 sm:block"
-            :kind="model.internalKind"
-            :tick="model.pulse"
-            title="Internal bus"
-          />
+        <DiagramWire
+          class="hidden h-auto w-0.5 sm:block"
+          :kind="model.internalKind"
+          :tick="model.pulse"
+          title="Internal bus"
+        />
 
-          <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->
-          <DiagramBusUnit :model="model" :tick="tick" />
-        </div>
-
-        <!-- Outside the package: one bus, shared by the memory and the I/O ports. -->
-        <DiagramExternalBus :model="model" />
+        <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->
+        <DiagramBusUnit :model="model" :tick="tick" />
       </div>
-    </CardContent>
-  </Card>
+
+      <!-- Outside the package: one bus, shared by the memory and the I/O ports. -->
+      <DiagramExternalBus :model="model" />
+    </div>
+  </CpuCanvas>
 </template>
