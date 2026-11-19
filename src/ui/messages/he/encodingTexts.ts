@@ -45,8 +45,8 @@ export const X86_ENCODING_TEXTS: Record<EncodingTextKey, string> = {
   displacement16: 'ה-displacement של 16 סיביות, הבית הנמוך קודם, מתווסף לרגיסטר',
   portNumber: 'מספר הפורט',
   interruptNumber: 'מספר הפסיקה',
-  distance: 'המרחק לקפיצה, נמדד מההוראה הבאה: {sum}, ולכן {distance}',
-  distanceSum: '{label} נמצאת ב-{destination}h וההוראה הבאה ב-{next}h',
+  distance:
+    'המרחק לקפיצה, נמדד מההוראה הבאה: {label} נמצאת ב-{destination}h וההוראה הבאה ב-{next}h, ולכן {distance}',
 
   modrm: 'ModR/M: באיזה רגיסטר ובאיזה רגיסטר או מקום בזיכרון ה-opcode משתמש',
   modRegister: '11: r/m הוא רגיסטר',

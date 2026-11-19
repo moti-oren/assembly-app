@@ -163,15 +163,15 @@ export function relative(
   const next = place.offset + place.lead + opcodeBytes + size / 8;
   const destination = place.offsetOf(target);
   const distance = destination - next;
-  const sum = said('distanceSum', {
-    label: formatLabel(target),
-    destination: formatHex(destination, 16),
-    next: formatHex(next, 16)
-  }).note;
   const field: EncodedField = {
     kind: 'relative',
     bytes: size === 8 ? [distance & 0xff] : word(distance),
-    ...said('distance', { sum, distance: distance < 0 ? `−${-distance}` : `+${distance}` })
+    ...said('distance', {
+      label: formatLabel(target),
+      destination: formatHex(destination, 16),
+      next: formatHex(next, 16),
+      distance: distance < 0 ? `−${-distance}` : `+${distance}`
+    })
   };
   if (size === 8 && (distance < -128 || distance > 127)) {
     const tooFar = said('tooFar', { label: formatLabel(target), distance });

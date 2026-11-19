@@ -50,8 +50,8 @@ export const ENCODING_TEXTS = {
   displacement16: 'The 16-bit displacement, low byte first, added to the register',
   portNumber: 'The port number',
   interruptNumber: 'The interrupt number',
-  distance: 'The distance to jump, counted from the next instruction: {sum}, so {distance}',
-  distanceSum: '{label} is at {destination}h and the next instruction at {next}h',
+  distance:
+    'The distance to jump, counted from the next instruction: {label} is at {destination}h and the next instruction at {next}h, so {distance}',
 
   // The ModR/M byte and the fields in it
   modrm: 'ModR/M: which register and which register or memory location the opcode works on',
