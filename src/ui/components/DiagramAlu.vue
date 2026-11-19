@@ -10,7 +10,7 @@ defineProps<{ model: CpuDiagramModel }>();
   <div class="mt-3 flex items-stretch">
     <!-- A fixed height, sized for the longest sum, so nothing below moves as the text changes. -->
     <div
-      class="h-36 min-w-0 flex-1 rounded-lg border bg-card px-3 py-2.5 transition-opacity duration-300"
+      class="h-36 min-w-0 flex-1 chip-block rounded-lg border px-3 py-2.5 transition-opacity duration-300"
       :class="{ 'unit-idle': !model.equation && !model.alu.input && !model.alu.output }"
     >
       <div class="flex items-baseline justify-between gap-3">

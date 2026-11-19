@@ -63,7 +63,7 @@ const flagChanged = (bit: number) =>
 </script>
 
 <template>
-  <Card size="sm">
+  <Card size="sm" class="cpu-stage">
     <CardHeader>
       <CardTitle class="group-data-[size=sm]/card:text-base">CPU</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
@@ -82,10 +82,7 @@ const flagChanged = (bit: number) =>
     <CardContent class="@container flex flex-col gap-3">
       <div class="grid gap-3 @min-[40rem]:grid-cols-[auto_minmax(0,1fr)]">
         <!-- Three 8-bit registers do all the work; SP and PC point at the stack and the code. -->
-        <section
-          class="rounded-xl border border-foreground/20 bg-inset p-2.5"
-          aria-label="Registers"
-        >
+        <section class="chip-package rounded-xl p-2.5" aria-label="Registers">
           <h3 class="unit-title">Registers <span>8-bit</span></h3>
           <div class="mt-1.5 flex flex-col gap-1 font-mono text-code">
             <div
@@ -148,7 +145,7 @@ const flagChanged = (bit: number) =>
           />
           <DatapathStage title="Data bus" tag="memory · devices" :stage="view.bus" :tick="pulse" />
           <section
-            class="rounded-lg border bg-card px-2.5 py-2 transition-opacity duration-300"
+            class="chip-block rounded-lg border px-2.5 py-2 transition-opacity duration-300"
             :class="{ 'unit-idle': !view.cycles }"
             aria-label="Cycles"
           >

@@ -13,7 +13,7 @@ defineProps<{
 
 <template>
   <section
-    class="relative min-w-0 overflow-hidden rounded-lg border bg-card px-2.5 py-2 transition duration-300"
+    class="relative min-w-0 overflow-hidden chip-block rounded-lg border px-2.5 py-2 transition duration-300"
     :class="{
       'border-pointer/60': stage.use === 'read',
       'border-written/70': stage.use === 'write',

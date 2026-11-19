@@ -26,9 +26,18 @@ const props = defineProps<{
 const ROWS = 8;
 
 const CELL_CLASSES: Record<PipelineCell['kind'], string> = {
-  run: 'bg-foreground/10 text-foreground',
+  run: 'text-foreground',
   stall: 'border border-dashed border-changed-foreground/60 bg-changed/40 text-changed-foreground',
   flushed: 'bg-muted text-muted-foreground/70 line-through'
+};
+
+/** A stage keeps one colour down its diagonal, so an instruction's path reads at a glance. */
+const STAGE_CLASSES: Record<PipelineCell['stage'], string> = {
+  IF: 'bg-chart-1/25',
+  ID: 'bg-chart-3/25',
+  EX: 'bg-chart-4/25',
+  MEM: 'bg-chart-2/25',
+  WB: 'bg-chart-5/25'
 };
 
 const { forwarding } = useRv32Pipeline();
@@ -52,9 +61,9 @@ const summary = computed(() => pipelineSummary(timing.value));
             run the program: every instruction shows up here, cycle by cycle, with the stalls and
             flushes the overlap costs.
           </p>
-          <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+          <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
             <template v-for="stage in PIPELINE_STAGES" :key="stage">
-              <dt class="font-mono">{{ stage }}</dt>
+              <dt class="rounded-sm px-1 font-mono" :class="STAGE_CLASSES[stage]">{{ stage }}</dt>
               <dd class="text-muted-foreground">{{ STAGE_INFO[stage] }}</dd>
             </template>
           </dl>
@@ -63,11 +72,21 @@ const summary = computed(() => pipelineSummary(timing.value));
       <Button
         variant="outline"
         size="xs"
-        class="h-5 px-1.5 text-2xs pointer-coarse:h-11"
+        class="h-5 gap-1.5 rounded-full px-2 text-2xs pointer-coarse:h-11"
+        :class="
+          forwarding
+            ? 'border-pointer/60 bg-pointer/15 text-foreground hover:bg-pointer/25 dark:border-pointer/50 dark:bg-pointer/15 dark:hover:bg-pointer/25'
+            : 'border-dashed text-muted-foreground'
+        "
         :aria-pressed="forwarding"
         title="Hand a result straight to the next instruction, before it is written back"
         @click="forwarding = !forwarding"
       >
+        <span
+          class="size-1.5 rounded-full"
+          :class="forwarding ? 'bg-pointer shadow-[0_0_6px_var(--pointer)]' : 'bg-foreground/30'"
+          aria-hidden="true"
+        />
         Forwarding {{ forwarding ? 'on' : 'off' }}
       </Button>
       <Rv32CycleToggle class="ml-auto" />
@@ -110,7 +129,11 @@ const summary = computed(() => pipelineSummary(timing.value));
                 v-for="(cell, index) in row.cells"
                 :key="index"
                 class="h-5 rounded-sm text-center"
-                :class="cell ? CELL_CLASSES[cell.kind] : ''"
+                :class="
+                  cell
+                    ? [CELL_CLASSES[cell.kind], cell.kind === 'run' && STAGE_CLASSES[cell.stage]]
+                    : ''
+                "
               >
                 {{ cell?.stage }}
                 <span v-if="cell?.kind === 'stall'" class="sr-only">(waiting)</span>

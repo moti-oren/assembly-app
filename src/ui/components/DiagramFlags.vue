@@ -31,7 +31,7 @@ defineProps<{
               ? 'border-transparent bg-changed text-changed-foreground'
               : model.isSet(flag)
                 ? 'border-foreground/20 bg-secondary'
-                : 'border-border bg-card'
+                : 'border-border bg-raised'
           ]"
           :aria-label="`${FLAG_INFO[flag].label} flag is ${model.isSet(flag) ? 1 : 0}`"
         >

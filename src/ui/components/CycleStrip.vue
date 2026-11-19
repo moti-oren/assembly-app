@@ -2,7 +2,7 @@
 import { CYCLE_PHASES, type CyclePhase } from '@/core/shared/cycle';
 import InfoTip from './InfoTip.vue';
 
-defineProps<{
+const props = defineProps<{
   /** The phase the instruction on show is in, or null before anything has run. */
   active: CyclePhase | null;
   /** The instruction on show, as written, or null when the CPU is idle. */
@@ -12,6 +12,11 @@ defineProps<{
   /** How the cycle works on this CPU, behind the info button. */
   intro: string;
 }>();
+
+/** True once the phase on show is at or past the one at `index`. */
+function reached(index: number): boolean {
+  return props.active !== null && CYCLE_PHASES.indexOf(props.active) >= index;
+}
 
 const PHASE_LABELS: Record<CyclePhase, string> = {
   fetch: 'Fetch',
@@ -34,18 +39,29 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         >
           <span
             v-if="index > 0"
-            class="h-0.5 w-3 rounded-full bg-foreground/15"
+            class="h-px w-4 transition-colors duration-300"
+            :class="reached(index) ? 'bg-pointer/70' : 'bg-foreground/15'"
             aria-hidden="true"
           />
+          <!-- The phase on show is filled; the ones already behind it keep an outline. -->
           <span
-            class="rounded-md border px-2 py-0.5 transition-colors duration-300"
+            class="flex items-center gap-1.5 rounded-full border py-0.5 pr-2.5 pl-1 transition-colors duration-300"
             :class="
               phase === active
-                ? 'border-transparent bg-foreground font-semibold text-background'
-                : 'text-muted-foreground'
+                ? 'border-transparent bg-pointer font-semibold text-pointer-foreground shadow-[0_0_14px_-3px_var(--pointer)]'
+                : reached(index + 1)
+                  ? 'border-pointer/45 bg-pointer/10 text-foreground'
+                  : 'text-muted-foreground'
             "
-            >{{ PHASE_LABELS[phase] }}</span
           >
+            <span
+              class="grid size-4 place-items-center rounded-full bg-current/15 font-mono text-2xs"
+              aria-hidden="true"
+              >{{ index + 1 }}</span
+            >
+            {{ PHASE_LABELS[phase] }}
+            <span v-if="phase !== active && reached(index + 1)" class="sr-only">(done)</span>
+          </span>
         </li>
       </ol>
       <span class="ml-auto truncate font-mono text-xs text-muted-foreground">{{
@@ -55,9 +71,9 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       <slot name="actions" />
     </div>
     <!-- Three lines, whatever the text, so the panels below never move until it is opened. -->
-    <details class="group mt-2 text-xs leading-4 text-muted-foreground">
+    <details class="group mt-2.5 text-code leading-5 text-foreground/80">
       <summary
-        class="line-clamp-3 h-12 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
+        class="line-clamp-3 h-15 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
       >
         <span aria-live="polite">{{ detail ?? 'Nothing has run yet.' }}</span>
       </summary>
