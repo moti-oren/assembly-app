@@ -765,6 +765,13 @@
 .text-\[0\.8rem\].font-mono {
   font-size: var(--text-code);
 }
+/*
+ * A card is set off from the page by its surface (--card on --page), so the outline shadcn draws
+ * around it goes. Only its colour is cleared, which keeps the shadow of a card being dragged.
+ */
+[data-slot='card'] {
+  --tw-ring-color: transparent;
+}
 .dark [data-slot='dialog-overlay'] {
   background: var(--overlay);
 }
