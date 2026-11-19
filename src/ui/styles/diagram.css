@@ -1,15 +1,9 @@
 /* The CPU diagrams: the canvas, the chip on it, the units inside, and the wires between them. */
 
 @layer components {
-  /* The one place with a drawing grid: the sheet the CPU is drawn on. */
-  .cpu-canvas {
-    background-image: radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
-    background-size: 14px 14px;
-    background-position: 7px 7px;
-  }
-  /* The chip itself: a plain surface on the sheet, so its tables are read without the dots. */
+  /* The chip itself: a plain surface on the flat sheet, edged by one hairline. */
   .chip-package {
-    border: 1px solid var(--input);
+    border: 1px solid var(--border);
     background-color: var(--card);
   }
   /* A unit (the ALU, the adder, a stage): on the sheet a surface, inside the chip set into it. */
@@ -17,8 +11,9 @@
     border-color: var(--input);
     background-color: var(--card);
   }
+  /* Inside the chip, a unit is set apart by its fill, not by a frame within the frame. */
   .chip-package .chip-block {
-    border-color: var(--border);
+    border-color: var(--block-edge);
     background-color: var(--recessed);
   }
 

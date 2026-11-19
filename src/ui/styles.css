@@ -176,8 +176,8 @@
   /* A block standing on a surface: a control's thumb, a chosen word. */
   --raised: #ffffff;
   --background: #ffffff;
-  /* The dots of the drawing grid behind the CPU diagram, and nowhere else. */
-  --grid-dot: rgb(16 24 40 / 14%);
+  /* The edge of a unit inside the chip: none on white, where the fill alone sets it apart. */
+  --block-edge: transparent;
   --shadow-well: inset 0 0 0 1px var(--border);
   --shadow-thumb: 0 1px 2px rgb(16 24 40 / 10%), 0 0 0 1px rgb(16 24 40 / 8%);
   --shadow-overlay: 0 2px 6px rgb(16 24 40 / 6%), 0 20px 50px -16px rgb(16 24 40 / 24%);
@@ -246,7 +246,7 @@
   --written: #f97316;
   --overlay: rgb(0 0 0 / 55%);
   --raised: #1d222b;
-  --grid-dot: rgb(148 163 184 / 14%);
+  --block-edge: #232730;
   --shadow-thumb: inset 0 1px 0 rgb(255 255 255 / 6%), 0 1px 2px rgb(0 0 0 / 45%);
   --shadow-overlay: 0 2px 8px rgb(0 0 0 / 35%), 0 24px 60px -16px rgb(0 0 0 / 70%);
   --glass: rgb(17 19 24 / 92%);
