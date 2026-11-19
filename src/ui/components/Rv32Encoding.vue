@@ -64,7 +64,7 @@ function bitOf(bit: number): number {
     <CardHeader>
       <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.encoding.title }}</CardTitle>
       <CardDescription v-if="shown">
-        <span class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</span>
+        <bdi class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</bdi>
         · {{ summary }}
       </CardDescription>
       <CardDescription v-else>
@@ -115,9 +115,9 @@ function bitOf(bit: number): number {
         = 0x{{ formatHex32(encoding.word) }}
         <span class="font-sans text-xs text-muted-foreground">
           {{ t.rv32.lowByteFirst }}
-          {{
+          <bdi dir="ltr">{{
             encoding.bytes.map((byte) => byte.toString(16).toUpperCase().padStart(2, '0')).join(' ')
-          }}
+          }}</bdi>
         </span>
       </p>
 
@@ -128,7 +128,7 @@ function bitOf(bit: number): number {
           class="rounded-md border px-2.5 py-1.5"
           :class="FIELD_COLOURS[field.name]"
         >
-          <div class="flex items-baseline gap-2">
+          <div class="ui-text flex items-baseline gap-2">
             <span class="font-mono font-semibold">{{ field.label }}</span>
             <span class="font-mono text-muted-foreground">
               {{ t.rv32.bitRange(field.high, field.low) }} =

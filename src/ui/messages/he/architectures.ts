@@ -6,7 +6,7 @@ export const architectures: ArchitectureMessages = {
       'כל הוראה עוברת fetch, אחר כך decode ואז execute. הוראת RISC-V היא תמיד מילה אחת של 4 בתים, ולכן PC מתקדם ב-4. הכפתור Fetch שלמטה מעביר שורה דרך שלושת השלבים.',
     cycleView: {
       label: 'תצוגת המחזור',
-      single: 'אחת אחת',
+      single: 'הוראה אחת',
       singleHint: 'הצגת המחזור של הוראה אחת',
       pipeline: 'Pipeline',
       pipelineHint: 'הצגת ה-pipeline'
@@ -16,7 +16,7 @@ export const architectures: ArchitectureMessages = {
     noFlags: 'אין דגלים',
     noFlagsBefore: 'ל-RISC-V אין דגלים. הוראת הסתעפות משווה בעצמה בין שני רגיסטרים',
     noFlagsMiddle: ', והוראת',
-    noFlagsAfter: 'שמה את התשובה של השוואה, 1 או 0, ברגיסטר.',
+    noFlagsAfter: 'שמה את תוצאת ההשוואה, 1 או 0, ברגיסטר.',
     compared: (how) => `השוואה ${how}`,
     comparedNothing: 'ההוראה האחרונה לא השוותה כלום.',
     runBranch: 'מריצים הוראת הסתעפות כדי לראות מה היא משווה.',
@@ -51,7 +51,7 @@ export const architectures: ArchitectureMessages = {
       title: 'Pipeline',
       about: 'על ה-pipeline',
       intro:
-        'מעבד עם pipeline עובד על חמש הוראות בבת אחת, כל אחת בשלב אחר. צועדים או מריצים את התוכנית: כל הוראה מופיעה כאן, מחזור אחרי מחזור, עם ה-stalls וה-flushes שהחפיפה עולה.',
+        'מעבד עם pipeline עובד על חמש הוראות בבת אחת, כל אחת בשלב אחר. צועדים או מריצים את התוכנית: כל הוראה מופיעה כאן, מחזור אחרי מחזור, עם ה-stalls וה-flushes שהחפיפה גורמת להם.',
       stages: {
         IF: 'קריאת ההוראה',
         ID: 'פענוח שלה וקריאת הרגיסטרים שלה',
@@ -75,9 +75,9 @@ export const architectures: ArchitectureMessages = {
     eightBit: '8 סיביות',
     pcNote: 'מונה התוכנית',
     addressUnit: 'יחידת הכתובות',
-    dataBus: 'אפיק הנתונים',
+    dataBus: 'ערוץ הנתונים',
     dataBusTag: 'זיכרון · התקנים',
-    cycles: 'מחזורי שעון',
+    cycles: 'מחזורים',
     clock: 'שעון',
     encodingEmpty: 'בונים הוראה, או מוסיפים אחת לתוכנית, כדי לראות לאילו בתים היא הופכת.',
     fields: {
@@ -110,7 +110,7 @@ export const architectures: ArchitectureMessages = {
     measure: 'מדד',
     fewest: '(הכי מעט)',
     program: (architecture) => `התוכנית של ${architecture}`,
-    leaves: 'משאירה',
+    leaves: 'בסוף',
     load: (architecture) => `טעינה ל-${architecture}`,
     loadNote: 'טעינת תוכנית מחליפה את התוכנית של אותו מעבד ומוחקת את ההיסטוריה שלו, כמו דוגמה.',
     traits: {

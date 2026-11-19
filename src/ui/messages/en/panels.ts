@@ -170,6 +170,8 @@ export const panels = {
     read: 'read',
     written: 'written',
     internalBus: 'Internal bus',
+    /** A unit's short name beside its title: BIU, EU, IF. */
+    unitTag: (tag: string) => tag,
     biu: 'Bus interface unit',
     eu: 'Execution unit',
     adder: 'Address adder',

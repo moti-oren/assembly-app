@@ -9,7 +9,7 @@ export const X86_ENCODING_TEXTS: Record<EncodingTextKey, string> = {
   groupSignExtended: 'קבוצה: r/m16 עם immediate של 8 סיביות שמורחב סימן ל-16 סיביות',
   groupImmediate: 'קבוצה: r/m{size} עם immediate של {size} סיביות',
   accumulatorImmediate: '\u2066{name} {register}, imm{size}\u2069: צורה קצרה בלי ModR/M',
-  groupArithmetic: 'קבוצה: חשבון עם אופרנד אחד על r/m{size}',
+  groupArithmetic: 'קבוצה: אריתמטיקה עם אופרנד אחד על r/m{size}',
   groupShift: 'קבוצה: הזזה של r/m{size} ב-{count}',
   movSegmentFrom: 'MOV sreg, r/m16',
   movSegmentTo: 'MOV r/m16, sreg',

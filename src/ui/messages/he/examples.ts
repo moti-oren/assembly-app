@@ -10,8 +10,8 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
   x86: {
     sum: { name: 'סכום 1 עד 10', description: 'LOOP סופרת את CX למטה; בסוף AX הוא 55' },
     max: {
-      name: 'המקסימום של AX, BX',
-      description: 'CMP וקפיצה מותנית עם סימן; בסוף DX הוא הערך הגדול'
+      name: 'המקסימום מבין AX ו-BX',
+      description: 'CMP וקפיצה מותנית לפי סימן; בסוף DX הוא הערך הגדול'
     },
     call: {
       name: 'קריאה לתת-שגרה',
@@ -27,11 +27,11 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
     },
     'running-light': {
       name: 'אור רץ',
-      description: 'OUT שולחת סיבית 1 בודדת אל הנורות בפורט 10h, מוזזת שמאלה 8 פעמים'
+      description: 'OUT שולחת סיבית 1 בודדת אל הנורות בפורט 10h, ומזיזים אותה שמאלה 8 פעמים'
     },
     switches: {
       name: 'מתגים, ספרות ומסוף',
-      description: 'IN קוראת את המתגים; OUT מעתיקה אותם אל הנורות ואל ספרה, ואז מדפיסה HI'
+      description: 'IN קוראת את המתגים; OUT מעתיקה אותם אל הנורות ואל תצוגת ספרה, ואז מדפיסה HI'
     },
     interrupt: {
       name: 'פסיקת תוכנה',
@@ -44,7 +44,7 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
       description: 'אין הוראת LOOP: t0 סופר למטה ו-BNEZ קופצת חזרה עד שהוא 0; בסוף a0 הוא 55'
     },
     max: {
-      name: 'המקסימום של a0, a1',
+      name: 'המקסימום מבין a0 ו-a1',
       description: 'אין דגלים: BGE משווה בעצמה בין שני הרגיסטרים; בסוף a2 הוא הערך הגדול'
     },
     call: {
@@ -58,7 +58,7 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
     constants: {
       name: 'בניית קבועים של 32 סיביות',
       description:
-        'ל-immediate יש 12 סיביות, ולכן LI הופכת ל-LUI + ADDI. ADDI מרחיבה סימן, ולכן 0x12345FFF דורש LUI 0x12346'
+        'ל-immediate יש 12 סיביות, ולכן LI הופכת ל-LUI + ADDI. ADDI מרחיבה את הסימן, ולכן 0x12345FFF דורש LUI 0x12346'
     },
     'fill-copy': {
       name: 'מילוי והעתקה של בתים',
@@ -72,17 +72,17 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
     switches: {
       name: 'מתגים, ספרות ומסוף',
       description:
-        'LBU קוראת את המתגים ב-0x10000011; SB מעתיקה אותם אל הנורות ואל ספרה, ואז מדפיסה HI'
+        'LBU קוראת את המתגים ב-0x10000011; SB מעתיקה אותם אל הנורות ואל תצוגת ספרה, ואז מדפיסה HI'
     },
     'multiply-divide': {
       name: 'כפל וחילוק',
-      description: 'הרחבת M; חילוק באפס לא גורם ל-trap, אלא נותן הכול אחדות (\u200e-1)'
+      description: 'הרחבת M; חילוק באפס לא גורם ל-trap, אלא מחזיר מספר שכל הסיביות שלו 1 (\u200e-1)'
     }
   },
   mos6502: {
     sum: {
       name: 'סכום 1 עד 10',
-      description: 'רק A יכול לחבר, ורק זיכרון אליו: X עובר דרך ה-zero page. בסוף A הוא 55'
+      description: 'רק A יכול לחבר, ורק ערך מהזיכרון: X עובר דרך ה-zero page. בסוף A הוא 55'
     },
     'wide-add': {
       name: 'חיבור מספרים של 16 סיביות',
@@ -92,7 +92,7 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
     multiply: {
       name: 'כפל בהזזות',
       description:
-        'אין MUL: מזיזים את המכפיל ימינה, ומוסיפים בכל סיבית 1, 8 פעמים. 6 × 7 = 42 נוחת ב-$01'
+        'אין MUL: מזיזים את המכפיל ימינה ומחברים על כל סיבית 1, 8 פעמים. 6 × 7 = 42 נשמר ב-$01'
     },
     call: {
       name: 'קריאה לתת-שגרה',
@@ -108,7 +108,8 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
     },
     switches: {
       name: 'מתגים, ספרות ומסוף',
-      description: 'LDA קוראת את המתגים ב-$D011; STA מעתיקה אותם אל הנורות ואל ספרה, ואז מדפיסה HI'
+      description:
+        'LDA קוראת את המתגים ב-$D011; STA מעתיקה אותם אל הנורות ואל תצוגת ספרה, ואז מדפיסה HI'
     },
     decimal: {
       name: 'מצב עשרוני',
@@ -133,7 +134,7 @@ export const TASK_TEXTS: Record<string, { name: string; lesson: string }> = {
   multiply: {
     name: 'כפל 6 ב-7',
     lesson:
-      'ה-MUL של ה-8086 וה-MUL של RISC-V (מהרחבת M) מכפילות כל אחת בהוראה אחת, אם כי זו של ה-8086 לוקחת בפנים עשרות מחזורי שעון. ל-6502 אין כפל בכלל: הוא מזיז את המכפיל ימינה ומחבר, פעם אחת לכל אחת מ-8 הסיביות שלו.'
+      'ה-MUL של ה-8086 וה-MUL של RISC-V (מהרחבת M) מכפילות כל אחת בהוראה אחת, אף שזו של ה-8086 צורכת מבפנים עשרות מחזורי שעון. ל-6502 אין כפל בכלל: הוא מזיז את המכפיל ימינה ומחבר, פעם אחת לכל אחת מ-8 הסיביות שלו.'
   },
   fill: {
     name: 'מילוי 8 בתים ב-$2A',
@@ -141,7 +142,7 @@ export const TASK_TEXTS: Record<string, { name: string; lesson: string }> = {
       'REP STOSB ממלאת את כל השמונה בהוראה אחת שחוזרת על עצמה. RISC-V וה-6502 כותבים את הלולאה במפורש. ה-6502 מחזיק את המונה ואת האינדקס באותו רגיסטר: STA $0300,X שומרת ב-$0300 ועוד X.'
   },
   call: {
-    name: 'קריאה לפונקציה שמכפילה את 7',
+    name: 'קריאה לפונקציה שמכפילה את 7 פי שניים',
     lesson:
       'CALL ו-JSR דוחפות את כתובת החזרה למחסנית, בזיכרון. JAL של RISC-V שומרת אותה ברגיסטר, ra, ולכן פונקציה שלא קוראת לשום דבר אחר לא נוגעת בזיכרון בכלל. JSR דוחפת את הכתובת של הבית האחרון שלה, ו-RTS מתקנת אותה בהוספת 1.'
   },

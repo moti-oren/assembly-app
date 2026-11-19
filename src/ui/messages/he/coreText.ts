@@ -22,7 +22,7 @@ import type {
 
 const X86_CATEGORIES: Record<X86Category, string> = {
   transfer: 'העברת נתונים',
-  arithmetic: 'חשבון',
+  arithmetic: 'אריתמטיקה',
   logic: 'לוגיקה',
   shift: 'הזזה וסיבוב',
   string: 'מחרוזות',
@@ -58,7 +58,7 @@ const OPERAND_KINDS: Record<OperandKind, string> = {
 const FLAGS: Record<FlagName, { label: string; description: string }> = {
   CF: { label: 'נשא', description: 'גלישה ללא סימן: נשא מהסיבית העליונה, או לווה אליה' },
   PF: { label: 'זוגיות', description: 'בבית הנמוך של התוצאה יש מספר זוגי של סיביות 1' },
-  AF: { label: 'נשא עזר', description: 'נשא מסיבית 3 (משמש בחשבון BCD)' },
+  AF: { label: 'נשא עזר', description: 'נשא מסיבית 3 (משמש באריתמטיקת BCD)' },
   ZF: { label: 'אפס', description: 'התוצאה היא אפס' },
   SF: { label: 'סימן', description: 'הסיבית העליונה של התוצאה היא 1 (שלילי כמספר עם סימן)' },
   TF: { label: 'מלכודת', description: 'מצב צעד בודד' },
@@ -167,7 +167,7 @@ const X86_DESCRIPTIONS: Record<X86Mnemonic, string> = {
 };
 
 const RV32_CATEGORIES: Record<Rv32Category, string> = {
-  arithmetic: 'חשבון',
+  arithmetic: 'אריתמטיקה',
   logic: 'לוגיקה',
   shift: 'הזזה',
   compare: 'השוואה',
@@ -254,7 +254,7 @@ const MOS6502_CATEGORIES: Record<Mos6502Category, string> = {
   load: 'טעינה ושמירה',
   transfer: 'העברה בין רגיסטרים',
   stack: 'מחסנית',
-  arithmetic: 'חשבון והשוואה',
+  arithmetic: 'אריתמטיקה והשוואה',
   logic: 'לוגיקה',
   shift: 'הזזה וסיבוב',
   jump: 'קפיצה ותת-שגרה',
@@ -314,8 +314,8 @@ const MOS6502_DESCRIPTIONS: Record<Mos6502Mnemonic, string> = {
   sec: 'C = 1',
   cli: 'I = 0',
   sei: 'I = 1',
-  cld: 'D = 0: חשבון בינארי',
-  sed: 'D = 1: חשבון עשרוני (BCD)',
+  cld: 'D = 0: אריתמטיקה בינארית',
+  sed: 'D = 1: אריתמטיקה עשרונית (BCD)',
   clv: 'V = 0',
   brk: 'דחיפת PC + 2 ו-P, הדלקת I, וקפיצה דרך הווקטור ב-$FFFE',
   rti: 'שליפת P ואז PC: חזרה מפסיקה',

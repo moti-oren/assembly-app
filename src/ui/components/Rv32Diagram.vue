@@ -84,7 +84,9 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
         class="rounded-xl border border-foreground/20 bg-inset p-2.5"
         :aria-label="t.rv32.registerFile"
       >
-        <h3 class="unit-title">{{ t.rv32.registerFile }} <span>x0–x31</span></h3>
+        <h3 class="unit-title">
+          {{ t.rv32.registerFile }} <span>{{ t.diagram.unitTag('x0–x31') }}</span>
+        </h3>
         <div
           class="mt-1.5 grid gap-x-4 font-mono text-code @min-[30rem]:grid-cols-2 @min-[46rem]:grid-cols-4"
         >

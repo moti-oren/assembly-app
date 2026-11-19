@@ -13,7 +13,7 @@ defineProps<{ model: CpuDiagramModel }>();
   <div class="mt-3 flex items-end justify-between gap-3 sm:mt-0">
     <p class="truncate pb-1 text-xs text-muted-foreground">
       <span class="unit-title">{{ t.diagram.bus }}</span>
-      <span v-if="model.bus" class="ms-2 font-mono">{{ model.bus }}</span>
+      <span v-if="model.bus" class="ui-auto ms-2 font-mono">{{ model.bus }}</span>
     </p>
     <!--
             Starts at the adder, so it crosses the edge of the package like a pin. The adder's
@@ -35,7 +35,7 @@ defineProps<{ model: CpuDiagramModel }>();
         :class="{ 'unit-idle': !model.memoryKind }"
       >
         <h3 class="unit-title mb-0">{{ t.diagram.memory }}</h3>
-        <span v-if="model.memory" class="truncate font-mono text-code">
+        <span v-if="model.memory" class="ui-text truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.memory.write ? t.diagram.wrote : t.diagram.readValue }}
           </span>
@@ -59,7 +59,7 @@ defineProps<{ model: CpuDiagramModel }>();
         :class="{ 'unit-idle': !model.portKind }"
       >
         <h3 class="unit-title mb-0">{{ t.diagram.ports }}</h3>
-        <span v-if="model.port" class="truncate font-mono text-code">
+        <span v-if="model.port" class="ui-text truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.port.write ? t.diagram.wrote : t.diagram.readValue }}
           </span>

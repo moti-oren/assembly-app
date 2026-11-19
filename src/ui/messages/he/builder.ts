@@ -42,11 +42,11 @@ export const builder: BuilderMessages = {
       special: 'מיוחדים: אפס, כתובת חזרה, מחסנית, מצביעים גלובלי ושל thread',
       argument: 'ארגומנטים וערכי החזרה (a0–a7)',
       temporary: 'זמניים (t0–t6)',
-      saved: 'נשמרים לאורך קריאות (s0–s11)'
+      saved: 'נשמרים בין קריאות לפונקציות (s0–s11)'
     },
     withFormat: (description, format) => `${description} (${format}-type)`,
     pseudo: 'פסאודו-הוראות: האסמבלר הופך כל אחת להוראות אמיתיות',
-    zero: 'x0: תמיד נקרא כ-0; כתיבה אליו נזרקת',
+    zero: 'x0: תמיד נקרא כ-0; כתיבה אליו לא משפיעה',
     offset: 'Offset מרגיסטר בסיס',
     offsetHint: 'אחר כך בוחרים את הרגיסטר שה-offset מתווסף אליו',
     immediate: (range) => `Immediate (${range})`,

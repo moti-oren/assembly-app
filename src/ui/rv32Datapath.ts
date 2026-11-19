@@ -73,7 +73,10 @@ function planned(
     memory: memory ? { use: 'read', text: m.datapath.willAccess(memory.access) } : IDLE,
     writeBack:
       writeBack && rd !== 0 && rd !== null
-        ? { use: 'read', text: `${formatRegister(rd)} ← ${m.datapath.sources[writeBack]}` }
+        ? {
+            use: 'read',
+            text: `${m.common.code(`${formatRegister(rd)} ←`)} ${m.datapath.sources[writeBack]}`
+          }
         : IDLE,
     nextPc: {
       use: 'read',
@@ -110,13 +113,13 @@ function executed(
       written !== undefined && decoded.writeBack
         ? {
             use: 'write',
-            text: `${formatRegister(written)} ← ${hex(readRegister(input.state, written))}, ${m.datapath.sources[decoded.writeBack]}`
+            text: `${m.common.code(`${formatRegister(written)} ← ${hex(readRegister(input.state, written))}`)}, ${m.datapath.sources[decoded.writeBack]}`
           }
         : IDLE,
     nextPc: comparison
       ? {
           use: comparison.taken ? 'write' : 'read',
-          text: `${comparison.left} ${comparison.operator} ${comparison.right}: ${comparison.outcome}`
+          text: `${m.common.code(`${comparison.left} ${comparison.operator} ${comparison.right}`)}: ${comparison.outcome}`
         }
       : { use: decoded.nextPc === 'jump' ? 'write' : 'read', text: `PC = ${at}` }
   };

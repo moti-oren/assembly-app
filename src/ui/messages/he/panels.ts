@@ -160,12 +160,14 @@ export const panels: PanelMessages = {
   diagram: {
     read: 'נקרא',
     written: 'נכתב',
-    internalBus: 'האפיק הפנימי',
-    biu: 'יחידת ממשק האפיק',
+    internalBus: 'הערוץ הפנימי',
+    // Isolated, so a tag with brackets of its own, such as (indirect),Y, keeps its order.
+    unitTag: (tag) => `(\u2068${tag}\u2069)`,
+    biu: 'יחידת ממשק הערוץ',
     eu: 'יחידת הביצוע',
     adder: 'מחבר הכתובות',
     address20: 'כתובת של 20 סיביות',
-    bus: 'אפיק כתובות / נתונים',
+    bus: 'ערוץ כתובות / נתונים',
     memory: 'זיכרון',
     ports: 'פורטי I/O',
     wrote: 'כתב',

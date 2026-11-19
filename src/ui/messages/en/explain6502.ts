@@ -41,13 +41,12 @@ export const explain6502 = {
     jumped: (pc: string) => `It jumped: PC is now ${pc}.`,
     nextLine: (pc: string) => `PC is at ${pc}, the next line.`,
     zeroPage: (base: string) => `${base}, in the zero page`,
-    zeroPageIndexed: (sum: string, address: string) =>
-      `${sum} = ${address}, wrapping within the zero page`,
+    zeroPageIndexed: (equation: string) => `${equation}, wrapping within the zero page`,
     intoPage: (page: string) => `, into page ${page}`,
-    indexedIndirect: (sum: string, at: string, address: string) =>
-      `${sum} = ${at}; the pointer there holds ${address}`,
-    indirectIndexed: (base: string, pointer: string, rest: string) =>
-      `The pointer at ${base} holds ${pointer}${rest}`,
+    indexedIndirect: (equation: string, address: string) =>
+      `${equation}; the pointer there holds ${address}`,
+    indirectIndexed: (base: string, equation: string, crossing: string) =>
+      `The pointer at ${base} holds ${equation}${crossing}`,
     indirectBug: (page: string) => `, its high byte read from ${page}: the NMOS bug`,
     indirect: (base: string, address: string, bug: string) =>
       `The address stored at ${base} is ${address}${bug}`,

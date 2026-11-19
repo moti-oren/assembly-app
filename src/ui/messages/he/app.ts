@@ -23,7 +23,7 @@ export const app: AppMessages = {
   },
   palette: {
     title: 'פקודות',
-    description: 'חיפוש של משהו לעשות',
+    description: 'חיפוש פעולה לביצוע',
     search: 'חיפוש פקודות',
     empty: 'אין פקודה שמתאימה.',
     move: 'מעבר',

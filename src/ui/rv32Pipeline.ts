@@ -96,5 +96,5 @@ export function pipelineSummary(m: Messages, timing: PipelineTiming): string | n
   if (stallCycles > 0) parts.push(n.stalled(stallCycles));
   if (flushCycles > 0) parts.push(n.flushed(flushCycles));
   const cpi = (cycles / instructions).toFixed(2);
-  return n.summary(cycles, parts.join(' + '), cpi);
+  return n.summary(cycles, parts, cpi);
 }

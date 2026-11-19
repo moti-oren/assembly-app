@@ -1,6 +1,9 @@
 import type { ExplainRv32Messages } from '../en/explainRv32';
 
 const cycles = (count: number) => (count === 1 ? 'מחזור אחד' : `${count} מחזורים`);
+/** "המילה", "חצי המילה": a size as the object of a sentence. */
+const definite = (size: string) =>
+  size.startsWith('חצי ') ? size.replace('חצי ', 'חצי ה') : `ה${size}`;
 const accessWord = (access: 'load' | 'store') => (access === 'load' ? 'תטען' : 'תשמור');
 
 export const explainRv32: ExplainRv32Messages = {
@@ -57,8 +60,8 @@ export const explainRv32: ExplainRv32Messages = {
       other: 'התקן'
     },
     inCode: 'בתוך הקוד',
-    stored: (size, value, where) => `שמרה את ה${size} ${value} ב-${where}`,
-    loaded: (size, value, where) => `טענה את ה${size} ${value} מ-${where}`
+    stored: (size, value, where) => `שמרה את ${definite(size)} ${value} ב-${where}`,
+    loaded: (size, value, where) => `טענה את ${definite(size)} ${value} מ-${where}`
   },
   datapath: {
     idle: 'לא פעיל',
@@ -84,6 +87,8 @@ export const explainRv32: ExplainRv32Messages = {
     fill: '4 למילוי ה-pipeline',
     stalled: (count) => `${count} ב-stall`,
     flushed: (count) => `${count} שאבדו ל-flushes`,
-    summary: (count, parts, cpi) => `${cycles(count)} = ${parts} · ${cpi} מחזורים להוראה`
+    // A mark after each part, so a number never joins the English word before it.
+    summary: (count, parts, cpi) =>
+      `${cycles(count)} = ${parts.join('\u200f + ')}\u200f · ${cpi} מחזורים להוראה`
   }
 };

@@ -107,6 +107,8 @@ export function describeExecute(
 /** How an address was formed, step by step, in the words of its addressing mode. */
 export function addressSteps(m: Messages, trace: AddressTrace): string {
   const e = m.mos6502Explain;
+  // Each sum is set apart whole, so it reads left to right inside a sentence of any language.
+  const { code } = m.common;
   const { mode, base, index, pointer, address, pageCrossed } = trace;
   const indexed = index ? ` + ${index.register.toUpperCase()} (${byteHex(index.value)})` : '';
   const crossing = pageCrossed ? e.intoPage(byteHex(address >> 8)) : '';
@@ -115,21 +117,20 @@ export function addressSteps(m: Messages, trace: AddressTrace): string {
       return e.zeroPage(byteHex(base));
     case 'zpx':
     case 'zpy':
-      return e.zeroPageIndexed(`${byteHex(base)}${indexed}`, byteHex(address));
+      return e.zeroPageIndexed(code(`${byteHex(base)}${indexed} = ${byteHex(address)}`));
     case 'abx':
     case 'aby':
-      return `${wordHex(base)}${indexed} = ${wordHex(address)}${crossing}`;
+      return `${code(`${wordHex(base)}${indexed} = ${wordHex(address)}`)}${crossing}`;
     case 'izx':
       return e.indexedIndirect(
-        `${byteHex(base)}${indexed}`,
-        byteHex(pointer!.at),
+        code(`${byteHex(base)}${indexed} = ${byteHex(pointer!.at)}`),
         wordHex(address)
       );
     case 'izy':
       return e.indirectIndexed(
         byteHex(base),
-        wordHex(pointer!.value),
-        `${indexed} = ${wordHex(address)}${crossing}`
+        code(`${wordHex(pointer!.value)}${indexed} = ${wordHex(address)}`),
+        crossing
       );
     case 'ind': {
       const bug = (base & 0xff) === 0xff ? e.indirectBug(wordHex(base & 0xff00)) : '';
