@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { formatBits, formatBytes, formatHex } from '@/core/shared/numbers';
+import type { Said } from '@/core/shared/text';
 import type { AssembledLine } from '@/core/mos6502/encode';
+import type { Mos6502EncodingTextKey } from '@/core/mos6502/encodingTexts';
 import { formatInstruction, type Instruction } from '@/core/mos6502/instructions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EncodingShown } from '@/ui/encodingShown';
@@ -15,6 +17,16 @@ const props = defineProps<{
   shown: EncodingShown<Instruction, AssembledLine> | null;
 }>();
 
+/** What a field says, in the language of the interface. */
+function say(said: Said<Mos6502EncodingTextKey>): string {
+  return t.value.mos6502Text.encoding(said.key, said.params);
+}
+
+const problemText = computed(() => {
+  const said = props.shown?.assembled.encoding.problemSay;
+  return said ? say(said) : null;
+});
+
 const summary = computed(() => {
   if (!props.shown) return null;
   const { address, encoding } = props.shown.assembled;
@@ -22,7 +34,7 @@ const summary = computed(() => {
     t.value.common.bytes(encoding.bytes.length),
     `$${formatHex(address, 16)}`,
     whereText(t.value, props.shown.where),
-    encoding.cycles
+    encoding.cyclesSay ? say(encoding.cyclesSay) : encoding.cycles
   );
 });
 </script>
@@ -57,11 +69,11 @@ const summary = computed(() => {
           <p v-if="field.kind === 'opcode'" class="mt-0.5 font-mono text-xs text-muted-foreground">
             {{ formatBits(field.bytes[0], 8) }}
           </p>
-          <p class="mt-0.5 text-xs text-muted-foreground">{{ field.note }}</p>
+          <p class="ui-text mt-0.5 text-xs text-muted-foreground">{{ say(field.say) }}</p>
         </li>
       </ol>
-      <p v-if="shown.assembled.encoding.problem" class="text-xs text-destructive" role="alert">
-        {{ shown.assembled.encoding.problem }}
+      <p v-if="problemText" class="ui-text text-xs text-destructive" role="alert">
+        {{ problemText }}
       </p>
     </CardContent>
   </Card>

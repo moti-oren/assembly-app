@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { COMPARISON_TASKS } from '@/core/comparisonTasks';
+import { MOS6502_ENCODING_TEXTS } from '@/core/mos6502/encodingTexts';
+import { RV32_ENCODING_TEXTS } from '@/core/rv32/encodingTexts';
+import { ENCODING_TEXTS } from '@/core/x86/encodingTexts';
 import { FLAG_REASON_TEXTS } from '@/core/x86/flagReasonTexts';
 import { decode } from '@/core/x86/decode';
 import { X86 } from '@/core/x86/architecture';
@@ -11,6 +14,11 @@ import { MNEMONICS as RV32_MNEMONICS } from '@/core/rv32/instructions';
 import { PSEUDO_MNEMONICS } from '@/core/rv32/pseudo';
 import { MNEMONICS as MOS6502_MNEMONICS } from '@/core/mos6502/instructions';
 import { LOCALES, messagesFor } from './locale';
+import {
+  MOS6502_ENCODING_TEXTS as HEBREW_6502,
+  RV32_ENCODING_TEXTS as HEBREW_RV32,
+  X86_ENCODING_TEXTS as HEBREW_X86
+} from './messages/he/encodingTexts';
 import { FLAG_REASON_TEXTS as HEBREW_FLAG_REASONS } from './messages/he/flagReasons';
 
 describe('instruction texts', () => {
@@ -94,5 +102,30 @@ describe('flag reasons', () => {
     expect(messagesFor('en').x86Text.flagReason('zero', params)).toBe('The result 00h is zero.');
     expect(messagesFor('he').x86Text.flagReason('zero', params)).toContain('00h');
     expect(messagesFor('he').x86Text.flagReason('zero', params)).toContain('אפס');
+  });
+});
+
+describe('machine code texts', () => {
+  const holes = (template: string) =>
+    [...template.matchAll(/\{(\w+)\}/g)].map((hole) => hole[1]).sort();
+
+  function sameHoles(english: Record<string, string>, hebrew: Record<string, string>): void {
+    for (const key of Object.keys(english)) {
+      expect(holes(hebrew[key]), key).toEqual(holes(english[key]));
+    }
+  }
+
+  it('fill the same holes in Hebrew as in English, for every architecture', () => {
+    sameHoles(ENCODING_TEXTS, HEBREW_X86);
+    sameHoles(RV32_ENCODING_TEXTS, HEBREW_RV32);
+    sameHoles(MOS6502_ENCODING_TEXTS, HEBREW_6502);
+  });
+
+  it('word a field in the language of the interface', () => {
+    const he = messagesFor('he');
+    expect(he.x86Text.encoding('portNumber', {})).toBe('מספר הפורט');
+    expect(messagesFor('en').x86Text.encoding('portNumber', {})).toBe('The port number');
+    expect(he.mos6502Text.encoding('cyclesPage', { cycles: 4 })).toContain('4');
+    expect(he.rv32Text.encoding('register', { abi: 'a0', index: 10 })).toBe('a0 (x10)');
   });
 });

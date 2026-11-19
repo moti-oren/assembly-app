@@ -2,11 +2,14 @@
 import { computed } from 'vue';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { formatBits, formatBytes, formatHex } from '@/core/shared/numbers';
+import type { Said } from '@/core/shared/text';
 import type { AssembledLine } from '@/core/x86/encode';
+import type { EncodingTextKey } from '@/core/x86/encodingTexts';
 import type { EncodingShown } from '@/ui/encodingShown';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocale } from '@/ui/useLocale';
 import { whereText } from '@/ui/encodingShown';
+import { withoutBits, withoutModBits } from '@/ui/x86EncodingView';
 
 const { t } = useLocale();
 
@@ -14,6 +17,16 @@ const props = defineProps<{
   /** The instruction on show with its machine code, or null when there is nothing to encode. */
   shown: EncodingShown<Instruction, AssembledLine> | null;
 }>();
+
+/** What a field says, in the language of the interface. */
+function say(said: Said<EncodingTextKey>): string {
+  return t.value.x86Text.encoding(said.key, said.params);
+}
+
+const problemText = computed(() => {
+  const said = props.shown?.assembled.encoding.problemSay;
+  return said ? say(said) : null;
+});
 
 const summary = computed(() => {
   if (!props.shown) return null;
@@ -59,19 +72,19 @@ const summary = computed(() => {
           >
             <dt>mod</dt>
             <dd class="font-mono text-foreground">{{ formatBits(field.modrm.mod, 2) }}</dd>
-            <dd>{{ field.modrm.modNote.replace(/^[01]+(:| with)\s*/, '') }}</dd>
+            <dd>{{ withoutModBits(say(field.modrm.modSay)) }}</dd>
             <dt>reg</dt>
             <dd class="font-mono text-foreground">{{ formatBits(field.modrm.reg, 3) }}</dd>
-            <dd>{{ field.modrm.regNote.replace(/^[01]+ = /, '') }}</dd>
+            <dd>{{ withoutBits(say(field.modrm.regSay)) }}</dd>
             <dt>r/m</dt>
             <dd class="font-mono text-foreground">{{ formatBits(field.modrm.rm, 3) }}</dd>
-            <dd>{{ field.modrm.rmNote.replace(/^[01]+ = /, '') }}</dd>
+            <dd>{{ withoutBits(say(field.modrm.rmSay)) }}</dd>
           </dl>
-          <p v-else class="mt-0.5 text-xs text-muted-foreground">{{ field.note }}</p>
+          <p v-else class="ui-text mt-0.5 text-xs text-muted-foreground">{{ say(field.say) }}</p>
         </li>
       </ol>
-      <p v-if="shown.assembled.encoding.problem" class="text-xs text-destructive" role="alert">
-        {{ shown.assembled.encoding.problem }}
+      <p v-if="problemText" class="ui-text text-xs text-destructive" role="alert">
+        {{ problemText }}
       </p>
     </CardContent>
   </Card>

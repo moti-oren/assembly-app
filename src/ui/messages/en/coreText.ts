@@ -6,7 +6,10 @@ import { X86 } from '@/core/x86/architecture';
 import type { ArchitectureId } from '../../architectures';
 import { fillText, type TextParams } from '@/core/shared/text';
 import { OPERAND_KIND_LABELS } from '@/core/x86/decode';
+import { ENCODING_TEXTS, type EncodingTextKey } from '@/core/x86/encodingTexts';
 import { FLAG_REASON_TEXTS, type FlagReasonKey } from '@/core/x86/flagReasonTexts';
+import { RV32_ENCODING_TEXTS, type Rv32EncodingTextKey } from '@/core/rv32/encodingTexts';
+import { MOS6502_ENCODING_TEXTS, type Mos6502EncodingTextKey } from '@/core/mos6502/encodingTexts';
 import { FLAG_INFO, type FlagName } from '@/core/x86/flags';
 import {
   CATEGORY_LABELS as X86_CATEGORIES,
@@ -63,16 +66,23 @@ export const coreText = {
     flagLabel: (flag: FlagName) => FLAG_INFO[flag].label,
     flagDescription: (flag: FlagName) => FLAG_INFO[flag].description,
     register: (register: WordRegister) => REGISTER_DESCRIPTIONS[register],
-    flagReason: (key: FlagReasonKey, params: TextParams) => fillText(FLAG_REASON_TEXTS[key], params)
+    flagReason: (key: FlagReasonKey, params: TextParams) =>
+      fillText(FLAG_REASON_TEXTS[key], params),
+    /** What a field of the machine code says about itself. */
+    encoding: (key: EncodingTextKey, params: TextParams) => fillText(ENCODING_TEXTS[key], params)
   },
   rv32Text: {
     category: (category: Rv32Category) => RV32_CATEGORIES[category],
     description: (mnemonic: Rv32Mnemonic) => rv32Spec(mnemonic).description,
-    pseudo: (mnemonic: PseudoMnemonic) => pseudoSpec(mnemonic).description
+    pseudo: (mnemonic: PseudoMnemonic) => pseudoSpec(mnemonic).description,
+    encoding: (key: Rv32EncodingTextKey, params: TextParams) =>
+      fillText(RV32_ENCODING_TEXTS[key], params)
   },
   mos6502Text: {
     category: (category: Mos6502Category) => MOS6502_CATEGORIES[category],
-    description: (mnemonic: Mos6502Mnemonic) => mos6502Spec(mnemonic).description
+    description: (mnemonic: Mos6502Mnemonic) => mos6502Spec(mnemonic).description,
+    encoding: (key: Mos6502EncodingTextKey, params: TextParams) =>
+      fillText(MOS6502_ENCODING_TEXTS[key], params)
   },
   /** The example programs and the comparison tasks, by the id each one has in the core. */
   examples: {

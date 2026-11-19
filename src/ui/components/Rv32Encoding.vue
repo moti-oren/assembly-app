@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { formatBits } from '@/core/shared/numbers';
+import type { Said } from '@/core/shared/text';
 import { formatHex32 } from '@/core/rv32/bits';
 import type { AssembledLine, FieldName } from '@/core/rv32/encode';
+import type { Rv32EncodingTextKey } from '@/core/rv32/encodingTexts';
 import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EncodingShown } from '@/ui/encodingShown';
@@ -30,6 +32,16 @@ const FIELD_COLOURS: Record<FieldName, string> = {
 const BITS = Array.from({ length: 32 }, (_, i) => 31 - i);
 
 const encoding = computed(() => props.shown?.assembled.encoding ?? null);
+
+/** What a field says, in the language of the interface. */
+function say(said: Said<Rv32EncodingTextKey>): string {
+  return t.value.rv32Text.encoding(said.key, said.params);
+}
+
+const problemText = computed(() => {
+  const said = encoding.value?.problemSay;
+  return said ? say(said) : null;
+});
 
 const summary = computed(() => {
   if (!props.shown) return null;
@@ -73,7 +85,7 @@ function bitOf(bit: number): number {
             class="truncate rounded-t-sm border-x border-t px-0.5 text-center"
             :class="FIELD_COLOURS[field.name]"
             :style="{ gridColumn: `${32 - field.high} / span ${field.high - field.low + 1}` }"
-            :title="field.note"
+            :title="say(field.say)"
           >
             {{ field.label }}
           </span>
@@ -123,11 +135,11 @@ function bitOf(bit: number): number {
               {{ formatBits(field.value, field.high - field.low + 1) }}
             </span>
           </div>
-          <p class="mt-0.5 text-muted-foreground">{{ field.note }}</p>
+          <p class="ui-text mt-0.5 text-muted-foreground">{{ say(field.say) }}</p>
         </li>
       </ol>
-      <p v-if="encoding.problem" class="text-xs text-destructive" role="alert">
-        {{ encoding.problem }}
+      <p v-if="problemText" class="ui-text text-xs text-destructive" role="alert">
+        {{ problemText }}
       </p>
     </CardContent>
   </Card>

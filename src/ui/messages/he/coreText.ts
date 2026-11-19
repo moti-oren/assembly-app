@@ -1,6 +1,7 @@
 import type { CoreTextMessages } from '../en/coreText';
 import { coreText as english } from '../en/coreText';
 import { EXAMPLE_TEXTS, TASK_TEXTS } from './examples';
+import { MOS6502_ENCODING_TEXTS, RV32_ENCODING_TEXTS, X86_ENCODING_TEXTS } from './encodingTexts';
 import { FLAG_REASON_TEXTS } from './flagReasons';
 import { fillText } from '@/core/shared/text';
 import type { FlagName } from '@/core/x86/flags';
@@ -332,16 +333,19 @@ export const coreText: CoreTextMessages = {
     flagLabel: (flag) => FLAGS[flag].label,
     flagDescription: (flag) => FLAGS[flag].description,
     register: (register) => REGISTERS[register],
-    flagReason: (key, params) => fillText(FLAG_REASON_TEXTS[key], params)
+    flagReason: (key, params) => fillText(FLAG_REASON_TEXTS[key], params),
+    encoding: (key, params) => fillText(X86_ENCODING_TEXTS[key], params)
   },
   rv32Text: {
     category: (category) => RV32_CATEGORIES[category],
     description: (mnemonic) => RV32_DESCRIPTIONS[mnemonic],
-    pseudo: (mnemonic) => PSEUDO_DESCRIPTIONS[mnemonic]
+    pseudo: (mnemonic) => PSEUDO_DESCRIPTIONS[mnemonic],
+    encoding: (key, params) => fillText(RV32_ENCODING_TEXTS[key], params)
   },
   mos6502Text: {
     category: (category) => MOS6502_CATEGORIES[category],
-    description: (mnemonic) => MOS6502_DESCRIPTIONS[mnemonic]
+    description: (mnemonic) => MOS6502_DESCRIPTIONS[mnemonic],
+    encoding: (key, params) => fillText(MOS6502_ENCODING_TEXTS[key], params)
   },
   // An example or task with no Hebrew text yet shows its English one; a test lists those.
   examples: {
