@@ -65,7 +65,7 @@ export const explain6502: Explain6502Messages = {
       sec: 'SEC הדליקה את C',
       cli: 'CLI ניקתה את I: פסיקות יכולות להיכנס',
       sei: 'SEI הדליקה את I: פסיקות מעוכבות',
-      cld: 'CLD ניקתה את D: חשבון בינארי',
+      cld: 'CLD ניקתה את D: אריתמטיקה בינארית',
       sed: 'SED הדליקה את D: ADC ו-SBC עובדות בעשרוני',
       clv: 'CLV ניקתה את V',
       brk: 'BRK הדליקה את I, כך שפסיקה נוספת ממתינה',
