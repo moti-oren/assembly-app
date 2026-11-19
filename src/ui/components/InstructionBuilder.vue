@@ -16,6 +16,7 @@ import {
 } from '@/ui/builderGrammar';
 import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
+import { isApple } from '@/ui/platform';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
@@ -382,11 +383,27 @@ function onBackspace(event: KeyboardEvent): void {
     </CardContent>
 
     <CardFooter class="justify-between gap-3">
+      <!--
+        The keys as they work right now. While there is text, the plain arrows edit it and Enter
+        picks the marked choice, so the row teaches Alt+arrows instead of run and add.
+      -->
       <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
-        <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run now</span>
-        <span class="flex items-center gap-1.5">
-          <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup> add
-        </span>
+        <template v-if="filter !== ''">
+          <span v-if="orderedOptions.length > 1" class="flex items-center gap-1.5">
+            <KbdGroup
+              ><Kbd>{{ isApple ? '⌥' : 'Alt' }}</Kbd
+              ><Kbd>←↑↓→</Kbd></KbdGroup
+            >
+            move
+          </span>
+          <span v-if="enterOption" class="flex items-center gap-1.5"><Kbd>Enter</Kbd> pick</span>
+        </template>
+        <template v-else>
+          <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run now</span>
+          <span class="flex items-center gap-1.5">
+            <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup> add
+          </span>
+        </template>
         <span class="flex items-center gap-1.5"><Kbd>Esc</Kbd> clear</span>
       </div>
       <div class="ml-auto flex gap-2">

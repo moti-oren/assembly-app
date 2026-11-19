@@ -13,6 +13,7 @@ import {
 import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
+import { isApple } from '@/ui/platform';
 import { useComparison } from '@/ui/useComparison';
 import { usePreferences } from '@/ui/usePreferences';
 
@@ -29,9 +30,7 @@ const { isDark, soundOn, architecture, reduceMotion, systemReducesMotion, toggle
 const { open: comparisonOpen } = useComparison();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
-const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
-  ? '⌘K'
-  : 'Ctrl K';
+const shortcut = isApple ? '⌘K' : 'Ctrl K';
 </script>
 
 <template>
