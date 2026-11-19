@@ -80,11 +80,12 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
               >
                 {{ ROLE_LABELS[group.role] }}
               </h4>
-              <div class="grid grid-cols-2 gap-x-1 @min-[26rem]:grid-cols-4">
+              <!-- As many columns as fit a whole register: a value never wraps under its name. -->
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(6.75rem,1fr))] gap-x-1">
                 <div
                   v-for="row in group.rows"
                   :key="row.key"
-                  class="flex h-5 items-center gap-1.5 rounded-sm px-1"
+                  class="flex h-5 items-center gap-1.5 rounded-sm px-1 whitespace-nowrap"
                   :class="{
                     'bg-pointer/15': use(row.index) === 'read',
                     'bg-written/20': use(row.index) === 'write'
