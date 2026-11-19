@@ -245,7 +245,7 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5">
+      <div class="overflow-auto rounded-lg bg-muted/30 px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">

@@ -70,7 +70,7 @@ watch(
       <div
         ref="list"
         :style="{ '--number-column': numberColumn }"
-        class="relative max-h-56 overflow-y-auto rounded-lg border bg-muted/30 py-1 lg:max-h-80"
+        class="relative max-h-56 overflow-y-auto rounded-lg bg-muted/30 py-1 lg:max-h-80"
       >
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
           {{ history.length - SHOWN }} earlier instructions are not shown.
