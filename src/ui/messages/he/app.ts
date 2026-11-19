@@ -42,7 +42,7 @@ export const app: AppMessages = {
   commands: {
     writeInstruction: 'כתיבת הוראה',
     stepLine: 'צעד של שורה אחת',
-    stepPhase: 'צעד של שלב אחד (fetch,‏ decode,‏ execute)',
+    stepPhase: 'צעד של שלב אחד (fetch,\u200f decode,\u200f execute)',
     pause: 'השהיה',
     run: 'הרצת התוכנית',
     addAtEnd: 'הוספת שורות חדשות בסוף',

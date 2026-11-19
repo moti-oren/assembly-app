@@ -2,13 +2,7 @@ import type { Program } from '@/core/shared/program';
 import { codeByte } from '@/core/mos6502/encode';
 import type { Instruction } from '@/core/mos6502/instructions';
 import { regionAt } from '@/core/mos6502/memory';
-import {
-  CODE_BASE,
-  DEVICE_BASE,
-  STACK_PAGE,
-  type CpuState,
-  type FlagName
-} from '@/core/mos6502/state';
+import { CODE_BASE, DEVICE_BASE, STACK_PAGE, type CpuState } from '@/core/mos6502/state';
 import { deviceByte, type AddressFormat, type MemoryPlace, type ShownByte } from './flatMemory';
 
 export const MOS6502_ADDRESSES: AddressFormat = { prefix: '$', digits: 4 };
@@ -34,12 +28,3 @@ export function byteAt(state: CpuState, program: Program<Instruction>, address: 
   }
   return { address, value: state.memory[address], region };
 }
-
-export const FLAG_INFO: Record<FlagName, { label: string; description: string }> = {
-  N: { label: 'Negative', description: 'Bit 7 of the result' },
-  V: { label: 'Overflow', description: 'The signed result does not fit, or bit 6 for BIT' },
-  D: { label: 'Decimal', description: 'ADC and SBC add and subtract decimal digits' },
-  I: { label: 'Interrupt disable', description: 'Interrupt requests are held off' },
-  Z: { label: 'Zero', description: 'The result is zero' },
-  C: { label: 'Carry', description: 'A carry out of bit 7; for SBC and CMP, no borrow' }
-};

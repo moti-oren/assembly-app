@@ -3,8 +3,9 @@ import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import DiagramWire from './DiagramWire.vue';
 import { useLocale } from '@/ui/useLocale';
 
-defineProps<{ model: CpuDiagramModel }>();
 const { t } = useLocale();
+
+defineProps<{ model: CpuDiagramModel }>();
 </script>
 
 <template>
@@ -48,7 +49,7 @@ const { t } = useLocale();
           </span>
           {{ model.memory.address }}
         </span>
-        <span v-else class="text-xs text-muted-foreground">{{ model.notes.memory }}</span>
+        <span v-else class="ui-text text-xs text-muted-foreground">{{ model.notes.memory }}</span>
       </div>
     </div>
     <div class="flex min-w-0 flex-col items-center">
@@ -72,7 +73,7 @@ const { t } = useLocale();
           </span>
           {{ model.port.port }}h
         </span>
-        <span v-else class="text-xs text-muted-foreground">{{ model.notes.port }}</span>
+        <span v-else class="ui-text text-xs text-muted-foreground">{{ model.notes.port }}</span>
       </div>
     </div>
   </div>

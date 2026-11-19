@@ -17,6 +17,7 @@ import {
   wasWritten
 } from './describe';
 import { adderNote, aluNote, busText, planNote } from './diagramNotes';
+import { useLocale } from './useLocale';
 import type { PendingInstruction } from './usePhaseStepping';
 
 /** How the last instruction used a connection: lit as a read, lit as a write, or not at all. */
@@ -37,6 +38,7 @@ export interface CpuDiagramInput {
  * box says and which wires light up. Its parts read it as one reactive object.
  */
 export function useCpuDiagram(input: CpuDiagramInput) {
+  const { t } = useLocale();
   /** While a line is part-way through its cycle nothing has run yet, so no change is on show. */
   const shown = computed(() => (input.pending ? null : input.record));
   const phase = computed(() => input.pending?.phase ?? null);
@@ -82,10 +84,17 @@ export function useCpuDiagram(input: CpuDiagramInput) {
     const memoryPlan = memoryPlanned.value ? decoded.value?.memory : undefined;
     const portPlan = decoded.value?.port;
     return {
-      alu: aluNote(phase.value, decoded.value, input.record, alu.value.input),
-      adder: adderNote(phase.value, decoded.value, input.record, memoryPlanned.value, !!port.value),
-      memory: planNote(memoryPlan?.read ?? false, memoryPlan?.write ?? false),
-      port: planNote(portPlan === 'read', portPlan === 'write')
+      alu: aluNote(t.value, phase.value, decoded.value, input.record, alu.value.input),
+      adder: adderNote(
+        t.value,
+        phase.value,
+        decoded.value,
+        input.record,
+        memoryPlanned.value,
+        !!port.value
+      ),
+      memory: planNote(t.value, memoryPlan?.read ?? false, memoryPlan?.write ?? false),
+      port: planNote(t.value, portPlan === 'read', portPlan === 'write')
     };
   });
 
@@ -102,7 +111,7 @@ export function useCpuDiagram(input: CpuDiagramInput) {
     return decoded.value?.port ? 'read' : undefined;
   });
   const busKind = computed<WireKind>(() => memoryKind.value ?? portKind.value);
-  const bus = computed(() => busText(memory.value, address.value, port.value));
+  const bus = computed(() => busText(t.value, memory.value, address.value, port.value));
 
   function value(name: WordRegister): number {
     return input.state.registers[name];

@@ -7,13 +7,14 @@ import { aluEquation, equationText } from '@/ui/mos6502Alu';
 import { cyclesBreakdown } from '@/ui/mos6502Explain';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   record: ExecutionRecord | null;
 }>();
 
-const equation = computed(() => props.record && aluEquation(props.record));
-const text = computed(() => equation.value && equationText(equation.value));
-const { t } = useLocale();
+const equation = computed(() => props.record && aluEquation(t.value, props.record));
+const text = computed(() => equation.value && equationText(t.value, equation.value));
 </script>
 
 <template>
@@ -33,7 +34,7 @@ const { t } = useLocale();
           {{ t.operation.aluUnused }}
         </span>
         <span class="w-full text-right font-sans text-xs text-muted-foreground">
-          {{ cyclesBreakdown(record) }}
+          {{ cyclesBreakdown(t, record) }}
         </span>
       </template>
       <span v-else class="font-sans text-sm text-muted-foreground">

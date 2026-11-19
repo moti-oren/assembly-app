@@ -20,6 +20,8 @@ import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   /** Its versions say when memory or a device changed: the byte arrays are not reactive. */
   state: { memoryVersion: number; ioVersion: number };
@@ -106,7 +108,6 @@ function reveal(jump: () => void): void {
   jump();
   card.value?.$el.scrollIntoView({ block: 'nearest' });
 }
-const { t } = useLocale();
 </script>
 
 <template>
@@ -160,7 +161,7 @@ const { t } = useLocale();
           {{ t.memory.badAddress(addressText, formatAddress(format, 0)) }}
         </span>
         <template v-else-if="access">
-          <span class="truncate">{{ access.text }}</span>
+          <span class="ui-auto truncate">{{ access.text }}</span>
           <button
             type="button"
             class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"

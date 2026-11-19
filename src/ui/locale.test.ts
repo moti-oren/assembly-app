@@ -48,3 +48,10 @@ describe('messages', () => {
     }
   });
 });
+
+describe('Hebrew messages', () => {
+  it('read right with the Latin words in them', () => {
+    expect(messagesFor('he').x86Cycle.nextLine('L1')).toContain('ב-\u2060L1');
+    expect(messagesFor('en').x86Cycle.nextLine('L1')).not.toMatch(/[\u200f\u2060]/);
+  });
+});

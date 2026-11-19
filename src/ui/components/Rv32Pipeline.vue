@@ -11,6 +11,8 @@ import InfoTip from './InfoTip.vue';
 import Rv32CycleToggle from './Rv32CycleToggle.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   /** The instructions that ran, oldest first. */
   history: readonly ExecutionRecord[];
@@ -31,10 +33,9 @@ const { forwarding } = useRv32Pipeline();
 const timing = computed(() =>
   pipelineTiming(props.history, props.program, { forwarding: forwarding.value })
 );
-const grid = computed(() => pipelineGrid(timing.value, ROWS));
-const notes = computed(() => pipelineNotes(timing.value, grid.value.from));
-const summary = computed(() => pipelineSummary(timing.value));
-const { t } = useLocale();
+const grid = computed(() => pipelineGrid(t.value, timing.value, ROWS));
+const notes = computed(() => pipelineNotes(t.value, timing.value, grid.value.from));
+const summary = computed(() => pipelineSummary(t.value, timing.value));
 </script>
 
 <template>
@@ -65,7 +66,7 @@ const { t } = useLocale();
       <Rv32CycleToggle class="ml-auto" />
     </div>
 
-    <p v-if="grid.rows.length === 0" class="mt-2 text-xs leading-4 text-muted-foreground">
+    <p v-if="grid.rows.length === 0" class="ui-text mt-2 text-xs leading-4 text-muted-foreground">
       {{ t.cycle.nothingYet }}
     </p>
     <template v-else>
@@ -115,10 +116,13 @@ const { t } = useLocale();
           </tbody>
         </table>
       </div>
-      <ul v-if="notes.length" class="mt-2 space-y-1 text-xs leading-4 text-muted-foreground">
+      <ul
+        v-if="notes.length"
+        class="ui-text mt-2 space-y-1 text-xs leading-4 text-muted-foreground"
+      >
         <li v-for="note in notes" :key="note">{{ note }}</li>
       </ul>
-      <p class="mt-2 text-xs text-foreground">{{ summary }}</p>
+      <p class="ui-text mt-2 text-xs text-foreground">{{ summary }}</p>
     </template>
   </div>
 </template>

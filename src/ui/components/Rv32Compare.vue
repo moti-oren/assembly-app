@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { aluEquation, describeComparison } from '@/ui/rv32Explain';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   program: Instruction[];
@@ -14,7 +16,7 @@ const props = defineProps<{
 }>();
 
 const comparison = computed(
-  () => props.record && describeComparison(props.record, props.state, props.program)
+  () => props.record && describeComparison(t.value, props.record, props.state, props.program)
 );
 
 /** SLT and its kin compare too, but leave the answer in a register instead of jumping. */
@@ -22,10 +24,9 @@ const setLessThan = computed(() => {
   const operation = props.record?.alu?.operation;
   const isCompare = operation === 'slt' || operation === 'sltu';
   return isCompare && props.record?.instruction.mnemonic.startsWith('slt')
-    ? aluEquation(props.record)
+    ? aluEquation(t.value, props.record)
     : null;
 });
-const { t } = useLocale();
 </script>
 
 <!-- Where the 8086 has its flags: RISC-V has none, so this explains what it does instead. -->

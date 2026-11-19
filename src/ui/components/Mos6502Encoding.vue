@@ -6,6 +6,9 @@ import { formatInstruction, type Instruction } from '@/core/mos6502/instructions
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EncodingShown } from '@/ui/encodingShown';
 import { useLocale } from '@/ui/useLocale';
+import { whereText } from '@/ui/encodingShown';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   /** The instruction on show with its machine code, or null when there is nothing to encode. */
@@ -15,10 +18,13 @@ const props = defineProps<{
 const summary = computed(() => {
   if (!props.shown) return null;
   const { address, encoding } = props.shown.assembled;
-  const count = `${encoding.bytes.length} byte${encoding.bytes.length === 1 ? '' : 's'}`;
-  return `${count} at $${formatHex(address, 16)}, ${props.shown.where} · cycles: ${encoding.cycles}`;
+  return t.value.mos6502Explain.encodingSummary(
+    t.value.common.bytes(encoding.bytes.length),
+    `$${formatHex(address, 16)}`,
+    whereText(t.value, props.shown.where),
+    encoding.cycles
+  );
 });
-const { t } = useLocale();
 </script>
 
 <template>

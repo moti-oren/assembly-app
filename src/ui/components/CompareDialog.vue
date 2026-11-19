@@ -13,8 +13,10 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { architectureLabel } from '@/ui/architectures';
-import { COMPARED, TRAITS, codeText, metricRows } from '@/ui/comparisonView';
+import { COMPARED, codeText, metricRows } from '@/ui/comparisonView';
 import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ load: [task: ComparisonTask, id: ComparedId] }>();
@@ -22,8 +24,7 @@ const emit = defineEmits<{ load: [task: ComparisonTask, id: ComparedId] }>();
 const chosen = ref(0);
 const task = computed(() => COMPARISON_TASKS[chosen.value]);
 const measurements = computed(() => measure(task.value));
-const rows = computed(() => metricRows(measurements.value));
-const { t } = useLocale();
+const rows = computed(() => metricRows(t.value, measurements.value));
 </script>
 
 <template>
@@ -98,7 +99,7 @@ const { t } = useLocale();
         >
           <header class="border-b px-3 py-2">
             <h3 class="text-sm font-semibold">{{ architectureLabel(id) }}</h3>
-            <p class="text-xs text-muted-foreground">{{ TRAITS[id] }}</p>
+            <p class="text-xs text-muted-foreground">{{ t.compare.traits[id] }}</p>
           </header>
           <ol class="flex-1 overflow-x-auto px-3 py-2 font-mono text-xs leading-6">
             <li

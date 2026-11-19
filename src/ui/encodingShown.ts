@@ -1,10 +1,22 @@
 import { formatLabel } from '@/core/shared/program';
+import type { Messages } from './messages/en';
+
+/** Where the instruction on show comes from: the builder, a program line, or the last run. */
+export type EncodingSource =
+  { kind: 'draft' } | { kind: 'line' | 'lastLine'; line: number } | { kind: 'last' };
 
 /** An instruction on show in the machine code panel, its machine code, and where it comes from. */
 export interface EncodingShown<Instruction, Line> {
   instruction: Instruction;
   assembled: Line;
-  where: string;
+  where: EncodingSource;
+}
+
+/** Where the instruction on show comes from, in words. */
+export function whereText(m: Messages, where: EncodingSource): string {
+  const words = m.common.where;
+  if (where.kind === 'draft' || where.kind === 'last') return words[where.kind];
+  return words[where.kind](formatLabel(where.line));
 }
 
 export interface EncodingSources<Instruction, Line> {
@@ -36,7 +48,7 @@ export function chooseEncoding<Instruction, Line>(
     return {
       instruction: draft,
       assembled: encode(draft, program),
-      where: 'as the next line of the program'
+      where: { kind: 'draft' }
     };
   }
   const line = sources.inspected ?? sources.next;
@@ -44,7 +56,7 @@ export function chooseEncoding<Instruction, Line>(
     return {
       instruction: program[line],
       assembled: lines[line],
-      where: `line ${formatLabel(line)}`
+      where: { kind: 'line', line }
     };
   }
   if (!last) return null;
@@ -52,12 +64,12 @@ export function chooseEncoding<Instruction, Line>(
     return {
       instruction: program[last.line],
       assembled: lines[last.line],
-      where: `line ${formatLabel(last.line)}, the last one run`
+      where: { kind: 'lastLine', line: last.line }
     };
   }
   return {
     instruction: last.instruction,
     assembled: encode(last.instruction, program),
-    where: 'the last instruction run'
+    where: { kind: 'last' }
   };
 }

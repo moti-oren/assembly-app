@@ -9,6 +9,8 @@ import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 defineProps<{
   model: CpuDiagramModel;
   /** Number of instructions executed so far; replays the flashes. */
@@ -19,7 +21,6 @@ defineProps<{
 const BIU_REGISTERS: readonly WordRegister[] = ['cs', 'ds', 'ss', 'es', 'ip'];
 /** IP starts a group of its own. */
 const GROUP_START: WordRegister = 'ip';
-const { t } = useLocale();
 </script>
 
 <template>
@@ -119,7 +120,7 @@ const { t } = useLocale();
             formatPhysical(model.address.physical)
           }}</span>
         </div>
-        <p v-else class="mt-2 text-xs text-muted-foreground">{{ model.notes.adder }}</p>
+        <p v-else class="ui-text mt-2 text-xs text-muted-foreground">{{ model.notes.adder }}</p>
       </div>
     </div>
   </section>

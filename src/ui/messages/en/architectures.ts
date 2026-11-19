@@ -117,7 +117,19 @@ export const architectures = {
     leaves: 'Leaves',
     load: (architecture: string) => `Load into ${architecture}`,
     loadNote:
-      "Loading a program replaces that CPU's program and clears its history, as an example does."
+      "Loading a program replaces that CPU's program and clears its history, as an example does.",
+    traits: {
+      x86: '16-bit registers · instructions of 1 to 6 bytes',
+      rv32: '32-bit registers · every instruction 4 bytes',
+      mos6502: '8-bit registers · instructions of 1 to 3 bytes'
+    },
+    metrics: {
+      lines: { label: 'Lines', hint: 'Instructions in the program' },
+      bytes: { label: 'Code bytes', hint: 'The size of its machine code' },
+      steps: { label: 'Instructions run', hint: 'Steps to the end; a REP instruction is one step' },
+      memoryWrites: { label: 'Memory writes', hint: 'Bytes written to memory, the stack included' },
+      cycles: { label: 'Clock cycles', hint: 'Only the 6502 counts them here' }
+    }
   }
 };
 

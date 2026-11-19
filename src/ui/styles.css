@@ -264,11 +264,13 @@
     }
   }
   /*
-   * Short labels in the left-to-right layout run in the direction of their first letter, so
-   * "התקני I/O" or "7 מקטעים" read right to left and Latin labels stay as they are. Without
+   * Short labels in the left-to-right layout, and lines marked `ui-auto` (a formula or a short
+   * phrase, in either language), run in the direction of their first letter, so "התקני I/O" or
+   * "7 מקטעים" read right to left and Latin labels stay as they are. Without
    * specificity, so a utility class or the rules above still win; they stay on the left.
    */
-  :where(:root[lang='he']) :where(span, h3, label, dt, dd, th, summary):where(:not(.font-mono)) {
+  :where(:root[lang='he']) :where(span, h3, label, dt, dd, th, summary):where(:not(.font-mono)),
+  :where(:root[lang='he']) :where(.ui-auto) {
     unicode-bidi: plaintext;
     text-align: left;
   }

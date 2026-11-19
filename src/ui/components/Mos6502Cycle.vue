@@ -9,6 +9,8 @@ import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import CycleStrip from './CycleStrip.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   program: Instruction[];
@@ -29,12 +31,10 @@ const instruction = computed(() => {
 
 const detail = computed(() => {
   const { pending, record, state, program } = props;
-  if (pending?.phase === 'fetch') return describeFetch(pending.line, program);
-  if (pending) return describeDecode(pending.instruction);
-  return record ? describeExecute(record, state, program) : null;
+  if (pending?.phase === 'fetch') return describeFetch(t.value, pending.line, program);
+  if (pending) return describeDecode(t.value, pending.instruction);
+  return record ? describeExecute(t.value, record, state, program) : null;
 });
-
-const { t } = useLocale();
 </script>
 
 <template>

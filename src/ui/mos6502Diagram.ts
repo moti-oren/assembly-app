@@ -14,6 +14,7 @@ import {
   describeAccess,
   wordHex
 } from './mos6502Explain';
+import type { Messages } from './messages/en';
 
 /** How a part of the CPU took part: read, written, or not at all. */
 export type Use = 'read' | 'write' | undefined;
@@ -40,9 +41,10 @@ export interface DiagramInput {
   pending: { phase: 'fetch' | 'decode'; line: number; instruction: Instruction } | null;
 }
 
-const IDLE: UnitView = { use: undefined, text: 'idle' };
+const unused = (m: Messages): UnitView => ({ use: undefined, text: m.mos6502Diagram.idle });
 
-function idle(instruction: Instruction | null): Mos6502DiagramView {
+function idle(m: Messages, instruction: Instruction | null): Mos6502DiagramView {
+  const IDLE = unused(m);
   return {
     instruction: instruction && formatInstruction(instruction),
     registers: {},
@@ -54,20 +56,27 @@ function idle(instruction: Instruction | null): Mos6502DiagramView {
 }
 
 /** Fetch reads the opcode at PC; nothing else has happened yet. */
-function fetching(program: Program<Instruction>, line: number, instruction: Instruction) {
+function fetching(
+  m: Messages,
+  program: Program<Instruction>,
+  line: number,
+  instruction: Instruction
+) {
   const address = addressOfLine(program, line);
   return {
-    ...idle(instruction),
+    ...idle(m, instruction),
     registers: { pc: 'read' as const },
     bus: {
       use: 'read' as const,
-      text: `Read the opcode ${byteHex(codeByte(program, address))} from ${wordHex(address)}`
+      text: m.mos6502Diagram.readOpcode(byteHex(codeByte(program, address)), wordHex(address))
     }
   };
 }
 
 /** Decode knows the mode, the registers it will use and whether it goes to memory. */
-function planned(instruction: Instruction): Mos6502DiagramView {
+function planned(m: Messages, instruction: Instruction): Mos6502DiagramView {
+  const d = m.mos6502Diagram;
+  const IDLE = unused(m);
   const decoded = decode(instruction);
   const registers: Partial<Record<RegisterName, Use>> = {};
   for (const name of decoded.reads) registers[name] = 'read';
@@ -76,39 +85,41 @@ function planned(instruction: Instruction): Mos6502DiagramView {
   return {
     instruction: decoded.text,
     registers,
-    alu: aluUsed ? { use: 'read', text: `will set ${decoded.flagsWritten.join(', ')}` } : IDLE,
+    alu: aluUsed ? { use: 'read', text: d.willSet(m.common.list(decoded.flagsWritten)) } : IDLE,
     address: memory
-      ? { use: 'read', text: 'will work out the address', mode: decoded.modeName }
+      ? { use: 'read', text: d.willAddress, mode: decoded.modeName }
       : { ...IDLE, mode: null },
-    bus: memory
-      ? { use: 'read', text: decoded.memory.write ? 'will write a byte' : 'will read a byte' }
-      : IDLE,
+    bus: memory ? { use: 'read', text: decoded.memory.write ? d.willWrite : d.willRead } : IDLE,
     cycles: null
   };
 }
 
-function executed(record: ExecutionRecord): Mos6502DiagramView {
+function executed(m: Messages, record: ExecutionRecord): Mos6502DiagramView {
+  const IDLE = unused(m);
   const decoded = decode(record.instruction);
   const registers: Partial<Record<RegisterName, Use>> = {};
   for (const name of decoded.reads) registers[name] = 'read';
   for (const name of record.registersWritten) registers[name as RegisterName] = 'write';
   if (decoded.nextPc !== 'next') registers.pc = 'write';
-  const equation = aluEquation(record);
-  const access = describeAccess(record);
+  const equation = aluEquation(m, record);
+  const access = describeAccess(m, record);
   return {
     instruction: formatInstruction(record.instruction),
     registers,
-    alu: equation ? { use: 'write', text: equationText(equation) } : IDLE,
+    alu: equation ? { use: 'write', text: equationText(m, equation) } : IDLE,
     address: record.addressing
-      ? { use: 'read', text: addressSteps(record.addressing), mode: addressingMode(record) }
+      ? { use: 'read', text: addressSteps(m, record.addressing), mode: addressingMode(record) }
       : { ...IDLE, mode: null },
     bus: access ? { use: record.access!.write ? 'write' : 'read', text: access } : IDLE,
-    cycles: { count: record.cycles, text: cyclesBreakdown(record) }
+    cycles: { count: record.cycles, text: cyclesBreakdown(m, record) }
   };
 }
 
-export function diagramView({ program, record, pending }: DiagramInput): Mos6502DiagramView {
-  if (pending?.phase === 'fetch') return fetching(program, pending.line, pending.instruction);
-  if (pending) return planned(pending.instruction);
-  return record ? executed(record) : idle(null);
+export function diagramView(
+  m: Messages,
+  { program, record, pending }: DiagramInput
+): Mos6502DiagramView {
+  if (pending?.phase === 'fetch') return fetching(m, program, pending.line, pending.instruction);
+  if (pending) return planned(m, pending.instruction);
+  return record ? executed(m, record) : idle(m, null);
 }

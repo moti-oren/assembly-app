@@ -32,6 +32,8 @@ import Mos6502Registers from './Mos6502Registers.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   cpu: CpuOf<Instruction, CpuState, ExecutionRecord>;
 }>();
@@ -55,7 +57,6 @@ const {
   running
 } = cpu;
 
-const { t } = useLocale();
 const labels = computed(() => ({
   ...t.value.panels.names,
   operation: t.value.panels.mos6502Operation
@@ -95,7 +96,7 @@ const memoryPlaces = mos6502MemoryPlaces(state);
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
   return record?.access
-    ? { address: record.access.address, size: 1, text: describeAccess(record)! }
+    ? { address: record.access.address, size: 1, text: describeAccess(t.value, record)! }
     : null;
 });
 

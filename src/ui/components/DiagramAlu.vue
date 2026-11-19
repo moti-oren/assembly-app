@@ -4,8 +4,9 @@ import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import DiagramWire from './DiagramWire.vue';
 import { useLocale } from '@/ui/useLocale';
 
-defineProps<{ model: CpuDiagramModel }>();
 const { t } = useLocale();
+
+defineProps<{ model: CpuDiagramModel }>();
 </script>
 
 <template>
@@ -60,7 +61,7 @@ const { t } = useLocale();
           }}
         </span>
       </div>
-      <p v-else class="mt-2 text-xs text-muted-foreground">{{ model.notes.alu }}</p>
+      <p v-else class="ui-text mt-2 text-xs text-muted-foreground">{{ model.notes.alu }}</p>
     </div>
     <!-- Operands come in off the bus; the result goes back onto it. -->
     <div class="hidden w-5 flex-col justify-center gap-4 sm:flex" aria-hidden="true">

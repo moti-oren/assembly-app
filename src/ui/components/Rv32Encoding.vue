@@ -7,6 +7,9 @@ import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EncodingShown } from '@/ui/encodingShown';
 import { useLocale } from '@/ui/useLocale';
+import { whereText } from '@/ui/encodingShown';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   /** The instruction on show with its machine code, or null when there is nothing to encode. */
@@ -31,14 +34,17 @@ const encoding = computed(() => props.shown?.assembled.encoding ?? null);
 const summary = computed(() => {
   if (!props.shown) return null;
   const { address, encoding: code } = props.shown.assembled;
-  return `${code.format}-type, 4 bytes at 0x${formatHex32(address)}, ${props.shown.where}`;
+  return t.value.rv32Explain.encodingSummary(
+    code.format,
+    `0x${formatHex32(address)}`,
+    whereText(t.value, props.shown.where)
+  );
 });
 
 /** The bit of the word at position `bit`, as 0 or 1. */
 function bitOf(bit: number): number {
   return encoding.value ? (encoding.value.word >>> bit) & 1 : 0;
 }
-const { t } = useLocale();
 </script>
 
 <template>

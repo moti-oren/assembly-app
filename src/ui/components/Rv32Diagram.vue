@@ -15,6 +15,8 @@ import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   program: Instruction[];
@@ -27,7 +29,7 @@ const props = defineProps<{
 }>();
 
 const view = computed(() =>
-  datapathView({
+  datapathView(t.value, {
     state: props.state,
     program: props.program,
     record: props.pending ? null : props.record,
@@ -57,7 +59,6 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
     props.record.before.registers[key] !== props.state.registers[key]
   );
 }
-const { t } = useLocale();
 </script>
 
 <template>

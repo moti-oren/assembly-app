@@ -27,6 +27,8 @@ import { isRunSpeed, RUN_SPEED_NAMES, type RunSpeed } from '@/ui/runSpeeds';
 import { useLocale } from '@/ui/useLocale';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   finished: boolean;
   /** True while the program is running line by line. */
@@ -59,8 +61,6 @@ const emit = defineEmits<{
   'update:devicesShown': [shown: boolean];
   'update:bytesShown': [shown: boolean];
 }>();
-
-const { t } = useLocale();
 
 /** The select hands back whatever value its item had; only a known speed gets through. */
 function setSpeed(value: unknown): void {
@@ -113,7 +113,7 @@ const toggles = computed(() => [
     <p
       v-if="error"
       role="alert"
-      class="mx-auto flex max-w-(--page-width) items-start gap-2 px-4 pt-2.5 text-sm text-destructive lg:px-6"
+      class="ui-auto mx-auto flex max-w-(--page-width) items-start gap-2 px-4 pt-2.5 text-sm text-destructive lg:px-6"
     >
       <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       {{ error }}

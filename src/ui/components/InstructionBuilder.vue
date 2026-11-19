@@ -22,6 +22,8 @@ import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   /** What the words of an instruction can be, on this architecture. */
   grammar: InstructionGrammar<Action, Instruction>;
@@ -92,7 +94,8 @@ const typedNumber = computed(() => parseNumber(filter.value));
 
 const context = computed<DraftContext>(() => ({
   typed: typedNumber.value,
-  programLines: props.programLines
+  programLines: props.programLines,
+  messages: t.value
 }));
 const allOptions = computed(() => props.grammar.options(chosen.value, context.value));
 const visibleOptions = computed(() =>
@@ -198,7 +201,7 @@ const hints = computed(() =>
  * Enter would pick; else the chosen instruction, or before one is chosen, Enter's option.
  */
 const preview = computed<{ label: string; text: string } | null>(() => {
-  const described = props.grammar.describe(chosen.value);
+  const described = props.grammar.describe(chosen.value, t.value);
   const typing = filter.value.trim() !== '';
   const option = hovered.value ?? (described === null || typing ? enterOption.value : null);
   if (option?.hint) return { label: option.label, text: option.hint };
@@ -278,7 +281,6 @@ function onBackspace(event: KeyboardEvent): void {
     back();
   }
 }
-const { t } = useLocale();
 </script>
 
 <template>
@@ -352,12 +354,12 @@ const { t } = useLocale();
         </Tooltip>
       </div>
 
-      <p class="min-h-5 truncate text-sm text-muted-foreground" aria-live="polite">
+      <p class="ui-text min-h-5 truncate text-sm text-muted-foreground" aria-live="polite">
         <template v-if="doesNotFit">
           <span class="text-destructive">{{ hint }}</span>
         </template>
         <template v-else-if="preview">
-          <span class="mr-2 font-mono font-medium text-foreground">{{ preview.label }}</span>
+          <span class="me-2 font-mono font-medium text-foreground">{{ preview.label }}</span>
           {{ preview.text }}
         </template>
       </p>

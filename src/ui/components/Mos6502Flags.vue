@@ -5,9 +5,10 @@ import { formatInstruction } from '@/core/mos6502/instructions';
 import { FLAG_NAMES, flagBit, type CpuState, type FlagName } from '@/core/mos6502/state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { flagReason } from '@/ui/mos6502Alu';
-import { FLAG_INFO } from '@/ui/mos6502View';
 import ChangeMark from './ChangeMark.vue';
 import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -25,11 +26,10 @@ const reasons = computed(() => {
   const record = props.record;
   if (!record) return [];
   return FLAG_NAMES.flatMap((flag) => {
-    const reason = flagReason(record, flag);
+    const reason = flagReason(t.value, record, flag);
     return reason ? [{ flag, value: Number(isSet(flag)), reason }] : [];
   });
 });
-const { t } = useLocale();
 </script>
 
 <template>
@@ -45,7 +45,7 @@ const { t } = useLocale();
           :key="flag"
           role="listitem"
           class="flex w-12 flex-col items-center rounded-md border px-1 py-1"
-          :title="`${FLAG_INFO[flag].label}: ${FLAG_INFO[flag].description}`"
+          :title="`${t.mos6502Flags[flag].label}: ${t.mos6502Flags[flag].description}`"
         >
           <span class="text-xs text-muted-foreground">{{ flag }}</span>
           <ChangeMark :on="changed(flag)" :tick="tick">
@@ -64,7 +64,7 @@ const { t } = useLocale();
       <p v-else class="text-xs text-muted-foreground">
         {{
           record
-            ? t.mos6502.noFlagSet(formatInstruction(record.instruction))
+            ? t.mos6502.noFlagSet(t.common.code(formatInstruction(record.instruction)))
             : t.mos6502.runForFlags
         }}
       </p>

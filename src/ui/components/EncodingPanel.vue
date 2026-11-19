@@ -1,34 +1,29 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { FieldKind } from '@/core/x86/encodingFields';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { formatBits, formatBytes, formatHex } from '@/core/shared/numbers';
 import type { AssembledLine } from '@/core/x86/encode';
 import type { EncodingShown } from '@/ui/encodingShown';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocale } from '@/ui/useLocale';
+import { whereText } from '@/ui/encodingShown';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   /** The instruction on show with its machine code, or null when there is nothing to encode. */
   shown: EncodingShown<Instruction, AssembledLine> | null;
 }>();
 
-const KIND_LABELS: Record<FieldKind, string> = {
-  prefix: 'Prefix',
-  opcode: 'Opcode',
-  modrm: 'ModR/M',
-  displacement: 'Displacement',
-  immediate: 'Immediate',
-  relative: 'Distance'
-};
-
 const summary = computed(() => {
   if (!props.shown) return null;
   const { bytes } = props.shown.assembled.encoding;
-  const count = `${bytes.length} byte${bytes.length === 1 ? '' : 's'}`;
-  return `${count} at offset ${formatHex(props.shown.assembled.offset, 16)}h, ${props.shown.where}`;
+  return t.value.x86Encoding.summary(
+    t.value.common.bytes(bytes.length),
+    `${formatHex(props.shown.assembled.offset, 16)}h`,
+    whereText(t.value, props.shown.where)
+  );
 });
-const { t } = useLocale();
 </script>
 
 <template>
@@ -55,7 +50,7 @@ const { t } = useLocale();
           <div class="flex items-baseline gap-2">
             <span class="font-mono text-sm font-semibold">{{ formatBytes(field.bytes) }}</span>
             <span class="text-2xs font-medium tracking-wide text-muted-foreground uppercase">{{
-              KIND_LABELS[field.kind]
+              t.x86Encoding.fields[field.kind]
             }}</span>
           </div>
           <dl

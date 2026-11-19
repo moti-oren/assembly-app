@@ -31,7 +31,10 @@ defineProps<{
     <h3 class="unit-title">
       {{ title }} <span>{{ tag }}</span>
     </h3>
-    <p class="mt-1 font-mono text-xs break-words" :class="{ 'text-muted-foreground': !stage.use }">
+    <p
+      class="ui-auto mt-1 font-mono text-xs break-words"
+      :class="{ 'text-muted-foreground': !stage.use }"
+    >
       {{ stage.text }}
     </p>
     <slot />

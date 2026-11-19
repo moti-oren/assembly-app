@@ -6,12 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { aluEquation } from '@/ui/rv32Explain';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   record: ExecutionRecord | null;
 }>();
 
-const equation = computed(() => props.record && aluEquation(props.record));
-const { t } = useLocale();
+const equation = computed(() => props.record && aluEquation(t.value, props.record));
 </script>
 
 <template>

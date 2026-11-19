@@ -19,6 +19,8 @@ import DatapathStage from './DatapathStage.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   program: Instruction[];
@@ -31,7 +33,7 @@ const props = defineProps<{
 }>();
 
 const view = computed(() =>
-  diagramView({
+  diagramView(t.value, {
     program: props.program,
     record: props.pending ? null : props.record,
     pending: props.pending
@@ -61,7 +63,6 @@ function changed(name: RegisterName): boolean {
 
 const flagChanged = (bit: number) =>
   !props.pending && !!props.record && ((props.record.before.flags ^ props.state.flags) & bit) !== 0;
-const { t } = useLocale();
 </script>
 
 <template>
@@ -172,7 +173,7 @@ const { t } = useLocale();
                   class="size-3 rounded-xs bg-written/70"
                 />
               </div>
-              <p class="mt-1 font-mono text-xs">{{ view.cycles.text }}</p>
+              <p class="ui-auto mt-1 font-mono text-xs">{{ view.cycles.text }}</p>
             </template>
             <p v-else class="mt-1 font-mono text-xs text-muted-foreground">{{ t.cycle.idle }}</p>
           </section>

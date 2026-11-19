@@ -34,6 +34,8 @@ import Rv32Registers from './Rv32Registers.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   cpu: CpuOf<Instruction, CpuState, ExecutionRecord>;
 }>();
@@ -58,7 +60,6 @@ const {
 } = cpu;
 
 /** RISC-V has no flags: that card explains the comparisons that take their place. */
-const { t } = useLocale();
 const labels = computed(() => ({
   ...t.value.panels.names,
   flags: t.value.panels.rv32Flags,
@@ -100,7 +101,7 @@ const memoryAccess = computed(() => {
   const record = lastRecord.value;
   const access = record?.access;
   return access && record
-    ? { address: access.address, size: access.size, text: describeAccess(record)! }
+    ? { address: access.address, size: access.size, text: describeAccess(t.value, record)! }
     : null;
 });
 

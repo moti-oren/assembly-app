@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { formatInstruction } from '@/core/rv32/instructions';
 import { filterOptions, type DraftContext } from './builderGrammar';
 import { RV32_GRAMMAR, type Rv32Action } from './rv32Grammar';
+import { messagesFor } from './locale';
 
-const none: DraftContext = { typed: null, programLines: [] };
+const m = messagesFor('en');
+
+const none: DraftContext = { typed: null, programLines: [], messages: m };
 const reg = (index: number): Rv32Action => ({ kind: 'operand', operand: { type: 'reg', index } });
 const imm = (value: number): Rv32Action => ({ kind: 'operand', operand: { type: 'imm', value } });
 const labels = (chosen: Rv32Action[], context = none) =>
@@ -61,10 +64,10 @@ describe('RV32_GRAMMAR', () => {
   it('expands a pseudo-instruction into the real ones it stands for', () => {
     expect(RV32_GRAMMAR.hasMore([li, reg(10)])).toBe(true);
     expect(built([li, reg(10), imm(0x12345)])).toEqual(['lui a0, 0x12', 'addi a0, a0, 0x345']);
-    expect(RV32_GRAMMAR.describe([li, reg(10), imm(0x12345)])?.text).toBe(
+    expect(RV32_GRAMMAR.describe([li, reg(10), imm(0x12345)], m)?.text).toBe(
       'becomes lui a0, 0x12, then addi a0, a0, 0x345'
     );
-    expect(RV32_GRAMMAR.describe([li])?.text).toBe('rd = any 32-bit value');
+    expect(RV32_GRAMMAR.describe([li], m)?.text).toBe('rd = any 32-bit value');
   });
 
   it('accepts any 32-bit value for LI', () => {
@@ -72,7 +75,7 @@ describe('RV32_GRAMMAR', () => {
   });
 
   it('describes a real instruction with its format', () => {
-    expect(RV32_GRAMMAR.describe([addi])).toEqual({
+    expect(RV32_GRAMMAR.describe([addi], m)).toEqual({
       label: 'addi',
       text: 'rd = rs1 + imm (I-type)'
     });

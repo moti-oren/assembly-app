@@ -136,7 +136,7 @@ export const panels: PanelMessages = {
     segments: '7 מקטעים',
     digit: (place, at, value) => `הספרה ב${placeName(place)} ${at} מציגה ${value}`,
     digitTitle: (value, place, at) =>
-      `${value}, נכתב ל${placeName(place)} ${at}. סיביות 0 עד 7 מדליקות את a,‏ b,‏ c,‏ d,‏ e,‏ f,‏ g ואת הנקודה.`,
+      `${value}, נכתב ל${placeName(place)} ${at}. סיביות 0 עד 7 מדליקות את a,\u200f b,\u200f c,\u200f d,\u200f e,\u200f f,\u200f g ואת הנקודה.`,
     terminal: 'מסוף',
     terminalEmpty: 'כל בית שנכתב לכאן מודפס כתו.'
   },
