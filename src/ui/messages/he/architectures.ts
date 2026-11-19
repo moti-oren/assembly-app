@@ -75,9 +75,9 @@ export const architectures: ArchitectureMessages = {
     eightBit: '8 סיביות',
     pcNote: 'מונה התוכנית',
     addressUnit: 'יחידת הכתובות',
-    dataBus: 'אפיק הנתונים',
+    dataBus: 'ערוץ הנתונים',
     dataBusTag: 'זיכרון · התקנים',
-    cycles: 'מחזורי שעון',
+    cycles: 'מחזורים',
     clock: 'שעון',
     encodingEmpty: 'בונים הוראה, או מוסיפים אחת לתוכנית, כדי לראות לאילו בתים היא הופכת.',
     fields: {

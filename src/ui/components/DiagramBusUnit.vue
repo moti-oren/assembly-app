@@ -26,7 +26,9 @@ const GROUP_START: WordRegister = 'ip';
 <template>
   <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->
   <section class="flex flex-col sm:w-(--biu-width)" :aria-label="t.diagram.biu">
-    <h3 class="unit-title sm:ps-7">{{ t.diagram.biu }} <span>BIU</span></h3>
+    <h3 class="unit-title sm:ps-7">
+      {{ t.diagram.biu }} <span>{{ t.diagram.unitTag('BIU') }}</span>
+    </h3>
     <div class="flex flex-col font-mono text-code">
       <div
         class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"

@@ -90,7 +90,7 @@ const flagChanged = (bit: number) =>
           :aria-label="t.registers.title"
         >
           <h3 class="unit-title">
-            {{ t.registers.title }} <span>{{ t.mos6502.eightBit }}</span>
+            {{ t.registers.title }} <span>{{ t.diagram.unitTag(t.mos6502.eightBit) }}</span>
           </h3>
           <div class="mt-1.5 flex flex-col gap-1 font-mono text-code">
             <div
@@ -163,7 +163,7 @@ const flagChanged = (bit: number) =>
             :aria-label="t.mos6502.cycles"
           >
             <h3 class="unit-title">
-              {{ t.mos6502.cycles }} <span>{{ t.mos6502.clock }}</span>
+              {{ t.mos6502.cycles }} <span>{{ t.diagram.unitTag(t.mos6502.clock) }}</span>
             </h3>
             <template v-if="view.cycles">
               <div class="mt-1.5 flex flex-wrap gap-1" aria-hidden="true">

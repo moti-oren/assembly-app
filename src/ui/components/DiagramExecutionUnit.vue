@@ -26,7 +26,9 @@ const GROUP_START: WordRegister = 'sp';
 
 <template>
   <section class="min-w-0" :aria-label="t.diagram.eu">
-    <h3 class="unit-title">{{ t.diagram.eu }} <span>EU</span></h3>
+    <h3 class="unit-title">
+      {{ t.diagram.eu }} <span>{{ t.diagram.unitTag('EU') }}</span>
+    </h3>
     <div class="flex flex-col font-mono text-code">
       <!-- The number system of each column, as in the register table. -->
       <div

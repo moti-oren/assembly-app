@@ -389,6 +389,19 @@
     font-family: var(--font-mono);
     letter-spacing: 0;
   }
+  /*
+   * A unit's title in Hebrew reads right to left, its short name in parentheses after it (the
+   * space before them is gap enough), but keeps its place in the left-to-right diagram: a title
+   * pushed to the other edge would run into the wire beside its unit.
+   */
+  :root[lang='he'] .unit-title {
+    unicode-bidi: plaintext;
+    /* Plaintext would align a Hebrew line to the right; the diagram's start is its left. */
+    text-align: left;
+  }
+  :root[lang='he'] .unit-title > span {
+    margin-inline-start: 0;
+  }
 
   /*
    * A unit the instruction on show does not use. It keeps its place and size, so nothing below

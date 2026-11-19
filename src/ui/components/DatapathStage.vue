@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { StageView } from '@/ui/rv32Datapath';
+import { useLocale } from '@/ui/useLocale';
 
 defineProps<{
   title: string;
@@ -9,6 +10,7 @@ defineProps<{
   /** Changes with every execution and phase, so a used stage lights up afresh. */
   tick: number;
 }>();
+const { t } = useLocale();
 </script>
 
 <template>
@@ -29,7 +31,7 @@ defineProps<{
       aria-hidden="true"
     />
     <h3 class="unit-title">
-      {{ title }} <span>{{ tag }}</span>
+      {{ title }} <span>{{ t.diagram.unitTag(tag) }}</span>
     </h3>
     <p
       class="ui-auto mt-1 font-mono text-xs break-words"
