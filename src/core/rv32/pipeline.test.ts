@@ -52,12 +52,44 @@ describe('pipelineTiming', () => {
     expect(result.cycles).toBe(6);
   });
 
+  it('records where a forwarded value came from', () => {
+    // T0 is one instruction old (still in MEM) and T1 two (in WB) when the add reaches EX.
+    const result = timing([li(T1, 1), li(T0, 2), line('add', reg(T2), reg(T0), reg(T1))]);
+    expect(result.rows[2].forwards).toEqual([
+      { register: T0, producer: 1, from: 'MEM' },
+      { register: T1, producer: 0, from: 'WB' }
+    ]);
+  });
+
+  it('names a register once when both operands are the same one', () => {
+    const result = timing([li(T0, 1), line('add', reg(T1), reg(T0), reg(T0))]);
+    expect(result.rows[1].forwards).toEqual([{ register: T0, producer: 0, from: 'MEM' }]);
+  });
+
+  it('forwards nothing that the register file already holds', () => {
+    // Three instructions later, T0 was written back before the add reads it.
+    const result = timing([
+      li(T0, 1),
+      li(T1, 2),
+      li(T2, 3),
+      line('add', reg(T1), reg(T0), reg(ZERO))
+    ]);
+    expect(result.rows[3].forwards).toEqual([]);
+  });
+
+  it('forwards a loaded value out of WB, after the one cycle it must wait', () => {
+    const load = line('lw', reg(T0), { type: 'mem', base: ZERO, offset: 0 });
+    const result = timing([load, line('add', reg(T1), reg(T0), reg(ZERO))]);
+    expect(result.rows[1].forwards).toEqual([{ register: T0, producer: 0, from: 'WB' }]);
+  });
+
   it('without forwarding, waits in ID until the value is written back', () => {
     const result = timing([li(T0, 1), line('add', reg(T1), reg(T0), reg(T0))], {
       forwarding: false
     });
     expect(shape(result.rows[1])).toBe('IF id id ID EX MEM WB');
     expect(result.rows[1].hazard).toEqual({ register: T0, producer: 0, load: false, cycles: 2 });
+    expect(result.rows[1].forwards).toEqual([]);
     expect(result.stallCycles).toBe(2);
     expect(result.cycles).toBe(8);
   });

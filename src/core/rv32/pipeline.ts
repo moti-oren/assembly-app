@@ -38,6 +38,18 @@ export interface DataHazard {
   cycles: number;
 }
 
+/**
+ * A result an instruction took straight from a later stage, because the instruction that produced
+ * it had not written it back yet when this one read its registers.
+ */
+export interface Forward {
+  register: number;
+  /** The row of the instruction that produced it. */
+  producer: number;
+  /** The stage the producer is in during this instruction's EX, when the value is handed over. */
+  from: 'MEM' | 'WB';
+}
+
 /** One instruction in the pipeline: one that ran, or one fetched behind a taken branch. */
 export interface PipelineRow {
   /** Its place in the history; null for an instruction that was flushed instead of run. */
@@ -47,6 +59,8 @@ export interface PipelineRow {
   text: string;
   cycles: StageCycle[];
   hazard: DataHazard | null;
+  /** The operands that reached its EX by forwarding; none when forwarding is off. */
+  forwards: Forward[];
   /** A taken branch or jump: the two instructions behind it are flushed. */
   taken: boolean;
   /** For a flushed instruction, the row of the branch or jump that flushed it. */
@@ -123,6 +137,7 @@ function flushedRows(
       text: line === null ? '' : formatInstruction(program[line]),
       cycles: cycles[index],
       hazard: null,
+      forwards: [],
       taken: false,
       flushedBy: by
     };
@@ -146,7 +161,7 @@ export function pipelineTiming(
 ): PipelineTiming {
   const rows: PipelineRow[] = [];
   /** For each register, when its newest value can reach EX, and who produces it. */
-  const ready = new Map<number, { cycle: number; producer: number; load: boolean }>();
+  const ready = new Map<number, { cycle: number; producer: number; load: boolean; wb: number }>();
   let fetch = 1;
   let previousEx = 0;
   let stallCycles = 0;
@@ -169,6 +184,14 @@ export function pipelineTiming(
       ex = value.cycle;
       hazard = { register, producer: value.producer, load: value.load, cycles: ex - id - 1 };
     }
+    // Registers are read at the end of ID. A value written back by then comes from the register
+    // file; a newer one is still in the pipeline, and can only have come by forwarding.
+    const forwards: Forward[] = [];
+    for (const register of new Set(known.reads)) {
+      const value = ready.get(register);
+      if (register === 0 || !value || value.wb < ex) continue;
+      forwards.push({ register, producer: value.producer, from: value.wb === ex ? 'WB' : 'MEM' });
+    }
     const mem = ex + 1;
     const wb = mem + 1;
     const row = rows.length;
@@ -185,12 +208,14 @@ export function pipelineTiming(
         { cycle: wb, stage: 'WB', stalled: false }
       ],
       hazard,
+      forwards,
       taken,
       flushedBy: null
     });
     for (const register of known.writes) {
       const load = known.writeBack === 'memory';
-      ready.set(register, { cycle: readyAt(known, { ex, mem, wb }, options), producer: row, load });
+      const cycle = readyAt(known, { ex, mem, wb }, options);
+      ready.set(register, { cycle, producer: row, load, wb });
     }
     stallCycles += ex - id - 1;
     previousEx = ex;
