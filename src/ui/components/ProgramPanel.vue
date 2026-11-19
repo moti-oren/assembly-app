@@ -84,7 +84,7 @@ watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMark
 });
 
 const ROW =
-  'group grid h-7 pointer-coarse:h-11 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pr-1 pl-2';
+  'group col-span-full grid h-7 pointer-coarse:h-11 grid-cols-subgrid items-center pr-1 pl-2';
 
 function machineCode(index: number): string {
   return formatBytes(props.code[index].bytes);
@@ -122,19 +122,19 @@ function machineCode(index: number): string {
     <CardContent>
       <ol
         ref="list"
-        class="relative max-h-80 overflow-y-auto rounded-lg lg:max-h-112 bg-inset py-1 font-mono text-code"
+        class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
       >
         <li
           v-if="marker"
-          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/15 pl-2 shadow-[inset_3px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out calm:transition-none"
+          class="ip-marker pointer-events-none absolute inset-x-0 top-0 flex items-center pl-2 transition-[translate,height] duration-300 ease-out calm:transition-none"
           :style="{ translate: `0 ${marker.top}px`, height: `${marker.height}px` }"
           aria-hidden="true"
         >
           <ChevronRight class="size-4 text-pointer" />
         </li>
         <template v-for="(instruction, index) in program" :key="index">
-          <li v-if="insertionPoint === index && insertAt !== null" class="px-2">
+          <li v-if="insertionPoint === index && insertAt !== null" class="col-span-full px-2">
             <button
               type="button"
               class="flex w-full items-center gap-2 py-0.5 font-sans text-xs pointer-coarse:min-h-11 text-muted-foreground hover:text-foreground"
@@ -172,7 +172,7 @@ function machineCode(index: number): string {
               <TooltipTrigger as-child>
                 <button
                   type="button"
-                  class="hidden max-w-36 truncate rounded-sm px-1 text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
+                  class="hidden max-w-36 justify-self-start truncate rounded-sm px-1 text-left text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
                   :class="{ 'text-destructive': code[index].problem }"
                   @click="emit('inspect', index)"
                 >
