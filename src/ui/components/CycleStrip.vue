@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { CYCLE_PHASES, type CyclePhase } from '@/core/shared/cycle';
+import InfoTip from './InfoTip.vue';
 
 defineProps<{
   /** The phase the instruction on show is in, or null before anything has run. */
   active: CyclePhase | null;
   /** The instruction on show, as written, or null when the CPU is idle. */
   instruction: string | null;
-  /** What happens in that phase, in words. */
-  detail: string;
+  /** What happens in that phase, in words; null before anything has run. */
+  detail: string | null;
+  /** How the cycle works on this CPU, behind the info button. */
+  intro: string;
 }>();
 
 const PHASE_LABELS: Record<CyclePhase, string> = {
@@ -20,7 +23,8 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
 <template>
   <div>
     <div class="flex items-center gap-3">
-      <span class="text-sm font-medium">Cycle</span>
+      <span class="-mr-2 text-sm font-medium">Cycle</span>
+      <InfoTip label="About the instruction cycle">{{ intro }}</InfoTip>
       <ol class="flex items-center gap-1 text-xs" aria-label="Instruction cycle">
         <li
           v-for="(phase, index) in CYCLE_PHASES"
@@ -55,7 +59,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       <summary
         class="line-clamp-3 h-12 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
       >
-        <span aria-live="polite">{{ detail }}</span>
+        <span aria-live="polite">{{ detail ?? 'Nothing has run yet.' }}</span>
       </summary>
     </details>
   </div>

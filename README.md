@@ -122,6 +122,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
   flashes and the glowing wires; the changed values stay marked. It is remembered, and it is on by
   itself when the system asks for reduced motion.
+- A panel's explanation is behind the ⓘ button next to its name, so it is there when you want it
+  and out of the way the rest of the time.
 
 ## RISC-V mode
 
@@ -331,6 +333,8 @@ npm run verify:6502 # check the 6502 core against py65
 - **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
   הזוהרים; הערכים שהשתנו נשארים מסומנים. ההגדרה נשמרת, והיא פועלת מעצמה כשהמערכת מבקשת להפחית
   תנועה.
+- ההסבר של כל חלונית נמצא מאחורי כפתור ה-ⓘ שליד שמה, כך שהוא זמין כשרוצים אותו ולא מפריע בשאר
+  הזמן.
 
 ## מצב RISC-V
 
