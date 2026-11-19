@@ -7,7 +7,7 @@ import CommandPalette from './CommandPalette.vue';
 import ResetCpuDialog from './ResetCpuDialog.vue';
 
 defineProps<{
-  examples: readonly { name: string; description: string }[];
+  examples: readonly { id: string }[];
   commands: PaletteCommand[];
   /** Lines that clearing the program would lose. */
   programLength: number;

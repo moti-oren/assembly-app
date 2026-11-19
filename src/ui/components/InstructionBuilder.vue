@@ -20,6 +20,9 @@ import { groupBy } from '@/ui/groupBy';
 import { isApple } from '@/ui/platform';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   /** What the words of an instruction can be, on this architecture. */
@@ -91,7 +94,8 @@ const typedNumber = computed(() => parseNumber(filter.value));
 
 const context = computed<DraftContext>(() => ({
   typed: typedNumber.value,
-  programLines: props.programLines
+  programLines: props.programLines,
+  messages: t.value
 }));
 const allOptions = computed(() => props.grammar.options(chosen.value, context.value));
 const visibleOptions = computed(() =>
@@ -197,7 +201,7 @@ const hints = computed(() =>
  * Enter would pick; else the chosen instruction, or before one is chosen, Enter's option.
  */
 const preview = computed<{ label: string; text: string } | null>(() => {
-  const described = props.grammar.describe(chosen.value);
+  const described = props.grammar.describe(chosen.value, t.value);
   const typing = filter.value.trim() !== '';
   const option = hovered.value ?? (described === null || typing ? enterOption.value : null);
   if (option?.hint) return { label: option.label, text: option.hint };
@@ -288,13 +292,14 @@ function onBackspace(event: KeyboardEvent): void {
     @keydown="onKeydown"
   >
     <CardHeader>
-      <CardTitle>Instruction</CardTitle>
+      <CardTitle>{{ t.builder.title }}</CardTitle>
     </CardHeader>
 
     <CardContent class="flex flex-col gap-3">
       <!-- The instruction so far, word by word, followed by the filter input. -->
       <div
         ref="box"
+        dir="ltr"
         data-loc="builder"
         class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-input bg-background px-2 py-1.5 font-mono text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30"
         @click="focusInput"
@@ -315,15 +320,16 @@ function onBackspace(event: KeyboardEvent): void {
               {{ token.label }}
             </button>
           </TooltipTrigger>
-          <TooltipContent>Remove this word and the ones after it</TooltipContent>
+          <TooltipContent>{{ t.builder.removeWord }}</TooltipContent>
         </Tooltip>
         <input
           ref="input"
           v-model="filter"
+          dir="auto"
           class="h-7 min-w-40 flex-1 bg-transparent px-1 outline-none placeholder:font-sans placeholder:text-muted-foreground"
-          :placeholder="moreToChoose ? hint : 'Ready to run'"
+          :placeholder="moreToChoose ? hint : t.builder.ready"
           :aria-invalid="doesNotFit || undefined"
-          aria-label="Instruction"
+          :aria-label="t.builder.input"
           type="text"
           autocapitalize="off"
           autocorrect="off"
@@ -339,23 +345,23 @@ function onBackspace(event: KeyboardEvent): void {
               variant="ghost"
               size="icon-xs"
               class="text-muted-foreground pointer-coarse:size-11"
-              aria-label="Clear the instruction"
+              :aria-label="t.builder.clear"
               aria-keyshortcuts="Escape"
               @click.stop="clear"
             >
               <X />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Clear the instruction <Kbd>Esc</Kbd></TooltipContent>
+          <TooltipContent>{{ t.builder.clear }} <Kbd>Esc</Kbd></TooltipContent>
         </Tooltip>
       </div>
 
-      <p class="min-h-5 truncate text-sm text-muted-foreground" aria-live="polite">
+      <p class="ui-text min-h-5 truncate text-sm text-muted-foreground" aria-live="polite">
         <template v-if="doesNotFit">
           <span class="text-destructive">{{ hint }}</span>
         </template>
         <template v-else-if="preview">
-          <span class="mr-2 font-mono font-medium text-foreground">{{ preview.label }}</span>
+          <span class="me-2 font-mono font-medium text-foreground">{{ preview.label }}</span>
           {{ preview.text }}
         </template>
       </p>
@@ -395,16 +401,19 @@ function onBackspace(event: KeyboardEvent): void {
               <CornerDownLeft
                 v-if="option === enterOption"
                 class="text-muted-foreground"
-                aria-label="Enter picks this"
+                :aria-label="t.builder.enterPicks"
               />
             </Button>
           </div>
         </div>
         <!-- A number that is too big already has its own message above. -->
-        <p v-if="groups.length === 0 && !doesNotFit" class="text-sm text-muted-foreground">
+        <p v-if="groups.length === 0 && !doesNotFit" class="ui-text text-sm text-muted-foreground">
           <template v-if="filter.trim()">
-            Nothing matches “<span class="font-mono break-all text-foreground">{{ filter }}</span
-            >”. Press <Kbd>Backspace</Kbd> to edit it or <Kbd>Esc</Kbd> to start over.
+            {{ t.builder.noMatchBefore }} “<span class="font-mono break-all text-foreground">{{
+              filter
+            }}</span
+            >”{{ t.builder.noMatchPress }} <Kbd>Backspace</Kbd> {{ t.builder.noMatchEdit }}
+            <Kbd>Esc</Kbd> {{ t.builder.noMatchAfter }}
           </template>
           <template v-else>{{ hint }}</template>
         </p>
@@ -416,11 +425,11 @@ function onBackspace(event: KeyboardEvent): void {
         class="self-start rounded-sm text-sm text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
         @click="unfold"
       >
-        Show the choices
+        {{ t.builder.showChoices }}
       </button>
       <div v-else-if="!moreToChoose" class="text-sm text-muted-foreground">
-        <p>
-          Complete. Run it now, or add it to the program at line
+        <p class="ui-text">
+          {{ t.builder.complete }}
           <span class="font-mono text-foreground">{{ formatLabel(insertLine) }}</span>.
         </p>
       </div>
@@ -428,22 +437,22 @@ function onBackspace(event: KeyboardEvent): void {
 
     <CardFooter class="justify-between gap-3">
       <!-- The keys that do something right now; see builderKeys.ts. -->
-      <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
-        <span v-for="keyHint in hints" :key="keyHint.label" class="flex items-center gap-1.5">
+      <div class="ui-text hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
+        <span v-for="keyHint in hints" :key="keyHint.action" class="flex items-center gap-1.5">
           <KbdGroup
             ><Kbd v-for="key in keyHint.keys" :key="key">{{ key }}</Kbd></KbdGroup
           >
-          {{ keyHint.label }}
+          {{ t.builder.keys[keyHint.action] }}
         </span>
       </div>
-      <div class="ml-auto flex gap-2">
+      <div class="ms-auto flex gap-2">
         <Button variant="outline" size="sm" :disabled="!complete" @click="submit(true)">
           <Plus />
-          Add at {{ formatLabel(insertLine) }}
+          {{ t.builder.addAt(formatLabel(insertLine)) }}
         </Button>
         <Button size="sm" :disabled="!complete" @click="submit(false)">
           <Play />
-          Run now
+          {{ t.builder.runNow }}
         </Button>
       </div>
     </CardFooter>

@@ -1,5 +1,7 @@
 import { formatInstruction, instructionSize, isValid, type Instruction } from './instructions';
+import type { Said } from '../shared/text';
 import type { Context, EncodedField, Placement } from './encodingFields';
+import { said, type EncodingTextKey } from './encodingTexts';
 import { ENCODERS } from './instructionEncoders';
 
 /**
@@ -12,6 +14,8 @@ export interface Encoding {
   bytes: number[];
   /** Set when the 8086 cannot encode the instruction as written, e.g. a jump out of range. */
   problem: string | null;
+  /** The same problem as a key, for another language to word. */
+  problemSay: Said<EncodingTextKey> | null;
 }
 
 export interface AssembledLine {
@@ -50,7 +54,7 @@ function encodeAt(instruction: Instruction, place: Omit<Placement, 'lead'>): Enc
         {
           kind: 'prefix',
           bytes: [PREFIX_BYTE[instruction.prefix]],
-          note: `${instruction.prefix.toUpperCase()}: repeat the string instruction that follows while CX ≠ 0`
+          ...said('repeatPrefix', { prefix: instruction.prefix.toUpperCase() })
         }
       ]
     : [];
@@ -58,7 +62,8 @@ function encodeAt(instruction: Instruction, place: Omit<Placement, 'lead'>): Enc
   return {
     fields,
     bytes: fields.flatMap((field) => field.bytes),
-    problem: fields.find((field) => field.problem)?.problem ?? null
+    problem: fields.find((field) => field.problem)?.problem ?? null,
+    problemSay: fields.find((field) => field.problem)?.problemSay ?? null
   };
 }
 

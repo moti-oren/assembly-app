@@ -36,10 +36,10 @@ export interface ComparisonTask {
 const hex = (value: number, digits: number) =>
   value.toString(16).toUpperCase().padStart(digits, '0');
 
-/** An example program of an architecture, by its name. */
-function example<I>(examples: readonly Example<I>[], name: string): Program<I> {
-  const found = examples.find((candidate) => candidate.name === name);
-  if (!found) throw new Error(`No example named ${name}`);
+/** An example program of an architecture, by its id. */
+function example<I>(examples: readonly Example<I>[], id: string): Program<I> {
+  const found = examples.find((candidate) => candidate.id === id);
+  if (!found) throw new Error(`No example with the id ${id}`);
   return found.program;
 }
 
@@ -90,9 +90,9 @@ export const COMPARISON_TASKS: readonly ComparisonTask[] = [
     id: 'sum',
     name: 'Add 1 to 10',
     lesson: 'The 8086 has LOOP: it counts CX down and jumps back in one instruction. RISC-V counts down with ADDI and branches back with BNE. On the 6502 only A can add, and only a byte from memory, so X is stored in the zero page first.',
-    x86: { program: example(X86.examples, 'Sum 1..10'), result: (s) => `AX = ${s.registers.ax}` },
-    rv32: { program: example(RV32.examples, 'Sum 1..10'), result: (s) => `a0 = ${readRv32(s, A0)}` },
-    mos6502: { program: example(MOS6502.examples, 'Sum 1..10'), result: (s) => `A = ${s.registers.a}` }
+    x86: { program: example(X86.examples, 'sum'), result: (s) => `AX = ${s.registers.ax}` },
+    rv32: { program: example(RV32.examples, 'sum'), result: (s) => `a0 = ${readRv32(s, A0)}` },
+    mos6502: { program: example(MOS6502.examples, 'sum'), result: (s) => `A = ${s.registers.a}` }
   },
   {
     id: 'wide-add',
@@ -100,7 +100,7 @@ export const COMPARISON_TASKS: readonly ComparisonTask[] = [
     lesson: 'A 16-bit sum is one ADD on the 8086 and on RISC-V, whose registers are 16 and 32 bits wide. The 6502 adds a byte at a time: the low bytes first, then the high bytes with the carry from the first ADC. RISC-V needs LUI to build $1234, which does not fit in ADDI\'s 12 bits.',
     x86: { program: [x86.line('mov', x86.reg('ax'), x86.imm(0x1234)), x86.line('add', x86.reg('ax'), x86.imm(0x00ff))], result: (s) => `AX = $${hex(s.registers.ax, 4)}` },
     rv32: { program: [...loadImmediate(A0, 0x1234), rv.line('addi', rv.reg(A0), rv.reg(A0), rv.imm(0xff))], result: (s) => `a0 = $${hex(readRv32(s, A0), 4)}` },
-    mos6502: { program: example(MOS6502.examples, 'Add 16-bit numbers'), result: (s) => `$01:$00 = $${hex(s.memory[1], 2)}${hex(s.memory[0], 2)}` }
+    mos6502: { program: example(MOS6502.examples, 'wide-add'), result: (s) => `$01:$00 = $${hex(s.memory[1], 2)}${hex(s.memory[0], 2)}` }
   },
   {
     id: 'multiply',
@@ -108,7 +108,7 @@ export const COMPARISON_TASKS: readonly ComparisonTask[] = [
     lesson: "The 8086's MUL and RISC-V's MUL (from the M extension) each multiply in one instruction, though the 8086's takes dozens of clock cycles inside. The 6502 has no multiply at all: it shifts the multiplier right and adds, once for each of its 8 bits.",
     x86: { program: [x86.line('mov', x86.reg('al'), x86.imm(6)), x86.line('mov', x86.reg('bl'), x86.imm(7)), x86.line('mul', x86.reg('bl'))], result: (s) => `AX = ${s.registers.ax}` },
     rv32: { program: [...loadImmediate(A0, 6), ...loadImmediate(A1, 7), rv.line('mul', rv.reg(A2), rv.reg(A0), rv.reg(A1))], result: (s) => `a2 = ${readRv32(s, A2)}` },
-    mos6502: { program: example(MOS6502.examples, 'Multiply by shifting'), result: (s) => `$01 = ${s.memory[1]}` }
+    mos6502: { program: example(MOS6502.examples, 'multiply'), result: (s) => `$01 = ${s.memory[1]}` }
   },
   {
     id: 'fill',
@@ -131,16 +131,16 @@ export const COMPARISON_TASKS: readonly ComparisonTask[] = [
     id: 'call',
     name: 'Call a function that doubles 7',
     lesson: "CALL and JSR push the return address onto the stack, in memory. RISC-V's JAL keeps it in a register, ra, so a function that calls nothing else never touches memory. JSR pushes the address of its own last byte, which RTS corrects by adding 1.",
-    x86: { program: example(X86.examples, 'Call a subroutine'), result: (s) => `AX = ${s.registers.ax}` },
-    rv32: { program: example(RV32.examples, 'Call a function'), result: (s) => `a0 = ${readRv32(s, A0)}` },
-    mos6502: { program: example(MOS6502.examples, 'Call a subroutine'), result: (s) => `A = ${s.registers.a}` }
+    x86: { program: example(X86.examples, 'call'), result: (s) => `AX = ${s.registers.ax}` },
+    rv32: { program: example(RV32.examples, 'call'), result: (s) => `a0 = ${readRv32(s, A0)}` },
+    mos6502: { program: example(MOS6502.examples, 'call'), result: (s) => `A = ${s.registers.a}` }
   },
   {
     id: 'light',
     name: 'Light the LEDs one at a time',
     lesson: 'The 8086 reaches the LEDs through a port of their own, with OUT. RISC-V and the 6502 have no I/O instructions: the LEDs are an address in memory, written with SB or STA. The 6502 needs no counter: after eight shifts ASL pushes the bit out into C, A becomes 0, and BNE falls through.',
-    x86: { program: example(X86.examples, 'Running light'), result: leds },
-    rv32: { program: example(RV32.examples, 'Running light'), result: leds },
-    mos6502: { program: example(MOS6502.examples, 'Running light'), result: leds }
+    x86: { program: example(X86.examples, 'running-light'), result: leds },
+    rv32: { program: example(RV32.examples, 'running-light'), result: leds },
+    mos6502: { program: example(MOS6502.examples, 'running-light'), result: leds }
   }
 ];

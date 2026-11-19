@@ -9,6 +9,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 defineProps<{ lines: number }>();
 const open = defineModel<boolean>('open', { required: true });
@@ -20,15 +23,13 @@ const emit = defineEmits<{ confirm: [] }>();
   <AlertDialog v-model:open="open">
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>
-          Clear all {{ lines }} {{ lines === 1 ? 'line' : 'lines' }}?
-        </AlertDialogTitle>
-        <AlertDialogDescription>The program can't be restored with Undo.</AlertDialogDescription>
+        <AlertDialogTitle>{{ t.clearDialog.title(lines) }}</AlertDialogTitle>
+        <AlertDialogDescription>{{ t.clearDialog.description }}</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel>Keep the program</AlertDialogCancel>
+        <AlertDialogCancel>{{ t.clearDialog.keep }}</AlertDialogCancel>
         <AlertDialogAction variant="destructive" @click="emit('confirm')">
-          Clear the program
+          {{ t.clearDialog.confirm }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

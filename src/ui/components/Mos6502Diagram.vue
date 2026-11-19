@@ -17,6 +17,9 @@ import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import DatapathStage from './DatapathStage.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -30,7 +33,7 @@ const props = defineProps<{
 }>();
 
 const view = computed(() =>
-  diagramView({
+  diagramView(t.value, {
     program: props.program,
     record: props.pending ? null : props.record,
     pending: props.pending
@@ -42,12 +45,12 @@ const pulse = computed(
   () => props.tick * 3 + (props.pending?.phase === 'decode' ? 2 : props.pending ? 1 : 0)
 );
 
-const REGISTERS: { name: RegisterName; label: string; note: string }[] = [
-  { name: 'a', label: 'A', note: 'accumulator' },
-  { name: 'x', label: 'X', note: 'index' },
-  { name: 'y', label: 'Y', note: 'index' },
-  { name: 'sp', label: 'SP', note: 'stack' },
-  { name: 'pc', label: 'PC', note: 'program counter' }
+const REGISTERS: { name: RegisterName; label: string }[] = [
+  { name: 'a', label: 'A' },
+  { name: 'x', label: 'X' },
+  { name: 'y', label: 'Y' },
+  { name: 'sp', label: 'SP' },
+  { name: 'pc', label: 'PC' }
 ];
 
 function changed(name: RegisterName): boolean {
@@ -69,24 +72,26 @@ const flagChanged = (bit: number) =>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-pointer" aria-hidden="true" />
-          read
+          {{ t.diagram.read }}
         </span>
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-written" aria-hidden="true" />
-          written
+          {{ t.diagram.written }}
         </span>
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
 
-    <CardContent class="@container flex flex-col gap-3">
+    <CardContent dir="ltr" class="@container flex flex-col gap-3">
       <div class="grid gap-3 @min-[40rem]:grid-cols-[auto_minmax(0,1fr)]">
         <!-- Three 8-bit registers do all the work; SP and PC point at the stack and the code. -->
         <section
           class="rounded-xl border border-foreground/20 bg-inset p-2.5"
-          aria-label="Registers"
+          :aria-label="t.registers.title"
         >
-          <h3 class="unit-title">Registers <span>8-bit</span></h3>
+          <h3 class="unit-title">
+            {{ t.registers.title }} <span>{{ t.mos6502.eightBit }}</span>
+          </h3>
           <div class="mt-1.5 flex flex-col gap-1 font-mono text-code">
             <div
               v-for="register in REGISTERS"
@@ -111,7 +116,7 @@ const flagChanged = (bit: number) =>
                 <template v-if="register.name === 'sp'"
                   >→ ${{ formatHex(STACK_PAGE | state.registers.sp, 16) }}</template
                 >
-                <template v-else-if="register.name === 'pc'">{{ register.note }}</template>
+                <template v-else-if="register.name === 'pc'">{{ t.mos6502.pcNote }}</template>
                 <RollingDigits
                   v-else
                   effect="flip"
@@ -120,7 +125,7 @@ const flagChanged = (bit: number) =>
                 />
               </span>
             </div>
-            <div class="mt-1 flex gap-1 border-t pt-1.5" aria-label="Flags">
+            <div class="mt-1 flex gap-1 border-t pt-1.5" :aria-label="t.flags.title">
               <span
                 v-for="flag in FLAG_NAMES"
                 :key="flag"
@@ -141,18 +146,25 @@ const flagChanged = (bit: number) =>
         <div class="grid gap-2 @min-[28rem]:grid-cols-2">
           <DatapathStage title="ALU" tag="A op M" :stage="view.alu" :tick="pulse" />
           <DatapathStage
-            title="Address unit"
+            :title="t.mos6502.addressUnit"
             :tag="view.address.mode ?? 'mode'"
             :stage="view.address"
             :tick="pulse"
           />
-          <DatapathStage title="Data bus" tag="memory · devices" :stage="view.bus" :tick="pulse" />
+          <DatapathStage
+            :title="t.mos6502.dataBus"
+            :tag="t.mos6502.dataBusTag"
+            :stage="view.bus"
+            :tick="pulse"
+          />
           <section
             class="rounded-lg border bg-card px-2.5 py-2 transition-opacity duration-300"
             :class="{ 'unit-idle': !view.cycles }"
-            aria-label="Cycles"
+            :aria-label="t.mos6502.cycles"
           >
-            <h3 class="unit-title">Cycles <span>clock</span></h3>
+            <h3 class="unit-title">
+              {{ t.mos6502.cycles }} <span>{{ t.mos6502.clock }}</span>
+            </h3>
             <template v-if="view.cycles">
               <div class="mt-1.5 flex flex-wrap gap-1" aria-hidden="true">
                 <span
@@ -161,9 +173,9 @@ const flagChanged = (bit: number) =>
                   class="size-3 rounded-xs bg-written/70"
                 />
               </div>
-              <p class="mt-1 font-mono text-xs">{{ view.cycles.text }}</p>
+              <p class="ui-auto mt-1 font-mono text-xs">{{ view.cycles.text }}</p>
             </template>
-            <p v-else class="mt-1 font-mono text-xs text-muted-foreground">idle</p>
+            <p v-else class="mt-1 font-mono text-xs text-muted-foreground">{{ t.cycle.idle }}</p>
           </section>
         </div>
       </div>

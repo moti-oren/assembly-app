@@ -9,6 +9,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 /** How many instructions the history holds, undone ones included. */
 defineProps<{ instructions: number }>();
@@ -21,19 +24,15 @@ const emit = defineEmits<{ confirm: [] }>();
   <AlertDialog v-model:open="open">
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Reset the CPU?</AlertDialogTitle>
-        <AlertDialogDescription>
-          Registers, flags and memory go back to their start values, and the history is cleared ({{
-            instructions
-          }}
-          {{ instructions === 1 ? 'instruction' : 'instructions' }}). The program is kept. This
-          can't be undone.
-        </AlertDialogDescription>
+        <AlertDialogTitle>{{ t.resetDialog.title }}</AlertDialogTitle>
+        <AlertDialogDescription>{{
+          t.resetDialog.description(instructions)
+        }}</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel>Keep the current state</AlertDialogCancel>
+        <AlertDialogCancel>{{ t.resetDialog.keep }}</AlertDialogCancel>
         <AlertDialogAction variant="destructive" @click="emit('confirm')">
-          Reset the CPU
+          {{ t.resetDialog.confirm }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

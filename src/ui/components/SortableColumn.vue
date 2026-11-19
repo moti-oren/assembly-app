@@ -11,6 +11,9 @@ import {
   type Slot
 } from '@/ui/reorder';
 import { usePreferences } from '@/ui/usePreferences';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 /**
  * A column of cards the user can put in any order by dragging a card's grip, or with the
@@ -82,7 +85,7 @@ function handle(key: K): HTMLElement | null {
 }
 
 function announce(key: K, keys: readonly K[]): void {
-  announcement.value = `${props.labels[key]} moved to position ${keys.indexOf(key) + 1} of ${keys.length}`;
+  announcement.value = t.value.panels.moved(props.labels[key], keys.indexOf(key) + 1, keys.length);
 }
 
 /** Where each card is drawn while a drag is on. */
@@ -294,9 +297,9 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
         type="button"
         data-sortable-handle
         class="sortable-handle"
-        :aria-label="`Move the ${labels[key]} card`"
+        :aria-label="t.panels.moveCard(labels[key])"
         :aria-describedby="hintId"
-        title="Drag to move this card within its column"
+        :title="t.panels.dragHint"
         @pointerdown="onPointerDown($event, key)"
         @keydown="onHandleKey($event, key)"
       >
@@ -304,9 +307,7 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
       </button>
       <slot :name="key" />
     </div>
-    <p :id="hintId" class="sr-only">
-      Drag it, or use the up and down arrow keys, to move it within this column.
-    </p>
+    <p :id="hintId" class="sr-only">{{ t.panels.keyHint }}</p>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
   </div>
 </template>

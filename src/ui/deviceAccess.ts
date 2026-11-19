@@ -8,8 +8,8 @@ export interface DeviceAccess {
   /** The instruction that writes a device, and the one that reads it. */
   write: string;
   read: string;
-  /** What a device's number is called. */
-  noun: string;
+  /** What a device's number is: a port of its own, or an address in memory. */
+  place: 'port' | 'address';
   /** The number of one device register, as an instruction names it. */
   address: (port: number) => string;
 }
@@ -17,7 +17,7 @@ export interface DeviceAccess {
 export const X86_DEVICE_ACCESS: DeviceAccess = {
   write: 'out',
   read: 'in',
-  noun: 'port',
+  place: 'port',
   address: (port) => `${formatHex(port, 8)}h`
 };
 
@@ -25,7 +25,7 @@ export const X86_DEVICE_ACCESS: DeviceAccess = {
 export const RV32_DEVICE_ACCESS: DeviceAccess = {
   write: 'sb',
   read: 'lbu',
-  noun: 'device address',
+  place: 'address',
   address: (port) => `0x${formatHex32(DEVICE_BASE + port)}`
 };
 
@@ -33,6 +33,6 @@ export const RV32_DEVICE_ACCESS: DeviceAccess = {
 export const MOS6502_DEVICE_ACCESS: DeviceAccess = {
   write: 'sta',
   read: 'lda',
-  noun: 'device address',
+  place: 'address',
   address: (port) => `$${formatHex(MOS6502_DEVICE_BASE + port, 16)}`
 };

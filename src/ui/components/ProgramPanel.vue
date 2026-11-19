@@ -15,6 +15,9 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CodePlace, LineCode } from '@/ui/programCode';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   program: Instruction[];
@@ -84,21 +87,27 @@ watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMark
 });
 
 const ROW =
-  'group grid h-7 pointer-coarse:h-11 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pr-1 pl-2';
+  'group grid h-7 pointer-coarse:h-11 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] items-center gap-1 pe-1 ps-2';
 
 function machineCode(index: number): string {
   return formatBytes(props.code[index].bytes);
+}
+
+/** Where a line's code sits, in words: an offset in the code or an address in memory. */
+function placeText(address: number): string {
+  const place = props.codePlace(address);
+  return t.value.program[place.kind](place.value);
 }
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Program</CardTitle>
+      <CardTitle>{{ t.program.title }}</CardTitle>
       <CardDescription>
-        <template v-if="program.length === 0">No lines yet</template>
-        <template v-else-if="finished">Finished</template>
-        <template v-else>Next: {{ formatLabel(ip) }}</template>
+        <template v-if="program.length === 0">{{ t.program.empty }}</template>
+        <template v-else-if="finished">{{ t.program.finished }}</template>
+        <template v-else>{{ t.program.next(formatLabel(ip)) }}</template>
       </CardDescription>
       <CardAction class="flex items-center gap-1">
         <Tooltip>
@@ -107,14 +116,14 @@ function machineCode(index: number): string {
               variant="ghost"
               size="icon-sm"
               class="pointer-coarse:size-11"
-              aria-label="Clear the program"
+              :aria-label="t.program.clear"
               :disabled="program.length === 0"
               @click="emit('clear')"
             >
               <Trash2 />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Clear the program</TooltipContent>
+          <TooltipContent>{{ t.program.clear }}</TooltipContent>
         </Tooltip>
       </CardAction>
     </CardHeader>
@@ -122,12 +131,13 @@ function machineCode(index: number): string {
     <CardContent>
       <ol
         ref="list"
+        dir="ltr"
         class="relative max-h-80 overflow-y-auto rounded-lg lg:max-h-112 bg-inset py-1 font-mono text-code"
-        aria-label="Program lines"
+        :aria-label="t.program.lines"
       >
         <li
           v-if="marker"
-          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/15 pl-2 shadow-[inset_3px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out calm:transition-none"
+          class="pointer-events-none absolute inset-x-0 top-0 flex items-center bg-pointer/15 ps-2 shadow-[inset_3px_0_0_var(--pointer)] transition-[translate,height] duration-300 ease-out calm:transition-none"
           :style="{ translate: `0 ${marker.top}px`, height: `${marker.height}px` }"
           aria-hidden="true"
         >
@@ -141,8 +151,8 @@ function machineCode(index: number): string {
               @click="emit('update:insertAt', null)"
             >
               <span class="h-px flex-1 border-t border-dashed border-foreground/40" />
-              new lines go here ·
-              <span class="underline underline-offset-2">add at the end instead</span>
+              {{ t.program.insertHere }}
+              <span class="underline underline-offset-2">{{ t.program.addAtEnd }}</span>
             </button>
           </li>
           <li
@@ -155,7 +165,7 @@ function machineCode(index: number): string {
               <span
                 v-if="lastLine === index && ip !== index"
                 class="size-1.5 rounded-full bg-muted-foreground"
-                title="Ran last"
+                :title="t.program.ranLast"
               />
             </span>
             <span
@@ -180,7 +190,7 @@ function machineCode(index: number): string {
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                Machine code at {{ codePlace(code[index].address) }}. Click to take it apart.
+                {{ t.program.codeAt(placeText(code[index].address)) }}
               </TooltipContent>
             </Tooltip>
             <span v-else />
@@ -193,13 +203,13 @@ function machineCode(index: number): string {
                     variant="ghost"
                     size="icon-xs"
                     class="pointer-coarse:size-11"
-                    aria-label="Insert new lines above this one"
+                    :aria-label="t.program.insertAbove"
                     @click="emit('update:insertAt', index)"
                   >
                     <ArrowUpToLine />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Insert new lines above this one</TooltipContent>
+                <TooltipContent>{{ t.program.insertAbove }}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger as-child>
@@ -207,13 +217,13 @@ function machineCode(index: number): string {
                     variant="ghost"
                     size="icon-xs"
                     class="hover:text-destructive pointer-coarse:size-11"
-                    aria-label="Delete this line"
+                    :aria-label="t.program.remove"
                     @click="emit('remove', index)"
                   >
                     <X />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Delete this line</TooltipContent>
+                <TooltipContent>{{ t.program.remove }}</TooltipContent>
               </Tooltip>
             </span>
           </li>
@@ -229,17 +239,17 @@ function machineCode(index: number): string {
             "
             >{{ formatLabel(program.length) }}{{ targets.has(program.length) ? ':' : '' }}</span
           >
-          <span class="font-sans text-xs text-muted-foreground">end of program</span>
+          <span class="font-sans text-xs text-muted-foreground">{{ t.program.end }}</span>
         </li>
       </ol>
 
-      <p v-if="program.length === 0" class="mt-3 text-sm text-muted-foreground">
-        Build an instruction and press
+      <p v-if="program.length === 0" class="ui-text mt-3 text-sm text-muted-foreground">
+        {{ t.program.startBefore }}
         <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup>
-        to add it as a line, or
-        <Button variant="link" size="sm" class="h-auto p-0" @click="emit('examples')"
-          >start from an example</Button
-        >.
+        {{ t.program.startMiddle }}
+        <Button variant="link" size="sm" class="h-auto p-0" @click="emit('examples')">{{
+          t.program.startLink
+        }}</Button>{{ t.program.startAfter }}
       </p>
     </CardContent>
   </Card>

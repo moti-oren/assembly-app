@@ -1,16 +1,21 @@
 import { computed, type ComputedRef } from 'vue';
 import { ARCHITECTURE_CHOICES } from './architectures';
-import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
+import { messagesFor } from './locale';
+import type { Messages } from './messages/en';
+import { RUN_SPEED_NAMES } from './runSpeeds';
 import type { CpuControls } from './useCpu';
 import { usePanelOrder } from './usePanelOrder';
 import { useComparison } from './useComparison';
+import { useLocale } from './useLocale';
 import type { Panels } from './usePanels';
-import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
+import { usePreferences } from './usePreferences';
 
 /** One entry in the command palette. */
 export interface PaletteCommand {
   group: string;
   label: string;
+  /** More words the palette's search matches: the English names, when they are not on show. */
+  keywords?: string;
   disabled?: boolean;
   /**
    * What the command does to the page beyond its own state. Either way it runs once the palette
@@ -35,42 +40,49 @@ export interface PageActions {
 }
 
 /**
- * Everything the command palette offers, labelled for the current state. `extra` adds the
- * commands of one architecture's own panels.
+ * Everything the command palette offers, labelled for the current state and language. `extra`
+ * adds the commands of one architecture's own panels, in the language of the messages it gets.
  */
 export function useCommands(
   cpu: CpuControls,
   panels: Panels,
   page: PageActions,
-  extra: () => PaletteCommand[] = () => []
+  extra: (m: Messages) => PaletteCommand[] = () => []
 ): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, cpuView, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
     usePreferences();
+  const { locale, t, toggleLocale } = useLocale();
   const panelOrder = usePanelOrder();
   const comparison = useComparison();
   const { history, program, insertAt, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
 
-  return computed<PaletteCommand[]>(() => [
-    { group: 'Program', label: 'Write an instruction', moves: 'focus', run: page.focusBuilder },
+  /** The commands in one language; every language lists the same ones in the same order. */
+  const build = (m: Messages): PaletteCommand[] => [
     {
-      group: 'Program',
-      label: 'Step one line',
+      group: m.commandGroups.program,
+      label: m.commands.writeInstruction,
+      moves: 'focus',
+      run: page.focusBuilder
+    },
+    {
+      group: m.commandGroups.program,
+      label: m.commands.stepLine,
       disabled: finished.value,
       run: cpu.stepProgram
     },
     {
-      group: 'Program',
-      label: 'Step one phase (fetch, decode, execute)',
+      group: m.commandGroups.program,
+      label: m.commands.stepPhase,
       disabled: finished.value,
       run: cpu.stepPhase
     },
     running.value
-      ? { group: 'Program', label: 'Pause', run: cpu.pause }
+      ? { group: m.commandGroups.program, label: m.commands.pause, run: cpu.pause }
       : {
-          group: 'Program',
-          label: 'Run the program',
+          group: m.commandGroups.program,
+          label: m.commands.run,
           disabled: finished.value,
           run: cpu.runProgram
         },
@@ -79,89 +91,99 @@ export function useCommands(
       ? []
       : [
           {
-            group: 'Program',
-            label: 'Add new lines at the end',
+            group: m.commandGroups.program,
+            label: m.commands.addAtEnd,
             run: () => {
               insertAt.value = null;
             }
           }
         ]),
     {
-      group: 'Program',
-      label: 'Clear the program…',
+      group: m.commandGroups.program,
+      label: m.commands.clearProgram,
       disabled: program.value.length === 0,
       // The dialog takes focus; the palette must not take it back as it closes.
       moves: 'focus',
       run: page.askClearProgram
     },
     {
-      group: 'Program',
-      label: bytesShown.value ? 'Hide the machine code' : 'Show the machine code',
+      group: m.commandGroups.program,
+      label: m.commands.machineCode(bytesShown.value),
       run: () => {
         bytesShown.value = !bytesShown.value;
       }
     },
-    { group: 'History', label: 'Undo', disabled: history.value.length === 0, run: cpu.undoLast },
-    { group: 'History', label: 'Redo', disabled: future.value.length === 0, run: cpu.redo },
     {
-      group: 'History',
-      label: 'Go back to the start',
+      group: m.commandGroups.history,
+      label: m.commands.undo,
+      disabled: history.value.length === 0,
+      run: cpu.undoLast
+    },
+    {
+      group: m.commandGroups.history,
+      label: m.commands.redo,
+      disabled: future.value.length === 0,
+      run: cpu.redo
+    },
+    {
+      group: m.commandGroups.history,
+      label: m.commands.toStart,
       disabled: history.value.length === 0,
       run: () => cpu.seek(0)
     },
     {
-      group: 'History',
-      label: 'Go to the latest instruction',
+      group: m.commandGroups.history,
+      label: m.commands.toLatest,
       disabled: future.value.length === 0,
       run: () => cpu.seek(history.value.length + future.value.length)
     },
     {
-      group: 'History',
-      label: historyShown.value ? 'Hide the history list' : 'Show the history list',
+      group: m.commandGroups.history,
+      label: m.commands.historyList(historyShown.value),
       run: () => {
         historyShown.value = !historyShown.value;
       }
     },
-    { group: 'CPU', label: 'Reset the CPU and clear the history', run: page.askReset },
+    { group: m.commandGroups.cpu, label: m.commands.reset, run: page.askReset },
     {
-      group: 'CPU',
-      label: 'Show the top of the stack in memory',
+      group: m.commandGroups.cpu,
+      label: m.commands.stackTop,
       moves: 'scroll',
       run: page.showStackTop
     },
     {
-      group: 'CPU',
-      label: 'Show the last memory access',
+      group: m.commandGroups.cpu,
+      label: m.commands.lastAccess,
       disabled: !hasLastAccess.value,
       moves: 'scroll',
       run: page.showLastAccess
     },
-    ...extra(),
+    ...extra(m),
     {
-      group: 'Devices',
-      label: devicesShown.value ? 'Hide the I/O devices' : 'Show the I/O devices',
+      group: m.commandGroups.devices,
+      label: m.commands.devices(devicesShown.value),
       run: () => {
         devicesShown.value = !devicesShown.value;
       }
     },
     ...RUN_SPEED_NAMES.map((name) => ({
-      group: 'Run speed',
-      label: SPEED_LABELS[name],
+      group: m.commandGroups.runSpeed,
+      label: m.speeds[name],
       disabled: speed.value === name,
       run: () => {
         speed.value = name;
       }
     })),
     ...ARCHITECTURE_CHOICES.filter((choice) => choice.id !== architecture.value).map((choice) => ({
-      group: 'CPU',
-      label: `Switch to ${choice.label}`,
+      group: m.commandGroups.cpu,
+      label: m.commands.switchTo(choice.label),
       run: () => {
         architecture.value = choice.id;
       }
     })),
     {
-      group: 'CPU',
-      label: 'Compare the CPUs on the same task…',
+      group: m.commandGroups.cpu,
+      label: m.commands.compare,
       // The dialog takes focus; the palette must not take it back as it closes.
       moves: 'focus',
       run: () => {
@@ -169,25 +191,26 @@ export function useCommands(
       }
     },
     ...cpu.architecture.examples.map((example, index) => ({
-      group: 'Examples',
-      label: `Load "${example.name}"`,
+      group: m.commandGroups.examples,
+      label: m.commands.loadExample(m.examples.name(architecture.value, example.id)),
       run: () => cpu.loadExample(index)
     })),
     {
-      group: 'Preferences',
-      label: isDark.value ? 'Switch to light theme' : 'Switch to dark theme',
+      group: m.commandGroups.preferences,
+      label: m.commands.theme(isDark.value),
       run: toggleTheme
     },
+    { group: m.commandGroups.preferences, label: m.language.switch, run: toggleLocale },
     {
-      group: 'Preferences',
-      label: cpuView.value === 'diagram' ? CPU_VIEW_LABELS.table : CPU_VIEW_LABELS.diagram,
+      group: m.commandGroups.preferences,
+      label: cpuView.value === 'diagram' ? m.cpuView.table : m.cpuView.diagram,
       run: () => {
         cpuView.value = cpuView.value === 'diagram' ? 'table' : 'diagram';
       }
     },
     {
-      group: 'Preferences',
-      label: soundOn.value ? 'Turn sound off' : 'Turn sound on',
+      group: m.commandGroups.preferences,
+      label: m.commands.sound(soundOn.value),
       run: () => {
         soundOn.value = !soundOn.value;
       }
@@ -195,23 +218,34 @@ export function useCommands(
     // While the system asks for less motion, the app's own setting cannot bring it back.
     systemReducesMotion.value
       ? {
-          group: 'Preferences',
-          label: 'Animations are reduced by the system',
+          group: m.commandGroups.preferences,
+          label: m.commands.motionBySystem,
           disabled: true,
           run: () => {}
         }
       : {
-          group: 'Preferences',
-          label: reduceMotion.value ? 'Use full animations' : 'Reduce animations',
+          group: m.commandGroups.preferences,
+          label: m.commands.motion(reduceMotion.value),
           run: () => {
             reduceMotion.value = !reduceMotion.value;
           }
         },
     {
-      group: 'Preferences',
-      label: 'Reset the card order',
+      group: m.commandGroups.preferences,
+      label: m.commands.resetCardOrder,
       disabled: panelOrder.isDefault.value,
       run: panelOrder.reset
     }
-  ]);
+  ];
+
+  return computed(() => {
+    const commands = build(t.value);
+    if (locale.value === 'en') return commands;
+    // Searching for a command by its English name finds it too.
+    const english = build(messagesFor('en'));
+    return commands.map((command, index) => ({
+      ...command,
+      keywords: `${english[index].group} ${english[index].label}`
+    }));
+  });
 }

@@ -1,15 +1,7 @@
 import { formatLabel } from '@/core/shared/program';
 import { formatRegister } from '@/core/rv32/operands';
 import type { PipelineRow, PipelineStage, PipelineTiming } from '@/core/rv32/pipeline';
-
-/** What each stage does, for the legend. */
-export const STAGE_INFO: Record<PipelineStage, string> = {
-  IF: 'fetch the instruction',
-  ID: 'decode it and read its registers',
-  EX: 'compute in the ALU; branches decide',
-  MEM: 'load or store',
-  WB: 'write the result to a register'
-};
+import type { Messages } from './messages/en';
 
 /** A cycle in a stage: doing its work, waiting there, or on an instruction that was flushed. */
 export interface PipelineCell {
@@ -42,7 +34,7 @@ function labelOf(row: PipelineRow): string {
 }
 
 /** The last `size` rows, as a grid with a column per cycle. */
-export function pipelineGrid(timing: PipelineTiming, size: number): PipelineGrid {
+export function pipelineGrid(m: Messages, timing: PipelineTiming, size: number): PipelineGrid {
   const start = Math.max(0, timing.rows.length - size);
   const shown = timing.rows.slice(start);
   if (shown.length === 0) return { from: start, cycles: [], rows: [] };
@@ -62,7 +54,7 @@ export function pipelineGrid(timing: PipelineTiming, size: number): PipelineGrid
       return {
         key: start + index,
         label: labelOf(row),
-        text: row.text || 'past the end',
+        text: row.text || m.pipelineNotes.pastEnd,
         flushed,
         newest: row.step === newest,
         cells
@@ -71,43 +63,38 @@ export function pipelineGrid(timing: PipelineTiming, size: number): PipelineGrid
   };
 }
 
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
-
-function named(row: PipelineRow): string {
+function named(m: Messages, row: PipelineRow): string {
   const label = labelOf(row);
-  return label ? `${label} (${row.text})` : row.text;
+  const text = m.common.code(row.text);
+  return label ? `${label} (${text})` : text;
 }
 
 /** Why the rows from `from` on were held up, in words: a sentence per stall and per flush. */
-export function pipelineNotes(timing: PipelineTiming, from: number): string[] {
+export function pipelineNotes(m: Messages, timing: PipelineTiming, from: number): string[] {
+  const n = m.pipelineNotes;
   const notes: string[] = [];
   timing.rows.slice(from).forEach((row) => {
     if (row.hazard) {
       const { register, producer, load, cycles } = row.hazard;
       const source = timing.rows[producer];
-      const why = load
-        ? `the load on ${named(source)} has it only after MEM`
-        : `forwarding is off, so ${named(source)} must write it back first`;
-      notes.push(
-        `${named(row)} waits ${plural(cycles, 'cycle')} in ID for ${formatRegister(register)}: ${why}.`
-      );
+      const why = load ? n.load(named(m, source)) : n.noForwarding(named(m, source));
+      notes.push(n.waits(named(m, row), cycles, formatRegister(register), why));
     }
     if (row.taken) {
-      notes.push(
-        `${named(row)} changes PC in EX: the two instructions fetched behind it are flushed.`
-      );
+      notes.push(n.flushes(named(m, row)));
     }
   });
   return notes;
 }
 
 /** Where the cycles went: one per instruction, four to fill the pipeline, and the rest lost. */
-export function pipelineSummary(timing: PipelineTiming): string | null {
+export function pipelineSummary(m: Messages, timing: PipelineTiming): string | null {
+  const n = m.pipelineNotes;
   const { instructions, cycles, stallCycles, flushCycles } = timing;
   if (instructions === 0) return null;
-  const parts = [plural(instructions, 'instruction'), '4 to fill the pipeline'];
-  if (stallCycles > 0) parts.push(`${stallCycles} stalled`);
-  if (flushCycles > 0) parts.push(`${flushCycles} lost to flushes`);
+  const parts = [n.instructions(instructions), n.fill];
+  if (stallCycles > 0) parts.push(n.stalled(stallCycles));
+  if (flushCycles > 0) parts.push(n.flushed(flushCycles));
   const cpi = (cycles / instructions).toFixed(2);
-  return `${plural(cycles, 'cycle')} = ${parts.join(' + ')} · ${cpi} cycles per instruction`;
+  return n.summary(cycles, parts.join(' + '), cpi);
 }

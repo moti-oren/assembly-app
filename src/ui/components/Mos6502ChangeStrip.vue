@@ -4,6 +4,9 @@ import { formatHex } from '@/core/shared/numbers';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { formatInstruction } from '@/core/mos6502/instructions';
 import { FLAG_NAMES, flagBit, REGISTER_NAMES, type CpuState } from '@/core/mos6502/state';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -40,7 +43,7 @@ const changes = computed(() => {
     aria-live="polite"
   >
     <span v-if="!record" class="font-sans text-muted-foreground">
-      Run an instruction to see what it changes
+      {{ t.changes.none }}
     </span>
     <span v-else class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
     <span
@@ -51,7 +54,7 @@ const changes = computed(() => {
       {{ change.name }} <span class="font-semibold">{{ change.value }}</span>
     </span>
     <span v-if="record && changes.length === 0" class="font-sans text-muted-foreground">
-      changed nothing
+      {{ t.changes.nothing }}
     </span>
   </div>
 </template>

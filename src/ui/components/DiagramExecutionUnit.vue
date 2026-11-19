@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
-import {
-  REGISTER_DESCRIPTIONS,
-  SPLIT_REGISTERS,
-  half,
-  type WordRegister
-} from '@/core/x86/registers';
+import { SPLIT_REGISTERS, half, type WordRegister } from '@/core/x86/registers';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import ChangeMark from './ChangeMark.vue';
@@ -13,6 +8,9 @@ import DiagramAlu from './DiagramAlu.vue';
 import DiagramFlags from './DiagramFlags.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 defineProps<{
   model: CpuDiagramModel;
@@ -27,17 +25,17 @@ const GROUP_START: WordRegister = 'sp';
 </script>
 
 <template>
-  <section class="min-w-0" aria-label="Execution unit">
-    <h3 class="unit-title">Execution unit <span>EU</span></h3>
+  <section class="min-w-0" :aria-label="t.diagram.eu">
+    <h3 class="unit-title">{{ t.diagram.eu }} <span>EU</span></h3>
     <div class="flex flex-col font-mono text-code">
       <!-- The number system of each column, as in the register table. -->
       <div
         class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
       >
         <span class="w-6" />
-        <span class="w-14">Hex</span>
-        <span class="flex w-11 justify-end whitespace-nowrap">Decimal</span>
-        <span class="hidden @min-[36rem]:inline">Binary</span>
+        <span class="w-14">{{ t.registers.hex }}</span>
+        <span class="flex w-11 justify-end whitespace-nowrap">{{ t.registers.decimal }}</span>
+        <span class="hidden @min-[36rem]:inline">{{ t.registers.binary }}</span>
       </div>
       <div
         v-for="name in EU_REGISTERS"
@@ -53,7 +51,7 @@ const GROUP_START: WordRegister = 'sp';
               >{{ name.toUpperCase() }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+          <TooltipContent side="right">{{ t.x86Text.register(name) }}</TooltipContent>
         </Tooltip>
 
         <span class="w-14">
@@ -93,8 +91,8 @@ const GROUP_START: WordRegister = 'sp';
         </span>
 
         <span
-          class="w-11 text-right text-xs text-muted-foreground tabular-nums"
-          :title="`${model.value(name)} unsigned, ${toSigned(model.value(name), 16)} signed`"
+          class="w-11 text-end text-xs text-muted-foreground tabular-nums"
+          :title="t.registers.both(model.value(name), toSigned(model.value(name), 16))"
         >
           <RollingDigits :text="String(model.value(name))" />
         </span>

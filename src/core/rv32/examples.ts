@@ -26,6 +26,7 @@ const devices = line('lui', reg('s0'), imm(0x10000));
 
 export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
   {
+    id: 'sum',
     name: 'Sum 1..10',
     description:
       'No LOOP instruction: t0 counts down and BNEZ jumps back until it is 0; a0 ends up 55',
@@ -38,6 +39,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'max',
     name: 'Max of a0, a1',
     description: 'No flags: BGE compares the two registers itself; a2 ends up the larger value',
     program: [
@@ -49,6 +51,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'call',
     name: 'Call a function',
     description: 'JAL keeps the return address in ra, not on the stack; RET jumps back to it',
     program: [
@@ -60,6 +63,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'swap',
     name: 'Swap through the stack',
     description: 'No PUSH or POP: move sp yourself, then store and load words; a0 and a1 swap',
     program: [
@@ -74,12 +78,14 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'constants',
     name: 'Build 32-bit constants',
     description:
       'An immediate has 12 bits, so LI becomes LUI + ADDI. ADDI sign-extends, so 0x12345FFF needs LUI 0x12346',
     program: [...li('a0', 0x12345678), ...li('a1', 0x12345fff), ...li('a2', -1)]
   },
   {
+    id: 'fill-copy',
     name: 'Fill and copy bytes',
     description:
       'No string instructions: loops of SB and LBU fill 8 bytes at 0x10000, then copy them to 0x10010',
@@ -103,6 +109,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'running-light',
     name: 'Running light',
     description: 'No OUT: the LEDs are memory at 0x10000010, so SB lights them, one bit at a time',
     program: [
@@ -116,6 +123,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'switches',
     name: 'Switches, digits and terminal',
     description:
       'LBU reads the switches at 0x10000011; SB copies them to the LEDs and a digit, then prints HI',
@@ -131,6 +139,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'multiply-divide',
     name: 'Multiply and divide',
     description: 'The M extension; dividing by zero does not trap, it gives all ones (-1)',
     program: [

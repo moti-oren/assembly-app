@@ -23,6 +23,7 @@ const device = (port: number): Operand => abs(DEVICE_BASE + port);
 
 export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
   {
+    id: 'sum',
     name: 'Sum 1..10',
     description:
       'Only A can add, and only memory to it: X goes through the zero page. A ends up 55',
@@ -37,6 +38,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'wide-add',
     name: 'Add 16-bit numbers',
     description:
       'An 8-bit CPU adds a word one byte at a time; C carries into the high byte. $1234 + $00FF = $1333',
@@ -51,6 +53,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'multiply',
     name: 'Multiply by shifting',
     description:
       'No MUL: shift the multiplier right, add on each 1 bit, 8 times. 6 × 7 = 42 lands in $01',
@@ -72,6 +75,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'call',
     name: 'Call a subroutine',
     description:
       'JSR pushes the address of its own last byte; RTS pulls it and adds 1. A ends up 14',
@@ -84,6 +88,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'pointer',
     name: 'A pointer in the zero page',
     description:
       '($10),Y: the address is the pointer in $10 and $11, plus Y. Fills 8 bytes at $0300',
@@ -101,6 +106,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'running-light',
     name: 'Running light',
     description:
       'No OUT: the LEDs are memory at $D010. ASL moves the bit until it falls out into C',
@@ -112,6 +118,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'switches',
     name: 'Switches, digits and terminal',
     description:
       'LDA reads the switches at $D011; STA copies them to the LEDs and a digit, then prints HI',
@@ -126,6 +133,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'decimal',
     name: 'Decimal mode',
     description:
       'With D set, ADC adds decimal digits (BCD): $19 + $01 = $20, and $99 + $01 = $00 with C set',

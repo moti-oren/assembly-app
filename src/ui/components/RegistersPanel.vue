@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
-import {
-  REGISTER_DESCRIPTIONS,
-  SPLIT_REGISTERS,
-  WORD_REGISTERS,
-  half,
-  type WordRegister
-} from '@/core/x86/registers';
+import { SPLIT_REGISTERS, WORD_REGISTERS, half, type WordRegister } from '@/core/x86/registers';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { CpuState } from '@/core/x86/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +17,9 @@ import { wasWritten } from '@/ui/describe';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
+
+const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -49,35 +46,39 @@ function changedBits(name: WordRegister): number {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Registers</CardTitle>
+      <CardTitle>{{ t.registers.title }}</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
-          changed by the last instruction
+          {{ t.registers.changed }}
         </span>
         <span class="hidden items-center gap-1.5 md:flex">
           <span class="change-mark-written inline-block size-2.5 rounded-xs" aria-hidden="true" />
-          written, same value
+          {{ t.registers.writtenSame }}
         </span>
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
-    <CardContent>
+    <CardContent dir="ltr">
       <Table class="font-mono text-code">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
-            <TableHead class="h-8 w-12 font-sans text-xs text-muted-foreground">Reg</TableHead>
-            <TableHead class="h-8 font-sans text-xs text-muted-foreground">Hex</TableHead>
-            <TableHead class="h-8 text-right font-sans text-xs text-muted-foreground">
-              Unsigned
+            <TableHead class="h-8 w-12 font-sans text-xs text-muted-foreground">{{
+              t.registers.name
+            }}</TableHead>
+            <TableHead class="h-8 font-sans text-xs text-muted-foreground">{{
+              t.registers.hex
+            }}</TableHead>
+            <TableHead class="h-8 text-end font-sans text-xs text-muted-foreground">
+              {{ t.registers.unsigned }}
             </TableHead>
-            <TableHead class="h-8 text-right font-sans text-xs text-muted-foreground">
-              Signed
+            <TableHead class="h-8 text-end font-sans text-xs text-muted-foreground">
+              {{ t.registers.signed }}
             </TableHead>
             <TableHead
-              class="hidden h-8 pl-6 font-sans text-xs text-muted-foreground sm:table-cell"
+              class="hidden h-8 ps-6 font-sans text-xs text-muted-foreground sm:table-cell"
             >
-              Binary
+              {{ t.registers.binary }}
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -97,7 +98,7 @@ function changedBits(name: WordRegister): number {
                     >{{ name.toUpperCase() }}</span
                   >
                 </TooltipTrigger>
-                <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+                <TooltipContent side="right">{{ t.x86Text.register(name) }}</TooltipContent>
               </Tooltip>
             </TableCell>
             <TableCell class="py-1">
@@ -135,7 +136,7 @@ function changedBits(name: WordRegister): number {
                 <RollingDigits :text="formatHex(value(name), 16)" />
               </ChangeMark>
             </TableCell>
-            <TableCell class="py-1 text-right tabular-nums">
+            <TableCell class="py-1 text-end tabular-nums">
               <ChangeMark
                 :on="changedBits(name) !== 0"
                 :written="wasWritten(record, name)"
@@ -144,10 +145,10 @@ function changedBits(name: WordRegister): number {
                 <RollingDigits :text="String(value(name))" />
               </ChangeMark>
             </TableCell>
-            <TableCell class="py-1 text-right text-muted-foreground tabular-nums">
+            <TableCell class="py-1 text-end text-muted-foreground tabular-nums">
               <RollingDigits :text="String(toSigned(value(name), 16))" />
             </TableCell>
-            <TableCell class="hidden py-1 pl-6 text-xs sm:table-cell">
+            <TableCell class="hidden py-1 ps-6 text-xs sm:table-cell">
               <RollingDigits
                 effect="flip"
                 dim-zeros

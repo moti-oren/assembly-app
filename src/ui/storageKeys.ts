@@ -6,5 +6,6 @@ export const STORAGE_KEYS = {
   panelOrder: '8086-panel-order',
   architecture: '8086-architecture',
   rv32Pipeline: '8086-rv32-pipeline',
-  rv32Forwarding: '8086-rv32-forwarding'
+  rv32Forwarding: '8086-rv32-forwarding',
+  locale: '8086-locale'
 } as const;
