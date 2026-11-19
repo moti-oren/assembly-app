@@ -190,6 +190,7 @@
   --die-lid-foreground: #ffffff;
   /* The glass of the 7-segment display and the terminal. */
   --screen: #111318;
+  --screen-border: #232730;
   --screen-foreground: #f8fafc;
   --screen-unlit: rgb(255 255 255 / 12%);
   /* A button that cannot be used yet: flat and quiet, but still a button. */
@@ -264,9 +265,8 @@
   --inset: #161920;
   --sidebar-inset: #161920;
   --background: #090a0d;
-  --screen: #050608;
-  --screen-foreground: #f8fafc;
-  --screen-unlit: rgb(255 255 255 / 14%);
+  --screen-border: #343a46;
+  --screen-unlit: rgb(255 255 255 / 13%);
   --disabled: #161920;
   --disabled-foreground: #475467;
   --disabled-border: #232730;
