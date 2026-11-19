@@ -4,9 +4,6 @@ import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import InfoTip from './InfoTip.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   history: ExecutionRecord<Instruction>[];
@@ -58,26 +55,25 @@ watch(
   <Card>
     <CardHeader>
       <CardTitle class="flex items-center gap-1">
-        {{ t.history.title }}
-        <InfoTip :label="t.history.about">{{ t.history.intro }}</InfoTip>
+        History
+        <InfoTip label="About the history">
+          Every instruction you run appears here. Pick one to go back to the moment after it ran.
+        </InfoTip>
       </CardTitle>
       <CardDescription>
-        <template v-if="total === 0">{{ t.history.empty }}</template>
-        <template v-else-if="future.length === 0">{{
-          t.history.executed(history.length)
-        }}</template>
-        <template v-else>{{ t.history.position(history.length, total) }}</template>
+        <template v-if="total === 0">Nothing executed yet</template>
+        <template v-else-if="future.length === 0">{{ history.length }} executed</template>
+        <template v-else>At {{ history.length }} of {{ total }}</template>
       </CardDescription>
     </CardHeader>
     <CardContent v-if="total > 0">
       <div
         ref="list"
-        dir="ltr"
         :style="{ '--number-column': numberColumn }"
         class="relative max-h-56 overflow-y-auto rounded-lg bg-inset py-1 lg:max-h-80"
       >
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
-          {{ t.history.hidden(history.length - SHOWN) }}
+          {{ history.length - SHOWN }} earlier instructions are not shown.
         </p>
         <ol class="font-mono text-code">
           <li
@@ -87,7 +83,7 @@ watch(
           >
             <button
               type="button"
-              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-start outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60"
+              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-left outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60"
               :class="
                 number === history.length
                   ? 'bg-background font-semibold'
@@ -98,13 +94,15 @@ watch(
               :aria-current="number === history.length ? 'step' : undefined"
               @click="emit('seek', number)"
             >
-              <span class="pe-3 text-end text-xs text-muted-foreground tabular-nums">{{
+              <span class="pr-3 text-right text-xs text-muted-foreground tabular-nums">{{
                 number
               }}</span>
               <span
                 class="text-xs text-muted-foreground"
-                :title="record.line === null ? t.history.directHint : undefined"
-                >{{ record.line === null ? t.history.direct : formatLabel(record.line) }}</span
+                :title="
+                  record.line === null ? 'Run from the builder, not from the program' : undefined
+                "
+                >{{ record.line === null ? 'direct' : formatLabel(record.line) }}</span
               >
               <span class="truncate">{{ format(record.instruction) }}</span>
             </button>

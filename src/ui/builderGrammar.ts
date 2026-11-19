@@ -1,5 +1,3 @@
-import type { Messages } from './messages/en';
-
 /** One choice the builder offers for the next word of an instruction. */
 export interface BuilderOption<Action> {
   key: string;
@@ -28,8 +26,6 @@ export interface DraftContext {
   typed: number | null;
   /** The program, formatted, so jumps can offer its lines as targets. */
   programLines: readonly string[];
-  /** The interface's texts, for the groups and hints. */
-  messages: Messages;
 }
 
 /**
@@ -52,7 +48,7 @@ export interface InstructionGrammar<Action, Instruction> {
   /** What the input says can be typed next; `filter` is the text as typed. */
   hint(chosen: readonly Action[], context: DraftContext, filter: string, complete: boolean): string;
   /** The chosen instruction explained, once there is one: what it does, or what it becomes. */
-  describe(chosen: readonly Action[], messages: Messages): { label: string; text: string } | null;
+  describe(chosen: readonly Action[]): { label: string; text: string } | null;
 }
 
 /** The options the filter text leaves, in the order Enter should consider them. */

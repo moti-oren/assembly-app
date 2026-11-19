@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { FLAG_NAMES } from '@/core/x86/flags';
+import { FLAG_INFO, FLAG_NAMES } from '@/core/x86/flags';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 defineProps<{
   model: CpuDiagramModel;
@@ -17,13 +14,13 @@ defineProps<{
 
 <template>
   <span
-    class="ms-[calc(50%-0.625rem)] hidden h-3 w-0.5 transition-colors duration-300 sm:block"
+    class="ml-[calc(50%-0.625rem)] hidden h-3 w-0.5 transition-colors duration-300 sm:block"
     :class="model.changedFlags !== 0 ? 'bg-written' : 'bg-foreground/15'"
     aria-hidden="true"
   />
 
   <!-- Nine in a row only where the diagram is wide; on a phone they take two rows. -->
-  <div class="mt-3 grid grid-cols-5 gap-1 sm:mt-0 sm:me-5 sm:grid-cols-9">
+  <div class="mt-3 grid grid-cols-5 gap-1 sm:mt-0 sm:mr-5 sm:grid-cols-9">
     <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
       <TooltipTrigger as-child>
         <div
@@ -36,7 +33,7 @@ defineProps<{
                 ? 'border-foreground/20 bg-secondary'
                 : 'border-border bg-card'
           ]"
-          :aria-label="t.flags.value(t.x86Text.flagLabel(flag), model.isSet(flag) ? 1 : 0)"
+          :aria-label="`${FLAG_INFO[flag].label} flag is ${model.isSet(flag) ? 1 : 0}`"
         >
           <span
             v-if="model.flagChanged(flag)"

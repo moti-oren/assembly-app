@@ -1,6 +1,5 @@
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import { STORAGE_KEYS } from './storageKeys';
-import type { Messages } from './messages/en';
 import type { PaletteCommand } from './useCommands';
 
 /**
@@ -12,18 +11,20 @@ export const useRv32Pipeline = createGlobalState(() => {
   const forwarding = useLocalStorage(STORAGE_KEYS.rv32Forwarding, true);
 
   /** The palette's commands for both, labelled for their current state. */
-  function commands(m: Messages): PaletteCommand[] {
+  function commands(): PaletteCommand[] {
     return [
       {
-        group: m.commandGroups.cpu,
-        label: m.commands.pipeline(shown.value),
+        group: 'CPU',
+        label: shown.value ? 'Hide the pipeline' : 'Show the pipeline',
         run: () => {
           shown.value = !shown.value;
         }
       },
       {
-        group: m.commandGroups.cpu,
-        label: m.commands.forwarding(forwarding.value),
+        group: 'CPU',
+        label: forwarding.value
+          ? 'Turn forwarding off in the pipeline'
+          : 'Turn forwarding on in the pipeline',
         run: () => {
           forwarding.value = !forwarding.value;
         }

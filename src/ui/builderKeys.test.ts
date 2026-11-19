@@ -58,7 +58,7 @@ describe('keyHints', () => {
     altKey: 'Alt'
   };
   const text = (state: BuilderKeyState) =>
-    keyHints(state).map((hint) => `${hint.keys.join('+')} ${hint.action}`);
+    keyHints(state).map((hint) => `${hint.keys.join('+')} ${hint.label}`);
 
   it('uses the plain arrows while the box is empty', () => {
     expect(text(base)).toEqual(['←↑↓→ move', 'Enter pick']);
@@ -75,7 +75,7 @@ describe('keyHints', () => {
   it('offers run and add once Enter would run', () => {
     expect(
       text({ ...base, boxBusy: true, enterRuns: true, canPick: false, canMove: false })
-    ).toEqual(['Enter run', '⇧+Enter add', 'Esc clear']);
+    ).toEqual(['Enter run now', '⇧+Enter add', 'Esc clear']);
   });
 
   it('leaves out moving when there is a single choice', () => {

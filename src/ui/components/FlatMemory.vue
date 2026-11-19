@@ -18,9 +18,6 @@ import { useTwoColumns } from '@/ui/useTwoColumns';
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   /** Its versions say when memory or a device changed: the byte arrays are not reactive. */
@@ -114,36 +111,36 @@ function reveal(jump: () => void): void {
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.memory.title }}</CardTitle>
-        <InfoTip :label="t.memory.about">
+        <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
+        <InfoTip label="About memory">
           <p>{{ intro }}</p>
           <p class="mt-2">
-            <span class="text-pointer">{{ t.memory.blue }}</span> {{ t.memory.blueMeans }}
-            <span class="text-written">{{ t.memory.amber }}</span> {{ t.memory.amberMeans }}
+            <span class="font-mono text-pointer">blue</span> the program's machine code,
+            <span class="font-mono text-written">amber</span> device registers.
           </p>
         </InfoTip>
-        <div class="flex gap-1" role="group" :aria-label="t.memory.goTo">
+        <div class="flex gap-1" role="group" aria-label="Go to">
           <Button
             v-for="place in places"
-            :key="place.id"
+            :key="place.label"
             variant="ghost"
             size="sm"
             class="h-7 px-2 text-xs"
             @click="go(place)"
           >
             <Layers v-if="place.stack" />
-            {{ t.memory.places[place.id] }}
+            {{ place.label }}
           </Button>
         </div>
-        <div dir="ltr" class="relative ms-auto">
+        <div class="relative ml-auto">
           <span
-            class="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-xs text-muted-foreground"
+            class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
             >{{ format.prefix }}</span
           >
           <Input
             v-model="addressText"
             class="h-7 w-28 font-mono text-sm"
-            :class="format.prefix.length > 1 ? 'ps-7' : 'ps-5'"
+            :class="format.prefix.length > 1 ? 'pl-7' : 'pl-5'"
             :aria-invalid="invalid || undefined"
             :aria-describedby="invalid ? errorId : undefined"
             :maxlength="format.digits + format.prefix.length"
@@ -151,46 +148,47 @@ function reveal(jump: () => void): void {
             autocapitalize="characters"
             autocorrect="off"
             spellcheck="false"
-            :aria-label="t.memory.addressInput"
+            aria-label="Address (hex)"
           />
         </div>
       </div>
 
-      <p dir="ltr" class="flex items-baseline gap-2 font-mono text-xs lg:h-5 lg:overflow-hidden">
-        <span v-if="invalid" :id="errorId" class="ui-text font-sans text-destructive">
-          {{ t.memory.badAddress(addressText, formatAddress(format, 0)) }}
+      <p class="flex items-baseline gap-2 font-mono text-xs lg:h-5 lg:overflow-hidden">
+        <span v-if="invalid" :id="errorId" class="font-sans text-destructive">
+          “{{ addressText }}” isn't a hex address (use 0–9 and A–F). Showing
+          {{ formatAddress(format, 0) }}.
         </span>
         <template v-else-if="access">
-          <span class="ui-auto truncate">{{ access.text }}</span>
+          <span class="truncate">{{ access.text }}</span>
           <button
             type="button"
-            class="ms-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
-            {{ t.memory.showInTable }}
+            Show in table
           </button>
         </template>
       </p>
 
-      <div dir="ltr" class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
+      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pe-3 text-start font-normal">{{ t.memory.addressColumn }}</th>
+              <th class="py-1 pr-3 text-left font-normal">address</th>
               <th
                 v-for="column in COLUMNS"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'ps-2.5': column === 9 }"
+                :class="{ 'pl-2.5': column === 9 }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
-              <th class="py-1 ps-3 text-start font-normal">ascii</th>
+              <th class="py-1 pl-3 text-left font-normal">ascii</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in rows" :key="row[0].address">
-              <th class="py-0.5 pe-3 text-start font-normal text-muted-foreground">
+              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
                 {{ hex(row[0].address) }}
               </th>
               <td
@@ -198,14 +196,14 @@ function reveal(jump: () => void): void {
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
                 :class="{
-                  'ps-2.5': column === 8,
+                  'pl-2.5': column === 8,
                   'text-pointer': byte.region === 'code',
                   'text-written': byte.region === 'device'
                 }"
                 :title="
                   byte.value === null
-                    ? t.memory.unwired(formatAddress(format, byte.address))
-                    : t.memory.byte(formatAddress(format, byte.address), byte.value, byte.region)
+                    ? `${formatAddress(format, byte.address)}: nothing is wired here`
+                    : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
                 "
               >
                 <span v-if="byte.value === null" class="text-muted-foreground/50">··</span>
@@ -224,7 +222,7 @@ function reveal(jump: () => void): void {
                   <RollingDigits :text="formatHex(byte.value, 8)" />
                 </ChangeMark>
               </td>
-              <td class="py-0.5 ps-3 whitespace-pre text-muted-foreground">
+              <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
                 {{
                   row.map((byte) => (byte.value === null ? ' ' : printable(byte.value))).join('')
                 }}

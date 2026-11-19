@@ -5,9 +5,6 @@ import type { Instruction } from '@/core/rv32/instructions';
 import type { Operand } from '@/core/rv32/operands';
 import { pipelineTiming } from '@/core/rv32/pipeline';
 import { pipelineGrid, pipelineNotes, pipelineSummary } from './rv32Pipeline';
-import { messagesFor } from './locale';
-
-const m = messagesFor('en');
 
 const T0 = 5;
 const T1 = 6;
@@ -28,7 +25,7 @@ function timing(program: Program<Instruction>, forwarding = true) {
 
 describe('pipelineGrid', () => {
   it('lays the rows out over the cycles they span', () => {
-    const grid = pipelineGrid(m, timing([load, use]), 10);
+    const grid = pipelineGrid(timing([load, use]), 10);
     expect(grid.cycles).toEqual([1, 2, 3, 4, 5, 6, 7]);
     expect(grid.rows.map((row) => row.cells.map((cell) => cell?.stage ?? '·').join(' '))).toEqual([
       'IF ID EX MEM WB · ·',
@@ -42,14 +39,14 @@ describe('pipelineGrid', () => {
   });
 
   it('shows only the last rows, numbered among all of them', () => {
-    const grid = pipelineGrid(m, timing([li(T0, 1), li(T0, 2), li(T0, 3)]), 2);
+    const grid = pipelineGrid(timing([li(T0, 1), li(T0, 2), li(T0, 3)]), 2);
     expect(grid.from).toBe(1);
     expect(grid.rows.map((row) => row.key)).toEqual([1, 2]);
     expect(grid.cycles).toEqual([2, 3, 4, 5, 6, 7]);
   });
 
   it('marks the flushed rows, and a fetch past the end', () => {
-    const grid = pipelineGrid(m, timing([branchTo(2), li(T0, 1)]), 10);
+    const grid = pipelineGrid(timing([branchTo(2), li(T0, 1)]), 10);
     expect(grid.rows.map((row) => [row.text, row.flushed])).toEqual([
       ['beq zero, zero, L2', false],
       ['addi t0, zero, 1', true],
@@ -59,45 +56,39 @@ describe('pipelineGrid', () => {
   });
 
   it('is empty before anything has run', () => {
-    expect(pipelineGrid(m, timing([]), 10)).toEqual({ from: 0, cycles: [], rows: [] });
+    expect(pipelineGrid(timing([]), 10)).toEqual({ from: 0, cycles: [], rows: [] });
   });
 });
 
 describe('pipelineNotes', () => {
   it('says why an instruction waited, and what a taken branch flushed', () => {
-    expect(pipelineNotes(m, timing([load, use]), 0)).toEqual([
+    expect(pipelineNotes(timing([load, use]), 0)).toEqual([
       'L1 (add t1, t0, t0) waits 1 cycle in ID for t0: the load on L0 (lw t0, 0(zero)) has it only after MEM.'
     ]);
-    expect(pipelineNotes(m, timing([li(T0, 1), use], false), 0)).toEqual([
+    expect(pipelineNotes(timing([li(T0, 1), use], false), 0)).toEqual([
       'L1 (add t1, t0, t0) waits 2 cycles in ID for t0: forwarding is off, so L0 (addi t0, zero, 1) must write it back first.'
     ]);
-    expect(pipelineNotes(m, timing([branchTo(2), li(T0, 1)]), 0)).toEqual([
+    expect(pipelineNotes(timing([branchTo(2), li(T0, 1)]), 0)).toEqual([
       'L0 (beq zero, zero, L2) changes PC in EX: the two instructions fetched behind it are flushed.'
     ]);
   });
 
   it('leaves out the rows before the ones shown', () => {
-    expect(pipelineNotes(m, timing([load, use]), 2)).toEqual([]);
+    expect(pipelineNotes(timing([load, use]), 2)).toEqual([]);
   });
 });
 
 describe('pipelineSummary', () => {
   it('breaks the cycles down', () => {
-    expect(pipelineSummary(m, timing([li(T0, 1), li(T1, 2)]))).toBe(
+    expect(pipelineSummary(timing([li(T0, 1), li(T1, 2)]))).toBe(
       '6 cycles = 2 instructions + 4 to fill the pipeline · 3.00 cycles per instruction'
     );
-    expect(pipelineSummary(m, timing([load, use, branchTo(4), li(T0, 1), li(T1, 2)]))).toBe(
+    expect(pipelineSummary(timing([load, use, branchTo(4), li(T0, 1), li(T1, 2)]))).toBe(
       '11 cycles = 4 instructions + 4 to fill the pipeline + 1 stalled + 2 lost to flushes · 2.75 cycles per instruction'
     );
   });
 
-  it('keeps each count beside its own words in Hebrew', () => {
-    const text = pipelineSummary(messagesFor('he'), timing([load, use]))!;
-    expect(text).toContain('pipeline\u200f + 1');
-    expect(text).toContain('stall\u200f · ');
-  });
-
   it('has nothing to say before anything has run', () => {
-    expect(pipelineSummary(m, timing([]))).toBeNull();
+    expect(pipelineSummary(timing([]))).toBeNull();
   });
 });

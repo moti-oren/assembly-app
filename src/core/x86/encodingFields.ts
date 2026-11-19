@@ -1,8 +1,6 @@
 import type { Mnemonic } from './instructions';
 import { formatBits, formatHex, toSigned, truncate, type Size } from '../shared/numbers';
 import { formatLabel } from '../shared/program';
-import type { Said } from '../shared/text';
-import { said, type EncodingTextKey, type Spoken } from './encodingTexts';
 import { formatOperand, type MemoryBase, type Operand } from './operands';
 import type { RegisterName } from './registers';
 
@@ -17,22 +15,15 @@ export interface ModRm {
   modNote: string;
   regNote: string;
   rmNote: string;
-  /** The same three, as keys of `encodingTexts.ts`, for another language to word. */
-  modSay: Said<EncodingTextKey>;
-  regSay: Said<EncodingTextKey>;
-  rmSay: Said<EncodingTextKey>;
 }
 
 export interface EncodedField {
   kind: FieldKind;
   bytes: number[];
-  /** What the field says, in English, and which sentence that is. */
   note: string;
-  say: Said<EncodingTextKey>;
   modrm?: ModRm;
   /** Set on a field the 8086 cannot encode as written, e.g. a jump distance out of range. */
   problem?: string;
-  problemSay?: Said<EncodingTextKey>;
 }
 
 export type Reg = Extract<Operand, { type: 'reg' }>;
@@ -64,83 +55,82 @@ export const fitsSignedByte = (value: number): boolean => {
   return signed >= -128 && signed <= 127;
 };
 
-export function opcode(byte: number, spoken: Spoken): EncodedField {
-  return { kind: 'opcode', bytes: [byte], ...spoken };
+export function opcode(byte: number, note: string): EncodedField {
+  return { kind: 'opcode', bytes: [byte], note };
 }
 
-export function immediate(value: number, size: Size, spoken: Spoken): EncodedField {
+export function immediate(value: number, size: Size, note: string): EncodedField {
   const bytes = size === 8 ? [value & 0xff] : word(value);
-  return { kind: 'immediate', bytes, ...spoken };
+  return { kind: 'immediate', bytes, note };
 }
 
 /** What goes in the `reg` field: a register, or a number that picks one operation of a group. */
 export interface RegField {
   number: number;
   note: string;
-  say: Said<EncodingTextKey>;
 }
 
 export function registerField(operand: Reg): RegField {
   const number = registerNumber(operand.name);
-  return {
-    number,
-    ...said('regRegister', { bits: formatBits(number, 3), register: upper(operand) })
-  };
+  return { number, note: `${formatBits(number, 3)} = ${upper(operand)}` };
 }
 
 export function extension(number: number, name: string): RegField {
-  return { number, ...said('regExtension', { bits: formatBits(number, 3), number, name }) };
+  return {
+    number,
+    note: `${formatBits(number, 3)} = /${number}: picks ${name} from this opcode's group`
+  };
 }
 
 /** The ModR/M byte for `reg` and a register or memory operand, plus the displacement it calls for. */
 export function modRm(reg: RegField, operand: Reg | Mem): EncodedField[] {
-  const build = (mod: number, rm: number, modSaid: Spoken, rmSaid: Spoken): EncodedField => ({
+  const build = (mod: number, rm: number, modNote: string, rmNote: string): EncodedField => ({
     kind: 'modrm',
     bytes: [(mod << 6) | (reg.number << 3) | rm],
-    ...said('modrm'),
-    modrm: {
-      mod,
-      reg: reg.number,
-      rm,
-      modNote: modSaid.note,
-      regNote: reg.note,
-      rmNote: rmSaid.note,
-      modSay: modSaid.say,
-      regSay: reg.say,
-      rmSay: rmSaid.say
-    }
+    note: 'ModR/M: which register and which register or memory location the opcode works on',
+    modrm: { mod, reg: reg.number, rm, modNote, regNote: reg.note, rmNote }
   });
 
   if (operand.type === 'reg') {
     const rm = registerNumber(operand.name);
-    const register = said('rmRegister', { bits: formatBits(rm, 3), register: upper(operand) });
-    return [build(0b11, rm, said('modRegister'), register)];
+    return [build(0b11, rm, '11: r/m is a register', `${formatBits(rm, 3)} = ${upper(operand)}`)];
   }
 
   const displacement = truncate(operand.displacement, 16);
   if (operand.base === null) {
     return [
-      build(0b00, DIRECT_RM, said('modDirect'), said('rmDirect')),
-      { kind: 'displacement', bytes: word(displacement), ...said('addressLowFirst') }
+      build(0b00, DIRECT_RM, '00 with r/m 110: a direct address follows', '110 = direct address'),
+      {
+        kind: 'displacement',
+        bytes: word(displacement),
+        note: 'The 16-bit address, low byte first'
+      }
     ];
   }
 
   const rm = BASE_RM[operand.base];
-  const rmSaid = said('rmBase', { bits: formatBits(rm, 3), base: operand.base.toUpperCase() });
+  const rmNote = `${formatBits(rm, 3)} = [${operand.base.toUpperCase()}]`;
   // [BP] has no form without a displacement: that slot (mod 00, r/m 110) is the direct address.
   if (displacement === 0 && operand.base !== 'bp') {
-    return [build(0b00, rm, said('modMemory'), rmSaid)];
+    return [build(0b00, rm, '00: memory, no displacement', rmNote)];
   }
   if (fitsSignedByte(displacement)) {
-    const spoken = said(displacement === 0 ? 'displacementZero' : 'displacement8');
+    const note =
+      displacement === 0
+        ? 'A zero displacement: [BP] cannot be encoded without one'
+        : 'The 8-bit displacement, sign-extended and added to the register';
     return [
-      build(0b01, rm, said('modDisplacement8'), rmSaid),
-      { kind: 'displacement', bytes: [displacement & 0xff], ...spoken }
+      build(0b01, rm, '01: memory, an 8-bit displacement follows', rmNote),
+      { kind: 'displacement', bytes: [displacement & 0xff], note }
     ];
   }
   return [
-    build(0b10, rm, said('modDisplacement16'), rmSaid),
-    { kind: 'displacement', bytes: word(displacement), ...said('displacement16') }
+    build(0b10, rm, '10: memory, a 16-bit displacement follows', rmNote),
+    {
+      kind: 'displacement',
+      bytes: word(displacement),
+      note: 'The 16-bit displacement, low byte first, added to the register'
+    }
   ];
 }
 
@@ -163,20 +153,14 @@ export function relative(
   const next = place.offset + place.lead + opcodeBytes + size / 8;
   const destination = place.offsetOf(target);
   const distance = destination - next;
+  const sum = `${formatLabel(target)} is at ${formatHex(destination, 16)}h and the next instruction at ${formatHex(next, 16)}h`;
   const field: EncodedField = {
     kind: 'relative',
     bytes: size === 8 ? [distance & 0xff] : word(distance),
-    ...said('distance', {
-      label: formatLabel(target),
-      destination: formatHex(destination, 16),
-      next: formatHex(next, 16),
-      distance: distance < 0 ? `−${-distance}` : `+${distance}`
-    })
+    note: `The distance to jump, counted from the next instruction: ${sum}, so ${distance < 0 ? `−${-distance}` : `+${distance}`}`
   };
   if (size === 8 && (distance < -128 || distance > 127)) {
-    const tooFar = said('tooFar', { label: formatLabel(target), distance });
-    field.problem = tooFar.note;
-    field.problemSay = tooFar.say;
+    field.problem = `Too far for a conditional jump: it reaches −128 to +127 bytes and ${formatLabel(target)} is ${distance} away. Jump on the opposite condition over a JMP to the target.`;
   }
   return field;
 }
@@ -242,12 +226,12 @@ export function registerAndRm(c: Context, base: number, mirrored: number): Encod
   const { first, second, size, w, name } = c;
   if (first?.type === 'reg' && second?.type === 'mem') {
     return [
-      opcode(mirrored | w, said('registerFromRm', { name, size })),
+      opcode(mirrored | w, `${name} r${size}, r/m${size}`),
       ...modRm(registerField(first), second)
     ];
   }
   return [
-    opcode(base | w, said('rmFromRegister', { name, size })),
+    opcode(base | w, `${name} r/m${size}, r${size}`),
     ...modRm(registerField(asReg(second)), asRm(first))
   ];
 }

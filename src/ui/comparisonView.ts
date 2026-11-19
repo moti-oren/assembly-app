@@ -1,8 +1,14 @@
 import type { ComparedId, Measurement } from '@/core/comparison';
-import type { Messages } from './messages/en';
 
 /** The columns of the comparison, in the order the architecture switch lists them. */
 export const COMPARED: readonly ComparedId[] = ['x86', 'rv32', 'mos6502'];
+
+/** What sets each architecture apart, under its name in the comparison. */
+export const TRAITS: Record<ComparedId, string> = {
+  x86: '16-bit registers · instructions of 1 to 6 bytes',
+  rv32: '32-bit registers · every instruction 4 bytes',
+  mos6502: '8-bit registers · instructions of 1 to 3 bytes'
+};
 
 /** One measure, across the three architectures. */
 export interface MetricRow {
@@ -13,16 +19,25 @@ export interface MetricRow {
   least: ComparedId[];
 }
 
-type Metric = keyof Messages['compare']['metrics'];
-
-/** Each measure, in the order of the table, and how to read it from a measurement. */
-const METRICS: Record<Metric, (measurement: Measurement) => number | null> = {
-  lines: (measurement) => measurement.listing.length,
-  bytes: (measurement) => measurement.bytes,
-  steps: (measurement) => measurement.steps,
-  memoryWrites: (measurement) => measurement.memoryWrites,
-  cycles: (measurement) => measurement.cycles
-};
+const METRICS: {
+  label: string;
+  hint: string;
+  value: (measurement: Measurement) => number | null;
+}[] = [
+  { label: 'Lines', hint: 'Instructions in the program', value: (m) => m.listing.length },
+  { label: 'Code bytes', hint: 'The size of its machine code', value: (m) => m.bytes },
+  {
+    label: 'Instructions run',
+    hint: 'Steps to the end; a REP instruction is one step',
+    value: (m) => m.steps
+  },
+  {
+    label: 'Memory writes',
+    hint: 'Bytes written to memory, the stack included',
+    value: (m) => m.memoryWrites
+  },
+  { label: 'Clock cycles', hint: 'Only the 6502 counts them here', value: (m) => m.cycles }
+];
 
 function least(values: Record<ComparedId, number | null>): ComparedId[] {
   const counted = COMPARED.filter((id) => values[id] !== null);
@@ -33,13 +48,8 @@ function least(values: Record<ComparedId, number | null>): ComparedId[] {
 }
 
 /** The rows of the comparison table, each with who needs the least. */
-export function metricRows(
-  m: Messages,
-  measurements: Record<ComparedId, Measurement>
-): MetricRow[] {
-  return (Object.keys(METRICS) as Metric[]).map((metric) => {
-    const value = METRICS[metric];
-    const { label, hint } = m.compare.metrics[metric];
+export function metricRows(measurements: Record<ComparedId, Measurement>): MetricRow[] {
+  return METRICS.map(({ label, hint, value }) => {
     const numbers = Object.fromEntries(
       COMPARED.map((id) => [id, value(measurements[id])])
     ) as Record<ComparedId, number | null>;

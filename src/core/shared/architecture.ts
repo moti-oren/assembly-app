@@ -3,8 +3,6 @@ import type { LineRunner, Program, ProgramInstruction } from './program';
 import type { CpuState } from './state';
 
 export interface Example<Instruction> {
-  /** Stays the same whatever the language, so a translation can be found by it. */
-  id: string;
   name: string;
   description: string;
   program: Program<Instruction>;

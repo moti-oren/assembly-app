@@ -41,7 +41,7 @@ export function boxMove(
 /** One hint in the row under the builder: the keys to press together, and what they do. */
 export interface KeyHint {
   keys: string[];
-  action: 'move' | 'run' | 'add' | 'pick' | 'clear';
+  label: string;
 }
 
 export interface BuilderKeyState {
@@ -61,13 +61,13 @@ export interface BuilderKeyState {
 export function keyHints(state: BuilderKeyState): KeyHint[] {
   const hints: KeyHint[] = [];
   if (state.canMove) {
-    hints.push({ keys: state.boxBusy ? [state.altKey, '←↑↓→'] : ['←↑↓→'], action: 'move' });
+    hints.push({ keys: state.boxBusy ? [state.altKey, '←↑↓→'] : ['←↑↓→'], label: 'move' });
   }
   if (state.enterRuns) {
-    hints.push({ keys: ['Enter'], action: 'run' }, { keys: ['⇧', 'Enter'], action: 'add' });
+    hints.push({ keys: ['Enter'], label: 'run now' }, { keys: ['⇧', 'Enter'], label: 'add' });
   } else if (state.canPick) {
-    hints.push({ keys: ['Enter'], action: 'pick' });
+    hints.push({ keys: ['Enter'], label: 'pick' });
   }
-  if (state.boxBusy) hints.push({ keys: ['Esc'], action: 'clear' });
+  if (state.boxBusy) hints.push({ keys: ['Esc'], label: 'clear' });
   return hints;
 }

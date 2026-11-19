@@ -19,6 +19,20 @@ export type Column = keyof typeof DEFAULTS;
 export type PanelKey = (typeof DEFAULTS)[Column][number];
 type Orders = { [C in Column]: PanelKey[] };
 
+export const PANEL_LABELS: Record<PanelKey, string> = {
+  builder: 'Instruction',
+  program: 'Program',
+  history: 'History',
+  encoding: 'Machine code',
+  cpu: 'CPU',
+  cycle: 'Cycle',
+  registers: 'Registers',
+  operation: 'Last operation',
+  flags: 'Flags',
+  devices: 'I/O devices',
+  memory: 'Memory'
+};
+
 const COLUMNS = Object.keys(DEFAULTS) as Column[];
 
 function defaults(): Orders {

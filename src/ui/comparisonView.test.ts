@@ -2,9 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { measure, type Measurement } from '@/core/comparison';
 import { COMPARISON_TASKS } from '@/core/comparisonTasks';
 import { codeText, metricRows } from './comparisonView';
-import { messagesFor } from './locale';
-
-const m = messagesFor('en');
 
 const measured = (fields: Partial<Measurement>): Measurement => ({
   listing: [],
@@ -20,7 +17,7 @@ const measured = (fields: Partial<Measurement>): Measurement => ({
 describe('metricRows', () => {
   it('gives every measure a value per architecture', () => {
     const [sum] = COMPARISON_TASKS;
-    const rows = metricRows(m, measure(sum));
+    const rows = metricRows(measure(sum));
     expect(rows.map((row) => row.label)).toEqual([
       'Lines',
       'Code bytes',
@@ -33,7 +30,7 @@ describe('metricRows', () => {
   });
 
   it('marks the architectures that need the least', () => {
-    const rows = metricRows(m, {
+    const rows = metricRows({
       x86: measured({ bytes: 6, steps: 2 }),
       rv32: measured({ bytes: 12, steps: 2 }),
       mos6502: measured({ bytes: 6, steps: 7 })
@@ -43,7 +40,7 @@ describe('metricRows', () => {
   });
 
   it('marks nobody when all need the same, or only one is counted', () => {
-    const rows = metricRows(m, {
+    const rows = metricRows({
       x86: measured({ memoryWrites: 8 }),
       rv32: measured({ memoryWrites: 8 }),
       mos6502: measured({ memoryWrites: 8, cycles: 16 })

@@ -7,9 +7,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -21,11 +18,27 @@ const props = defineProps<{
 }>();
 
 /** The three 8-bit registers, then SP, which is 8 bits into page 1. */
-const BYTES: { name: 'a' | 'x' | 'y' | 'sp'; label: string }[] = [
-  { name: 'a', label: 'A' },
-  { name: 'x', label: 'X' },
-  { name: 'y', label: 'Y' },
-  { name: 'sp', label: 'SP' }
+const BYTES: { name: 'a' | 'x' | 'y' | 'sp'; label: string; description: string }[] = [
+  {
+    name: 'a',
+    label: 'A',
+    description: 'Accumulator: the only register the ALU adds, ANDs and compares into'
+  },
+  {
+    name: 'x',
+    label: 'X',
+    description: 'Index register: counts, and is added to an address ($nn,X, ($nn,X))'
+  },
+  {
+    name: 'y',
+    label: 'Y',
+    description: 'Index register: counts, and is added to an address ($nn,Y, ($nn),Y)'
+  },
+  {
+    name: 'sp',
+    label: 'SP',
+    description: 'Stack pointer: the low byte of the next free slot in page $01'
+  }
 ];
 
 function changed(name: RegisterName): boolean {
@@ -40,24 +53,21 @@ function written(name: RegisterName): boolean {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>{{ t.registers.title }}</CardTitle>
+      <CardTitle>Registers</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
-          {{ t.registers.changed }}
+          changed by the last instruction
         </span>
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
-    <CardContent dir="ltr" class="flex flex-col gap-1 font-mono text-code">
+    <CardContent class="flex flex-col gap-1 font-mono text-code">
       <div
         class="grid grid-cols-[2.5rem_3rem_3rem_3rem_minmax(0,1fr)] gap-x-3 font-sans text-xs text-muted-foreground"
       >
-        <span>{{ t.registers.name }}</span><span>{{ t.registers.hex }}</span
-        ><span class="text-end">{{ t.registers.unsigned }}</span>
-        <span class="text-end">{{ t.registers.signed }}</span><span class="hidden sm:inline">{{
-          t.registers.binary
-        }}</span>
+        <span>Reg</span><span>Hex</span><span class="text-right">Unsigned</span>
+        <span class="text-right">Signed</span><span class="hidden sm:inline">Binary</span>
       </div>
       <div
         v-for="register in BYTES"
@@ -72,7 +82,7 @@ function written(name: RegisterName): boolean {
               >{{ register.label }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">{{ t.mos6502.registerHints[register.name] }}</TooltipContent>
+          <TooltipContent side="right">{{ register.description }}</TooltipContent>
         </Tooltip>
         <ChangeMark
           :on="changed(register.name)"
@@ -82,14 +92,14 @@ function written(name: RegisterName): boolean {
         >
           <RollingDigits :text="formatHex(state.registers[register.name], 8)" />
         </ChangeMark>
-        <span class="text-end tabular-nums">{{ state.registers[register.name] }}</span>
-        <span class="text-end text-muted-foreground tabular-nums">
+        <span class="text-right tabular-nums">{{ state.registers[register.name] }}</span>
+        <span class="text-right text-muted-foreground tabular-nums">
           {{ register.name === 'sp' ? '' : toSigned(state.registers[register.name], 8) }}
         </span>
         <span class="hidden text-xs sm:inline">
           <template v-if="register.name === 'sp'">
-            <span class="font-sans text-muted-foreground">{{ t.mos6502.nextFree }}</span>
-            <bdi class="ms-1">${{ formatHex(STACK_PAGE | state.registers.sp, 16) }}</bdi>
+            <span class="font-sans text-muted-foreground">next free slot</span>
+            ${{ formatHex(STACK_PAGE | state.registers.sp, 16) }}
           </template>
           <RollingDigits
             v-else
@@ -111,7 +121,7 @@ function written(name: RegisterName): boolean {
             >
           </TooltipTrigger>
           <TooltipContent side="right">
-            {{ t.mos6502.registerHints.pc }}
+            Program counter: the 16-bit address of the next instruction
           </TooltipContent>
         </Tooltip>
         <ChangeMark class="justify-self-start" :on="changed('pc')" :tick="tick" data-loc="reg:pc">

@@ -10,9 +10,6 @@ import DiagramBusUnit from './DiagramBusUnit.vue';
 import DiagramExecutionUnit from './DiagramExecutionUnit.vue';
 import DiagramExternalBus from './DiagramExternalBus.vue';
 import DiagramWire from './DiagramWire.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -35,17 +32,17 @@ const model = useCpuDiagram(props);
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-pointer" aria-hidden="true" />
-          {{ t.diagram.read }}
+          read
         </span>
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-written" aria-hidden="true" />
-          {{ t.diagram.written }}
+          written
         </span>
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
 
-    <CardContent dir="ltr" class="flex flex-col gap-4">
+    <CardContent class="flex flex-col gap-4">
       <!-- The BIU's width, set on the children so the container query can switch it. -->
       <div class="@container *:[--biu-width:15rem] @min-[40rem]:*:[--biu-width:18.5rem]">
         <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
@@ -58,7 +55,7 @@ const model = useCpuDiagram(props);
             class="hidden h-auto w-0.5 sm:block"
             :kind="model.internalKind"
             :tick="model.pulse"
-            :title="t.diagram.internalBus"
+            title="Internal bus"
           />
 
           <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->

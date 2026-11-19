@@ -1,7 +1,6 @@
 import { computed, reactive, ref, type Ref } from 'vue';
 import type { Architecture } from '@/core/shared/architecture';
 import { CpuError } from '@/core/shared/cpuError';
-import { useLocale } from './useLocale';
 import { undo, type ExecutionRecord } from '@/core/shared/executionRecord';
 import {
   isFinished,
@@ -39,15 +38,7 @@ export function useCpu<
     state,
     timeline.forgetFuture
   );
-  const { t } = useLocale();
-  /** The error the CPU raised last, until the next operation succeeds. */
-  const failure = ref<CpuError | null>(null);
-  /** Its message in the language of the interface, which follows a change of language. */
-  const error = computed<string | null>(() => {
-    const caught = failure.value;
-    if (!caught) return null;
-    return caught.said ? t.value.cpuError(caught.said.key, caught.said.params) : caught.message;
-  });
+  const error = ref<string | null>(null);
   /** What raised `error`: the builder's own instruction, or the program. Each shows its own. */
   const errorFrom = ref<ErrorSource>('builder');
   /** The program line the instruction pointer points at: the one that runs next. */
@@ -58,11 +49,11 @@ export function useCpu<
   function attempt(from: ErrorSource, operation: () => void): boolean {
     try {
       operation();
-      failure.value = null;
+      error.value = null;
       return true;
     } catch (caught) {
       if (caught instanceof CpuError) {
-        failure.value = caught;
+        error.value = caught.message;
         errorFrom.value = from;
         return false;
       }
@@ -107,7 +98,7 @@ export function useCpu<
     runToEnd() {
       const result = runToEnd(architecture, state, program.value);
       record(result.records);
-      failure.value = result.error;
+      error.value = result.error?.message ?? null;
       errorFrom.value = 'program';
     }
   });
@@ -140,7 +131,7 @@ export function useCpu<
   function seek(position: number): void {
     pause();
     timeline.seek(position);
-    failure.value = null;
+    error.value = null;
   }
 
   function undoLast(): void {
@@ -166,7 +157,7 @@ export function useCpu<
     Object.assign(state, architecture.createState());
     state.io.in = inputs;
     timeline.clear();
-    failure.value = null;
+    error.value = null;
   }
 
   return {
@@ -221,7 +212,7 @@ export interface CpuControls<
   architecture: {
     id: string;
     name: string;
-    examples: readonly { id: string }[];
+    examples: readonly { name: string; description: string }[];
   };
   program: Readonly<Ref<readonly Instruction[]>>;
   history: Readonly<Ref<readonly Record[]>>;

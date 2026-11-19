@@ -7,9 +7,6 @@ import {
   type BuilderDraft,
   type OptionAction
 } from './x86Grammar';
-import { messagesFor } from './locale';
-
-const m = messagesFor('en');
 
 const empty: BuilderDraft = {
   prefix: null,
@@ -21,7 +18,7 @@ const empty: BuilderDraft = {
 };
 
 const labels = (draft: Partial<BuilderDraft>) =>
-  builderOptions(m, { ...empty, ...draft }).map((option) => option.label);
+  builderOptions({ ...empty, ...draft }).map((option) => option.label);
 
 describe('builderOptions', () => {
   it('offers the repeat prefixes right after the string instructions', () => {
@@ -50,14 +47,14 @@ describe('builderOptions', () => {
   });
 
   it('offers every program line as a jump target, and the end of the program', () => {
-    const options = builderOptions(m, { ...empty, mnemonic: 'jmp', programLines: ['nop', 'nop'] });
+    const options = builderOptions({ ...empty, mnemonic: 'jmp', programLines: ['nop', 'nop'] });
     expect(options.map((option) => option.label)).toEqual(['L0', 'L1', 'L2']);
     expect(options[2].hint).toBe('end of program');
     expect(options[0].group).toBe('Jump to program line');
   });
 
   it('offers the base registers inside brackets, and a typed direct address first', () => {
-    const options = builderOptions(m, { ...empty, mnemonic: 'mov', pendingMemory: 8, typed: 0x10 });
+    const options = builderOptions({ ...empty, mnemonic: 'mov', pendingMemory: 8, typed: 0x10 });
     expect(options.map((option) => option.label)).toEqual([
       '[0x0010]',
       '[bx]',
@@ -79,14 +76,14 @@ describe('typingHint', () => {
   const al = { type: 'reg', name: 'al' } as const;
 
   it('asks for an instruction first, or the one a prefix repeats', () => {
-    expect(typingHint(m, empty, '', false)).toBe('Type to filter instructions');
-    expect(typingHint(m, draft({ prefix: 'rep' }), '', false)).toBe(
+    expect(typingHint(empty, '', false)).toBe('Type to filter instructions');
+    expect(typingHint(draft({ prefix: 'rep' }), '', false)).toBe(
       'Pick the string instruction to repeat'
     );
   });
 
   it('asks for an address inside the brackets of a memory operand', () => {
-    expect(typingHint(m, draft({ mnemonic: 'mov', pendingMemory: 16 }), '', false)).toBe(
+    expect(typingHint(draft({ mnemonic: 'mov', pendingMemory: 16 }), '', false)).toBe(
       'Pick a register or type an offset (e.g. 0x10)'
     );
   });
@@ -94,25 +91,25 @@ describe('typingHint', () => {
   it('says when a typed number is too big for the immediate', () => {
     const tooBig = draft({ mnemonic: 'mov', operands: [al], typed: 300 });
     expect(overflowingSize(tooBig)).toBe(8);
-    expect(typingHint(m, tooBig, '300', false)).toBe('300 does not fit in 8 bits');
+    expect(typingHint(tooBig, '300', false)).toBe('300 does not fit in 8 bits');
     expect(overflowingSize(draft({ mnemonic: 'mov', operands: [ax], typed: 300 }))).toBeNull();
   });
 
   it('explains how to type a number, a line, or that the instruction is ready', () => {
-    expect(typingHint(m, draft({ mnemonic: 'mov', operands: [ax] }), '', false)).toMatch(
+    expect(typingHint(draft({ mnemonic: 'mov', operands: [ax] }), '', false)).toMatch(
       /^Type a number/
     );
-    expect(typingHint(m, draft({ mnemonic: 'jmp' }), '', false)).toBe(
+    expect(typingHint(draft({ mnemonic: 'jmp' }), '', false)).toBe(
       'Pick a line to jump to, or type its number'
     );
-    expect(typingHint(m, draft({ mnemonic: 'nop' }), '', true)).toBe(
+    expect(typingHint(draft({ mnemonic: 'nop' }), '', true)).toBe(
       'Enter: run now · Shift+Enter: add to the program'
     );
   });
 });
 
 describe('X86_GRAMMAR', () => {
-  const context = { typed: null, programLines: [], messages: m };
+  const context = { typed: null, programLines: [] };
   const mov: OptionAction = { kind: 'mnemonic', mnemonic: 'mov' };
   const ax: OptionAction = { kind: 'operand', operand: { type: 'reg', name: 'ax' } };
 
@@ -138,7 +135,7 @@ describe('X86_GRAMMAR', () => {
   });
 
   it('describes the chosen mnemonic', () => {
-    expect(X86_GRAMMAR.describe([], m)).toBeNull();
-    expect(X86_GRAMMAR.describe([mov], m)).toEqual({ label: 'mov', text: 'dst = src' });
+    expect(X86_GRAMMAR.describe([])).toBeNull();
+    expect(X86_GRAMMAR.describe([mov])).toEqual({ label: 'mov', text: 'dst = src' });
   });
 });

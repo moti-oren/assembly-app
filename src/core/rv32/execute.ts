@@ -1,4 +1,4 @@
-import { cpuError } from '../shared/cpuError';
+import { CpuError } from '../shared/cpuError';
 import { undo, type ExecutionRecord as SharedRecord } from '../shared/executionRecord';
 import type { Program } from '../shared/program';
 import { snapshot } from '../shared/state';
@@ -115,10 +115,14 @@ class Run {
   jump(address: number): void {
     const at = `0x${formatHex32(address)}`;
     if (address % INSTRUCTION_SIZE !== 0) {
-      throw cpuError('misalignedJump', { at });
+      throw new CpuError(
+        `Instruction address misaligned: every instruction is 4 bytes, so a jump target must be a multiple of 4, and ${at} is not.`
+      );
     }
     if (lineAt(address, this.program.length) === null) {
-      throw cpuError('noLineAt', { at });
+      throw new CpuError(
+        `No program line at ${at}: the code is 0x00000000 up to the end of the program.`
+      );
     }
     this.state.registers.pc = address;
   }
@@ -207,10 +211,9 @@ export function execute(
   program: Program<Instruction>
 ): ExecutionRecord {
   if (!isValid(instruction)) {
-    throw cpuError('invalidInstruction', {
-      instruction: formatInstruction(instruction),
-      cpu: 'RV32IM'
-    });
+    throw new CpuError(
+      `${formatInstruction(instruction)} isn't a valid RV32IM instruction. Remove the last word and pick again.`
+    );
   }
   const here = line === null ? state.registers.pc : addressOfLine(line);
   const run = new Run(state, program, here, instruction, line);
