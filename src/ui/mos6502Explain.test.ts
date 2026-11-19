@@ -74,6 +74,16 @@ describe('addressSteps', () => {
     );
   });
 
+  it('sets the sum apart whole in Hebrew, so it reads left to right', () => {
+    const state = createCpuState();
+    state.memory[0x11] = 0x03;
+    state.registers.y = 0x05;
+    const record = execute(state, line('lda', { type: 'izy', address: 0x10 }), null, []);
+    expect(addressSteps(messagesFor('he'), record.addressing!)).toContain(
+      '\u2066$0300 + Y ($05) = $0305\u2069'
+    );
+  });
+
   it('points out the JMP ($xxFF) bug', () => {
     const state = createCpuState();
     state.memory[0x02ff] = 0x00;

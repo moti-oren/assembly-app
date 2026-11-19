@@ -361,7 +361,9 @@ function onBackspace(event: KeyboardEvent): void {
           <span class="text-destructive">{{ hint }}</span>
         </template>
         <template v-else-if="preview">
-          <span class="me-2 font-mono font-medium text-foreground">{{ preview.label }}</span>
+          <span class="me-2 font-mono font-medium text-foreground"
+            ><bdi>{{ preview.label }}</bdi></span
+          >
           {{ preview.text }}
         </template>
       </p>

@@ -44,7 +44,7 @@ const summary = computed(() => {
     <CardHeader>
       <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.encoding.title }}</CardTitle>
       <CardDescription v-if="shown">
-        <span class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</span>
+        <bdi class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</bdi>
         · {{ summary }}
       </CardDescription>
       <CardDescription v-else>

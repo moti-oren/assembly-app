@@ -89,7 +89,7 @@ function written(name: RegisterName): boolean {
         <span class="hidden text-xs sm:inline">
           <template v-if="register.name === 'sp'">
             <span class="font-sans text-muted-foreground">{{ t.mos6502.nextFree }}</span>
-            ${{ formatHex(STACK_PAGE | state.registers.sp, 16) }}
+            <bdi class="ms-1">${{ formatHex(STACK_PAGE | state.registers.sp, 16) }}</bdi>
           </template>
           <RollingDigits
             v-else

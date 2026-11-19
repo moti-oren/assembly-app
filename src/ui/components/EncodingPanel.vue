@@ -44,7 +44,7 @@ const summary = computed(() => {
     <CardHeader>
       <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.encoding.title }}</CardTitle>
       <CardDescription v-if="shown">
-        <span class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</span>
+        <bdi class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</bdi>
         · {{ summary }}
       </CardDescription>
       <CardDescription v-else>
@@ -72,13 +72,13 @@ const summary = computed(() => {
           >
             <dt>mod</dt>
             <dd class="font-mono text-foreground">{{ formatBits(field.modrm.mod, 2) }}</dd>
-            <dd>{{ withoutModBits(say(field.modrm.modSay)) }}</dd>
+            <dd class="ui-text">{{ withoutModBits(say(field.modrm.modSay)) }}</dd>
             <dt>reg</dt>
             <dd class="font-mono text-foreground">{{ formatBits(field.modrm.reg, 3) }}</dd>
-            <dd>{{ withoutBits(say(field.modrm.regSay)) }}</dd>
+            <dd class="ui-text">{{ withoutBits(say(field.modrm.regSay)) }}</dd>
             <dt>r/m</dt>
             <dd class="font-mono text-foreground">{{ formatBits(field.modrm.rm, 3) }}</dd>
-            <dd>{{ withoutBits(say(field.modrm.rmSay)) }}</dd>
+            <dd class="ui-text">{{ withoutBits(say(field.modrm.rmSay)) }}</dd>
           </dl>
           <p v-else class="ui-text mt-0.5 text-xs text-muted-foreground">{{ say(field.say) }}</p>
         </li>

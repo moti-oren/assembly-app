@@ -32,10 +32,10 @@ export const explain6502: Explain6502Messages = {
     jumped: (pc) => `היא קפצה: PC עכשיו ${pc}.`,
     nextLine: (pc) => `PC ב-${pc}, השורה הבאה.`,
     zeroPage: (base) => `${base}, ב-zero page`,
-    zeroPageIndexed: (sum, address) => `${sum} = ${address}, בגלגול בתוך ה-zero page`,
+    zeroPageIndexed: (equation) => `${equation}, בגלגול בתוך ה-zero page`,
     intoPage: (page) => `, לתוך עמוד ${page}`,
-    indexedIndirect: (sum, at, address) => `${sum} = ${at}; המצביע שם מחזיק ${address}`,
-    indirectIndexed: (base, pointer, rest) => `המצביע ב-${base} מחזיק ${pointer}${rest}`,
+    indexedIndirect: (equation, address) => `${equation}; המצביע שם מחזיק ${address}`,
+    indirectIndexed: (base, equation, crossing) => `המצביע ב-${base} מחזיק ${equation}${crossing}`,
     indirectBug: (page) => `, והבית הגבוה שלה נקרא מ-${page}: הבאג של ה-NMOS`,
     indirect: (base, address, bug) => `הכתובת השמורה ב-${base} היא ${address}${bug}`,
     devices: {

@@ -87,6 +87,8 @@ export const explainRv32: ExplainRv32Messages = {
     fill: '4 למילוי ה-pipeline',
     stalled: (count) => `${count} ב-stall`,
     flushed: (count) => `${count} שאבדו ל-flushes`,
-    summary: (count, parts, cpi) => `${cycles(count)} = ${parts} · ${cpi} מחזורים להוראה`
+    // A mark after each part, so a number never joins the English word before it.
+    summary: (count, parts, cpi) =>
+      `${cycles(count)} = ${parts.join('\u200f + ')}\u200f · ${cpi} מחזורים להוראה`
   }
 };

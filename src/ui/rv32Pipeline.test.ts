@@ -91,6 +91,12 @@ describe('pipelineSummary', () => {
     );
   });
 
+  it('keeps each count beside its own words in Hebrew', () => {
+    const text = pipelineSummary(messagesFor('he'), timing([load, use]))!;
+    expect(text).toContain('pipeline\u200f + 1');
+    expect(text).toContain('stall\u200f · ');
+  });
+
   it('has nothing to say before anything has run', () => {
     expect(pipelineSummary(m, timing([]))).toBeNull();
   });

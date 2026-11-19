@@ -88,8 +88,8 @@ export const explainRv32 = {
     fill: '4 to fill the pipeline',
     stalled: (count: number) => `${count} stalled`,
     flushed: (count: number) => `${count} lost to flushes`,
-    summary: (cycles: number, parts: string, cpi: string) =>
-      `${plural(cycles, 'cycle')} = ${parts} · ${cpi} cycles per instruction`
+    summary: (cycles: number, parts: readonly string[], cpi: string) =>
+      `${plural(cycles, 'cycle')} = ${parts.join(' + ')} · ${cpi} cycles per instruction`
   }
 };
 
