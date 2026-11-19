@@ -44,9 +44,8 @@
 }
 
 @theme inline {
-  /* Plex Sans has no Hebrew letters; the browser takes those from Heebo, which is clean and modern. */
   --font-sans:
-    'IBM Plex Sans', 'Heebo', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
+    'IBM Plex Sans', 'Plex Sans Fallback Segoe', 'Plex Sans Fallback Arial', ui-sans-serif,
     system-ui, sans-serif;
   --font-mono:
     'IBM Plex Mono', 'Plex Mono Fallback Consolas', 'Plex Mono Fallback Menlo', ui-monospace,
@@ -230,26 +229,6 @@
   * {
     @apply border-border outline-ring/50;
   }
-  /*
-   * In Hebrew the whole page mirrors (`dir="rtl"` on the root, set by useLocale). Parts that are
-   * read the same in every language keep `dir="ltr"` on their own element: diagrams, tables of
-   * numbers, code listings and bit fields. Text that sits inside such a part says so itself:
-   * `ui-text` for a block of sentences, `ui-auto` for a short line that may start in either
-   * language (a formula, a value with a word).
-   */
-  :root[lang='he'] .ui-text {
-    direction: rtl;
-    unicode-bidi: isolate;
-  }
-  .ui-auto {
-    unicode-bidi: plaintext;
-    text-align: start;
-  }
-  /* Code and keys inside a sentence keep their own order. */
-  :root[dir='rtl'] :is(code, kbd, [data-slot='kbd']) {
-    direction: ltr;
-    unicode-bidi: isolate;
-  }
   html {
     @apply font-sans antialiased;
   }
@@ -385,22 +364,9 @@
   }
   /* The unit's short name: told apart by its font, not by a frame of its own. */
   .unit-title > span {
-    margin-inline-start: 0.375rem;
+    margin-left: 0.375rem;
     font-family: var(--font-mono);
     letter-spacing: 0;
-  }
-  /*
-   * A unit's title in Hebrew reads right to left, its short name in parentheses after it (the
-   * space before them is gap enough), but keeps its place in the left-to-right diagram: a title
-   * pushed to the other edge would run into the wire beside its unit.
-   */
-  :root[lang='he'] .unit-title {
-    unicode-bidi: plaintext;
-    /* Plaintext would align a Hebrew line to the right; the diagram's start is its left. */
-    text-align: left;
-  }
-  :root[lang='he'] .unit-title > span {
-    margin-inline-start: 0;
   }
 
   /*

@@ -3,9 +3,6 @@ import { CircleAlert } from '@lucide/vue';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useAppError } from '@/ui/useAppError';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const { appError } = useAppError();
 </script>
@@ -14,13 +11,13 @@ const { appError } = useAppError();
   <div v-if="appError" class="mx-auto w-full max-w-(--page-width) px-4 pt-4 lg:px-6">
     <Alert variant="destructive" role="alert">
       <CircleAlert />
-      <AlertTitle>{{ t.appError.title }}</AlertTitle>
+      <AlertTitle>Something went wrong inside the playground.</AlertTitle>
       <AlertDescription>
-        {{ t.appError.body }}
+        Undo or Reset to continue. Details:
         <span class="font-mono break-all">{{ appError }}</span>
       </AlertDescription>
       <AlertAction>
-        <Button variant="ghost" size="sm" @click="appError = null">{{ t.appError.dismiss }}</Button>
+        <Button variant="ghost" size="sm" @click="appError = null">Dismiss</Button>
       </AlertAction>
     </Alert>
   </div>

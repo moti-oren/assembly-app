@@ -12,7 +12,7 @@ import { X86_CODE_PLACE, x86LineCode } from '@/ui/programCode';
 import { raisedOverflow, stepSound } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
-import { useLocale } from '@/ui/useLocale';
+import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { x86UsesDevices } from '@/ui/usesDevices';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { X86_GRAMMAR } from '@/ui/x86Grammar';
@@ -31,8 +31,6 @@ import ProgramPanel from './ProgramPanel.vue';
 import RegistersPanel from './RegistersPanel.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   cpu: CpuOf<Instruction, CpuState, ExecutionRecord>;
@@ -138,7 +136,7 @@ const encodingShown = computed(() =>
     <!-- Each column's cards can be dragged into any order, but never into the other column. -->
     <SortableColumn
       :keys="leftKeys"
-      :labels="t.panels.names"
+      :labels="PANEL_LABELS"
       @move="(key, to) => move('left', key, to)"
     >
       <template #builder>
@@ -184,7 +182,7 @@ const encodingShown = computed(() =>
 
     <SortableColumn
       :keys="rightKeys"
-      :labels="t.panels.names"
+      :labels="PANEL_LABELS"
       @move="(key, to) => move(rightColumn, key, to)"
     >
       <template #cpu>

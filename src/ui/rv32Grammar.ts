@@ -1,6 +1,7 @@
 import { formatLabel } from '@/core/shared/program';
 import { fitsSigned } from '@/core/rv32/bits';
 import {
+  CATEGORY_LABELS,
   MNEMONICS,
   formatInstruction,
   getSpec,
@@ -17,9 +18,8 @@ import {
   type PseudoKind,
   type PseudoMnemonic
 } from '@/core/rv32/pseudo';
-import { ABI_NAMES, registerRole } from '@/core/rv32/registers';
+import { ABI_NAMES, registerRole, type RegisterRole } from '@/core/rv32/registers';
 import type { BuilderOption, DraftContext, DraftToken, InstructionGrammar } from './builderGrammar';
-import type { Messages } from './messages/en';
 
 /** What choosing an option adds to a RISC-V instruction. */
 export type Rv32Action =
@@ -63,84 +63,88 @@ function nextKind(words: Words): PseudoKind | null {
   return formOf(words)?.[words.operands.length] ?? null;
 }
 
-/** The operand kinds that take a number, and the numbers each one takes. */
-type ImmediateKind = keyof Messages['builderRv32']['immediates'];
+const IMMEDIATES: Partial<Record<PseudoKind, { label: string; fits: (value: number) => boolean }>> =
+  {
+    imm12: { label: '12-bit, -2048 to 2047', fits: (value) => fitsSigned(value, 12) },
+    shamt: { label: 'shift amount, 0 to 31', fits: (value) => value >= 0 && value <= 31 },
+    imm20: {
+      label: 'upper 20 bits, 0 to 0xFFFFF',
+      fits: (value) => value >= 0 && value <= 0xfffff
+    },
+    imm32: {
+      label: 'any 32-bit value',
+      fits: (value) => Number.isInteger(value) && value >= -(2 ** 31) && value < 2 ** 32
+    },
+    // A memory operand's offset is a 12-bit immediate too.
+    mem: { label: '12-bit offset, -2048 to 2047', fits: (value) => fitsSigned(value, 12) }
+  };
 
-const IMMEDIATES: Record<ImmediateKind, (value: number) => boolean> = {
-  imm12: (value) => fitsSigned(value, 12),
-  shamt: (value) => value >= 0 && value <= 31,
-  imm20: (value) => value >= 0 && value <= 0xfffff,
-  imm32: (value) => Number.isInteger(value) && value >= -(2 ** 31) && value < 2 ** 32,
-  // A memory operand's offset is a 12-bit immediate too.
-  mem: (value) => fitsSigned(value, 12)
+const ROLE_GROUPS: Record<RegisterRole, string> = {
+  special: 'Special: zero, return address, stack, global and thread pointers',
+  argument: 'Arguments and return values (a0–a7)',
+  temporary: 'Temporaries (t0–t6)',
+  saved: 'Saved across calls (s0–s11)'
 };
-
-function isImmediate(kind: PseudoKind | null): kind is ImmediateKind {
-  return kind !== null && kind in IMMEDIATES;
-}
 
 const anyNumber = () => true;
 
-function mnemonicOptions(m: Messages): Option[] {
+function mnemonicOptions(): Option[] {
   const real: Option[] = MNEMONICS.map((mnemonic) => {
-    const { category, format } = getSpec(mnemonic);
+    const { category, format, description } = getSpec(mnemonic);
     return {
       key: mnemonic,
       label: mnemonic,
-      group: m.rv32Text.category(category),
-      hint: m.builderRv32.withFormat(m.rv32Text.description(mnemonic), format),
+      group: CATEGORY_LABELS[category],
+      hint: `${description} (${format}-type)`,
       action: { kind: 'mnemonic', mnemonic }
     };
   });
   const pseudo: Option[] = PSEUDO_MNEMONICS.map((mnemonic) => ({
     key: `pseudo-${mnemonic}`,
     label: mnemonic,
-    group: m.builderRv32.pseudo,
-    hint: m.rv32Text.pseudo(mnemonic),
+    group: 'Pseudo-instructions: the assembler turns each into real ones',
+    hint: pseudoSpec(mnemonic).description,
     action: { kind: 'pseudo', mnemonic }
   }));
   return [...real, ...pseudo];
 }
 
 function registerOptions(
-  m: Messages,
   label: (abi: string) => string,
   operand: (index: number) => Operand
 ): Option[] {
   return ABI_NAMES.map((abi, index) => ({
     key: `x${index}`,
     label: label(abi),
-    group: m.builderRv32.roles[registerRole(index)],
-    hint: index === 0 ? m.builderRv32.zero : `x${index}`,
+    group: ROLE_GROUPS[registerRole(index)],
+    hint: index === 0 ? 'x0: always reads as 0; writes to it are thrown away' : `x${index}`,
     action: { kind: 'operand', operand: operand(index) }
   }));
 }
 
-function lineOptions(m: Messages, words: Words, programLines: readonly string[]): Option[] {
+function lineOptions(words: Words, programLines: readonly string[]): Option[] {
   return Array.from({ length: programLines.length + 1 }, (_, target) => ({
     key: `label${target}`,
     label: formatLabel(target),
     group:
       words.mnemonic === 'jal' || words.pseudo === 'j'
-        ? m.builderCommon.jumpTo
-        : m.builderCommon.branchTo,
-    hint: programLines[target] ?? m.builderCommon.endOfProgram,
+        ? 'Jump to program line'
+        : 'Branch to program line',
+    hint: programLines[target] ?? 'end of program',
     matchesNumber: (value: number) => value === target,
     action: { kind: 'operand', operand: { type: 'label', target } }
   }));
 }
 
 /** `offset(base)`: a typed offset first, or straight to the base register with offset 0. */
-function memoryOptions(m: Messages, pendingOffset: number | null, typed: number | null): Option[] {
+function memoryOptions(pendingOffset: number | null, typed: number | null): Option[] {
   if (pendingOffset !== null) {
     return registerOptions(
-      m,
       (abi) => `${pendingOffset}(${abi})`,
       (base) => ({ type: 'mem', base, offset: pendingOffset })
     );
   }
   const options = registerOptions(
-    m,
     (abi) => `0(${abi})`,
     (base) => ({ type: 'mem', base, offset: 0 })
   );
@@ -148,8 +152,8 @@ function memoryOptions(m: Messages, pendingOffset: number | null, typed: number 
     options.unshift({
       key: 'offset',
       label: `${typed}( )`,
-      group: m.builderRv32.offset,
-      hint: m.builderRv32.offsetHint,
+      group: 'Offset from a base register',
+      hint: 'Then pick the register the offset is added to',
       matchesNumber: anyNumber,
       action: { kind: 'offset', offset: typed }
     });
@@ -157,14 +161,15 @@ function memoryOptions(m: Messages, pendingOffset: number | null, typed: number 
   return options;
 }
 
-function immediateOption(m: Messages, kind: PseudoKind, typed: number | null): Option[] {
-  if (!isImmediate(kind) || typed === null || !IMMEDIATES[kind](typed)) return [];
+function immediateOption(kind: PseudoKind, typed: number | null): Option[] {
+  const immediate = IMMEDIATES[kind];
+  if (!immediate || typed === null || !immediate.fits(typed)) return [];
   const value = { type: 'imm', value: typed } as const;
   return [
     {
       key: 'imm',
       label: formatOperand(value),
-      group: m.builderRv32.immediate(m.builderRv32.immediates[kind]),
+      group: `Immediate (${immediate.label})`,
       hint: typed < 0 ? `= 0x${(typed >>> 0).toString(16).toUpperCase()}` : `= ${typed}`,
       matchesNumber: anyNumber,
       action: { kind: 'operand', operand: value }
@@ -173,19 +178,17 @@ function immediateOption(m: Messages, kind: PseudoKind, typed: number | null): O
 }
 
 function options(chosen: readonly Rv32Action[], context: DraftContext): Option[] {
-  const m = context.messages;
   const words = wordsOf(chosen);
-  if (words.mnemonic === null && words.pseudo === null) return mnemonicOptions(m);
+  if (words.mnemonic === null && words.pseudo === null) return mnemonicOptions();
   const kind = nextKind(words);
   if (kind === 'reg')
     return registerOptions(
-      m,
       (abi) => abi,
       (index) => ({ type: 'reg', index })
     );
-  if (kind === 'mem') return memoryOptions(m, words.pendingOffset, context.typed);
-  if (kind === 'label') return lineOptions(m, words, context.programLines);
-  return kind ? immediateOption(m, kind, context.typed) : [];
+  if (kind === 'mem') return memoryOptions(words.pendingOffset, context.typed);
+  if (kind === 'label') return lineOptions(words, context.programLines);
+  return kind ? immediateOption(kind, context.typed) : [];
 }
 
 function tokens(chosen: readonly Rv32Action[]): DraftToken[] {
@@ -222,8 +225,8 @@ function build(chosen: readonly Rv32Action[]): Instruction[] | null {
 function overflows(chosen: readonly Rv32Action[], context: DraftContext): boolean {
   const words = wordsOf(chosen);
   const kind = nextKind(words);
-  if (!isImmediate(kind) || words.pendingOffset !== null || context.typed === null) return false;
-  return !IMMEDIATES[kind](context.typed);
+  const immediate = kind && words.pendingOffset === null ? IMMEDIATES[kind] : undefined;
+  return immediate !== undefined && context.typed !== null && !immediate.fits(context.typed);
 }
 
 /** How the builder builds RISC-V instructions, pseudo-instructions included. */
@@ -238,34 +241,30 @@ export const RV32_GRAMMAR: InstructionGrammar<Rv32Action, Instruction> = {
   },
   overflows,
   hint(chosen, context, filter, complete) {
-    const { builderRv32: rv32, builderCommon: common } = context.messages;
     const words = wordsOf(chosen);
-    if (words.mnemonic === null && words.pseudo === null) return common.filterInstructions;
-    if (words.pendingOffset !== null) return rv32.pickBase;
+    if (words.mnemonic === null && words.pseudo === null) return 'Type to filter instructions';
+    if (words.pendingOffset !== null) return 'Pick the base register the offset is added to';
     const kind = nextKind(words);
-    if (overflows(chosen, context) && isImmediate(kind)) {
-      return rv32.tooBig(filter, rv32.immediates[kind]);
+    if (overflows(chosen, context) && kind) {
+      return `${filter} does not fit: ${IMMEDIATES[kind]!.label}`;
     }
-    if (kind === 'mem') return rv32.typeOffset;
-    if (kind === 'label') return common.pickLine;
-    if (kind === 'reg') return rv32.pickRegister;
-    if (kind) return rv32.typeNumber;
-    return complete ? common.runOrAdd : common.filter;
+    if (kind === 'mem') return 'Type an offset (e.g. 8 or -4), or pick the base register';
+    if (kind === 'label') return 'Pick a line to jump to, or type its number';
+    if (kind === 'reg') return 'Pick a register, or type its name (a0, t1, sp…)';
+    if (kind) return 'Type a number: 42 (decimal), -5, 0x2A or 101010b';
+    return complete ? 'Enter: run now · Shift+Enter: add to the program' : 'Type to filter';
   },
-  describe(chosen, m) {
+  describe(chosen) {
     const { mnemonic, pseudo } = wordsOf(chosen);
     if (mnemonic) {
-      const { format } = getSpec(mnemonic);
-      return {
-        label: mnemonic,
-        text: m.builderRv32.withFormat(m.rv32Text.description(mnemonic), format)
-      };
+      const { description, format } = getSpec(mnemonic);
+      return { label: mnemonic, text: `${description} (${format}-type)` };
     }
     if (!pseudo) return null;
     const expanded = build(chosen);
     const text = expanded
-      ? m.builderRv32.becomes(expanded.map((line) => m.common.code(formatInstruction(line))))
-      : m.rv32Text.pseudo(pseudo);
+      ? `becomes ${expanded.map(formatInstruction).join(', then ')}`
+      : pseudoSpec(pseudo).description;
     return { label: pseudo, text };
   }
 };

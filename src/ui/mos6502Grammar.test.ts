@@ -2,11 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { formatInstruction } from '@/core/mos6502/instructions';
 import type { DraftContext } from './builderGrammar';
 import { MOS6502_GRAMMAR, type Mos6502Action } from './mos6502Grammar';
-import { messagesFor } from './locale';
 
-const m = messagesFor('en');
-
-const none: DraftContext = { typed: null, programLines: [], messages: m };
+const none: DraftContext = { typed: null, programLines: [] };
 const typed = (value: number): DraftContext => ({ ...none, typed: value });
 const mnemonic = (name: 'lda' | 'ldx' | 'asl' | 'jmp' | 'bne' | 'clc' | 'sta'): Mos6502Action => ({
   kind: 'mnemonic',
@@ -70,10 +67,10 @@ describe('MOS6502_GRAMMAR', () => {
       mnemonic('lda'),
       { kind: 'operand', operand: { type: 'izy', address: 0x10 } }
     ];
-    expect(MOS6502_GRAMMAR.describe(chosen, m)?.text).toBe(
+    expect(MOS6502_GRAMMAR.describe(chosen)?.text).toBe(
       'A = the operand · (indirect),Y, opcode $B1, 5 cycles, +1 across a page'
     );
-    expect(MOS6502_GRAMMAR.describe([mnemonic('asl')], m)?.text).toBe(
+    expect(MOS6502_GRAMMAR.describe([mnemonic('asl')])?.text).toBe(
       'Shift left; bit 7 goes to C. Modes: accumulator, zero page, zero page,X, absolute, absolute,X'
     );
   });

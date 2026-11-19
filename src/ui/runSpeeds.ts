@@ -7,3 +7,10 @@ export const RUN_SPEED_NAMES = Object.keys(RUN_SPEEDS) as RunSpeed[];
 export function isRunSpeed(value: unknown): value is RunSpeed {
   return typeof value === 'string' && value in RUN_SPEEDS;
 }
+
+export const SPEED_LABELS: Record<RunSpeed, string> = {
+  slow: 'Slow',
+  normal: 'Normal',
+  fast: 'Fast',
+  instant: 'Instant'
+};

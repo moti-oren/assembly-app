@@ -5,9 +5,6 @@ import type { Operand } from '@/core/rv32/operands';
 import { parseRegister } from '@/core/rv32/registers';
 import { createCpuState, DATA_BASE, writeRegister } from '@/core/rv32/state';
 import { datapathView } from './rv32Datapath';
-import { messagesFor } from './locale';
-
-const m = messagesFor('en');
 
 const r = (name: string): Operand => ({ type: 'reg', index: parseRegister(name)! });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -27,13 +24,13 @@ describe('datapathView', () => {
   ];
 
   it('shows nothing before the first instruction', () => {
-    const view = datapathView(m, { state: createCpuState(), program, record: null, pending: null });
+    const view = datapathView({ state: createCpuState(), program, record: null, pending: null });
     expect(view.instruction).toBeNull();
     expect(view.fetch.use).toBeUndefined();
   });
 
   it('only reads the word at PC while fetching', () => {
-    const view = datapathView(m, {
+    const view = datapathView({
       state: createCpuState(),
       program,
       record: null,
@@ -45,7 +42,7 @@ describe('datapathView', () => {
   });
 
   it('shows the plan once decoded, before anything has run', () => {
-    const view = datapathView(m, {
+    const view = datapathView({
       state: createCpuState(),
       program,
       record: null,
@@ -68,7 +65,7 @@ describe('datapathView', () => {
     writeRegister(state, parseRegister('a1')!, 3);
     writeRegister(state, parseRegister('s0')!, DATA_BASE);
     const first = execute(state, program[0], 0, program);
-    const view = datapathView(m, { state, program, record: first, pending: null });
+    const view = datapathView({ state, program, record: first, pending: null });
     expect(view.execute).toEqual({ use: 'write', text: '0x00000003 + 0x00000002 = 0x00000005' });
     expect(view.memory.use).toBeUndefined();
     expect(view.writeBack.text).toBe("a0 ← 0x00000005, the ALU's result");
@@ -76,7 +73,7 @@ describe('datapathView', () => {
     expect(view.writes).toEqual([10]);
 
     const store = execute(state, program[1], 1, program);
-    const stored = datapathView(m, { state, program, record: store, pending: null });
+    const stored = datapathView({ state, program, record: store, pending: null });
     expect(stored.memory).toEqual({
       use: 'write',
       text: 'Stored the word 0x00000005 at 0x00010004'
@@ -87,7 +84,7 @@ describe('datapathView', () => {
   it('puts a branch comparison in the next-PC stage', () => {
     const state = createCpuState();
     const record = execute(state, program[2], 2, program);
-    const view = datapathView(m, { state, program, record, pending: null });
+    const view = datapathView({ state, program, record, pending: null });
     expect(view.nextPc).toEqual({
       use: 'write',
       text: 'a0 = 0 = zero = 0: true: jumped to 0x00000000 (L0)'

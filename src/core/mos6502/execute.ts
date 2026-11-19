@@ -1,4 +1,4 @@
-import { cpuError } from '../shared/cpuError';
+import { CpuError } from '../shared/cpuError';
 import { undo } from '../shared/executionRecord';
 import type { Program } from '../shared/program';
 import { Run, type ExecutionRecord } from './executionContext';
@@ -22,10 +22,9 @@ export function execute(
   program: Program<Instruction>
 ): ExecutionRecord {
   if (!isValid(instruction)) {
-    throw cpuError('invalidInstruction', {
-      instruction: formatInstruction(instruction),
-      cpu: '6502'
-    });
+    throw new CpuError(
+      `${formatInstruction(instruction)} isn't a valid 6502 instruction. Remove the last word and pick another.`
+    );
   }
   const here = line === null ? state.registers.pc : addressOfLine(program, line);
   const run = new Run(state, program, instruction, here, line);

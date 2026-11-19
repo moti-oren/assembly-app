@@ -23,9 +23,6 @@ import {
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -92,7 +89,7 @@ const pointed = ref<number | null>(null);
 const worked = computed(() => {
   if (pointed.value !== null) {
     return {
-      label: t.value.memory.thisByte,
+      label: 'This byte',
       segment: segment.value,
       sum: explainAddress(props.state.registers[segment.value], pointed.value),
       offsetParts: null,
@@ -102,7 +99,7 @@ const worked = computed(() => {
   const access = lastAccess.value;
   if (!access) return null;
   return {
-    label: access.write ? t.value.memory.lastWrite : t.value.memory.lastRead,
+    label: access.write ? 'Last write' : 'Last read',
     segment: access.segment,
     sum: explainAddress(access.segmentValue, access.offset),
     offsetParts: access.offsetParts,
@@ -117,7 +114,7 @@ const offsetNote = computed(() => {
   const base = parts.base.toUpperCase();
   if (parts.displacement === 0) return `offset = ${base}`;
   const sum = `offset = ${base} ${formatHex(parts.baseValue, 16)}h + ${formatHex(parts.displacement, 16)}h`;
-  return parts.wrapped ? t.value.memory.wraps64k(sum) : sum;
+  return parts.wrapped ? `${sum}, wraps at 64K` : sum;
 });
 
 function showLastAccess(): void {
@@ -151,10 +148,12 @@ function reveal(jump: () => void): void {
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.memory.title }}</CardTitle>
-        <InfoTip :label="t.memory.about">{{ t.memory.x86Intro }}</InfoTip>
+        <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
+        <InfoTip label="About memory">
+          Point at a byte, or run an instruction that uses memory, to see how its address is formed.
+        </InfoTip>
         <Select v-model="segment">
-          <SelectTrigger size="sm" dir="ltr" class="w-36 font-mono" :aria-label="t.memory.segment">
+          <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
             <SelectValue>
               {{ segment.toUpperCase() }}
@@ -163,21 +162,21 @@ function reveal(jump: () => void): void {
               }}</span>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent dir="ltr">
+          <SelectContent>
             <SelectItem v-for="name in SEGMENTS" :key="name" :value="name" class="font-mono">
               {{ name.toUpperCase() }}
               <span class="text-muted-foreground">{{ formatHex(state.registers[name], 16) }}</span>
             </SelectItem>
           </SelectContent>
         </Select>
-        <div dir="ltr" class="relative">
+        <div class="relative">
           <span
-            class="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-xs text-muted-foreground"
-            >{{ t.memory.offset }}</span
+            class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
+            >Offset</span
           >
           <Input
             v-model="offsetText"
-            class="h-7 w-28 ps-13 font-mono text-sm"
+            class="h-7 w-28 pl-13 font-mono text-sm"
             :aria-invalid="offsetInvalid || undefined"
             :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
             maxlength="6"
@@ -185,12 +184,12 @@ function reveal(jump: () => void): void {
             autocapitalize="characters"
             autocorrect="off"
             spellcheck="false"
-            :aria-label="t.memory.offsetInput"
+            aria-label="Offset (hex)"
           />
         </div>
-        <Button variant="outline" size="sm" class="ms-auto" @click="showStackTop">
+        <Button variant="outline" size="sm" class="ml-auto" @click="showStackTop">
           <Layers />
-          {{ t.memory.stackTop }}
+          Stack top
         </Button>
       </div>
 
@@ -199,12 +198,11 @@ function reveal(jump: () => void): void {
         cannot be read takes this line, so the message needs no row of its own.
       -->
       <p
-        dir="ltr"
         class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 font-mono text-xs lg:h-5 lg:flex-nowrap lg:overflow-hidden lg:whitespace-nowrap"
       >
-        <span v-if="offsetInvalid" :id="offsetErrorId" class="ui-text font-sans text-destructive">{{
-          t.memory.badOffset(offsetText)
-        }}</span>
+        <span v-if="offsetInvalid" :id="offsetErrorId" class="font-sans text-destructive">
+          “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+        </span>
         <template v-else-if="worked">
           <span
             class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 lg:shrink-0 lg:flex-nowrap"
@@ -214,7 +212,7 @@ function reveal(jump: () => void): void {
               >{{ worked.segment.toUpperCase() }}:{{ formatHex(worked.sum.offset, 16) }}</span
             >
             <span class="text-muted-foreground">=</span>
-            <span :title="t.memory.shifted(worked.segment.toUpperCase())"
+            <span :title="`${worked.segment.toUpperCase()} shifted left by 4 bits`"
               >{{ formatHex(worked.sum.segment, 16) }}h × 10h</span
             >
             <span class="text-muted-foreground">+</span>
@@ -224,7 +222,7 @@ function reveal(jump: () => void): void {
               <span class="text-muted-foreground line-through decoration-1"
                 >{{ formatPhysical(worked.sum.sum) }}h</span
               >
-              <span class="font-sans text-muted-foreground">{{ t.memory.wraps }}</span>
+              <span class="font-sans text-muted-foreground">wraps past 1MB to</span>
             </template>
             <span class="font-semibold text-pointer"
               >{{ formatPhysical(worked.sum.physical) }}h</span
@@ -239,41 +237,41 @@ function reveal(jump: () => void): void {
           <button
             v-if="worked.isLastAccess"
             type="button"
-            class="relative ms-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
-            {{ t.memory.showInTable }}
+            Show in table
           </button>
         </template>
       </p>
 
-      <div dir="ltr" class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
+      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pe-3 text-start font-normal">offset</th>
+              <th class="py-1 pr-3 text-left font-normal">offset</th>
               <th
                 v-for="column in COLUMNS"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'ps-2.5': column === 9 }"
+                :class="{ 'pl-2.5': column === 9 }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
-              <th class="py-1 ps-3 text-start font-normal">ascii</th>
+              <th class="py-1 pl-3 text-left font-normal">ascii</th>
             </tr>
           </thead>
           <tbody @mouseleave="pointed = null">
             <tr v-for="row in rows" :key="row.offset">
-              <th class="py-0.5 pe-3 text-start font-normal text-muted-foreground">
+              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
                 {{ formatHex(row.offset, 16) }}
               </th>
               <td
                 v-for="(byte, column) in row.bytes"
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
-                :class="{ 'ps-2.5': column === 8 }"
-                :title="t.memory.physical(formatPhysical(byte.address), byte.value)"
+                :class="{ 'pl-2.5': column === 8 }"
+                :title="`Physical ${formatPhysical(byte.address)}h = ${byte.value}`"
                 @mouseenter="pointed = (row.offset + column) & 0xffff"
               >
                 <ChangeMark
@@ -292,7 +290,7 @@ function reveal(jump: () => void): void {
                   <RollingDigits :text="formatHex(byte.value, 8)" />
                 </ChangeMark>
               </td>
-              <td class="py-0.5 ps-3 whitespace-pre text-muted-foreground">
+              <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
                 {{ row.bytes.map((byte) => printable(byte.value)).join('') }}
               </td>
             </tr>

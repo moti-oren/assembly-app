@@ -1,5 +1,6 @@
 import { hasMoreOperands, operandChoices, type OperandChoices } from '@/core/x86/builder';
 import {
+  CATEGORY_LABELS,
   MNEMONICS,
   REPEAT_PREFIXES,
   getSpec,
@@ -21,7 +22,6 @@ import {
 } from '@/core/x86/operands';
 import { isByteRegister, isSegmentRegister } from '@/core/x86/registers';
 import type { BuilderOption, DraftContext, DraftToken, InstructionGrammar } from './builderGrammar';
-import type { Messages } from './messages/en';
 
 /** The instruction builder's state: what has been chosen so far, and what is being typed. */
 export interface BuilderDraft {
@@ -49,43 +49,43 @@ type X86Option = BuilderOption<OptionAction>;
 
 const anyNumber = () => true;
 
-function prefixOptions(m: Messages): X86Option[] {
+function prefixOptions(): X86Option[] {
   return (Object.keys(REPEAT_PREFIXES) as RepeatPrefix[]).map((prefix) => ({
     key: `prefix-${prefix}`,
     label: prefix,
-    group: m.builderX86.repeatPrefix,
-    hint: m.builderX86.prefixHint(m.x86Text.prefix(prefix)),
+    group: 'Repeat prefix',
+    hint: `${REPEAT_PREFIXES[prefix]}. Pick the string instruction next.`,
     action: { kind: 'prefix', prefix }
   }));
 }
 
-function mnemonicOptions(m: Messages, chosen: RepeatPrefix | null): X86Option[] {
+function mnemonicOptions(chosen: RepeatPrefix | null): X86Option[] {
   const options: X86Option[] = [];
   let prefixesOffered = chosen !== null;
   for (const mnemonic of MNEMONICS) {
-    const { category } = getSpec(mnemonic);
+    const { category, description } = getSpec(mnemonic);
     // The prefixes sit right after the string instructions they repeat.
     if (
       !prefixesOffered &&
-      options.at(-1)?.group === m.x86Text.category('string') &&
+      options.at(-1)?.group === CATEGORY_LABELS.string &&
       category !== 'string'
     ) {
-      options.push(...prefixOptions(m));
+      options.push(...prefixOptions());
       prefixesOffered = true;
     }
     if (chosen && !prefixAllows(chosen, mnemonic)) continue;
     options.push({
       key: mnemonic,
       label: mnemonic,
-      group: m.x86Text.category(category),
-      hint: m.x86Text.description(mnemonic),
+      group: CATEGORY_LABELS[category],
+      hint: description,
       action: { kind: 'mnemonic', mnemonic }
     });
   }
   return options;
 }
 
-function memoryAddressOptions(m: Messages, size: Size, typed: number | null): X86Option[] {
+function memoryAddressOptions(size: Size, typed: number | null): X86Option[] {
   const operand = (base: MemoryBase | null, displacement: number): Operand => ({
     type: 'mem',
     size,
@@ -95,7 +95,7 @@ function memoryAddressOptions(m: Messages, size: Size, typed: number | null): X8
   const options: X86Option[] = MEMORY_BASES.map((base) => ({
     key: `base-${base}`,
     label: `[${base}]`,
-    group: m.builderX86.addressInRegister,
+    group: 'Address in a register',
     hint: `${memorySegment({ type: 'mem', size, base, displacement: 0 }).toUpperCase()}:${base.toUpperCase()}`,
     action: { kind: 'operand', operand: operand(base, 0) }
   }));
@@ -104,7 +104,7 @@ function memoryAddressOptions(m: Messages, size: Size, typed: number | null): X8
     options.unshift({
       key: 'direct',
       label: `[0x${formatHex(typed, 16)}]`,
-      group: m.builderX86.directAddress,
+      group: 'Direct address',
       hint: 'DS:offset',
       matchesNumber: anyNumber,
       action: { kind: 'operand', operand: operand(null, typed) }
@@ -114,14 +114,14 @@ function memoryAddressOptions(m: Messages, size: Size, typed: number | null): X8
 }
 
 /** A typed number that fits the immediate, and the count of 1 that shifts take. */
-function numberOptions(m: Messages, choices: OperandChoices, typed: number | null): X86Option[] {
+function numberOptions(choices: OperandChoices, typed: number | null): X86Option[] {
   const options: X86Option[] = [];
   if (choices.immediate !== null && typed !== null && fitsIn(typed, choices.immediate)) {
     const size = choices.immediate;
     options.push({
       key: 'imm',
       label: formatImmediate(typed),
-      group: m.builderX86.immediate(size),
+      group: `Immediate (${size}-bit)`,
       hint: typed < 0 ? `= 0x${formatHex(typed, size)}` : `= ${typed}`,
       matchesNumber: anyNumber,
       action: { kind: 'operand', operand: { type: 'imm', value: typed } }
@@ -131,7 +131,7 @@ function numberOptions(m: Messages, choices: OperandChoices, typed: number | nul
     options.push({
       key: 'one',
       label: '1',
-      group: m.builderX86.count,
+      group: 'Count',
       matchesNumber: (value) => value === 1,
       action: { kind: 'operand', operand: { type: 'imm', value: 1 } }
     });
@@ -140,53 +140,49 @@ function numberOptions(m: Messages, choices: OperandChoices, typed: number | nul
 }
 
 /** Every program line as a target, plus the line after the last one (the end of the program). */
-function lineOptions(
-  m: Messages,
-  mnemonic: Mnemonic,
-  programLines: readonly string[]
-): X86Option[] {
+function lineOptions(mnemonic: Mnemonic, programLines: readonly string[]): X86Option[] {
   const group =
-    getSpec(mnemonic).category === 'control' ? m.builderCommon.jumpTo : m.builderX86.lineNumber;
+    getSpec(mnemonic).category === 'control' ? 'Jump to program line' : 'Number of a program line';
   return Array.from({ length: programLines.length + 1 }, (_, target) => ({
     key: `label${target}`,
     label: formatLabel(target),
     group,
-    hint: programLines[target] ?? m.builderCommon.endOfProgram,
+    hint: programLines[target] ?? 'end of program',
     matchesNumber: (value: number) => value === target,
     action: { kind: 'operand', operand: { type: 'label', target } }
   }));
 }
 
-function registerOptions(m: Messages, registers: OperandChoices['registers']): X86Option[] {
+function registerOptions(registers: OperandChoices['registers']): X86Option[] {
   return registers.map((name) => ({
     key: name,
     label: name,
     group: isByteRegister(name)
-      ? m.builderX86.byteRegisters
+      ? '8-bit registers'
       : isSegmentRegister(name)
-        ? m.builderX86.segmentRegisters
-        : m.builderX86.wordRegisters,
+        ? 'Segment registers'
+        : '16-bit registers',
     action: { kind: 'operand', operand: { type: 'reg', name } }
   }));
 }
 
-function memoryOptions(m: Messages, sizes: OperandChoices['memory']): X86Option[] {
+function memoryOptions(sizes: OperandChoices['memory']): X86Option[] {
   return sizes.map((size) => ({
     key: `mem${size}`,
     label: size === 8 ? 'byte [ ]' : 'word [ ]',
-    group: m.builderX86.memory,
-    hint: m.builderX86.memoryHint(size),
+    group: 'Memory',
+    hint: `${size}-bit value in memory`,
     action: { kind: 'memory', size }
   }));
 }
 
-function operandOptions(m: Messages, mnemonic: Mnemonic, draft: BuilderDraft): X86Option[] {
+function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): X86Option[] {
   const choices = operandChoices(mnemonic, draft.operands);
   return [
-    ...numberOptions(m, choices, draft.typed),
-    ...(choices.label ? lineOptions(m, mnemonic, draft.programLines) : []),
-    ...registerOptions(m, choices.registers),
-    ...memoryOptions(m, choices.memory)
+    ...numberOptions(choices, draft.typed),
+    ...(choices.label ? lineOptions(mnemonic, draft.programLines) : []),
+    ...registerOptions(choices.registers),
+    ...memoryOptions(choices.memory)
   ];
 }
 
@@ -202,45 +198,38 @@ export function overflowingSize(draft: BuilderDraft): Size | null {
  * What the input says can be typed next. `filter` is the text as typed, quoted back when the
  * number does not fit; `complete` is whether the instruction can already run.
  */
-export function typingHint(
-  m: Messages,
-  draft: BuilderDraft,
-  filter: string,
-  complete: boolean
-): string {
+export function typingHint(draft: BuilderDraft, filter: string, complete: boolean): string {
   const { prefix, mnemonic, operands, pendingMemory } = draft;
-  const x86 = m.builderX86;
-  if (mnemonic === null) return prefix ? x86.pickString : m.builderCommon.filterInstructions;
-  if (pendingMemory !== null) return x86.pickAddress;
+  if (mnemonic === null) {
+    return prefix ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
+  }
+  if (pendingMemory !== null) return 'Pick a register or type an offset (e.g. 0x10)';
   const tooBig = overflowingSize(draft);
-  if (tooBig !== null) return x86.tooBig(filter, tooBig);
+  if (tooBig !== null) return `${filter} does not fit in ${tooBig} bits`;
   const choices = operandChoices(mnemonic, operands);
-  if (choices.immediate !== null) return x86.typeNumber;
-  if (choices.label) return m.builderCommon.pickLine;
-  return complete ? m.builderCommon.runOrAdd : m.builderCommon.filter;
+  if (choices.immediate !== null) {
+    return 'Type a number: 42 (decimal), 0x2A or 2Ah (hex), 101010b (binary)';
+  }
+  if (choices.label) return 'Pick a line to jump to, or type its number';
+  if (complete) return 'Enter: run now · Shift+Enter: add to the program';
+  return 'Type to filter';
 }
 
 /** Every choice the builder offers for the next word of the instruction. */
-export function builderOptions(m: Messages, draft: BuilderDraft): X86Option[] {
-  if (draft.mnemonic === null) return mnemonicOptions(m, draft.prefix);
-  if (draft.pendingMemory !== null) {
-    return memoryAddressOptions(m, draft.pendingMemory, draft.typed);
-  }
-  return operandOptions(m, draft.mnemonic, draft);
+export function builderOptions(draft: BuilderDraft): X86Option[] {
+  if (draft.mnemonic === null) return mnemonicOptions(draft.prefix);
+  if (draft.pendingMemory !== null) return memoryAddressOptions(draft.pendingMemory, draft.typed);
+  return operandOptions(draft.mnemonic, draft);
 }
 
 /** The words chosen so far, in the shape the 8086's options and hints are worked out from. */
-function wordsOf(
-  chosen: readonly OptionAction[],
-  { typed, programLines }: Omit<DraftContext, 'messages'>
-): BuilderDraft {
+function wordsOf(chosen: readonly OptionAction[], context: DraftContext): BuilderDraft {
   const words: BuilderDraft = {
     prefix: null,
     mnemonic: null,
     operands: [],
     pendingMemory: null,
-    typed,
-    programLines
+    ...context
   };
   for (const action of chosen) {
     if (action.kind === 'prefix') words.prefix = action.prefix;
@@ -254,7 +243,7 @@ function wordsOf(
   return words;
 }
 
-const NO_CONTEXT: Omit<DraftContext, 'messages'> = { typed: null, programLines: [] };
+const NO_CONTEXT: DraftContext = { typed: null, programLines: [] };
 
 /** A memory operand is two choices, its size and then its address, but one word on screen. */
 function tokensOf(chosen: readonly OptionAction[]): DraftToken[] {
@@ -286,7 +275,7 @@ function build(chosen: readonly OptionAction[]): Instruction[] | null {
 
 /** How the builder builds 8086 instructions. */
 export const X86_GRAMMAR: InstructionGrammar<OptionAction, Instruction> = {
-  options: (chosen, context) => builderOptions(context.messages, wordsOf(chosen, context)),
+  options: (chosen, context) => builderOptions(wordsOf(chosen, context)),
   tokens: tokensOf,
   build,
   hasMore(chosen) {
@@ -295,9 +284,9 @@ export const X86_GRAMMAR: InstructionGrammar<OptionAction, Instruction> = {
   },
   overflows: (chosen, context) => overflowingSize(wordsOf(chosen, context)) !== null,
   hint: (chosen, context, filter, complete) =>
-    typingHint(context.messages, wordsOf(chosen, context), filter, complete),
-  describe(chosen, m) {
+    typingHint(wordsOf(chosen, context), filter, complete),
+  describe(chosen) {
     const { mnemonic } = wordsOf(chosen, NO_CONTEXT);
-    return mnemonic ? { label: mnemonic, text: m.x86Text.description(mnemonic) } : null;
+    return mnemonic ? { label: mnemonic, text: getSpec(mnemonic).description } : null;
   }
 };

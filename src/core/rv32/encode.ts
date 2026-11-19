@@ -1,5 +1,3 @@
-import type { Said } from '../shared/text';
-import { rv32Said, type Rv32EncodingTextKey, type Rv32Spoken } from './encodingTexts';
 import { formatLabel, type Program } from '../shared/program';
 import { field, fitsSigned, u32 } from './bits';
 import { getSpec, type Format, type Instruction, type Mnemonic } from './instructions';
@@ -22,9 +20,7 @@ export interface EncodedField {
   value: number;
   /** For a piece of the immediate, which of its bits these are: `imm[11:5]`. */
   label: string;
-  /** What the field says, in English, and which sentence that is. */
   note: string;
-  say: Said<Rv32EncodingTextKey>;
 }
 
 export interface Encoding {
@@ -36,7 +32,6 @@ export interface Encoding {
   fields: EncodedField[];
   /** Set when the instruction cannot be encoded as written, e.g. a branch out of range. */
   problem: string | null;
-  problemSay: Said<Rv32EncodingTextKey> | null;
 }
 
 export interface AssembledLine {
@@ -53,18 +48,11 @@ const OPCODE_NAMES = {
   0b1100011: 'BRANCH',
   0b0000011: 'LOAD',
   0b0100011: 'STORE',
-  0b0010011: 'OP-IMM',
-  0b0110011: 'OP'
+  0b0010011: 'OP-IMM: register and immediate',
+  0b0110011: 'OP: register and register'
 } as const;
 
 type Opcode = keyof typeof OPCODE_NAMES;
-
-/** An opcode class says its name, or for the two register classes what they take. */
-function opcodeSaid(opcode: Opcode): Rv32Spoken {
-  if (opcode === 0b0010011) return rv32Said('opcodeOpImm');
-  if (opcode === 0b0110011) return rv32Said('opcodeOp');
-  return rv32Said('opcodeName', { name: OPCODE_NAMES[opcode] });
-}
 
 interface OpcodeSpec {
   opcode: Opcode;
@@ -135,12 +123,12 @@ const IMMEDIATE_PIECES: Record<Exclude<Format, 'R'>, ImmediatePiece[]> = {
   ]
 };
 
-const IMMEDIATE_NOTES: Record<Exclude<Format, 'R'>, Rv32EncodingTextKey> = {
-  I: 'immediateI',
-  S: 'immediateS',
-  B: 'immediateBJ',
-  U: 'immediateU',
-  J: 'immediateBJ'
+const IMMEDIATE_NOTES: Record<Exclude<Format, 'R'>, string> = {
+  I: 'The 12-bit immediate, sign-extended when used',
+  S: 'The 12-bit offset, split around rs1 and rs2 so they stay where every format has them',
+  B: 'The distance to jump, in bytes from this instruction. It is always even, so bit 0 is not stored',
+  U: 'The upper 20 bits of the value; the low 12 are 0',
+  J: 'The distance to jump, in bytes from this instruction. It is always even, so bit 0 is not stored'
 };
 
 type Reg = Extract<Operand, { type: 'reg' }>;
@@ -184,7 +172,7 @@ function registerField(name: 'rd' | 'rs1' | 'rs2', index: number): EncodedField 
     low,
     value: index,
     label: name,
-    ...rv32Said('register', { abi: formatRegister(index), index })
+    note: `${formatRegister(index)} (x${index})`
   };
 }
 
@@ -195,7 +183,7 @@ function immediateFields(format: Exclude<Format, 'R'>, immediate: number): Encod
     low,
     value: field(immediate, from, to),
     label: from === to ? `imm[${from}]` : `imm[${from}:${to}]`,
-    ...rv32Said(IMMEDIATE_NOTES[format])
+    note: IMMEDIATE_NOTES[format]
   }));
 }
 
@@ -211,14 +199,7 @@ function fieldsOf(instruction: Instruction, distance: number): EncodedField[] {
   const { rd, rs1, rs2, immediate = 0 } = slots(instruction, distance);
   const name = mnemonic.toUpperCase();
   const fields: EncodedField[] = [
-    {
-      name: 'opcode',
-      high: 6,
-      low: 0,
-      value: opcode,
-      label: 'opcode',
-      ...opcodeSaid(opcode)
-    }
+    { name: 'opcode', high: 6, low: 0, value: opcode, label: 'opcode', note: OPCODE_NAMES[opcode] }
   ];
   if (rd !== undefined) fields.push(registerField('rd', rd));
   if (funct3 !== undefined) {
@@ -228,7 +209,7 @@ function fieldsOf(instruction: Instruction, distance: number): EncodedField[] {
       low: 12,
       value: funct3,
       label: 'funct3',
-      ...rv32Said('picks', { name })
+      note: `Picks ${name} within its opcode`
     });
   }
   if (rs1 !== undefined) fields.push(registerField('rs1', rs1));
@@ -240,27 +221,27 @@ function fieldsOf(instruction: Instruction, distance: number): EncodedField[] {
       low: 20,
       value: immediate & 31,
       label: 'shamt',
-      ...rv32Said('shiftAmount')
+      note: 'The shift amount, 0 to 31'
     });
   } else if (format !== 'R') {
     fields.push(...immediateFields(format, immediate));
   }
   if (funct7 !== undefined) {
-    const spoken = funct7 === MULDIV ? rv32Said('mulDiv') : rv32Said('picks', { name });
-    fields.push({ name: 'funct7', high: 31, low: 25, value: funct7, label: 'funct7', ...spoken });
+    const note =
+      funct7 === MULDIV
+        ? 'Marks a multiply or divide (the M extension)'
+        : `Picks ${name} within its opcode`;
+    fields.push({ name: 'funct7', high: 31, low: 25, value: funct7, label: 'funct7', note });
   }
   return fields.sort((x, y) => y.high - x.high);
 }
 
 /** Checks a branch or jump distance against what its immediate can hold. */
-function distanceProblem(format: Format, distance: number, target: number): Rv32Spoken | null {
+function distanceProblem(format: Format, distance: number, target: number): string | null {
   const bits = format === 'B' ? 13 : 21;
   if (fitsSigned(distance, bits)) return null;
-  return rv32Said(format === 'B' ? 'outOfRangeBranch' : 'outOfRangeJal', {
-    reach: format === 'B' ? '4 KB' : '1 MB',
-    label: formatLabel(target),
-    distance
-  });
+  const reach = format === 'B' ? '4 KB' : '1 MB';
+  return `Out of range: a ${format === 'B' ? 'branch' : 'JAL'} reaches only ${reach} either way, and ${formatLabel(target)} is ${distance} bytes away`;
 }
 
 function encodeLine(instruction: Instruction, line: number): Encoding {
@@ -269,14 +250,12 @@ function encodeLine(instruction: Instruction, line: number): Encoding {
   const distance = label ? addressOfLine(label.target) - addressOfLine(line) : 0;
   const fields = fieldsOf(instruction, distance);
   const word = u32(fields.reduce((bits, { low, value }) => bits | (value << low), 0));
-  const problem = label ? distanceProblem(format, distance, label.target) : null;
   return {
     word,
     bytes: [0, 8, 16, 24].map((shift) => (word >>> shift) & 0xff),
     format,
     fields,
-    problem: problem?.note ?? null,
-    problemSay: problem?.say ?? null
+    problem: label ? distanceProblem(format, distance, label.target) : null
   };
 }
 

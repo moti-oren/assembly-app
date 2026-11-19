@@ -20,8 +20,7 @@ export type ByteAt = (address: number) => ShownByte;
 
 /** A place the memory panel jumps to. A stack place shows the top of the stack at the bottom. */
 export interface MemoryPlace {
-  /** Which place it is; the panel names it in the interface's language. */
-  id: 'code' | 'data' | 'stack' | 'devices' | 'zeroPage' | 'vectors';
+  label: string;
   start: () => number;
   stack?: boolean;
 }

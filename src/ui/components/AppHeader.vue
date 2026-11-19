@@ -7,23 +7,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
-import { LOCALE_NAMES, LOCALES } from '@/ui/locale';
 import { isApple } from '@/ui/platform';
 import { useComparison } from '@/ui/useComparison';
-import { useLocale } from '@/ui/useLocale';
 import { usePreferences } from '@/ui/usePreferences';
 
 defineProps<{
   /** The example programs of the architecture on show, by name. */
-  examples: readonly { id: string }[];
+  examples: readonly { name: string; description: string }[];
 }>();
 defineEmits<{ loadExample: [index: number]; commands: [] }>();
 /** The examples menu, which the empty program panel can also open. */
@@ -32,7 +28,6 @@ const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 const { isDark, soundOn, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
   usePreferences();
 const { open: comparisonOpen } = useComparison();
-const { locale, t } = useLocale();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
 const shortcut = isApple ? '⌘K' : 'Ctrl K';
@@ -58,11 +53,7 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
         <h1 class="truncate text-base font-semibold tracking-tight">CPU Playground</h1>
       </div>
       <!-- Each CPU keeps its own program and history, so switching back finds them as they were. -->
-      <div
-        class="flex shrink-0 rounded-md border p-0.5"
-        role="group"
-        :aria-label="t.header.architecture"
-      >
+      <div class="flex shrink-0 rounded-md border p-0.5" role="group" aria-label="Architecture">
         <Button
           v-for="choice in ARCHITECTURE_CHOICES"
           :key="choice.id"
@@ -77,17 +68,17 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
         </Button>
       </div>
 
-      <div class="ms-auto flex items-center gap-1">
+      <div class="ml-auto flex items-center gap-1">
         <Button
           variant="outline"
           size="sm"
-          class="me-1 text-muted-foreground pointer-coarse:h-11"
-          :aria-label="t.header.commands"
+          class="mr-1 text-muted-foreground pointer-coarse:h-11"
+          aria-label="Commands"
           aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"
         >
           <Search />
-          <span class="hidden sm:inline">{{ t.header.commands }}</span>
+          <span class="hidden sm:inline">Commands</span>
           <Kbd class="hidden sm:inline-flex">{{ shortcut }}</Kbd>
         </Button>
         <!-- Narrower headers have no room for it: there the palette opens the comparison. -->
@@ -97,42 +88,35 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
               variant="ghost"
               size="sm"
               class="hidden pointer-coarse:h-11 lg:inline-flex"
-              :aria-label="t.header.compareLabel"
+              aria-label="Compare the CPUs"
               @click="comparisonOpen = true"
             >
               <Columns3 />
-              <span>{{ t.header.compare }}</span>
+              <span>Compare</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{{ t.header.compareHint }}</TooltipContent>
+          <TooltipContent>The same task on all three CPUs, side by side</TooltipContent>
         </Tooltip>
         <DropdownMenu v-model:open="examplesOpen">
           <DropdownMenuTrigger as-child>
-            <Button
-              variant="ghost"
-              size="sm"
-              class="pointer-coarse:h-11"
-              :aria-label="t.header.examples"
-            >
+            <Button variant="ghost" size="sm" class="pointer-coarse:h-11" aria-label="Examples">
               <BookOpen />
-              <span class="hidden sm:inline">{{ t.header.examples }}</span>
+              <span class="hidden sm:inline">Examples</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-72">
             <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">
-              {{ t.header.examplesHint }}
+              Replaces your program and clears the CPU and its history
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               v-for="(example, index) in examples"
-              :key="example.id"
+              :key="example.name"
               class="flex-col items-start gap-0.5"
               @select="$emit('loadExample', index)"
             >
-              <span class="font-medium">{{ t.examples.name(architecture, example.id) }}</span>
-              <span class="text-xs text-muted-foreground">{{
-                t.examples.description(architecture, example.id)
-              }}</span>
+              <span class="font-medium">{{ example.name }}</span>
+              <span class="text-xs text-muted-foreground">{{ example.description }}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -145,18 +129,16 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
               variant="ghost"
               size="icon-sm"
               class="pointer-coarse:size-11"
-              :aria-label="t.header.settings"
-              :title="t.header.settings"
+              aria-label="Settings"
+              title="Settings"
             >
               <Settings2 />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-56">
-            <DropdownMenuCheckboxItem v-model="soundOn">{{
-              t.header.sound
-            }}</DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem v-model="soundOn">Sound</DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem :model-value="isDark" @update:model-value="toggleTheme">
-              {{ t.header.darkTheme }}
+              Dark theme
             </DropdownMenuCheckboxItem>
             <!-- While the system asks for less motion, the app's own setting cannot bring it back. -->
             <DropdownMenuCheckboxItem
@@ -164,23 +146,8 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
               :disabled="systemReducesMotion"
               @update:model-value="reduceMotion = !reduceMotion"
             >
-              {{ t.header.reduceAnimations }}
+              Reduce animations
             </DropdownMenuCheckboxItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">
-              {{ t.language.label }}
-            </DropdownMenuLabel>
-            <!-- Each language named in itself, so a reader of either one can find their own. -->
-            <DropdownMenuRadioGroup v-model="locale">
-              <DropdownMenuRadioItem
-                v-for="option in LOCALES"
-                :key="option"
-                :value="option"
-                :lang="option"
-              >
-                {{ LOCALE_NAMES[option] }}
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

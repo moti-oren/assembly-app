@@ -2,9 +2,6 @@
 import { formatInstruction } from '@/core/x86/instructions';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import DiagramWire from './DiagramWire.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 defineProps<{ model: CpuDiagramModel }>();
 </script>
@@ -23,7 +20,7 @@ defineProps<{ model: CpuDiagramModel }>();
             ? formatInstruction(model.shown.instruction)
             : model.pending
               ? model.pending.phase
-              : t.cycle.idle
+              : 'idle'
         }}</span>
       </div>
       <div
@@ -31,21 +28,21 @@ defineProps<{ model: CpuDiagramModel }>();
         class="mt-2 grid grid-cols-[auto_auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
       >
         <span />
-        <span class="text-end">{{ model.equation.left }}</span>
+        <span class="text-right">{{ model.equation.left }}</span>
         <span />
         <span class="text-muted-foreground">{{ model.equation.operator }}</span>
-        <span class="text-end">{{ model.equation.right }}</span>
+        <span class="text-right">{{ model.equation.right }}</span>
         <span />
         <template v-if="model.equation.carry !== null">
           <span class="text-muted-foreground">{{ model.equation.operator }}</span>
-          <span class="text-end">{{ model.equation.carry }}</span>
+          <span class="text-right">{{ model.equation.carry }}</span>
           <span class="font-sans text-xs text-muted-foreground">CF</span>
         </template>
         <span class="col-span-2 my-0.5 border-t border-foreground/25" />
         <span />
         <span class="text-muted-foreground">=</span>
         <span
-          class="-mx-1 rounded-sm px-1 text-end font-semibold"
+          class="-mx-1 rounded-sm px-1 text-right font-semibold"
           :class="
             model.equation.discarded
               ? 'text-muted-foreground line-through decoration-1'
@@ -56,12 +53,12 @@ defineProps<{ model: CpuDiagramModel }>();
         <span class="truncate font-sans text-xs text-muted-foreground">
           {{
             model.equation.discarded
-              ? t.operation.flagsOnly
-              : t.operation.into(model.equation.destination)
+              ? 'only the flags are kept'
+              : `into ${model.equation.destination}`
           }}
         </span>
       </div>
-      <p v-else class="ui-text mt-2 text-xs text-muted-foreground">{{ model.notes.alu }}</p>
+      <p v-else class="mt-2 text-xs text-muted-foreground">{{ model.notes.alu }}</p>
     </div>
     <!-- Operands come in off the bus; the result goes back onto it. -->
     <div class="hidden w-5 flex-col justify-center gap-4 sm:flex" aria-hidden="true">

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { execute } from './execute';
-import { explainFlag as explain } from './flagReasons';
+import { explainFlag } from './flagReasons';
 import { FLAG_NAMES } from './flags';
 import type { Mnemonic } from './instructions';
 import type { Operand } from './operands';
@@ -9,12 +9,6 @@ import { createCpuState, getFlag, setFlag, writeRegister, type CpuState } from '
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
-
-/** What the reader sees: the value and the English sentence, without how it is built. */
-function explainFlag(record: Parameters<typeof explain>[0], flag: Parameters<typeof explain>[1]) {
-  const { value, text } = explain(record, flag);
-  return { value, text };
-}
 
 let cpu: CpuState;
 
@@ -97,7 +91,7 @@ describe('explainFlag', () => {
     const record = run('add', reg('ax'), imm(3));
     expect(explainFlag(record, 'PF')).toEqual({
       value: true,
-      text: 'Only the low byte counts: the number of 1 bits in 0000 0011 is 2, an even number.'
+      text: 'Only the low byte counts: 0000 0011 has 2 one bits, an even number.'
     });
   });
 

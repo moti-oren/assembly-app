@@ -1,4 +1,4 @@
-import { cpuError } from '../shared/cpuError';
+import { CpuError } from '../shared/cpuError';
 import type { Program } from '../shared/program';
 import { readPort, writePort, type MemoryWrite, type PortWrite } from '../shared/state';
 import { codeByte } from './encode';
@@ -46,10 +46,10 @@ export function writeByte(
       return { memoryWrites: [], portWrites: [writePort(state, at - DEVICE_BASE, value)] };
     case 'code': {
       const line = lineAt(program, at);
-      const address = `$${hex(at, 4)}`;
-      throw line === null
-        ? cpuError('writeIntoCodeMiddle', { address })
-        : cpuError('writeIntoCodeLine', { address, line: `L${line}` });
+      const where = line === null ? 'the middle of a line' : `L${line}`;
+      throw new CpuError(
+        `Write into code: $${hex(at, 4)} is ${where} of the program. This playground runs the program as a list of lines, so a program cannot change its own code.`
+      );
     }
     case 'ram': {
       const before = state.memory[at];

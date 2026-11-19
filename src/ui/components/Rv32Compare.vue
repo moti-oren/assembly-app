@@ -5,9 +5,6 @@ import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
 import type { CpuState } from '@/core/rv32/state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { aluEquation, describeComparison } from '@/ui/rv32Explain';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -16,7 +13,7 @@ const props = defineProps<{
 }>();
 
 const comparison = computed(
-  () => props.record && describeComparison(t.value, props.record, props.state, props.program)
+  () => props.record && describeComparison(props.record, props.state, props.program)
 );
 
 /** SLT and its kin compare too, but leave the answer in a register instead of jumping. */
@@ -24,7 +21,7 @@ const setLessThan = computed(() => {
   const operation = props.record?.alu?.operation;
   const isCompare = operation === 'slt' || operation === 'sltu';
   return isCompare && props.record?.instruction.mnemonic.startsWith('slt')
-    ? aluEquation(t.value, props.record)
+    ? aluEquation(props.record)
     : null;
 });
 </script>
@@ -33,19 +30,18 @@ const setLessThan = computed(() => {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.rv32.noFlags }}</CardTitle>
-      <CardDescription class="ui-text">
-        {{ t.rv32.noFlagsBefore }} (<span class="font-mono">beq</span>,
-        <span class="font-mono">blt</span>, <span class="font-mono">bltu</span>…){{
-          t.rv32.noFlagsMiddle
-        }}
-        <span class="font-mono">slt</span> {{ t.rv32.noFlagsAfter }}
+      <CardTitle class="group-data-[size=sm]/card:text-base">No flags</CardTitle>
+      <CardDescription>
+        RISC-V keeps no flags. A branch compares two registers itself (<span class="font-mono"
+          >beq</span
+        >, <span class="font-mono">blt</span>, <span class="font-mono">bltu</span>…), and
+        <span class="font-mono">slt</span> puts a comparison's answer, 1 or 0, in a register.
       </CardDescription>
     </CardHeader>
     <CardContent class="font-mono text-code">
       <div v-if="comparison" class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span class="font-semibold">{{ formatInstruction(record!.instruction) }}</span>
-        <span class="ms-auto">{{ comparison.left }}</span>
+        <span class="ml-auto">{{ comparison.left }}</span>
         <span class="text-muted-foreground">{{ comparison.operator }}</span>
         <span>{{ comparison.right }}</span>
         <span class="text-muted-foreground">?</span>
@@ -54,13 +50,13 @@ const setLessThan = computed(() => {
           :class="comparison.taken ? 'bg-changed text-changed-foreground' : 'bg-muted'"
           >{{ comparison.outcome }}</span
         >
-        <span class="w-full text-end font-sans text-xs text-muted-foreground">
-          {{ t.rv32.compared(comparison.how) }}
+        <span class="w-full text-right font-sans text-xs text-muted-foreground">
+          compared {{ comparison.how }}
         </span>
       </div>
       <div v-else-if="setLessThan" class="flex flex-wrap items-baseline gap-x-2">
         <span class="font-semibold">{{ formatInstruction(record!.instruction) }}</span>
-        <span class="ms-auto">{{ setLessThan.left }}</span>
+        <span class="ml-auto">{{ setLessThan.left }}</span>
         <span class="text-muted-foreground">&lt;</span>
         <span>{{ setLessThan.right }}</span>
         <span class="text-muted-foreground">?</span>
@@ -72,7 +68,11 @@ const setLessThan = computed(() => {
         </span>
       </div>
       <p v-else class="font-sans text-xs text-muted-foreground">
-        {{ record ? t.rv32.comparedNothing : t.rv32.runBranch }}
+        {{
+          record
+            ? 'The last instruction compared nothing.'
+            : 'Run a branch to see what it compares.'
+        }}
       </p>
     </CardContent>
   </Card>

@@ -7,8 +7,7 @@ import {
   matchingForms,
   type Category,
   type Instruction,
-  type Mnemonic,
-  type RepeatPrefix
+  type Mnemonic
 } from './instructions';
 import type { Size } from '../shared/numbers';
 import { formatOperand, memorySegment, type OperandKind } from './operands';
@@ -43,8 +42,6 @@ export interface DecodedOperand {
 /** What the control unit learns from an instruction before running it. */
 export interface Decoded {
   mnemonic: Mnemonic;
-  /** The REP, REPE or REPNE before a string instruction, if it has one. */
-  prefix: RepeatPrefix | null;
   category: Category;
   description: string;
   /** Operand size in bits; null when no operand has a size (jumps, flag control). */
@@ -252,7 +249,6 @@ export function decode(instruction: Instruction): Decoded {
 
   return {
     mnemonic,
-    prefix: prefix ?? null,
     category,
     description: prefix ? `${REPEAT_PREFIXES[prefix]}: ${spec.description}` : spec.description,
     size,

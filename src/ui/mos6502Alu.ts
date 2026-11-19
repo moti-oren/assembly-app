@@ -1,6 +1,5 @@
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { FLAG_NAMES, type FlagName } from '@/core/mos6502/state';
-import type { Messages } from './messages/en';
 import { byteHex, wordHex } from './mos6502Explain';
 
 /** What the ALU computed, written as a sum. */
@@ -19,24 +18,22 @@ export interface AluEquation {
 const LOGIC: Record<string, string> = { and: 'AND', ora: 'OR', eor: 'XOR' };
 const SHIFTS: Record<string, string> = { asl: '<< 1', lsr: '>> 1', rol: '<< 1 ⟲', ror: '>> 1 ⟲' };
 
-function destinationOf(m: Messages, record: ExecutionRecord): string {
-  const a = m.mos6502Alu;
+function destinationOf(record: ExecutionRecord): string {
   const { mnemonic, operands } = record.instruction;
-  if (['cmp', 'cpx', 'cpy', 'bit'].includes(mnemonic)) return a.flagsOnly;
-  if (['inx', 'dex'].includes(mnemonic)) return a.into('X');
-  if (['iny', 'dey'].includes(mnemonic)) return a.into('Y');
+  if (['cmp', 'cpx', 'cpy', 'bit'].includes(mnemonic)) return 'only the flags are kept';
+  if (['inx', 'dex'].includes(mnemonic)) return 'into X';
+  if (['iny', 'dey'].includes(mnemonic)) return 'into Y';
   const inMemory = record.access?.write && operands[0] && operands[0].type !== 'acc';
-  return inMemory ? a.backTo(wordHex(record.access!.address)) : a.into('A');
+  return inMemory ? `back to ${wordHex(record.access!.address)}` : 'into A';
 }
 
-export function aluEquation(m: Messages, record: ExecutionRecord): AluEquation | null {
-  const a = m.mos6502Alu;
+export function aluEquation(record: ExecutionRecord): AluEquation | null {
   const { alu, instruction } = record;
   if (!alu) return null;
   const { mnemonic } = instruction;
   const result = byteHex(alu.result.result);
-  const destination = destinationOf(m, record);
-  const decimal = alu.decimal ? a.decimal : null;
+  const destination = destinationOf(record);
+  const decimal = alu.decimal ? 'decimal (BCD) digits' : null;
   switch (alu.operation) {
     case 'add':
       return {
@@ -56,7 +53,7 @@ export function aluEquation(m: Messages, record: ExecutionRecord): AluEquation |
         carry: alu.carryIn ? '0' : '1',
         result,
         destination,
-        note: decimal ?? a.borrow
+        note: decimal ?? 'the carry in is 1 − C, the borrow'
       };
     case 'compare':
       return {
@@ -86,7 +83,7 @@ export function aluEquation(m: Messages, record: ExecutionRecord): AluEquation |
         carry: null,
         result,
         destination,
-        note: a.bitNote
+        note: 'N and V come from the byte itself'
       };
     case 'shift':
       return {
@@ -96,7 +93,7 @@ export function aluEquation(m: Messages, record: ExecutionRecord): AluEquation |
         carry: null,
         result,
         destination,
-        note: mnemonic.startsWith('ro') ? a.rotate(alu.carryIn ? 1 : 0) : null
+        note: mnemonic.startsWith('ro') ? `C goes in (was ${alu.carryIn ? 1 : 0})` : null
       };
     case 'step':
       return {
@@ -106,84 +103,73 @@ export function aluEquation(m: Messages, record: ExecutionRecord): AluEquation |
         carry: null,
         result,
         destination,
-        note: a.carryAlone
+        note: 'C is left alone'
       };
   }
 }
 
 /** Instructions that set flags without the ALU: which flags, and why. */
-type DirectMnemonic = keyof Messages['mos6502Alu']['direct'];
-
-const SET_DIRECTLY: Record<DirectMnemonic, readonly FlagName[]> = {
-  clc: ['C'],
-  sec: ['C'],
-  cli: ['I'],
-  sei: ['I'],
-  cld: ['D'],
-  sed: ['D'],
-  clv: ['V'],
-  brk: ['I'],
-  plp: FLAG_NAMES,
-  rti: FLAG_NAMES
+const SET_DIRECTLY: Partial<Record<string, { flags: readonly FlagName[]; text: string }>> = {
+  clc: { flags: ['C'], text: 'CLC cleared C' },
+  sec: { flags: ['C'], text: 'SEC set C' },
+  cli: { flags: ['I'], text: 'CLI cleared I: interrupts can come in' },
+  sei: { flags: ['I'], text: 'SEI set I: interrupts are held off' },
+  cld: { flags: ['D'], text: 'CLD cleared D: binary arithmetic' },
+  sed: { flags: ['D'], text: 'SED set D: ADC and SBC work in decimal' },
+  clv: { flags: ['V'], text: 'CLV cleared V' },
+  brk: { flags: ['I'], text: 'BRK set I, so another interrupt waits' },
+  plp: { flags: FLAG_NAMES, text: 'PLP pulled P from the stack' },
+  rti: { flags: FLAG_NAMES, text: 'RTI pulled P from the stack' }
 };
 
-function isDirect(mnemonic: string): mnemonic is DirectMnemonic {
-  return mnemonic in SET_DIRECTLY;
-}
-
 /** Why the last instruction left `flag` as it is, or null when it did not set it. */
-export function flagReason(m: Messages, record: ExecutionRecord, flag: FlagName): string | null {
-  const { mnemonic } = record.instruction;
-  if (isDirect(mnemonic)) {
-    return SET_DIRECTLY[mnemonic].includes(flag) ? m.mos6502Alu.direct[mnemonic] : null;
-  }
+export function flagReason(record: ExecutionRecord, flag: FlagName): string | null {
+  const direct = SET_DIRECTLY[record.instruction.mnemonic];
+  if (direct) return direct.flags.includes(flag) ? direct.text : null;
   const { alu } = record;
   if (!alu) return null;
-  return aluFlagReason(m, alu, flag);
-}
-
-/** Why the ALU set `flag` as it did. */
-function aluFlagReason(
-  m: Messages,
-  alu: NonNullable<ExecutionRecord['alu']>,
-  flag: FlagName
-): string | null {
-  const a = m.mos6502Alu;
   const { result } = alu;
   const value = byteHex(result.result);
   switch (flag) {
     case 'N':
-      if (alu.operation === 'bit') return a.bit7OfByte(Number(result.negative));
-      if (alu.decimal) return a.decimalNV;
-      return a.bit7Of(value, Number(result.negative));
+      if (alu.operation === 'bit') return `bit 7 of the byte is ${Number(result.negative)}`;
+      if (alu.decimal)
+        return `in decimal mode the NMOS 6502 takes N from the sum before its high digit is adjusted`;
+      return `bit 7 of ${value} is ${Number(result.negative)}`;
     case 'Z':
-      if (alu.operation === 'bit') return a.andByte(value, result.zero);
-      if (alu.decimal && alu.operation === 'add') return a.decimalZ(value);
-      return result.zero ? a.zero(value) : a.notZero(value);
+      if (alu.operation === 'bit')
+        return `A AND the byte is ${value}${result.zero ? ': zero' : ''}`;
+      if (alu.decimal && alu.operation === 'add')
+        return `in decimal mode the NMOS 6502 takes Z from the binary sum, not from ${value}`;
+      return result.zero ? `the result ${value} is zero` : `the result ${value} is not zero`;
     case 'C':
       if (alu.operation === 'compare')
         return result.carry
-          ? a.atLeast(byteHex(alu.a), byteHex(alu.b))
-          : a.below(byteHex(alu.a), byteHex(alu.b));
-      if (alu.operation === 'subtract') return result.carry ? a.noBorrow : a.borrowed;
-      if (alu.operation === 'shift') return a.shiftedOut(Number(result.carry));
-      if (alu.operation === 'add') return result.carry ? a.carried : a.fit;
+          ? `${byteHex(alu.a)} ≥ ${byteHex(alu.b)} (unsigned)`
+          : `${byteHex(alu.a)} < ${byteHex(alu.b)} (unsigned)`;
+      if (alu.operation === 'subtract')
+        return result.carry ? 'no borrow was needed' : 'a borrow was needed';
+      if (alu.operation === 'shift') return `the bit shifted out was ${Number(result.carry)}`;
+      if (alu.operation === 'add')
+        return result.carry ? 'the sum carried out of bit 7' : 'the sum fit in 8 bits';
       return null;
     case 'V':
-      if (alu.operation === 'bit') return a.bit6(Number(result.overflow));
+      if (alu.operation === 'bit') return `bit 6 of the byte is ${Number(result.overflow)}`;
       if (alu.operation !== 'add' && alu.operation !== 'subtract') return null;
-      if (alu.decimal) return a.decimalV;
-      return result.overflow ? a.overflowed : a.fits;
+      if (alu.decimal)
+        return 'in decimal mode the NMOS 6502 takes V from the sum before its high digit is adjusted';
+      return result.overflow
+        ? 'as signed numbers the result does not fit: it overflowed'
+        : 'as signed numbers the result fits';
     default:
       return null;
   }
 }
 
 /** The equation on one line: `$19 + $01 + 1 (C) = $1B`, `$20 − $01 − 1 (borrow) = $1E`. */
-export function equationText(m: Messages, equation: AluEquation): string {
+export function equationText(equation: AluEquation): string {
   const { left, operator, right, carry, result } = equation;
   const operand = right ? ` ${operator} ${right}` : ` ${operator}`;
-  const extra =
-    carry === '1' ? (operator === '−' ? ` − 1 ${m.mos6502Alu.borrowMark}` : ' + 1 (C)') : '';
+  const extra = carry === '1' ? (operator === '−' ? ' − 1 (borrow)' : ' + 1 (C)') : '';
   return `${left}${operand}${extra} = ${result}`;
 }

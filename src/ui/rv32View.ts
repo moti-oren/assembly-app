@@ -23,6 +23,20 @@ export interface RegisterRow {
 
 const ROLE_ORDER: RegisterRole[] = ['special', 'argument', 'temporary', 'saved'];
 
+export const ROLE_LABELS: Record<RegisterRole, string> = {
+  special: 'Special',
+  argument: 'Arguments',
+  temporary: 'Temporaries',
+  saved: 'Saved'
+};
+
+export const ROLE_DESCRIPTIONS: Record<RegisterRole, string> = {
+  special: 'zero always reads 0; ra holds the return address, sp the top of the stack',
+  argument: 'Arguments of a call, and its results in a0 and a1. A call may change them',
+  temporary: 'Free to use; a call may change them',
+  saved: 'A function that uses them must put them back before it returns'
+};
+
 /**
  * The registers in groups by what the calling convention uses them for. The special ones keep
  * their numbers' order (zero, ra, sp, gp, tp); the others go by name, t0 to t6 and so on.
@@ -46,10 +60,10 @@ export function wasWritten(record: ExecutionRecord | null, index: number): boole
 /** Where the RISC-V memory panel can jump to. */
 export function rv32MemoryPlaces(state: CpuState): MemoryPlace[] {
   return [
-    { id: 'code', start: () => CODE_BASE },
-    { id: 'data', start: () => DATA_BASE },
-    { id: 'stack', start: () => readRegister(state, SP), stack: true },
-    { id: 'devices', start: () => DEVICE_BASE }
+    { label: 'Code', start: () => CODE_BASE },
+    { label: 'Data', start: () => DATA_BASE },
+    { label: 'Stack', start: () => readRegister(state, SP), stack: true },
+    { label: 'Devices', start: () => DEVICE_BASE }
   ];
 }
 

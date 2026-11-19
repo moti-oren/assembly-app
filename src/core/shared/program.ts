@@ -1,4 +1,4 @@
-import { CpuError, cpuError } from './cpuError';
+import { CpuError } from './cpuError';
 import type { ExecutionRecord } from './executionRecord';
 
 /**
@@ -51,7 +51,9 @@ const MAX_STEPS = 10_000;
 export const MAX_RUN_WRITES = 1_000_000;
 
 export function tooManyWrites(maxWrites = MAX_RUN_WRITES): CpuError {
-  return cpuError('tooManyWrites', { count: maxWrites });
+  return new CpuError(
+    `Stopped after ${maxWrites} memory writes, which usually means an endless loop. Use Step to see which jump keeps repeating.`
+  );
 }
 
 export function isLabel(operand: { readonly type: string }): operand is LabelOperand {
@@ -114,7 +116,7 @@ export function isFinished<I, S>(
 export function step<I, S, R>(cpu: LineRunner<I, S, R>, state: S, program: Program<I>): R {
   const line = cpu.nextLine(state, program);
   if (line >= program.length) {
-    throw cpuError('endOfProgram');
+    throw new CpuError('End of program: there is no line at the instruction pointer');
   }
   return cpu.execute(state, program[line], line, program);
 }
@@ -136,7 +138,9 @@ export function runToEnd<I, S, R extends ExecutionRecord>(
     if (records.length >= maxSteps) {
       return {
         records,
-        error: cpuError('tooManySteps', { count: maxSteps })
+        error: new CpuError(
+          `Stopped after ${maxSteps} steps, which usually means an endless loop. Use Step to see which jump keeps repeating.`
+        )
       };
     }
     if (writes >= maxWrites) {

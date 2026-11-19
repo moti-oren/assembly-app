@@ -6,7 +6,6 @@ import type { ExecutionRecord } from '@/core/rv32/execute';
 import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
 import { formatRegister } from '@/core/rv32/operands';
 import { addressOfLine, lineAt, readRegister, type CpuState } from '@/core/rv32/state';
-import type { Messages } from './messages/en';
 import { aluEquation, describeAccess, describeComparison, hex } from './rv32Explain';
 
 /** How a stage or a register took part: read, written, or not at all. */
@@ -41,7 +40,7 @@ export interface DatapathInput {
   pending: { phase: 'fetch' | 'decode'; line: number; instruction: Instruction } | null;
 }
 
-const idle = (m: Messages): StageView => ({ use: undefined, text: m.datapath.idle });
+const IDLE: StageView = { use: undefined, text: 'idle' };
 
 function fields(decoded: Decoded): { name: string; value: string }[] {
   const list: { name: string; value: string }[] = [{ name: 'format', value: decoded.format }];
@@ -52,51 +51,51 @@ function fields(decoded: Decoded): { name: string; value: string }[] {
   return list;
 }
 
-function fetchStage(m: Messages, input: DatapathInput, line: number | null): StageView {
-  if (line === null) return { use: undefined, text: m.datapath.direct };
+function fetchStage(input: DatapathInput, line: number | null): StageView {
+  if (line === null) return { use: undefined, text: 'run directly: nothing fetched' };
   const word = line < input.program.length ? hex(wordAt(input.program, line)) : '';
   return { use: 'read', text: `PC ${hex(addressOfLine(line))} → ${formatLabel(line)}: ${word}` };
 }
 
+const SOURCES: Record<NonNullable<Decoded['writeBack']>, string> = {
+  alu: "the ALU's result",
+  memory: 'the loaded value',
+  link: 'the link, PC + 4',
+  immediate: 'the upper immediate'
+};
+
 /** What the stages will do, worked out from the instruction alone. */
 function planned(
-  m: Messages,
   decoded: Decoded
 ): Pick<DatapathView, 'execute' | 'memory' | 'writeBack' | 'nextPc'> {
   const { alu, memory, writeBack, rd, nextPc } = decoded;
-  const IDLE = idle(m);
   const input = (name: string) => (name === 'pc' ? 'PC' : name);
   return {
     execute: alu
       ? { use: 'read', text: `A = ${input(alu.a)}, B = ${alu.b === 'rs2' ? 'rs2' : 'imm'}` }
       : IDLE,
-    memory: memory ? { use: 'read', text: m.datapath.willAccess(memory.access) } : IDLE,
+    memory: memory ? { use: 'read', text: `will ${memory.access}` } : IDLE,
     writeBack:
       writeBack && rd !== 0 && rd !== null
-        ? {
-            use: 'read',
-            text: `${m.common.code(`${formatRegister(rd)} ←`)} ${m.datapath.sources[writeBack]}`
-          }
+        ? { use: 'read', text: `${formatRegister(rd)} ← ${SOURCES[writeBack]}` }
         : IDLE,
     nextPc: {
       use: 'read',
       text:
-        nextPc === 'branch' ? m.datapath.depends : nextPc === 'jump' ? m.datapath.jumps : 'PC + 4'
+        nextPc === 'branch' ? 'depends on the comparison' : nextPc === 'jump' ? 'jumps' : 'PC + 4'
     }
   };
 }
 
 /** What the stages did, from the record of the instruction that ran. */
 function executed(
-  m: Messages,
   input: DatapathInput,
   record: ExecutionRecord,
   decoded: Decoded
 ): Pick<DatapathView, 'execute' | 'memory' | 'writeBack' | 'nextPc'> {
-  const IDLE = idle(m);
-  const equation = aluEquation(m, record);
-  const access = describeAccess(m, record);
-  const comparison = describeComparison(m, record, input.state, input.program);
+  const equation = aluEquation(record);
+  const access = describeAccess(record);
+  const comparison = describeComparison(record, input.state, input.program);
   const { pc } = input.state.registers;
   const line = lineAt(pc, input.program.length);
   const at = line === null ? hex(pc) : `${hex(pc)} (${formatLabel(line)})`;
@@ -113,21 +112,20 @@ function executed(
       written !== undefined && decoded.writeBack
         ? {
             use: 'write',
-            text: `${m.common.code(`${formatRegister(written)} ← ${hex(readRegister(input.state, written))}`)}, ${m.datapath.sources[decoded.writeBack]}`
+            text: `${formatRegister(written)} ← ${hex(readRegister(input.state, written))}, ${SOURCES[decoded.writeBack]}`
           }
         : IDLE,
     nextPc: comparison
       ? {
           use: comparison.taken ? 'write' : 'read',
-          text: `${m.common.code(`${comparison.left} ${comparison.operator} ${comparison.right}`)}: ${comparison.outcome}`
+          text: `${comparison.left} ${comparison.operator} ${comparison.right}: ${comparison.outcome}`
         }
       : { use: decoded.nextPc === 'jump' ? 'write' : 'read', text: `PC = ${at}` }
   };
 }
 
-export function datapathView(m: Messages, input: DatapathInput): DatapathView {
+export function datapathView(input: DatapathInput): DatapathView {
   const { record, pending } = input;
-  const IDLE = idle(m);
   const instruction = pending?.instruction ?? record?.instruction ?? null;
   if (!instruction) {
     return {
@@ -144,7 +142,7 @@ export function datapathView(m: Messages, input: DatapathInput): DatapathView {
   }
   const decoded = decode(instruction);
   const line = pending ? pending.line : (record?.line ?? null);
-  const fetch = fetchStage(m, input, line);
+  const fetch = fetchStage(input, line);
   // Fetch only reads the word at PC; the control unit knows nothing more yet.
   if (pending?.phase === 'fetch') {
     return {
@@ -159,15 +157,11 @@ export function datapathView(m: Messages, input: DatapathInput): DatapathView {
       writes: []
     };
   }
-  const stages = pending ? planned(m, decoded) : executed(m, input, record!, decoded);
+  const stages = pending ? planned(decoded) : executed(input, record!, decoded);
   return {
     instruction: formatInstruction(instruction),
     fetch,
-    decode: {
-      use: 'read',
-      text: m.rv32Text.description(instruction.mnemonic),
-      fields: fields(decoded)
-    },
+    decode: { use: 'read', text: decoded.description, fields: fields(decoded) },
     ...stages,
     reads: decoded.reads,
     writes: pending ? [] : decoded.writes

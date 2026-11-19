@@ -13,9 +13,6 @@ import CpuViewToggle from './CpuViewToggle.vue';
 import DatapathStage from './DatapathStage.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
-import { useLocale } from '@/ui/useLocale';
-
-const { t } = useLocale();
 
 const props = defineProps<{
   state: CpuState;
@@ -29,7 +26,7 @@ const props = defineProps<{
 }>();
 
 const view = computed(() =>
-  datapathView(t.value, {
+  datapathView({
     state: props.state,
     program: props.program,
     record: props.pending ? null : props.record,
@@ -68,25 +65,23 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-pointer" aria-hidden="true" />
-          {{ t.diagram.read }}
+          read
         </span>
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-written" aria-hidden="true" />
-          {{ t.diagram.written }}
+          written
         </span>
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
 
-    <CardContent dir="ltr" class="@container flex flex-col gap-3">
+    <CardContent class="@container flex flex-col gap-3">
       <!-- The register file: 32 registers with two read ports (rs1, rs2) and one write port (rd). -->
       <section
         class="rounded-xl border border-foreground/20 bg-inset p-2.5"
-        :aria-label="t.rv32.registerFile"
+        aria-label="Register file"
       >
-        <h3 class="unit-title">
-          {{ t.rv32.registerFile }} <span>{{ t.diagram.unitTag('x0–x31') }}</span>
-        </h3>
+        <h3 class="unit-title">Register file <span>x0–x31</span></h3>
         <div
           class="mt-1.5 grid gap-x-4 font-mono text-code @min-[30rem]:grid-cols-2 @min-[46rem]:grid-cols-4"
         >
@@ -111,8 +106,8 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
 
       <!-- The five stages every instruction goes through, left to right as in a datapath drawing. -->
       <div class="grid items-stretch gap-2 @min-[46rem]:grid-cols-[repeat(5,minmax(0,1fr))]">
-        <DatapathStage :title="t.rv32.stages.fetch" tag="IF" :stage="view.fetch" :tick="pulse" />
-        <DatapathStage :title="t.rv32.stages.decode" tag="ID" :stage="view.decode" :tick="pulse">
+        <DatapathStage title="Fetch" tag="IF" :stage="view.fetch" :tick="pulse" />
+        <DatapathStage title="Decode" tag="ID" :stage="view.decode" :tick="pulse">
           <dl v-if="view.decode.fields.length" class="mt-1 flex flex-wrap gap-1 font-mono text-2xs">
             <div
               v-for="field in view.decode.fields"
@@ -120,34 +115,18 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
               class="rounded-sm bg-muted px-1"
             >
               <dt class="inline text-muted-foreground">{{ field.name }}</dt>
-              <dd class="ms-1 inline">{{ field.value }}</dd>
+              <dd class="ml-1 inline">{{ field.value }}</dd>
             </div>
           </dl>
         </DatapathStage>
-        <DatapathStage
-          :title="t.rv32.stages.execute"
-          tag="EX · ALU"
-          :stage="view.execute"
-          :tick="pulse"
-        />
-        <DatapathStage :title="t.rv32.stages.memory" tag="MEM" :stage="view.memory" :tick="pulse" />
-        <DatapathStage
-          :title="t.rv32.stages.writeBack"
-          tag="WB"
-          :stage="view.writeBack"
-          :tick="pulse"
-        />
+        <DatapathStage title="Execute" tag="EX · ALU" :stage="view.execute" :tick="pulse" />
+        <DatapathStage title="Memory" tag="MEM" :stage="view.memory" :tick="pulse" />
+        <DatapathStage title="Write back" tag="WB" :stage="view.writeBack" :tick="pulse" />
       </div>
 
       <div class="flex items-center gap-2">
         <DiagramWire class="w-5 shrink-0" :kind="view.nextPc.use" :tick="pulse" />
-        <DatapathStage
-          class="flex-1"
-          :title="t.rv32.stages.nextPc"
-          tag="pc"
-          :stage="view.nextPc"
-          :tick="pulse"
-        />
+        <DatapathStage class="flex-1" title="Next PC" tag="pc" :stage="view.nextPc" :tick="pulse" />
       </div>
     </CardContent>
   </Card>

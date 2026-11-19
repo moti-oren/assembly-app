@@ -1,4 +1,4 @@
-import { cpuError } from '../shared/cpuError';
+import { CpuError } from '../shared/cpuError';
 import { undo, type ExecutionRecord as SharedRecord } from '../shared/executionRecord';
 import { snapshot } from '../shared/state';
 import { DIVIDE_ERROR_INTERRUPT, ExecutionContext, type AluTrace } from './executionContext';
@@ -36,10 +36,9 @@ export function execute(
   line: number | null = null
 ): ExecutionRecord {
   if (!isValid(instruction)) {
-    throw cpuError('invalidInstruction', {
-      instruction: formatInstruction(instruction),
-      cpu: '8086'
-    });
+    throw new CpuError(
+      `${formatInstruction(instruction)} isn't a valid 8086 instruction. Remove the last word and pick again.`
+    );
   }
 
   const ctx = new ExecutionContext(state, instructionSize(instruction) ?? 16);

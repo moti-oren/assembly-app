@@ -3,9 +3,6 @@ import { execute } from '@/core/mos6502/execute';
 import type { Instruction } from '@/core/mos6502/instructions';
 import { createCpuState } from '@/core/mos6502/state';
 import { diagramView } from './mos6502Diagram';
-import { messagesFor } from './locale';
-
-const m = messagesFor('en');
 
 const program: Instruction[] = [
   { mnemonic: 'lda', operands: [{ type: 'abs', address: 0x02f0, index: 'x' }] },
@@ -14,7 +11,7 @@ const program: Instruction[] = [
 
 describe('diagramView', () => {
   it('reads the opcode at PC while fetching', () => {
-    const view = diagramView(m, {
+    const view = diagramView({
       program,
       record: null,
       pending: { phase: 'fetch', line: 0, instruction: program[0] }
@@ -25,7 +22,7 @@ describe('diagramView', () => {
   });
 
   it('shows the plan once decoded', () => {
-    const view = diagramView(m, {
+    const view = diagramView({
       program,
       record: null,
       pending: { phase: 'decode', line: 0, instruction: program[0] }
@@ -44,7 +41,7 @@ describe('diagramView', () => {
     state.registers.x = 0x20;
     state.memory[0x0310] = 0x55;
     const record = execute(state, program[0], 0, program);
-    const view = diagramView(m, { program, record, pending: null });
+    const view = diagramView({ program, record, pending: null });
     expect(view.registers).toEqual({ x: 'read', a: 'write' });
     expect(view.address.text).toBe('$02F0 + X ($20) = $0310, into page $03');
     expect(view.bus).toEqual({ use: 'read', text: 'Read $55 from $0310' });
