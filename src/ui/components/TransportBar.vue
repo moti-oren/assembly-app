@@ -70,6 +70,11 @@ const total = computed(() => props.executed + props.undone);
 
 const positionText = computed(() => `${props.executed} of ${total.value} instructions run`);
 
+/** How far along the history the slider is, for the filled part of its track. */
+const progress = computed(() =>
+  total.value === 0 ? '0%' : `${(props.executed / total.value) * 100}%`
+);
+
 const toggles = computed(() => [
   {
     label: 'History',
@@ -215,7 +220,8 @@ const toggles = computed(() => [
         </Tooltip>
         <input
           type="range"
-          class="mx-1.5 h-4 w-10 flex-1 sm:w-16 cursor-pointer pointer-coarse:h-11 accent-pointer disabled:cursor-default disabled:opacity-40"
+          class="timeline mx-1.5 h-4 w-10 flex-1 cursor-pointer disabled:cursor-default disabled:opacity-40 sm:w-16 pointer-coarse:h-11"
+          :style="{ '--progress': progress }"
           min="0"
           :max="Math.max(total, 1)"
           :value="executed"

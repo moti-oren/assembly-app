@@ -643,6 +643,59 @@
     user-select: none;
   }
 
+  /*
+   * The history slider in the bottom bar: a thin neutral line, so the widest control on screen
+   * does not also take the strongest colour. --progress, set by the bar, fills it up to the thumb.
+   */
+  .timeline {
+    appearance: none;
+    background: transparent;
+  }
+  .timeline::-webkit-slider-runnable-track {
+    height: 2px;
+    border-radius: 1px;
+    background: linear-gradient(
+      to right,
+      var(--muted-foreground) var(--progress, 0%),
+      var(--border) var(--progress, 0%)
+    );
+  }
+  .timeline::-moz-range-track {
+    height: 2px;
+    border-radius: 1px;
+    background: var(--border);
+  }
+  .timeline::-moz-range-progress {
+    height: 2px;
+    border-radius: 1px;
+    background: var(--muted-foreground);
+  }
+  .timeline::-webkit-slider-thumb {
+    appearance: none;
+    width: 0.75rem;
+    height: 0.75rem;
+    /* Centres the thumb on the 2px track. */
+    margin-top: -5px;
+    border-radius: 9999px;
+    background: var(--foreground);
+  }
+  .timeline::-moz-range-thumb {
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--foreground);
+  }
+  .timeline:focus-visible {
+    outline: none;
+  }
+  .timeline:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+  .timeline:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+
   /* Set by the system setting or by the app's own preference; see usePreferences.ts. */
   :root[data-motion='reduced'] {
     .sortable-item,
