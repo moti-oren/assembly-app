@@ -96,7 +96,7 @@ const GROUP_START: WordRegister = 'ip';
         :class="{ 'unit-idle': !model.adderKind }"
       >
         <div class="flex items-baseline justify-between gap-3">
-          <span class="text-sm font-medium">Address adder</span>
+          <h3 class="unit-title mb-0">Address adder</h3>
           <span class="font-mono text-xs text-muted-foreground" aria-hidden="true">Σ</span>
         </div>
         <div

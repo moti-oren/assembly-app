@@ -9,7 +9,7 @@ defineProps<{ model: CpuDiagramModel }>();
   <!-- Outside the package: one bus, shared by the memory and the I/O ports. -->
   <div class="mt-3 flex items-end justify-between gap-3 sm:mt-0">
     <p class="truncate pb-1 text-xs text-muted-foreground">
-      <span class="font-medium text-foreground">Address / data bus</span>
+      <span class="unit-title">Address / data bus</span>
       <span v-if="model.bus" class="ml-2 font-mono">{{ model.bus }}</span>
     </p>
     <!--
@@ -31,7 +31,7 @@ defineProps<{ model: CpuDiagramModel }>();
         class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5 transition-opacity duration-300"
         :class="{ 'unit-idle': !model.memoryKind }"
       >
-        <span class="text-sm font-medium">Memory</span>
+        <h3 class="unit-title mb-0">Memory</h3>
         <span v-if="model.memory" class="truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.memory.write ? 'wrote' : 'read' }}
@@ -55,7 +55,7 @@ defineProps<{ model: CpuDiagramModel }>();
         class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5 transition-opacity duration-300"
         :class="{ 'unit-idle': !model.portKind }"
       >
-        <span class="text-sm font-medium">I/O ports</span>
+        <h3 class="unit-title mb-0">I/O ports</h3>
         <span v-if="model.port" class="truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.port.write ? 'wrote' : 'read' }}
