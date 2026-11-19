@@ -10,3 +10,9 @@ export type TextParams = Readonly<Record<string, string | number>>;
 export function fillText(template: string, params: TextParams): string {
   return template.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name] ?? ''));
 }
+
+/** A sentence as the core says it: which template, and what fills it. */
+export interface Said<Key extends string = string> {
+  key: Key;
+  params: TextParams;
+}
