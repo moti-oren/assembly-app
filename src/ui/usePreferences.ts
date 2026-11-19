@@ -44,17 +44,15 @@ export const usePreferences = createGlobalState(() => {
     else delete document.documentElement.dataset.motion;
   });
 
-  function toggleTheme(): void {
-    const flip = async (): Promise<void> => {
-      isDark.value = !isDark.value;
-      await nextTick();
-    };
-    if (calm.value || !('startViewTransition' in document)) {
-      void flip();
-    } else {
-      // Cross-fades the whole page instead of snapping between the two palettes.
-      document.startViewTransition(flip);
-    }
+  /** Switches at once: transitions are held off for a frame, so no control fades through grey. */
+  async function toggleTheme(): Promise<void> {
+    const root = document.documentElement;
+    root.dataset.themeSwitch = '';
+    isDark.value = !isDark.value;
+    await nextTick();
+    // Styles are worked out once with the new palette while transitions are still off.
+    void document.body.offsetHeight;
+    setTimeout(() => delete root.dataset.themeSwitch, 1);
   }
 
   /** Does nothing while sound is off. */
