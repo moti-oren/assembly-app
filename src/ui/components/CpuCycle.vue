@@ -87,9 +87,11 @@ const detail = computed(() => {
     return `IP points at ${formatLabel(pending.line)}. That line is read out of the program, and IP moves on to ${formatLabel(pending.line + 1)} before anything runs.`;
   }
   if (pending) return describeDecode(decode(pending.instruction));
-  if (record) return describeExecute(record);
-  return 'Every instruction is fetched, decoded, then executed. Use the Fetch button below to walk a program line through the three phases.';
+  return record ? describeExecute(record) : null;
 });
+
+const INTRO =
+  'Every instruction is fetched, decoded, then executed. Use the Fetch button below to walk a program line through the three phases.';
 </script>
 
 <template>
@@ -97,5 +99,6 @@ const detail = computed(() => {
     :active="active"
     :instruction="instruction ? formatInstruction(instruction) : null"
     :detail="detail"
+    :intro="INTRO"
   />
 </template>

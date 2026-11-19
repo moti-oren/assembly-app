@@ -48,11 +48,11 @@ const summary = computed(() => {
         <li
           v-for="(field, index) in shown.assembled.encoding.fields"
           :key="index"
-          class="max-w-full min-w-0 rounded-md border bg-muted/30 px-2.5 py-1.5 sm:max-w-72"
+          class="max-w-full min-w-0 rounded-md border bg-inset px-2.5 py-1.5 sm:max-w-72"
         >
           <div class="flex items-baseline gap-2">
             <span class="font-mono text-sm font-semibold">{{ formatBytes(field.bytes) }}</span>
-            <span class="text-[11px] font-medium tracking-wide text-pointer uppercase">{{
+            <span class="text-2xs font-medium tracking-wide text-pointer uppercase">{{
               KIND_LABELS[field.kind]
             }}</span>
           </div>

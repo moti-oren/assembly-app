@@ -16,8 +16,6 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  /** Asks for a reset, which may need confirming. */
-  reset: [];
   loadExample: [index: number];
   /** Confirmed: clear the program. */
   clearProgram: [];
@@ -36,7 +34,6 @@ const resetAsked = defineModel<boolean>('resetAsked', { required: true });
   <AppHeader
     v-model:examples-open="examplesOpen"
     :examples="examples"
-    @reset="emit('reset')"
     @load-example="emit('loadExample', $event)"
     @commands="paletteOpen = true"
   />

@@ -83,7 +83,7 @@ const flagChanged = (bit: number) =>
       <div class="grid gap-3 @min-[40rem]:grid-cols-[auto_minmax(0,1fr)]">
         <!-- Three 8-bit registers do all the work; SP and PC point at the stack and the code. -->
         <section
-          class="rounded-xl border border-foreground/20 bg-muted/20 p-2.5"
+          class="rounded-xl border border-foreground/20 bg-inset p-2.5"
           aria-label="Registers"
         >
           <h3 class="unit-title">Registers <span>8-bit</span></h3>
@@ -147,7 +147,11 @@ const flagChanged = (bit: number) =>
             :tick="pulse"
           />
           <DatapathStage title="Data bus" tag="memory · devices" :stage="view.bus" :tick="pulse" />
-          <section class="rounded-lg border bg-card px-2.5 py-2" aria-label="Cycles">
+          <section
+            class="rounded-lg border bg-card px-2.5 py-2 transition-opacity duration-300"
+            :class="{ 'unit-idle': !view.cycles }"
+            aria-label="Cycles"
+          >
             <h3 class="unit-title">Cycles <span>clock</span></h3>
             <template v-if="view.cycles">
               <div class="mt-1.5 flex flex-wrap gap-1" aria-hidden="true">

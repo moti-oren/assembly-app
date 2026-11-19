@@ -5,7 +5,9 @@
 export const en = {
   language: {
     /** The language switch, on its tooltip and in the command palette. */
-    switch: 'Switch the interface to Hebrew'
+    switch: 'Switch the interface to Hebrew',
+    /** The heading of the language choice in the settings menu. */
+    label: 'Language'
   }
 };
 

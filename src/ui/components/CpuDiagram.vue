@@ -47,7 +47,7 @@ const model = useCpuDiagram(props);
       <div class="@container *:[--biu-width:15rem] @min-[40rem]:*:[--biu-width:18.5rem]">
         <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
         <div
-          class="grid gap-y-5 rounded-xl border border-foreground/20 bg-muted/20 p-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
+          class="grid gap-y-5 rounded-xl border border-foreground/20 bg-inset p-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
         >
           <DiagramExecutionUnit :model="model" :tick="tick" />
 

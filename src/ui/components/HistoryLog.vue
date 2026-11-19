@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import InfoTip from './InfoTip.vue';
 
 const props = defineProps<{
   history: ExecutionRecord<Instruction>[];
@@ -53,22 +54,23 @@ watch(
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>History</CardTitle>
+      <CardTitle class="flex items-center gap-1">
+        History
+        <InfoTip label="About the history">
+          Every instruction you run appears here. Pick one to go back to the moment after it ran.
+        </InfoTip>
+      </CardTitle>
       <CardDescription>
         <template v-if="total === 0">Nothing executed yet</template>
         <template v-else-if="future.length === 0">{{ history.length }} executed</template>
         <template v-else>At {{ history.length }} of {{ total }}</template>
       </CardDescription>
     </CardHeader>
-    <CardContent>
-      <p v-if="total === 0" class="text-sm text-muted-foreground">
-        Every instruction you run appears here. Pick one to go back to the moment after it ran.
-      </p>
+    <CardContent v-if="total > 0">
       <div
-        v-else
         ref="list"
         :style="{ '--number-column': numberColumn }"
-        class="relative max-h-56 overflow-y-auto rounded-lg border bg-muted/30 py-1 lg:max-h-80"
+        class="relative max-h-56 overflow-y-auto rounded-lg bg-inset py-1 lg:max-h-80"
       >
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
           {{ history.length - SHOWN }} earlier instructions are not shown.

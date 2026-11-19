@@ -9,7 +9,6 @@ export const useLocale = createGlobalState(() => {
   const locale = useLocalStorage<Locale>(STORAGE_KEYS.locale, fallback, {
     serializer: { read: (raw) => (isLocale(raw) ? raw : fallback), write: (value) => value }
   });
-  const otherLocale = computed<Locale>(() => (locale.value === 'en' ? 'he' : 'en'));
   /** The texts of the current language: `t.value.language.switch`. */
   const t = computed(() => messagesFor(locale.value));
 
@@ -19,8 +18,8 @@ export const useLocale = createGlobalState(() => {
   });
 
   function toggleLocale(): void {
-    locale.value = otherLocale.value;
+    locale.value = locale.value === 'en' ? 'he' : 'en';
   }
 
-  return { locale, otherLocale, t, toggleLocale };
+  return { locale, t, toggleLocale };
 });

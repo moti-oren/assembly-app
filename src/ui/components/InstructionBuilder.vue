@@ -14,8 +14,10 @@ import {
   type DraftContext,
   type InstructionGrammar
 } from '@/ui/builderGrammar';
+import { boxMove, keyHints } from '@/ui/builderKeys';
 import { rowNeighbour } from '@/ui/gridNavigation';
 import { groupBy } from '@/ui/groupBy';
+import { isApple } from '@/ui/platform';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
@@ -42,6 +44,8 @@ const draft = useInstructionDraft(props.grammar);
 const { chosen, complete, built, tokens } = draft;
 const filter = ref('');
 const input = ref<HTMLInputElement | null>(null);
+/** The box that holds the words chosen so far and the text input. */
+const box = ref<HTMLElement | null>(null);
 const card = ref<{ $el: HTMLElement } | null>(null);
 /** True while focus is inside the builder. */
 const active = ref(false);
@@ -120,14 +124,10 @@ const enterOption = computed(() =>
     : (orderedOptions.value[selectedIndex.value] ?? null)
 );
 
-/**
- * Arrows walk the options: Left/Right one at a time, Up/Down by row. While there is text to
- * edit, the plain arrows stay with the input and only Alt+arrow navigates.
- */
+/** Arrows walk the options: Left/Right one at a time, Up/Down by row. */
 function onArrow(event: KeyboardEvent): void {
   const count = orderedOptions.value.length;
   if (enterOption.value === null || count === 0) return;
-  if (filter.value !== '' && !event.altKey) return;
   event.preventDefault();
   const vertical = event.key === 'ArrowUp' || event.key === 'ArrowDown';
   const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight';
@@ -144,6 +144,53 @@ function onArrow(event: KeyboardEvent): void {
     card.value?.$el.querySelector('[data-selected="true"]')?.scrollIntoView({ block: 'nearest' });
   });
 }
+
+/** The box holds words or text, so the plain arrows move within it. */
+const boxBusy = computed(() => tokens.value.length > 0 || filter.value !== '');
+
+const ARROWS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
+
+/** Esc clears; the arrows move within the box, or with Alt (or an empty box) through the choices. */
+function onBoxKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    clear();
+    return;
+  }
+  if (!ARROWS.has(event.key) || event.shiftKey || event.ctrlKey || event.metaKey) return;
+  if (event.altKey || !boxBusy.value) onArrow(event);
+  else moveInBox(event);
+}
+
+/** Moves focus between the words and the text input; see boxMove. */
+function moveInBox(event: KeyboardEvent): void {
+  const words = [...(box.value?.querySelectorAll<HTMLElement>('[data-token]') ?? [])];
+  const field = input.value;
+  if (!field) return;
+  const focused = words.indexOf(document.activeElement as HTMLElement);
+  const at = focused === -1 ? words.length : focused;
+  const caretAtStart = field.selectionStart === 0 && field.selectionEnd === 0;
+  const move = boxMove(at, words.length, event.key, caretAtStart);
+  if (!move) return;
+  event.preventDefault();
+  if (move.target < words.length) {
+    words[move.target].focus();
+    return;
+  }
+  field.focus();
+  const position = move.caret === 'start' ? 0 : field.value.length;
+  field.setSelectionRange(position, position);
+}
+
+/** The keys that do something right now, for the row under the builder. */
+const hints = computed(() =>
+  keyHints({
+    boxBusy: boxBusy.value,
+    enterRuns: complete.value && filter.value.trim() === '',
+    canPick: enterOption.value !== null,
+    canMove: enterOption.value !== null && orderedOptions.value.length > 1,
+    altKey: isApple ? '⌥' : 'Alt'
+  })
+);
 
 /**
  * One line that explains what you are looking at: the hovered option; while typing, the option
@@ -247,14 +294,17 @@ function onBackspace(event: KeyboardEvent): void {
     <CardContent class="flex flex-col gap-3">
       <!-- The instruction so far, word by word, followed by the filter input. -->
       <div
+        ref="box"
         data-loc="builder"
         class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-input bg-background px-2 py-1.5 font-mono text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30"
         @click="focusInput"
+        @keydown="onBoxKeydown"
       >
         <Tooltip v-for="(token, index) in tokens" :key="index">
           <TooltipTrigger as-child>
             <button
               type="button"
+              data-token
               class="inline-flex h-7 items-center rounded-md px-2 transition-colors hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               :class="[
                 token.head ? 'bg-foreground font-semibold text-background' : 'bg-secondary',
@@ -281,12 +331,7 @@ function onBackspace(event: KeyboardEvent): void {
           autocomplete="off"
           enterkeyhint="go"
           @keydown.enter.prevent="onEnter"
-          @keydown.down="onArrow"
-          @keydown.right="onArrow"
-          @keydown.up="onArrow"
-          @keydown.left="onArrow"
           @keydown.backspace="onBackspace"
-          @keydown.esc="clear"
         />
         <Tooltip v-if="tokens.length > 0">
           <TooltipTrigger as-child>
@@ -382,12 +427,14 @@ function onBackspace(event: KeyboardEvent): void {
     </CardContent>
 
     <CardFooter class="justify-between gap-3">
+      <!-- The keys that do something right now; see builderKeys.ts. -->
       <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
-        <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run now</span>
-        <span class="flex items-center gap-1.5">
-          <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup> add
+        <span v-for="keyHint in hints" :key="keyHint.label" class="flex items-center gap-1.5">
+          <KbdGroup
+            ><Kbd v-for="key in keyHint.keys" :key="key">{{ key }}</Kbd></KbdGroup
+          >
+          {{ keyHint.label }}
         </span>
-        <span class="flex items-center gap-1.5"><Kbd>Esc</Kbd> clear</span>
       </div>
       <div class="ml-auto flex gap-2">
         <Button variant="outline" size="sm" :disabled="!complete" @click="submit(true)">

@@ -9,9 +9,12 @@ defineProps<{ model: CpuDiagramModel }>();
 <template>
   <div class="mt-3 flex items-stretch">
     <!-- A fixed height, sized for the longest sum, so nothing below moves as the text changes. -->
-    <div class="h-36 min-w-0 flex-1 rounded-lg border bg-card px-3 py-2.5">
+    <div
+      class="h-36 min-w-0 flex-1 rounded-lg border bg-card px-3 py-2.5 transition-opacity duration-300"
+      :class="{ 'unit-idle': !model.equation && !model.alu.input && !model.alu.output }"
+    >
       <div class="flex items-baseline justify-between gap-3">
-        <span class="text-sm font-medium">ALU</span>
+        <h3 class="unit-title mb-0">ALU</h3>
         <span class="truncate font-mono text-xs text-muted-foreground">{{
           model.shown
             ? formatInstruction(model.shown.instruction)

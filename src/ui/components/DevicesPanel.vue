@@ -3,9 +3,10 @@ import { computed } from 'vue';
 import { DIGIT_COUNT, PORTS, litSegments, terminalText } from '@/core/shared/devices';
 import { formatHex } from '@/core/shared/numbers';
 import type { CpuState } from '@/core/shared/state';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { DeviceAccess } from '@/ui/deviceAccess';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import InfoTip from './InfoTip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -60,11 +61,13 @@ function flip(bit: number): void {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">I/O devices</CardTitle>
-      <CardDescription>
-        <span class="font-mono">{{ access.write }}</span> writes to a {{ access.noun }},
-        <span class="font-mono">{{ access.read }}</span> reads one
-      </CardDescription>
+      <CardTitle class="flex items-center gap-1 group-data-[size=sm]/card:text-base">
+        I/O devices
+        <InfoTip label="About the devices">
+          <span class="font-mono">{{ access.write }}</span> writes to a {{ access.noun }},
+          <span class="font-mono">{{ access.read }}</span> reads one.
+        </InfoTip>
+      </CardTitle>
     </CardHeader>
 
     <CardContent class="grid gap-x-6 gap-y-4 sm:grid-cols-[auto_auto_minmax(0,1fr)]">

@@ -128,7 +128,6 @@ const encodingShown = computed(() =>
     :commands="commands"
     :program-length="program.length"
     :history-length="historyLength"
-    @reset="askReset"
     @load-example="cpu.loadExample"
     @clear-program="cpu.clearProgram"
     @reset-cpu="cpu.reset"
@@ -259,6 +258,7 @@ const encodingShown = computed(() =>
     @pause="cpu.pause"
     @undo="cpu.undoLast"
     @redo="cpu.redo"
+    @reset="askReset"
     @seek="cpu.seek"
   />
 </template>

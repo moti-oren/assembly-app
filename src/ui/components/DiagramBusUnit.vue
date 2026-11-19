@@ -91,9 +91,12 @@ const GROUP_START: WordRegister = 'ip';
     />
     <div class="mt-3 flex items-center sm:mt-0">
       <DiagramWire class="hidden w-5 sm:block" :kind="model.adderKind" :tick="model.pulse" />
-      <div class="h-32 min-w-0 flex-1 rounded-lg border bg-card px-3 py-2.5">
+      <div
+        class="h-32 min-w-0 flex-1 rounded-lg border bg-card px-3 py-2.5 transition-opacity duration-300"
+        :class="{ 'unit-idle': !model.adderKind }"
+      >
         <div class="flex items-baseline justify-between gap-3">
-          <span class="text-sm font-medium">Address adder</span>
+          <h3 class="unit-title mb-0">Address adder</h3>
           <span class="font-mono text-xs text-muted-foreground" aria-hidden="true">Σ</span>
         </div>
         <div

@@ -1,28 +1,22 @@
 <script setup lang="ts">
-import {
-  BookOpen,
-  Columns3,
-  Languages,
-  Moon,
-  RotateCcw,
-  Search,
-  Sun,
-  Volume2,
-  VolumeX
-} from '@lucide/vue';
+import { BookOpen, Columns3, Search, Settings2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
-import { LOCALE_NAMES } from '@/ui/locale';
+import { LOCALE_NAMES, LOCALES } from '@/ui/locale';
+import { isApple } from '@/ui/platform';
 import { useComparison } from '@/ui/useComparison';
 import { useLocale } from '@/ui/useLocale';
 import { usePreferences } from '@/ui/usePreferences';
@@ -31,18 +25,17 @@ defineProps<{
   /** The example programs of the architecture on show, by name. */
   examples: readonly { name: string; description: string }[];
 }>();
-defineEmits<{ reset: []; loadExample: [index: number]; commands: [] }>();
+defineEmits<{ loadExample: [index: number]; commands: [] }>();
 /** The examples menu, which the empty program panel can also open. */
 const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
-const { isDark, soundOn, architecture, toggleTheme } = usePreferences();
+const { isDark, soundOn, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
+  usePreferences();
 const { open: comparisonOpen } = useComparison();
-const { otherLocale, t, toggleLocale } = useLocale();
+const { locale, t } = useLocale();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
-const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
-  ? '⌘K'
-  : 'Ctrl K';
+const shortcut = isApple ? '⌘K' : 'Ctrl K';
 </script>
 
 <template>
@@ -54,18 +47,15 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
     class="relative z-(--z-sticky) border-b bg-background/85 backdrop-blur-sm lg:sticky lg:top-0"
   >
     <div class="mx-auto flex h-14 max-w-(--page-width) items-center gap-3 px-4 lg:px-6">
-      <!--
-        On a phone the buttons need the room: the badge goes, and the name shortens before it
-        wraps. From md the tagline is on show, and it is the one that shortens.
-      -->
-      <div class="flex min-w-0 items-center gap-2.5 md:shrink-0">
+      <!-- On a phone the buttons need the room: the badge goes, and the name shortens before it wraps. -->
+      <div class="flex min-w-0 items-center gap-2.5">
         <div
           class="hidden size-7 shrink-0 place-items-center rounded-md bg-foreground font-mono text-2xs font-bold text-background sm:grid"
           aria-hidden="true"
         >
           {{ ARCHITECTURE_CHOICES.find((choice) => choice.id === architecture)?.badge }}
         </div>
-        <h1 class="truncate text-[15px] font-semibold tracking-tight">CPU Playground</h1>
+        <h1 class="truncate text-base font-semibold tracking-tight">CPU Playground</h1>
       </div>
       <!-- Each CPU keeps its own program and history, so switching back finds them as they were. -->
       <div class="flex shrink-0 rounded-md border p-0.5" role="group" aria-label="Architecture">
@@ -82,9 +72,6 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
           {{ choice.label }}
         </Button>
       </div>
-      <p class="hidden truncate text-sm text-muted-foreground md:block">
-        Build an instruction, run it, and watch the CPU change.
-      </p>
 
       <div class="ml-auto flex items-center gap-1">
         <Button
@@ -139,77 +126,50 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="sm"
-              class="pointer-coarse:h-11"
-              aria-label="Reset the CPU"
-              @click="$emit('reset')"
-            >
-              <RotateCcw />
-              <span class="hidden sm:inline">Reset</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Clears registers, flags, memory and the history. The program is kept.
-          </TooltipContent>
-        </Tooltip>
-
-        <!-- Named in the language it switches to, so a reader of either one can find it. -->
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="sm"
-              class="pointer-coarse:h-11"
-              :aria-label="t.language.switch"
-              @click="toggleLocale"
-            >
-              <Languages />
-              <span class="hidden sm:inline" :lang="otherLocale">
-                {{ LOCALE_NAMES[otherLocale] }}
-              </span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{{ t.language.switch }}</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger as-child>
+        <!-- Settings that are changed once in a while, out of the way of the ones used all the time. -->
+        <DropdownMenu>
+          <!-- No tooltip: wrapped around the menu's trigger, it breaks where the menu opens. -->
+          <DropdownMenuTrigger as-child>
             <Button
               variant="ghost"
               size="icon-sm"
               class="pointer-coarse:size-11"
-              :aria-label="soundOn ? 'Turn sound off' : 'Turn sound on'"
-              :aria-pressed="soundOn"
-              @click="soundOn = !soundOn"
+              aria-label="Settings"
+              title="Settings"
             >
-              <Volume2 v-if="soundOn" />
-              <VolumeX v-else />
+              <Settings2 />
             </Button>
-          </TooltipTrigger>
-          <TooltipContent>{{ soundOn ? 'Turn sound off' : 'Turn sound on' }}</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              class="pointer-coarse:size-11"
-              :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
-              @click="toggleTheme"
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-56">
+            <DropdownMenuCheckboxItem v-model="soundOn">Sound</DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem :model-value="isDark" @update:model-value="toggleTheme">
+              Dark theme
+            </DropdownMenuCheckboxItem>
+            <!-- While the system asks for less motion, the app's own setting cannot bring it back. -->
+            <DropdownMenuCheckboxItem
+              :model-value="reduceMotion || systemReducesMotion"
+              :disabled="systemReducesMotion"
+              @update:model-value="reduceMotion = !reduceMotion"
             >
-              <Sun v-if="isDark" />
-              <Moon v-else />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{{
-            isDark ? 'Switch to light theme' : 'Switch to dark theme'
-          }}</TooltipContent>
-        </Tooltip>
+              Reduce animations
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">
+              {{ t.language.label }}
+            </DropdownMenuLabel>
+            <!-- Each language named in itself, so a reader of either one can find their own. -->
+            <DropdownMenuRadioGroup v-model="locale">
+              <DropdownMenuRadioItem
+                v-for="option in LOCALES"
+                :key="option"
+                :value="option"
+                :lang="option"
+              >
+                {{ LOCALE_NAMES[option] }}
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   </header>
