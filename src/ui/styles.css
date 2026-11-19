@@ -228,6 +228,10 @@
     font-variant-ligatures: none;
     font-feature-settings: 'zero';
   }
+  /* Scroll areas inside the page: a thin bar, without the arrow buttons Windows adds to it. */
+  body * {
+    scrollbar-width: thin;
+  }
 }
 
 /* In the components layer so Tailwind utilities on the same element still win. */
