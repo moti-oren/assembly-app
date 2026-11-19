@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import InfoTip from './InfoTip.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   history: ExecutionRecord<Instruction>[];
   /** How the architecture writes an instruction. */
@@ -50,7 +52,6 @@ watch(
   () => nextTick(showCurrent),
   { flush: 'post' }
 );
-const { t } = useLocale();
 </script>
 
 <template>

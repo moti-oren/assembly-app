@@ -9,6 +9,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import InfoTip from './InfoTip.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   /** How the CPU reaches the devices, which the labels show. */
@@ -57,7 +59,6 @@ function port(number: number): string {
 function flip(bit: number): void {
   emit('input', PORTS.switches, switches.value ^ (1 << bit));
 }
-const { t } = useLocale();
 </script>
 
 <template>

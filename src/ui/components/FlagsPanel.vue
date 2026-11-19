@@ -10,6 +10,8 @@ import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   /** FLAGS before the last instruction, used to highlight what changed. */
@@ -27,7 +29,6 @@ function isSet(flag: FlagName): boolean {
 function changed(flag: FlagName): boolean {
   return props.previous !== null && isFlagSet(props.previous ^ props.state.flags, flag);
 }
-const { t } = useLocale();
 </script>
 
 <template>

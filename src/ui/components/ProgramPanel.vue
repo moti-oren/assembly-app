@@ -17,6 +17,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { CodePlace, LineCode } from '@/ui/programCode';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   program: Instruction[];
   /** How the architecture writes an instruction. */
@@ -90,7 +92,6 @@ const ROW =
 function machineCode(index: number): string {
   return formatBytes(props.code[index].bytes);
 }
-const { t } = useLocale();
 
 /** Where a line's code sits, in words: an offset in the code or an address in memory. */
 function placeText(address: number): string {

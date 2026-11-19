@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { useLocale } from '@/ui/useLocale';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 
-const { shown } = useRv32Pipeline();
 const { t } = useLocale();
+
+const { shown } = useRv32Pipeline();
 
 const VIEWS = computed(() => [
   {

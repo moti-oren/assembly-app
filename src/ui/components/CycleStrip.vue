@@ -3,6 +3,8 @@ import { CYCLE_PHASES, type CyclePhase } from '@/core/shared/cycle';
 import InfoTip from './InfoTip.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 defineProps<{
   /** The phase the instruction on show is in, or null before anything has run. */
   active: CyclePhase | null;
@@ -19,7 +21,6 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
   decode: 'Decode',
   execute: 'Execute'
 };
-const { t } = useLocale();
 </script>
 
 <template>

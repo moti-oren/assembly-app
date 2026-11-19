@@ -5,8 +5,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useLocale } from '@/ui/useLocale';
 import { usePreferences } from '@/ui/usePreferences';
 
-const { cpuView } = usePreferences();
 const { t } = useLocale();
+
+const { cpuView } = usePreferences();
 
 const VIEWS = [
   { value: 'diagram', icon: Cpu },

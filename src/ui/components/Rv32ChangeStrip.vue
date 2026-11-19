@@ -8,6 +8,8 @@ import { formatRegister } from '@/core/rv32/operands';
 import type { CpuState } from '@/core/rv32/state';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   /** The last executed instruction; null before the first one. */
@@ -32,7 +34,6 @@ const changes = computed(() => {
   }
   return list;
 });
-const { t } = useLocale();
 </script>
 
 <template>

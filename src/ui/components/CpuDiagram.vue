@@ -12,6 +12,8 @@ import DiagramExternalBus from './DiagramExternalBus.vue';
 import DiagramWire from './DiagramWire.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   /** The last executed instruction: it decides which wires light up. */
@@ -24,7 +26,6 @@ const props = defineProps<{
 
 /** The CPU as two units and the buses between them; the parts below draw it. */
 const model = useCpuDiagram(props);
-const { t } = useLocale();
 </script>
 
 <template>

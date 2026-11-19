@@ -21,6 +21,8 @@ import { groupBy } from '@/ui/groupBy';
 import type { PaletteCommand } from '@/ui/useCommands';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{ commands: PaletteCommand[] }>();
 const open = defineModel<boolean>('open', { required: true });
 
@@ -51,7 +53,6 @@ function onCloseAutoFocus(event: Event): void {
   // This event comes before the dialog lifts its scroll lock, which would swallow a scroll.
   setTimeout(command.run);
 }
-const { t } = useLocale();
 </script>
 
 <template>

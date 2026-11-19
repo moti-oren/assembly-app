@@ -9,6 +9,8 @@ import type { CpuState } from '@/core/x86/state';
 import { describeMemoryAccess } from '@/ui/describe';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   /** The last executed instruction; null before the first one. */
@@ -34,7 +36,6 @@ const changes = computed(() => {
   }
   return list;
 });
-const { t } = useLocale();
 </script>
 
 <template>

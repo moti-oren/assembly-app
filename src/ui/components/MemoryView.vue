@@ -25,6 +25,8 @@ import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   /** Recently written physical addresses, mapped to how many instructions ago (0 = the last). */
@@ -143,7 +145,6 @@ function reveal(jump: () => void): void {
   jump();
   card.value?.$el.scrollIntoView({ block: 'nearest' });
 }
-const { t } = useLocale();
 </script>
 
 <template>

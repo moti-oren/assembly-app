@@ -11,11 +11,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 /** How many instructions the history holds, undone ones included. */
 defineProps<{ instructions: number }>();
 const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ confirm: [] }>();
-const { t } = useLocale();
 </script>
 
 <template>

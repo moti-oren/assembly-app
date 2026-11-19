@@ -13,6 +13,8 @@ import {
 import { usePreferences } from '@/ui/usePreferences';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 /**
  * A column of cards the user can put in any order by dragging a card's grip, or with the
  * arrow keys on the grip. A card can only move within its own column.
@@ -271,7 +273,6 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
   });
   announce(key, order);
 }
-const { t } = useLocale();
 </script>
 
 <template>

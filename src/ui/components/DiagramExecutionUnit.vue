@@ -15,6 +15,8 @@ import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 defineProps<{
   model: CpuDiagramModel;
   /** Number of instructions executed so far; replays the flashes. */
@@ -25,7 +27,6 @@ defineProps<{
 const EU_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx', 'sp', 'bp', 'si', 'di'];
 /** The pointer and index registers start a group of their own. */
 const GROUP_START: WordRegister = 'sp';
-const { t } = useLocale();
 </script>
 
 <template>

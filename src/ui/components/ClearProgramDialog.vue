@@ -11,10 +11,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 defineProps<{ lines: number }>();
 const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ confirm: [] }>();
-const { t } = useLocale();
 </script>
 
 <template>

@@ -8,6 +8,7 @@ defineProps<{
   tick: number;
 }>();
 import { useLocale } from '@/ui/useLocale';
+
 const { t } = useLocale();
 </script>
 

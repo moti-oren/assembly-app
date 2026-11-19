@@ -11,6 +11,8 @@ import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   /** Register values before the last instruction, used to highlight what changed. */
@@ -24,7 +26,6 @@ const props = defineProps<{
 function changed(key: RegisterName): boolean {
   return props.previous !== null && props.previous[key] !== props.state.registers[key];
 }
-const { t } = useLocale();
 </script>
 
 <template>

@@ -32,6 +32,8 @@ import RegistersPanel from './RegistersPanel.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   cpu: CpuOf<Instruction, CpuState, ExecutionRecord>;
 }>();
@@ -110,7 +112,6 @@ const encodingShown = computed(() =>
     encode
   )
 );
-const { t } = useLocale();
 </script>
 
 <!-- The 8086's panels, in the columns every architecture shares. -->

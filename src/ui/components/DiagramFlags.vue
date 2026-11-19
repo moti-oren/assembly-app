@@ -6,12 +6,13 @@ import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 defineProps<{
   model: CpuDiagramModel;
   /** Number of instructions executed so far; replays the flashes. */
   tick: number;
 }>();
-const { t } = useLocale();
 </script>
 
 <template>

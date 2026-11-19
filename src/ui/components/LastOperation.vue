@@ -7,13 +7,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { describeEquation } from '@/ui/describe';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   state: CpuState;
   record: ExecutionRecord | null;
 }>();
 
 const equation = computed(() => props.record && describeEquation(props.state, props.record));
-const { t } = useLocale();
 </script>
 
 <template>

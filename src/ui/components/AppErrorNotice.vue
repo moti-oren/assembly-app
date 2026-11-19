@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { useAppError } from '@/ui/useAppError';
 import { useLocale } from '@/ui/useLocale';
 
-const { appError } = useAppError();
 const { t } = useLocale();
+
+const { appError } = useAppError();
 </script>
 
 <template>

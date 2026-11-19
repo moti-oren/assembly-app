@@ -6,6 +6,8 @@ import { FLAG_INFO, type FlagName } from '@/core/x86/flags';
 import { formatInstruction } from '@/core/x86/instructions';
 import { useLocale } from '@/ui/useLocale';
 
+const { t } = useLocale();
+
 const props = defineProps<{
   flag: FlagName;
   /** The last executed instruction: the one whose effect on the flag is explained. */
@@ -13,7 +15,6 @@ const props = defineProps<{
 }>();
 
 const reason = computed(() => props.record && explainFlag(props.record, props.flag));
-const { t } = useLocale();
 </script>
 
 <template>
