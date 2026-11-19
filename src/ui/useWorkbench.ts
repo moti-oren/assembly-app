@@ -1,10 +1,11 @@
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
 import { useCommands, type PageActions, type PaletteCommand } from './useCommands';
 import type { CpuControls } from './useCpu';
 import { usePanelColumns } from './usePanelOrder';
 import { usePanels, type UsesDevices } from './usePanels';
+import { useSidebarLayout } from './useSidebarLayout';
 import { useSoundEffects, type SoundOf } from './useSoundEffects';
 
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
@@ -32,6 +33,8 @@ export function useWorkbench<
 >(cpu: CpuControls<Instruction, Record>, hooks: WorkbenchHooks<Instruction, Record>) {
   useSoundEffects(cpu, hooks.soundOf);
   const panels = usePanels(cpu, hooks.usesDevices);
+  const columns = usePanelColumns(panels);
+  const sidebar = useSidebarLayout();
   const paletteOpen = ref(false);
   const examplesOpen = ref(false);
   /** True while the user is asked to confirm clearing the program. */
@@ -52,12 +55,18 @@ export function useWorkbench<
     panels,
     {
       ...hooks.page,
+      // A collapsed builder opens first; its input can only take focus once it is drawn.
+      focusBuilder: () => {
+        sidebar.expand('builder');
+        void nextTick(hooks.page.focusBuilder);
+      },
       askClearProgram: () => {
         clearAsked.value = true;
       },
       askReset
     },
-    hooks.commands
+    hooks.commands,
+    columns.leftKeys
   );
 
   // Stepping the program folds the builder's choices, so the line at IP stays in view below it.
@@ -69,7 +78,7 @@ export function useWorkbench<
   return {
     panels,
     commands,
-    columns: usePanelColumns(panels),
+    columns,
     paletteOpen,
     examplesOpen,
     clearAsked,

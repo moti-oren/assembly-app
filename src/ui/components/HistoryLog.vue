@@ -69,6 +69,7 @@ watch(
     <CardContent v-if="total > 0">
       <div
         ref="list"
+        data-fill
         :style="{ '--number-column': numberColumn }"
         class="relative max-h-56 well overflow-y-auto rounded-lg py-1 lg:max-h-80"
       >

@@ -31,6 +31,7 @@ import Rv32Diagram from './Rv32Diagram.vue';
 import Rv32Encoding from './Rv32Encoding.vue';
 import Rv32Pipeline from './Rv32Pipeline.vue';
 import Rv32Registers from './Rv32Registers.vue';
+import SidebarColumn from './SidebarColumn.vue';
 import SortableColumn from './SortableColumn.vue';
 import TransportBar from './TransportBar.vue';
 
@@ -87,7 +88,7 @@ const {
   }
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
-const { leftKeys, rightKeys, rightColumn, move } = columns;
+const { leftKeys, rightKeys, rightColumn, closable, move, close } = columns;
 const { shown: pipelineShown } = pipeline;
 
 const memoryPlaces = rv32MemoryPlaces(state);
@@ -141,12 +142,14 @@ const encodingShown = computed(() =>
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
   <main class="workbench">
     <!-- Each pane's panels can be dragged into any order, but never into the other pane. -->
-    <SortableColumn
+    <SidebarColumn
       class="workbench-pane"
       data-pane="sidebar"
       :keys="leftKeys"
       :labels="LABELS"
+      :closable="closable"
       @move="(key, to) => move('left', key, to)"
+      @close="close"
     >
       <template #builder>
         <InstructionBuilder
@@ -187,7 +190,7 @@ const encodingShown = computed(() =>
       <template #encoding>
         <Rv32Encoding :shown="encodingShown" />
       </template>
-    </SortableColumn>
+    </SidebarColumn>
 
     <SortableColumn
       class="workbench-pane"

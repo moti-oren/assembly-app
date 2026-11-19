@@ -121,9 +121,17 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The cards in each column can be put in any order: drag the grip on a card's top edge, or focus
   it and use the arrow keys (Home and End move it to the top or bottom). A card stays in its own
   column. The order is remembered, separately for the CPU diagram and the tables, and **Reset the
-  card order** in the command palette (Ctrl+K) puts it back. On a wide screen each column scrolls
-  on its own, so the program stays in view under a long CPU column, and the bottom bar sits below
-  both.
+  card order and sizes** in the command palette (Ctrl+K) puts it back. On a wide screen each column
+  scrolls on its own, so the program stays in view under a long CPU column, and the bottom bar sits
+  below both.
+- The left column works like the side bar of an editor. Click a panel's header (or its arrow) to
+  collapse it to the header and again to open it; **History** and **Machine code** also have a ✕
+  that closes them, and their buttons in the bottom bar bring them back. On a wide screen the open
+  panels share the column's height, so the column itself never scrolls: each panel scrolls inside
+  itself, no panel grows past its content, and dragging the line between two open panels (or
+  focusing it and using the up and down arrows) moves room from one to the other. What is
+  collapsed and how tall each panel is are remembered, and the palette can collapse or expand any
+  of them.
 - The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
   the command palette has them too. The app starts in the light theme until you pick one.
 - **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
@@ -341,9 +349,15 @@ npm run verify:6502 # check the 6502 core against py65
   למה הוא משמש.
 - אפשר לסדר את הכרטיסיות בכל עמודה בכל סדר: גוררים את הידית שבקצה העליון של הכרטיסייה, או ממקדים
   אותה ומשתמשים במקשי החיצים (Home ו-End מעבירים אותה לראש העמודה או לסופה). כרטיסייה נשארת בעמודה
-  שלה. הסדר נשמר, בנפרד לדיאגרמת ה-CPU ולטבלאות, והפקודה **Reset the card order** בפלטת הפקודות
-  (Ctrl+K) מחזירה אותו לברירת המחדל. במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת גלויה
-  לצד עמודת CPU ארוכה, והסרגל התחתון נמצא מתחת לשתיהן.
+  שלה. הסדר נשמר, בנפרד לדיאגרמת ה-CPU ולטבלאות, והפקודה **Reset the card order and sizes** בפלטת
+  הפקודות (Ctrl+K) מחזירה אותו לברירת המחדל. במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת
+  גלויה לצד עמודת CPU ארוכה, והסרגל התחתון נמצא מתחת לשתיהן.
+- העמודה השמאלית עובדת כמו סרגל הצד של עורך קוד. לחיצה על הכותרת של חלונית (או על החץ שלה) מקפלת
+  אותה עד הכותרת, ולחיצה נוספת פותחת אותה; ל-**History** ול-**Machine code** יש גם ✕ שסוגר אותן,
+  והכפתורים שלהן בסרגל התחתון מחזירים אותן. במסך רחב החלוניות הפתוחות מתחלקות בגובה העמודה, כך
+  שהעמודה עצמה אף פעם לא נגללת: כל חלונית נגללת בתוך עצמה, אף חלונית לא גדלה מעבר לתוכן שלה, וגרירת
+  הקו שבין שתי חלוניות פתוחות (או מיקוד עליו ומקשי החיצים למעלה ולמטה) מעבירה מקום מאחת לשנייה. מה
+  מקופל ומה הגובה של כל חלונית נשמרים, ופלטת הפקודות יכולה לקפל או לפתוח כל אחת מהן.
 - תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
   הפקודות מציעה אותם. האפליקציה נפתחת בערכת הנושא הבהירה עד שבוחרים אחרת.
 - **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים

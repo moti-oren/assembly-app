@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import './styles/surfaces.css';
+@import './styles/sidebar.css';
 @import './styles/controls.css';
 @import './styles/panels.css';
 @import './styles/diagram.css';

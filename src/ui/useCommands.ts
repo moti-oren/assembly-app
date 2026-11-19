@@ -1,11 +1,13 @@
-import { computed, type ComputedRef } from 'vue';
+import { computed, type ComputedRef, type Ref } from 'vue';
 import { ARCHITECTURE_CHOICES } from './architectures';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
 import type { CpuControls } from './useCpu';
-import { usePanelOrder } from './usePanelOrder';
+import { PANEL_LABELS, usePanelOrder } from './usePanelOrder';
 import { useComparison } from './useComparison';
 import type { Panels } from './usePanels';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
+import type { SidebarKey } from './sidebarLayout';
+import { useSidebarLayout } from './useSidebarLayout';
 
 /** One entry in the command palette. */
 export interface PaletteCommand {
@@ -36,17 +38,19 @@ export interface PageActions {
 
 /**
  * Everything the command palette offers, labelled for the current state. `extra` adds the
- * commands of one architecture's own panels.
+ * commands of one architecture's own panels; `sidebarKeys` are the sidebar panels on show.
  */
 export function useCommands(
   cpu: CpuControls,
   panels: Panels,
   page: PageActions,
-  extra: () => PaletteCommand[] = () => []
+  extra: () => PaletteCommand[] = () => [],
+  sidebarKeys?: Ref<readonly SidebarKey[]>
 ): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, cpuView, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
     usePreferences();
   const panelOrder = usePanelOrder();
+  const sidebar = useSidebarLayout();
   const comparison = useComparison();
   const { history, program, insertAt, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
@@ -207,11 +211,19 @@ export function useCommands(
             reduceMotion.value = !reduceMotion.value;
           }
         },
+    ...(sidebarKeys?.value ?? []).map((key) => ({
+      group: 'Sidebar',
+      label: `${sidebar.isCollapsed(key) ? 'Expand' : 'Collapse'} the ${PANEL_LABELS[key]} panel`,
+      run: () => sidebar.toggle(key)
+    })),
     {
       group: 'Preferences',
-      label: 'Reset the card order',
-      disabled: panelOrder.isDefault.value,
-      run: panelOrder.reset
+      label: 'Reset the card order and sizes',
+      disabled: panelOrder.isDefault.value && sidebar.isDefault.value,
+      run: () => {
+        panelOrder.reset();
+        sidebar.reset();
+      }
     }
   ]);
 }
