@@ -176,7 +176,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   opcode, rd, funct3, rs1, rs2, funct7 and the pieces of the immediate, which B-type and J-type
   instructions split across the word.
 - The Memory panel jumps to the **Code**, **Data**, **Stack** or **Devices**. Machine code is blue,
-  device registers amber, and dots mark addresses with nothing wired to them.
+  device registers orange, and dots mark addresses with nothing wired to them.
 
 ## 6502 mode
 
@@ -389,7 +389,7 @@ npm run verify:6502 # check the 6502 core against py65
 - חלונית **Machine code** מציגה את 32 הסיביות של הוראה, וכל שדה מעל הסיביות שלו: opcode, rd,
   funct3, rs1, rs2, funct7 וחלקי ה-immediate, שהוראות B ו-J מפצלות לאורך המילה.
 - חלונית הזיכרון קופצת אל **Code**, **Data**, **Stack** או **Devices**. קוד מכונה מוצג בכחול,
-  רגיסטרים של התקנים בענבר, ונקודות מסמנות כתובות שאין בהן כלום.
+  רגיסטרים של התקנים בכתום, ונקודות מסמנות כתובות שאין בהן כלום.
 
 ## מצב 6502
 
