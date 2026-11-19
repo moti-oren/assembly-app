@@ -10,6 +10,7 @@ import {
   pipelineNotes,
   pipelineSummary,
   STAGE_INFO,
+  STAGE_TINTS,
   type PipelineCell
 } from '@/ui/rv32Pipeline';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
@@ -29,15 +30,6 @@ const CELL_CLASSES: Record<PipelineCell['kind'], string> = {
   run: 'text-foreground',
   stall: 'border border-dashed border-changed-foreground/60 bg-changed/40 text-changed-foreground',
   flushed: 'bg-muted text-muted-foreground/70 line-through'
-};
-
-/** A stage keeps one colour down its diagonal, so an instruction's path reads at a glance. */
-const STAGE_CLASSES: Record<PipelineCell['stage'], string> = {
-  IF: 'bg-chart-1/25',
-  ID: 'bg-chart-3/25',
-  EX: 'bg-chart-4/25',
-  MEM: 'bg-chart-2/25',
-  WB: 'bg-chart-5/25'
 };
 
 const { forwarding } = useRv32Pipeline();
@@ -63,7 +55,7 @@ const summary = computed(() => pipelineSummary(timing.value));
           </p>
           <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
             <template v-for="stage in PIPELINE_STAGES" :key="stage">
-              <dt class="rounded-sm px-1 font-mono" :class="STAGE_CLASSES[stage]">{{ stage }}</dt>
+              <dt class="rounded-sm px-1 font-mono" :class="STAGE_TINTS[stage]">{{ stage }}</dt>
               <dd class="text-muted-foreground">{{ STAGE_INFO[stage] }}</dd>
             </template>
           </dl>
@@ -105,7 +97,7 @@ const summary = computed(() => pipelineSummary(timing.value));
                 v-for="cycle in grid.cycles"
                 :key="cycle"
                 scope="col"
-                class="min-w-8 text-center font-normal tabular-nums"
+                class="min-w-9 text-center font-normal"
               >
                 {{ cycle }}
               </th>
@@ -128,20 +120,35 @@ const summary = computed(() => pipelineSummary(timing.value));
               <td
                 v-for="(cell, index) in row.cells"
                 :key="index"
-                class="h-5 rounded-sm text-center"
-                :class="
-                  cell
-                    ? [CELL_CLASSES[cell.kind], cell.kind === 'run' && STAGE_CLASSES[cell.stage]]
-                    : ''
-                "
+                class="relative h-5 rounded-sm text-center"
+                :class="[
+                  cell ? CELL_CLASSES[cell.kind] : '',
+                  cell?.kind === 'run' && STAGE_TINTS[cell.stage],
+                  { 'inset-ring-2 inset-ring-pointer': cell?.forwarded || cell?.source }
+                ]"
+                :title="cell?.forwarded?.map((link) => link.text).join('; ')"
               >
                 {{ cell?.stage }}
                 <span v-if="cell?.kind === 'stall'" class="sr-only">(waiting)</span>
+                <!-- The line a forwarded result takes: down the column, into this EX. -->
+                <template v-for="link in cell?.forwarded" :key="link.text">
+                  <span
+                    v-if="link.rows > 0"
+                    class="forward-path"
+                    :style="{ '--rows': link.rows }"
+                    aria-hidden="true"
+                  />
+                  <span class="sr-only">({{ link.text }})</span>
+                </template>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+      <p v-if="grid.forwards" class="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+        <span class="h-0.5 w-4 rounded-full bg-pointer" aria-hidden="true" />
+        Forwarded: a result handed straight to the EX below it, before it is written back.
+      </p>
       <ul v-if="notes.length" class="mt-2 space-y-1 text-xs leading-4 text-muted-foreground">
         <li v-for="note in notes" :key="note">{{ note }}</li>
       </ul>
