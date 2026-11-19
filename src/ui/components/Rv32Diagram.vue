@@ -59,7 +59,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
 </script>
 
 <template>
-  <Card size="sm">
+  <Card size="sm" class="cpu-stage">
     <CardHeader>
       <CardTitle class="group-data-[size=sm]/card:text-base">CPU</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
@@ -77,10 +77,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
 
     <CardContent class="@container flex flex-col gap-3">
       <!-- The register file: 32 registers with two read ports (rs1, rs2) and one write port (rd). -->
-      <section
-        class="rounded-xl border border-foreground/20 bg-inset p-2.5"
-        aria-label="Register file"
-      >
+      <section class="chip-package rounded-xl p-2.5" aria-label="Register file">
         <h3 class="unit-title">Register file <span>x0–x31</span></h3>
         <div
           class="mt-1.5 grid gap-x-4 font-mono text-code @min-[30rem]:grid-cols-2 @min-[46rem]:grid-cols-4"
@@ -112,7 +109,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
             <div
               v-for="field in view.decode.fields"
               :key="field.name"
-              class="rounded-sm bg-muted px-1"
+              class="rounded-sm bg-foreground/8 px-1"
             >
               <dt class="inline text-muted-foreground">{{ field.name }}</dt>
               <dd class="ml-1 inline">{{ field.value }}</dd>

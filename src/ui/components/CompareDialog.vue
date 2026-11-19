@@ -51,56 +51,64 @@ const rows = computed(() => metricRows(measurements.value));
 
       <p class="max-w-prose text-sm leading-relaxed text-pretty">{{ task.lesson }}</p>
 
-      <!-- The fewest in each row stands out: the others are dimmed rather than the winner coloured. -->
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="text-xs text-muted-foreground">
-            <th scope="col" class="pb-1.5 text-left font-normal">Measure</th>
-            <th
-              v-for="id in COMPARED"
-              :key="id"
-              scope="col"
-              class="pb-1.5 pl-3 text-right font-medium whitespace-nowrap text-foreground"
-            >
-              {{ architectureLabel(id) }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in rows" :key="row.label" class="border-t">
-            <th scope="row" class="py-1.5 text-left font-normal">
-              {{ row.label }}
-              <span class="block text-xs text-muted-foreground">{{ row.hint }}</span>
-            </th>
-            <td
-              v-for="id in COMPARED"
-              :key="id"
-              class="py-1.5 pl-3 text-right font-mono tabular-nums"
-              :class="
-                row.least.includes(id)
-                  ? 'font-semibold'
-                  : { 'text-muted-foreground': row.least.length > 0 }
-              "
-            >
-              {{ row.values[id] }}
-              <span v-if="row.least.includes(id)" class="sr-only">(the fewest)</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- The fewest in each row stands out in a pill of its own; the others step back. -->
+      <div class="well rounded-lg px-3.5 py-1.5">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-muted-foreground">
+              <th scope="col" class="py-1.5 text-left font-normal">Measure</th>
+              <th
+                v-for="id in COMPARED"
+                :key="id"
+                scope="col"
+                class="w-24 py-1.5 pl-3 text-right font-medium whitespace-nowrap text-foreground"
+              >
+                {{ architectureLabel(id) }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in rows" :key="row.label" class="border-t">
+              <th scope="row" class="py-2 text-left font-normal">
+                {{ row.label }}
+                <span class="block text-xs text-muted-foreground">{{ row.hint }}</span>
+              </th>
+              <td
+                v-for="id in COMPARED"
+                :key="id"
+                class="py-2 pl-3 text-right font-mono text-code"
+                :class="{
+                  'text-muted-foreground': row.least.length > 0 && !row.least.includes(id)
+                }"
+              >
+                <span
+                  class="-mr-2 inline-block min-w-9 rounded-md px-2 py-0.5"
+                  :class="
+                    row.least.includes(id)
+                      ? 'bg-pointer/15 font-semibold text-foreground inset-ring inset-ring-pointer/40'
+                      : ''
+                  "
+                  >{{ row.values[id] }}</span
+                >
+                <span v-if="row.least.includes(id)" class="sr-only">(the fewest)</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div class="grid gap-3 md:grid-cols-3">
         <section
           v-for="id in COMPARED"
           :key="id"
-          class="flex min-w-0 flex-col rounded-lg border"
+          class="flex min-w-0 flex-col overflow-hidden rounded-lg border bg-card/60"
           :aria-label="`${architectureLabel(id)} program`"
         >
           <header class="border-b px-3 py-2">
             <h3 class="text-sm font-semibold">{{ architectureLabel(id) }}</h3>
             <p class="text-xs text-muted-foreground">{{ TRAITS[id] }}</p>
           </header>
-          <ol class="flex-1 overflow-x-auto px-3 py-2 font-mono text-xs leading-6">
+          <ol class="well flex-1 overflow-x-auto px-3 py-2 font-mono text-xs leading-6">
             <li
               v-for="(line, index) in measurements[id].listing"
               :key="index"
@@ -113,7 +121,7 @@ const rows = computed(() => metricRows(measurements.value));
               <span>{{ line.text }}</span>
             </li>
           </ol>
-          <footer class="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2">
+          <footer class="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
             <p v-if="measurements[id].error" class="text-xs text-destructive">
               {{ measurements[id].error }}
             </p>
@@ -122,13 +130,15 @@ const rows = computed(() => metricRows(measurements.value));
               <span class="font-mono">{{ measurements[id].result }}</span>
             </p>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
-              class="pointer-coarse:h-11"
+              class="group/load shadow-(--shadow-thumb) pointer-coarse:h-11"
               @click="emit('load', task, id)"
             >
               Load into {{ architectureLabel(id) }}
-              <ArrowRight />
+              <ArrowRight
+                class="transition-transform group-hover/load:translate-x-0.5 calm:transition-none"
+              />
             </Button>
           </footer>
         </section>

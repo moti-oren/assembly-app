@@ -13,13 +13,18 @@ const VIEWS = [
 </script>
 
 <template>
-  <div class="flex items-center gap-0.5 rounded-md border p-0.5" role="group" aria-label="CPU view">
+  <div
+    class="segmented"
+    :style="{ '--segments': VIEWS.length, '--active': cpuView === 'table' ? 1 : 0 }"
+    role="group"
+    aria-label="CPU view"
+  >
     <Tooltip v-for="view in VIEWS" :key="view.value">
       <TooltipTrigger as-child>
         <Button
           size="icon-xs"
           class="pointer-coarse:size-11"
-          :variant="cpuView === view.value ? 'secondary' : 'ghost'"
+          variant="ghost"
           :aria-pressed="cpuView === view.value"
           :aria-label="view.label"
           @click="cpuView = view.value"

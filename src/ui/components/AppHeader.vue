@@ -39,28 +39,32 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
     room to the panels; the change strip takes its place at the top.
   -->
   <header
-    class="relative z-(--z-sticky) border-b bg-background/85 backdrop-blur-sm lg:sticky lg:top-0"
+    class="relative z-(--z-sticky) border-b bg-page/75 backdrop-blur-lg backdrop-saturate-150 lg:sticky lg:top-0"
   >
     <div class="mx-auto flex h-14 max-w-(--page-width) items-center gap-3 px-4 lg:px-6">
       <!-- On a phone the buttons need the room: the badge goes, and the name shortens before it wraps. -->
       <div class="flex min-w-0 items-center gap-2.5">
-        <div
-          class="hidden size-7 shrink-0 place-items-center rounded-md bg-foreground font-mono text-2xs font-bold text-background sm:grid"
-          aria-hidden="true"
-        >
+        <div class="die-mark hidden shrink-0 sm:grid" aria-hidden="true">
           {{ ARCHITECTURE_CHOICES.find((choice) => choice.id === architecture)?.badge }}
         </div>
         <h1 class="truncate text-base font-semibold tracking-tight">CPU Playground</h1>
       </div>
       <!-- Each CPU keeps its own program and history, so switching back finds them as they were. -->
-      <div class="flex shrink-0 rounded-md border p-0.5" role="group" aria-label="Architecture">
+      <div
+        class="segmented shrink-0"
+        :style="{
+          '--segments': ARCHITECTURE_CHOICES.length,
+          '--active': ARCHITECTURE_CHOICES.findIndex((choice) => choice.id === architecture)
+        }"
+        role="group"
+        aria-label="Architecture"
+      >
         <Button
           v-for="choice in ARCHITECTURE_CHOICES"
           :key="choice.id"
-          :variant="architecture === choice.id ? 'secondary' : 'ghost'"
+          variant="ghost"
           size="sm"
-          class="h-7 px-2.5 text-xs pointer-coarse:h-11"
-          :class="{ 'font-semibold': architecture === choice.id }"
+          class="h-7 px-3 text-xs pointer-coarse:h-11"
           :aria-pressed="architecture === choice.id"
           @click="architecture = choice.id"
         >

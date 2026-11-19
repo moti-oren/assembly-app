@@ -126,7 +126,7 @@ function flip(bit: number): void {
             >{{ access.write }} {{ port(PORTS.digits) }}, {{ port(PORTS.digits + 1) }}</span
           >
         </h3>
-        <div class="flex gap-2 rounded-md border bg-background/60 px-2.5 py-2">
+        <div class="device-screen flex gap-2 px-3 py-2.5">
           <svg
             v-for="digit in digits"
             :key="digit.port"
@@ -202,15 +202,15 @@ function flip(bit: number): void {
         </h3>
         <!-- Reversed, so the newest output stays in view as the text grows. -->
         <div
-          class="flex h-20 flex-col-reverse overflow-y-auto rounded-md border bg-background/60 px-2 py-1.5"
+          class="device-screen flex h-21 flex-col-reverse overflow-y-auto px-2.5 py-2 [scrollbar-color:oklch(1_0_0/25%)_transparent]"
         >
           <pre
             v-if="terminal"
-            class="font-mono text-xs break-all whitespace-pre-wrap"
-            aria-live="polite"
-            >{{ terminal }}</pre>
-          <p v-else class="mb-auto text-xs text-muted-foreground">
-            Each byte written here is printed as a character.
+            class="font-mono text-xs leading-5 break-all whitespace-pre-wrap"
+            aria-live="polite">{{ terminal }}<span class="device-caret" aria-hidden="true" /></pre>
+          <p v-else class="mb-auto text-xs leading-5 text-(--screen-foreground)/65">
+            <span class="device-caret mr-1.5" aria-hidden="true" />Each byte written here is printed
+            as a character.
           </p>
         </div>
       </section>

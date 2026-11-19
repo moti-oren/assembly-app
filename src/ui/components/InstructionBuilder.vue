@@ -296,7 +296,7 @@ function onBackspace(event: KeyboardEvent): void {
       <div
         ref="box"
         data-loc="builder"
-        class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-input bg-background px-2 py-1.5 font-mono text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30"
+        class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 font-mono text-sm transition-[border-color,outline-color] well outline-3 outline-transparent focus-within:border-pointer/70 focus-within:outline-pointer/20"
         @click="focusInput"
         @keydown="onBoxKeydown"
       >
@@ -307,8 +307,12 @@ function onBackspace(event: KeyboardEvent): void {
               data-token
               class="inline-flex h-7 items-center rounded-md px-2 transition-colors hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               :class="[
-                token.head ? 'bg-foreground font-semibold text-background' : 'bg-secondary',
-                token.pending ? 'border border-dashed border-foreground/40 bg-transparent' : ''
+                token.head
+                  ? 'bg-foreground font-semibold text-background'
+                  : 'bg-raised shadow-(--shadow-thumb)',
+                token.pending
+                  ? 'border border-dashed border-foreground/40 bg-transparent shadow-none'
+                  : ''
               ]"
               @click.stop="truncateTo(index)"
             >
@@ -370,7 +374,7 @@ function onBackspace(event: KeyboardEvent): void {
         class="-mx-1 max-h-72 overflow-y-auto px-1 lg:max-h-80"
       >
         <div v-for="[group, options] in groups" :key="group" class="mb-3 last:mb-0">
-          <h3 class="mb-1.5 text-xs text-muted-foreground">{{ group }}</h3>
+          <h3 class="mb-1.5 text-xs font-medium text-muted-foreground">{{ group }}</h3>
           <div class="flex flex-wrap gap-1.5">
             <Button
               v-for="option in options"
@@ -382,7 +386,7 @@ function onBackspace(event: KeyboardEvent): void {
               data-option
               :class="
                 option === enterOption
-                  ? 'border-foreground/50 bg-secondary dark:border-foreground/40'
+                  ? 'border-pointer/70 bg-pointer/12 text-foreground dark:border-pointer/60 dark:bg-pointer/15'
                   : ''
               "
               @click="choose(option)"
@@ -394,7 +398,7 @@ function onBackspace(event: KeyboardEvent): void {
               {{ option.label }}
               <CornerDownLeft
                 v-if="option === enterOption"
-                class="text-muted-foreground"
+                class="text-pointer"
                 aria-label="Enter picks this"
               />
             </Button>
