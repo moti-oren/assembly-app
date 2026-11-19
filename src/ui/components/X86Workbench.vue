@@ -130,11 +130,11 @@ const encodingShown = computed(() =>
   <ChangeStrip class="lg:hidden" :state="state" :record="lastRecord" />
 
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
-  <main
-    class="mx-auto grid w-full max-w-(--page-width) flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
-  >
-    <!-- Each column's cards can be dragged into any order, but never into the other column. -->
+  <main class="workbench">
+    <!-- Each pane's panels can be dragged into any order, but never into the other pane. -->
     <SortableColumn
+      class="workbench-pane"
+      data-pane="sidebar"
       :keys="leftKeys"
       :labels="PANEL_LABELS"
       @move="(key, to) => move('left', key, to)"
@@ -181,6 +181,8 @@ const encodingShown = computed(() =>
     </SortableColumn>
 
     <SortableColumn
+      class="workbench-pane"
+      data-pane="stage"
       :keys="rightKeys"
       :labels="PANEL_LABELS"
       @move="(key, to) => move(rightColumn, key, to)"

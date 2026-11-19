@@ -42,8 +42,8 @@ watch(architecture, () => {
 
 <template>
   <TooltipProvider :delay-duration="250">
-    <!-- The page scrolls as a whole: every panel keeps its own height instead of sharing one window. -->
-    <div class="app-surface flex min-h-svh flex-col bg-page">
+    <!-- The shell: header, the two panes of the workbench, and the transport bar under them. -->
+    <div class="app-surface">
       <X86Workbench v-if="architecture === 'x86'" :cpu="x86" />
       <Rv32Workbench v-else-if="architecture === 'rv32'" :cpu="rv32" />
       <Mos6502Workbench v-else :cpu="mos6502" />

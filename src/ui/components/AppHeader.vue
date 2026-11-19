@@ -35,19 +35,17 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
 
 <template>
   <!--
-    Stays on screen only with two columns. On a phone or tablet it scrolls away and leaves the
-    room to the panels; the change strip takes its place at the top.
+    Part of the shell with two panes, where only the panes scroll. On a phone or tablet it
+    scrolls away and leaves the room to the panels; the change strip takes its place at the top.
   -->
-  <header
-    class="relative z-(--z-sticky) border-b bg-page/75 backdrop-blur-lg backdrop-saturate-150 lg:sticky lg:top-0"
-  >
-    <div class="mx-auto flex h-14 max-w-(--page-width) items-center gap-3 px-4 lg:px-6">
+  <header class="relative z-(--z-sticky) flex-none border-b bg-card">
+    <div class="flex h-12 items-center gap-3 px-4">
       <!-- On a phone the buttons need the room: the badge goes, and the name shortens before it wraps. -->
       <div class="flex min-w-0 items-center gap-2.5">
         <div class="die-mark hidden shrink-0 sm:grid" aria-hidden="true">
           {{ ARCHITECTURE_CHOICES.find((choice) => choice.id === architecture)?.badge }}
         </div>
-        <h1 class="truncate text-base font-semibold tracking-tight">CPU Playground</h1>
+        <h1 class="truncate text-sm font-semibold tracking-tight">CPU Playground</h1>
       </div>
       <!-- Each CPU keeps its own program and history, so switching back finds them as they were. -->
       <div

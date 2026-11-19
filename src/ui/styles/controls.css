@@ -1,4 +1,4 @@
-/* The controls around the panels: the header's chip and switches, and the dock at the bottom. */
+/* The controls around the panels: the header's chip and switches, and the transport bar. */
 
 @layer components {
   /*
@@ -12,14 +12,11 @@
     width: 1.625rem;
     height: 1.625rem;
     margin: 0.1875rem;
-    border-radius: 0.3125rem;
+    border-radius: 0.25rem;
     background:
       radial-gradient(circle at 5px 5px, oklch(0.3 0.06 70 / 55%) 1.1px, transparent 1.7px),
-      linear-gradient(150deg, oklch(0.9 0.11 92), oklch(0.74 0.13 76));
-    box-shadow:
-      inset 0 1px 0 oklch(1 0 0 / 45%),
-      inset 0 0 0 1px oklch(0.4 0.08 70 / 45%),
-      0 1px 3px oklch(0 0 0 / 35%);
+      linear-gradient(150deg, oklch(0.9 0.11 92), oklch(0.76 0.13 76));
+    box-shadow: inset 0 0 0 1px oklch(0.4 0.08 70 / 45%);
     color: oklch(0.27 0.05 70);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
@@ -51,10 +48,10 @@
     display: grid;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     padding: 2px;
-    background: var(--inset);
-    box-shadow: var(--shadow-well);
+    background: var(--muted);
+    box-shadow: inset 0 0 0 1px var(--border);
   }
   .segmented::before {
     content: '';
@@ -64,28 +61,31 @@
     bottom: 2px;
     left: 2px;
     width: calc((100% - 4px) / var(--segments));
-    border-radius: calc(var(--radius-md) - 2px);
+    border-radius: calc(var(--radius-lg) - 2px);
     background: var(--raised);
     box-shadow: var(--shadow-thumb);
     translate: calc(var(--active) * 100%) 0;
-    transition: translate 280ms cubic-bezier(0.3, 0.75, 0.2, 1);
+    transition: translate 240ms cubic-bezier(0.3, 0.75, 0.2, 1);
   }
 
-  /* The bar that drives the program. On a wide screen it floats clear of the page's edge. */
-  .dock {
-    border-top: 1px solid var(--border);
-    background: var(--glass);
-    backdrop-filter: blur(18px) saturate(1.6);
+  /*
+   * Switches that are each on or off (the panels of the bottom bar), joined into one control.
+   * One that is on is filled, with a line of the pointer colour under it.
+   */
+  .toggle-group {
+    display: inline-flex;
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 0 0 1px var(--input);
   }
-  @media (min-width: 64rem) {
-    .dock {
-      border: 0;
-      border-radius: var(--radius-2xl);
-      box-shadow:
-        inset 0 1px 0 var(--edge),
-        0 0 0 1px var(--border),
-        var(--shadow-overlay);
-    }
+
+  /* The bar that drives the program: part of the shell, with nothing of the page behind it. */
+  .transport {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--z-sticky);
+    flex: none;
+    border-top: 1px solid var(--border);
+    background: var(--card);
   }
 
   :root[data-motion='reduced'] .segmented::before {
@@ -93,12 +93,40 @@
   }
 }
 
-/* Unlayered: the thumb shows which is chosen, so the buttons over it carry no fill of their own. */
-.segmented > [data-slot='button'] {
+/*
+ * Unlayered: the thumb shows which is chosen, so the buttons over it carry no fill of their own.
+ * By element, not by slot: a button inside a tooltip takes the tooltip trigger's slot name.
+ */
+.segmented > button {
   background: transparent;
   color: var(--muted-foreground);
 }
-.segmented > [data-slot='button']:hover,
-.segmented > [data-slot='button'][aria-pressed='true'] {
+.segmented > button:hover,
+.segmented > button[aria-pressed='true'] {
   color: var(--foreground);
+}
+
+.toggle-group > button {
+  border-radius: 0;
+  color: var(--muted-foreground);
+}
+.toggle-group > button:first-child {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+.toggle-group > button:last-child {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+.toggle-group > button + button {
+  border-left: 1px solid var(--input);
+}
+.toggle-group > button:hover {
+  color: var(--foreground);
+}
+.toggle-group > button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--foreground);
+}
+/* Not while focused: the focus ring is a box shadow too, and it matters more. */
+.toggle-group > button[aria-pressed='true']:not(:focus-visible) {
+  box-shadow: inset 0 -2px 0 var(--pointer);
 }

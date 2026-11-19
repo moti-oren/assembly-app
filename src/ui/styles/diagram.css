@@ -1,22 +1,25 @@
-/* The CPU diagrams: the package, the units inside it, and the wires between them. */
+/* The CPU diagrams: the canvas, the chip on it, the units inside, and the wires between them. */
 
 @layer components {
-  /* The chip's package: set into the card, with the dotted grid of a schematic sheet. */
-  .chip-package {
-    border: 1px solid color-mix(in oklch, var(--foreground) 14%, transparent);
-    background-color: var(--inset);
+  /* The one place with a drawing grid: the sheet the CPU is drawn on. */
+  .cpu-canvas {
     background-image: radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
-    background-size: 12px 12px;
-    box-shadow:
-      var(--shadow-well),
-      0 1px 0 var(--edge);
+    background-size: 14px 14px;
+    background-position: 7px 7px;
   }
-  /* A unit inside the package (the ALU, the adder, a stage), standing on that sheet. */
+  /* The chip itself: a plain surface on the sheet, so its tables are read without the dots. */
+  .chip-package {
+    border: 1px solid var(--input);
+    background-color: var(--card);
+  }
+  /* A unit (the ALU, the adder, a stage): on the sheet a surface, inside the chip set into it. */
   .chip-block {
-    background-color: var(--raised);
-    box-shadow:
-      inset 0 1px 0 var(--edge),
-      0 1px 2px oklch(0 0 0 / 14%);
+    border-color: var(--input);
+    background-color: var(--card);
+  }
+  .chip-package .chip-block {
+    border-color: var(--border);
+    background-color: var(--page);
   }
 
   /*
@@ -27,7 +30,7 @@
     position: relative;
     height: 2px;
     border-radius: 1px;
-    background: color-mix(in oklch, var(--foreground) 14%, transparent);
+    background: color-mix(in oklch, var(--wire) 55%, transparent);
   }
   .wire-lit {
     --kind-color: var(--pointer);
@@ -35,7 +38,6 @@
     inset: 0;
     border-radius: inherit;
     background: var(--kind-color);
-    box-shadow: 0 0 6px -1px var(--kind-color);
     animation: wire-light 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .wire-lit[data-kind='write'] {
@@ -47,34 +49,82 @@
     }
     30% {
       opacity: 1;
-      box-shadow: 0 0 12px 2px var(--kind-color);
+      box-shadow: 0 0 10px 1px var(--kind-color);
     }
   }
 
   /* The name of one of the units inside the CPU diagram. */
   .unit-title {
     margin-bottom: 0.5rem;
-    color: var(--muted-foreground);
+    color: var(--foreground);
     font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.06em;
     line-height: 1rem;
     text-transform: uppercase;
   }
   /* The unit's short name: told apart by its font, not by a frame of its own. */
   .unit-title > span {
     margin-left: 0.375rem;
+    color: var(--muted-foreground);
     font-family: var(--font-mono);
     font-weight: 400;
     letter-spacing: 0;
-    opacity: 0.85;
   }
 
   /*
    * A unit the instruction on show does not use. It keeps its place and size, so nothing below
-   * moves from one step to the next, and steps back instead.
+   * moves from one step to the next. Its frame is dashed rather than its text faded, which
+   * would cost the text its contrast.
    */
   .unit-idle {
-    opacity: 0.6;
+    border-style: dashed;
+  }
+  .unit-idle .unit-title {
+    color: var(--muted-foreground);
+  }
+
+  /* A place a value will be once there is one: the standby reading of a unit. */
+  .standby {
+    color: var(--muted-foreground);
+    letter-spacing: 0.08em;
+  }
+
+  /*
+   * A forwarded result in the pipeline chart: a line down the right edge of the column, from the
+   * stage that has the value to the EX that takes it, --rows rows below.
+   */
+  .forward-path {
+    position: absolute;
+    right: 2px;
+    bottom: 50%;
+    z-index: 1;
+    width: 2px;
+    /* A row is 1.25rem tall and 2px from the next. */
+    height: calc(var(--rows) * (1.25rem + 2px));
+    border-radius: 1px;
+    background: var(--pointer);
+    pointer-events: none;
+  }
+  .forward-path::before,
+  .forward-path::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    translate: -50% 0;
+  }
+  /* Where it leaves: a dot. Where it arrives: an arrowhead. */
+  .forward-path::before {
+    top: -2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--pointer);
+  }
+  .forward-path::after {
+    bottom: -1px;
+    border: 4px solid transparent;
+    border-top: 5px solid var(--pointer);
+    border-bottom: 0;
   }
 }

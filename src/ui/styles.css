@@ -70,6 +70,7 @@
   --color-page: var(--page);
   --color-inset: var(--inset);
   --color-raised: var(--raised);
+  --color-wire: var(--wire);
   --font-heading: var(--font-sans);
   /* Code and values, and the smallest labels. No line height: they keep their parent's. */
   --text-code: 0.8125rem;
@@ -82,6 +83,7 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-chart-6: var(--chart-6);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -114,158 +116,155 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * A workbench in two materials. Light: warm stone and white, like the casing of a bench
+ * instrument. Dark: matte slate. Colour is kept for what the CPU is doing: blue where it reads
+ * and where execution is, orange where it writes.
+ */
 :root {
-  --radius: 0.625rem;
-  /* How wide the header, the panels and the bottom bar may grow; they share it to stay aligned. */
-  --page-width: 80rem;
+  --radius: 0.375rem;
   /* The two semantic accents: what just changed, and where execution is. */
-  --changed: oklch(0.945 0.085 92);
-  --changed-foreground: oklch(0.4 0.095 66);
+  --changed: oklch(0.945 0.055 72);
+  --changed-foreground: oklch(0.45 0.13 48);
   /* The brief peak of the flash a value gives off as it changes. */
-  --changed-glow: oklch(0.86 0.16 90);
+  --changed-glow: oklch(0.82 0.15 66);
+  /* Text on the glow, which is bright in both themes. */
+  --changed-glow-foreground: oklch(0.25 0.06 55);
   /* Stacking, lowest first. Dialogs, menus and tooltips (shadcn) sit at 50, above all of these. */
   --z-drag: 5;
   --z-strip: 10;
   --z-sticky: 20;
   --z-flight: 40;
-  --drag-shadow: 0 18px 40px -12px oklch(0.2 0.02 260 / 35%);
-  /* Text on the glow, which is bright in both themes. */
-  --changed-glow-foreground: oklch(0.25 0.05 70);
+  --drag-shadow: 0 18px 40px -12px oklch(0.25 0.01 90 / 35%);
   /*
-   * A wire, LED or segment that was written. Thin lines on the page need 3:1 against it, which
-   * the pale glow does not reach on white, so the light theme draws them in a deeper amber.
+   * A wire, LED or segment that was written. Thin lines need 3:1 against the surface, which the
+   * pale glow does not reach on white, so the light theme draws them in a deeper orange.
    */
-  --written: oklch(0.65 0.17 60);
-  --pointer: oklch(0.52 0.17 248);
-  --pointer-foreground: oklch(0.985 0 0);
-  /* A memory byte that holds 0. Muted text is already near 4.5:1 on the inset, so no fainter. */
+  --written: oklch(0.63 0.18 48);
+  --pointer: oklch(0.52 0.16 250);
+  --pointer-foreground: #ffffff;
+  /* A connection nothing is using: still a line to follow, 3:1 on the surface behind it. */
+  --wire: #8e8b82;
+  /* A memory byte that holds 0. Muted text is the faintest that still reads, so no fainter. */
   --zero-byte: var(--muted-foreground);
   /*
-   * Three surfaces, each a clear step from the next: the page, the cards on it, and the tables,
-   * lists and diagrams set into a card. Inputs and the bars keep --background.
+   * The surfaces: the canvas the stage is drawn on, the panels beside and on it, and the lists
+   * and tables set into a panel. Each pane sets --inset to the one that contrasts with it.
    */
-  --page: oklch(0.958 0.005 290);
-  --inset: oklch(0.973 0.004 290);
-  /* A block standing on the inset: the units inside the CPU package, a control's thumb. */
-  --raised: oklch(1 0 0);
-  --background: oklch(1 0 0);
-  /* The dots of the drawing grid, on the page and inside the CPU package. */
-  --grid-dot: oklch(0.3 0.03 290 / 9%);
-  /* Light from above: the top edge of anything raised. The light theme uses shadows instead. */
-  --edge: oklch(1 0 0 / 0%);
-  --shadow-card: 0 1px 2px oklch(0.3 0.04 290 / 7%), 0 8px 24px -14px oklch(0.3 0.04 290 / 22%);
-  --shadow-well: inset 0 1px 2px oklch(0.3 0.04 290 / 8%), inset 0 0 0 1px oklch(0.3 0.04 290 / 7%);
-  --shadow-thumb: 0 1px 2px oklch(0.3 0.04 290 / 18%), 0 0 0 1px oklch(0.3 0.04 290 / 8%);
-  --shadow-overlay: 0 2px 6px oklch(0.3 0.04 290 / 8%), 0 24px 60px -16px oklch(0.3 0.04 290 / 30%);
-  /* Menus, dialogs and the dock: see-through, over a blur of what is behind them. */
-  --glass: oklch(1 0 0 / 78%);
-  --overlay: oklch(0.3 0.03 290 / 22%);
-  /* The glow behind the CPU diagram. */
-  --ambient: oklch(0.52 0.17 248 / 7%);
-  /* The lid and pins of the chip in the header. */
-  --die-pin: oklch(0.62 0.02 290);
-  /* The dark glass of the 7-segment display and the terminal, the same in both themes. */
-  --screen: oklch(0.17 0.02 300);
-  --screen-foreground: oklch(0.93 0.04 90);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.48 0.018 288);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.3 0.03 290 / 11%);
-  --input: oklch(0.3 0.03 290 / 16%);
-  --ring: oklch(0.705 0.015 286.067);
-  /* One colour per field of an instruction and per pipeline stage: one lightness, five hues. */
+  --page: #f6f5f2;
+  --inset: #f6f5f2;
+  /* A block standing on a surface: a control's thumb, a chosen word. */
+  --raised: #ffffff;
+  --background: #ffffff;
+  /* The dots of the drawing grid behind the CPU diagram, and nowhere else. */
+  --grid-dot: oklch(0.3 0.01 90 / 20%);
+  --shadow-well: inset 0 0 0 1px var(--border);
+  --shadow-thumb: 0 1px 2px oklch(0.25 0.01 90 / 16%), 0 0 0 1px oklch(0.25 0.01 90 / 9%);
+  --shadow-overlay: 0 2px 6px oklch(0.25 0.01 90 / 8%), 0 20px 50px -16px oklch(0.25 0.01 90 / 30%);
+  /* Menus and dialogs: all but opaque, over a blur of what is behind them. */
+  --glass: oklch(1 0 0 / 92%);
+  --overlay: oklch(0.25 0.01 90 / 28%);
+  /* The pins of the chip in the header. */
+  --die-pin: #8e8b82;
+  /* The glass of the 7-segment display and the terminal: graphite here, not black. */
+  --screen: #2b2d33;
+  --screen-foreground: #f3efe6;
+  --screen-unlit: oklch(1 0 0 / 13%);
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  /* The one filled button: the colour of the execution pointer it moves. */
+  --primary: oklch(0.5 0.16 250);
+  --primary-foreground: #ffffff;
+  --secondary: #efede8;
+  --secondary-foreground: #18181b;
+  --muted: #efede8;
+  --muted-foreground: #62605a;
+  --accent: #efede8;
+  --accent-foreground: #18181b;
+  --destructive: oklch(0.55 0.21 27);
+  --border: #e5e3dc;
+  --input: #d6d3ca;
+  --ring: oklch(0.6 0.11 250);
+  /*
+   * One colour per family of instructions, per field of an encoding and per pipeline stage: one
+   * lightness, six hues.
+   */
   --chart-1: oklch(0.56 0.16 250);
-  --chart-2: oklch(0.56 0.11 190);
+  --chart-2: oklch(0.56 0.11 195);
   --chart-3: oklch(0.56 0.16 305);
-  --chart-4: oklch(0.62 0.15 70);
+  --chart-4: oklch(0.64 0.15 70);
   --chart-5: oklch(0.58 0.17 15);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
+  --chart-6: oklch(0.56 0.13 150);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: oklch(0.5 0.16 250);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #efede8;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e5e3dc;
+  --sidebar-ring: oklch(0.6 0.11 250);
 }
 
-/* A wide screen gives the panels its width rather than a margin on each side. */
-@media (min-width: 96rem) {
-  :root {
-    --page-width: 96rem;
-  }
-}
-
-/* The purple-grey ceramic and gold lid of an early Intel C8086 package. */
 .dark {
   color-scheme: dark;
-  scrollbar-color: oklch(0.95 0.03 300 / 22%) transparent;
-  --changed: oklch(0.35 0.075 80);
-  --changed-foreground: oklch(0.91 0.13 90);
-  --changed-glow: oklch(0.85 0.155 86);
+  scrollbar-color: #3a4150 transparent;
+  --changed: oklch(0.37 0.075 58);
+  --changed-foreground: oklch(0.91 0.1 72);
+  --changed-glow: oklch(0.8 0.15 64);
   --written: var(--changed-glow);
-  --card-sheen: oklch(1 0 0 / 3%);
-  --overlay: oklch(0.08 0.02 305 / 48%);
-  --raised: oklch(0.232 0.026 303);
-  --grid-dot: oklch(0.95 0.03 300 / 7%);
-  --edge: oklch(1 0 0 / 7%);
-  --shadow-card: 0 1px 2px oklch(0 0 0 / 30%), 0 12px 28px -16px oklch(0 0 0 / 55%);
-  --shadow-well: inset 0 1px 3px oklch(0 0 0 / 35%), inset 0 0 0 1px oklch(0 0 0 / 22%);
-  --shadow-thumb: inset 0 1px 0 oklch(1 0 0 / 9%), 0 1px 2px oklch(0 0 0 / 45%);
-  --shadow-overlay: 0 2px 8px oklch(0 0 0 / 35%), 0 28px 70px -16px oklch(0 0 0 / 70%);
-  --glass: oklch(0.215 0.026 303 / 72%);
-  --ambient: oklch(0.8 0.11 228 / 9%);
-  --die-pin: oklch(0.6 0.03 300);
+  --overlay: oklch(0.1 0.01 260 / 55%);
+  --raised: #1f242d;
+  --grid-dot: oklch(0.9 0.02 260 / 15%);
+  --shadow-thumb: inset 0 1px 0 oklch(1 0 0 / 7%), 0 1px 2px oklch(0 0 0 / 45%);
+  --shadow-overlay: 0 2px 8px oklch(0 0 0 / 35%), 0 24px 60px -16px oklch(0 0 0 / 70%);
+  --glass: oklch(0.22 0.012 262 / 92%);
+  --die-pin: #6b7280;
   --drag-shadow: 0 18px 40px -12px oklch(0 0 0 / 60%);
   --pointer: oklch(0.8 0.11 228);
-  --pointer-foreground: oklch(0.18 0.02 260);
+  --pointer-foreground: #0e1014;
+  --wire: #5d6473;
   /* As faint as an unlit digit (.digit-off), still above 4.5:1 on the memory table. */
-  --zero-byte: color-mix(in oklch, var(--foreground) 55%, transparent);
-  /* The inset is darker than the card in this theme: set into it, not raised from it. */
-  --page: oklch(0.125 0.018 303);
-  --inset: oklch(0.158 0.021 303);
-  --background: oklch(0.16 0.02 305);
-  --foreground: oklch(0.95 0.012 90);
-  --card: oklch(0.207 0.024 303);
-  --card-foreground: oklch(0.95 0.012 90);
-  --popover: oklch(0.23 0.026 305);
-  --popover-foreground: oklch(0.95 0.012 90);
-  --primary: oklch(0.93 0.012 90);
-  --primary-foreground: oklch(0.2 0.024 305);
-  --secondary: oklch(0.27 0.03 305);
-  --secondary-foreground: oklch(0.95 0.012 90);
-  --muted: oklch(0.27 0.03 305);
-  --muted-foreground: oklch(0.74 0.028 300);
-  --accent: oklch(0.27 0.03 305);
-  --accent-foreground: oklch(0.95 0.012 90);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.95 0.03 300 / 10%);
-  --input: oklch(0.95 0.03 300 / 16%);
-  --ring: oklch(0.6 0.05 300);
+  --zero-byte: color-mix(in oklch, var(--foreground) 62%, transparent);
+  --page: #0e1014;
+  --inset: #0e1014;
+  --background: #15181f;
+  --screen: #08090c;
+  --screen-foreground: #eceef2;
+  --screen-unlit: oklch(1 0 0 / 15%);
+  --foreground: #eceef2;
+  --card: #15181f;
+  --card-foreground: #eceef2;
+  --popover: #1a1e26;
+  --popover-foreground: #eceef2;
+  --primary: oklch(0.78 0.11 232);
+  --primary-foreground: #0e1014;
+  --secondary: #1f242d;
+  --secondary-foreground: #eceef2;
+  --muted: #1f242d;
+  --muted-foreground: #a2a9b6;
+  --accent: #1f242d;
+  --accent-foreground: #eceef2;
+  --destructive: oklch(0.72 0.18 22);
+  --border: #262b36;
+  --input: #363d4a;
+  --ring: oklch(0.68 0.09 232);
   --chart-1: oklch(0.78 0.11 245);
-  --chart-2: oklch(0.78 0.1 190);
+  --chart-2: oklch(0.78 0.1 195);
   --chart-3: oklch(0.78 0.11 305);
-  --chart-4: oklch(0.82 0.13 85);
+  --chart-4: oklch(0.82 0.13 80);
   --chart-5: oklch(0.78 0.12 15);
-  --sidebar: oklch(0.2 0.024 305);
-  --sidebar-foreground: oklch(0.95 0.012 90);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.95 0.012 90);
-  --sidebar-accent: oklch(0.27 0.03 305);
-  --sidebar-accent-foreground: oklch(0.95 0.012 90);
-  --sidebar-border: oklch(0.95 0.03 300 / 11%);
-  --sidebar-ring: oklch(0.6 0.05 300);
+  --chart-6: oklch(0.78 0.12 150);
+  --sidebar: #15181f;
+  --sidebar-foreground: #eceef2;
+  --sidebar-primary: oklch(0.78 0.11 232);
+  --sidebar-primary-foreground: #0e1014;
+  --sidebar-accent: #1f242d;
+  --sidebar-accent-foreground: #eceef2;
+  --sidebar-border: #262b36;
+  --sidebar-ring: oklch(0.68 0.09 232);
 }
 
 @layer base {
@@ -313,7 +312,7 @@
   @keyframes panel-in {
     from {
       opacity: 0;
-      transform: translateY(14px);
+      transform: translateY(6px);
     }
   }
 
@@ -375,9 +374,9 @@
   .digit-glyph {
     display: inline-block;
   }
-  /* Unlit, but still a digit to read: 0.55 keeps it near 4.5:1 in both themes. */
+  /* Unlit, but still a digit to read: 0.62 keeps it above 4.5:1 in both themes. */
   .digit-off {
-    opacity: 0.55;
+    opacity: 0.62;
   }
   /* A memory byte that holds 0: quieter than the bytes that hold data. */
   .byte-zero {
@@ -500,6 +499,10 @@
     content: '';
     position: absolute;
     inset: -0.75rem -0.5rem -0.125rem;
+  }
+  /* The first panel has no gap above it for the grip to sit in. */
+  .workbench-pane > :first-child > .sortable-handle {
+    top: 0.125rem;
   }
   [data-sortable]:hover > .sortable-handle,
   .sortable-handle:focus-visible,

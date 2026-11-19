@@ -36,7 +36,7 @@ const changes = computed(() => {
 <template>
   <!-- On a narrow screen the CPU panels scroll away; this keeps the last result in sight. -->
   <div
-    class="sticky top-0 z-(--z-strip) flex h-8.25 items-center gap-2 overflow-x-auto border-b bg-background/85 px-4 py-1.5 font-mono text-xs leading-4 whitespace-nowrap backdrop-blur-sm"
+    class="sticky top-0 z-(--z-strip) flex h-8.25 items-center gap-2 overflow-x-auto border-b bg-card px-4 py-1.5 font-mono text-xs leading-4 whitespace-nowrap"
     aria-live="polite"
   >
     <span v-if="!record" class="font-sans text-muted-foreground">

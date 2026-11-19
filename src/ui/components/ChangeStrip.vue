@@ -41,7 +41,7 @@ const changes = computed(() => {
     there from the start, at a fixed height, so the page does not drop when the first result comes.
   -->
   <div
-    class="sticky top-0 z-(--z-strip) flex h-8.25 items-center gap-2 leading-4 overflow-x-auto border-b bg-background/85 px-4 py-1.5 font-mono text-xs whitespace-nowrap backdrop-blur-sm"
+    class="sticky top-0 z-(--z-strip) flex h-8.25 items-center gap-2 leading-4 overflow-x-auto border-b bg-card px-4 py-1.5 font-mono text-xs whitespace-nowrap"
     aria-live="polite"
   >
     <span v-if="!record" class="font-sans text-muted-foreground">
