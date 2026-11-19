@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import DiagramWire from './DiagramWire.vue';
+import { useLocale } from '@/ui/useLocale';
 
 defineProps<{ model: CpuDiagramModel }>();
+const { t } = useLocale();
 </script>
 
 <template>
   <!-- Outside the package: one bus, shared by the memory and the I/O ports. -->
   <div class="mt-3 flex items-end justify-between gap-3 sm:mt-0">
     <p class="truncate pb-1 text-xs text-muted-foreground">
-      <span class="unit-title">Address / data bus</span>
+      <span class="unit-title">{{ t.diagram.bus }}</span>
       <span v-if="model.bus" class="ml-2 font-mono">{{ model.bus }}</span>
     </p>
     <!--
@@ -31,10 +33,10 @@ defineProps<{ model: CpuDiagramModel }>();
         class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-inset px-3 py-2.5 transition-opacity duration-300"
         :class="{ 'unit-idle': !model.memoryKind }"
       >
-        <h3 class="unit-title mb-0">Memory</h3>
+        <h3 class="unit-title mb-0">{{ t.diagram.memory }}</h3>
         <span v-if="model.memory" class="truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
-            {{ model.memory.write ? 'wrote' : 'read' }}
+            {{ model.memory.write ? t.diagram.wrote : t.diagram.readValue }}
           </span>
           <span
             class="mx-1.5 rounded-sm px-1 font-semibold"
@@ -42,7 +44,7 @@ defineProps<{ model: CpuDiagramModel }>();
             >{{ model.memory.value }}</span
           >
           <span class="font-sans text-xs text-muted-foreground">
-            {{ model.memory.write ? 'to' : 'from' }}
+            {{ model.memory.write ? t.diagram.to : t.diagram.from }}
           </span>
           {{ model.memory.address }}
         </span>
@@ -55,10 +57,10 @@ defineProps<{ model: CpuDiagramModel }>();
         class="flex w-full min-w-0 items-baseline justify-between gap-3 rounded-lg border bg-inset px-3 py-2.5 transition-opacity duration-300"
         :class="{ 'unit-idle': !model.portKind }"
       >
-        <h3 class="unit-title mb-0">I/O ports</h3>
+        <h3 class="unit-title mb-0">{{ t.diagram.ports }}</h3>
         <span v-if="model.port" class="truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
-            {{ model.port.write ? 'wrote' : 'read' }}
+            {{ model.port.write ? t.diagram.wrote : t.diagram.readValue }}
           </span>
           <span
             class="mx-1.5 rounded-sm px-1 font-semibold"
@@ -66,7 +68,7 @@ defineProps<{ model: CpuDiagramModel }>();
             >{{ model.port.value }}</span
           >
           <span class="font-sans text-xs text-muted-foreground">
-            {{ model.port.write ? 'to port' : 'from port' }}
+            {{ model.port.write ? t.diagram.toPort : t.diagram.fromPort }}
           </span>
           {{ model.port.port }}h
         </span>

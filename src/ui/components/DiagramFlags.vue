@@ -4,12 +4,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 defineProps<{
   model: CpuDiagramModel;
   /** Number of instructions executed so far; replays the flashes. */
   tick: number;
 }>();
+const { t } = useLocale();
 </script>
 
 <template>
@@ -33,7 +35,7 @@ defineProps<{
                 ? 'border-foreground/20 bg-secondary'
                 : 'border-border bg-card'
           ]"
-          :aria-label="`${FLAG_INFO[flag].label} flag is ${model.isSet(flag) ? 1 : 0}`"
+          :aria-label="t.flags.value(FLAG_INFO[flag].label, model.isSet(flag) ? 1 : 0)"
         >
           <span
             v-if="model.flagChanged(flag)"

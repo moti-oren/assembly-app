@@ -16,12 +16,12 @@ export const MOS6502_ADDRESSES: AddressFormat = { prefix: '$', digits: 4 };
 /** Where the 6502 memory panel can jump to. The top of the stack is the byte above SP. */
 export function mos6502MemoryPlaces(state: CpuState): MemoryPlace[] {
   return [
-    { label: 'Zero page', start: () => 0x0000 },
-    { label: 'Stack', start: () => STACK_PAGE | ((state.registers.sp + 1) & 0xff), stack: true },
-    { label: 'Data', start: () => 0x0200 },
-    { label: 'Code', start: () => CODE_BASE },
-    { label: 'Devices', start: () => DEVICE_BASE },
-    { label: 'Vectors', start: () => 0xfff0 }
+    { id: 'zeroPage', start: () => 0x0000 },
+    { id: 'stack', start: () => STACK_PAGE | ((state.registers.sp + 1) & 0xff), stack: true },
+    { id: 'data', start: () => 0x0200 },
+    { id: 'code', start: () => CODE_BASE },
+    { id: 'devices', start: () => DEVICE_BASE },
+    { id: 'vectors', start: () => 0xfff0 }
   ];
 }
 

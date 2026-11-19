@@ -13,23 +13,32 @@ export interface LineCode {
   problem: string | null;
 }
 
-/** How the program panel names where a line's code sits. */
-export type CodePlace = (address: number) => string;
+/** Where a line's code sits: a byte offset in the code, or an address in memory, as written. */
+export type CodePlace = (address: number) => { kind: 'offset' | 'address'; value: string };
 
 export function x86LineCode(line: X86Line): LineCode {
   return { address: line.offset, bytes: line.encoding.bytes, problem: line.encoding.problem };
 }
 
-export const X86_CODE_PLACE: CodePlace = (offset) => `offset ${formatHex(offset, 16)}h`;
+export const X86_CODE_PLACE: CodePlace = (offset) => ({
+  kind: 'offset',
+  value: `${formatHex(offset, 16)}h`
+});
 
 export function rv32LineCode(line: Rv32Line): LineCode {
   return { address: line.address, bytes: line.encoding.bytes, problem: line.encoding.problem };
 }
 
-export const RV32_CODE_PLACE: CodePlace = (address) => `address 0x${formatHex32(address)}`;
+export const RV32_CODE_PLACE: CodePlace = (address) => ({
+  kind: 'address',
+  value: `0x${formatHex32(address)}`
+});
 
 export function mos6502LineCode(line: Mos6502Line): LineCode {
   return { address: line.address, bytes: line.encoding.bytes, problem: line.encoding.problem };
 }
 
-export const MOS6502_CODE_PLACE: CodePlace = (address) => `address $${formatHex(address, 16)}`;
+export const MOS6502_CODE_PLACE: CodePlace = (address) => ({
+  kind: 'address',
+  value: `$${formatHex(address, 16)}`
+});

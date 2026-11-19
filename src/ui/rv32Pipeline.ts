@@ -2,15 +2,6 @@ import { formatLabel } from '@/core/shared/program';
 import { formatRegister } from '@/core/rv32/operands';
 import type { PipelineRow, PipelineStage, PipelineTiming } from '@/core/rv32/pipeline';
 
-/** What each stage does, for the legend. */
-export const STAGE_INFO: Record<PipelineStage, string> = {
-  IF: 'fetch the instruction',
-  ID: 'decode it and read its registers',
-  EX: 'compute in the ALU; branches decide',
-  MEM: 'load or store',
-  WB: 'write the result to a register'
-};
-
 /** A cycle in a stage: doing its work, waiting there, or on an instruction that was flushed. */
 export interface PipelineCell {
   stage: PipelineStage;

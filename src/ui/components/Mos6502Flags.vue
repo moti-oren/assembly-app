@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { flagReason } from '@/ui/mos6502Alu';
 import { FLAG_INFO } from '@/ui/mos6502View';
 import ChangeMark from './ChangeMark.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -28,18 +29,17 @@ const reasons = computed(() => {
     return reason ? [{ flag, value: Number(isSet(flag)), reason }] : [];
   });
 });
+const { t } = useLocale();
 </script>
 
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">Flags</CardTitle>
-      <CardDescription>
-        P, the status register. Bit 5 always reads 1; B is only in the copy BRK and PHP push.
-      </CardDescription>
+      <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.flags.title }}</CardTitle>
+      <CardDescription class="ui-text">{{ t.mos6502.flagsIntro }}</CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-3">
-      <div class="flex gap-1.5 font-mono" role="list" aria-label="The flags in P, bit 7 to bit 0">
+      <div class="flex gap-1.5 font-mono" role="list" :aria-label="t.mos6502.flagsList">
         <div
           v-for="flag in FLAG_NAMES"
           :key="flag"
@@ -58,14 +58,14 @@ const reasons = computed(() => {
           <span class="font-mono font-semibold text-foreground"
             >{{ item.flag }} = {{ item.value }}</span
           >
-          because {{ item.reason }}
+          {{ t.mos6502.because }} {{ item.reason }}
         </li>
       </ul>
       <p v-else class="text-xs text-muted-foreground">
         {{
           record
-            ? `${formatInstruction(record.instruction)} set no flag.`
-            : 'Run an instruction to see why it set its flags as it did.'
+            ? t.mos6502.noFlagSet(formatInstruction(record.instruction))
+            : t.mos6502.runForFlags
         }}
       </p>
     </CardContent>

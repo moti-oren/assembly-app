@@ -18,6 +18,7 @@ import { useTwoColumns } from '@/ui/useTwoColumns';
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   /** Its versions say when memory or a device changed: the byte arrays are not reactive. */
@@ -105,31 +106,32 @@ function reveal(jump: () => void): void {
   jump();
   card.value?.$el.scrollIntoView({ block: 'nearest' });
 }
+const { t } = useLocale();
 </script>
 
 <template>
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
-        <InfoTip label="About memory">
+        <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.memory.title }}</CardTitle>
+        <InfoTip :label="t.memory.about">
           <p>{{ intro }}</p>
           <p class="mt-2">
-            <span class="font-mono text-pointer">blue</span> the program's machine code,
-            <span class="font-mono text-written">amber</span> device registers.
+            <span class="text-pointer">{{ t.memory.blue }}</span> {{ t.memory.blueMeans }}
+            <span class="text-written">{{ t.memory.amber }}</span> {{ t.memory.amberMeans }}
           </p>
         </InfoTip>
-        <div class="flex gap-1" role="group" aria-label="Go to">
+        <div class="flex gap-1" role="group" :aria-label="t.memory.goTo">
           <Button
             v-for="place in places"
-            :key="place.label"
+            :key="place.id"
             variant="ghost"
             size="sm"
             class="h-7 px-2 text-xs"
             @click="go(place)"
           >
             <Layers v-if="place.stack" />
-            {{ place.label }}
+            {{ t.memory.places[place.id] }}
           </Button>
         </div>
         <div class="relative ml-auto">
@@ -148,15 +150,14 @@ function reveal(jump: () => void): void {
             autocapitalize="characters"
             autocorrect="off"
             spellcheck="false"
-            aria-label="Address (hex)"
+            :aria-label="t.memory.addressInput"
           />
         </div>
       </div>
 
       <p class="flex items-baseline gap-2 font-mono text-xs lg:h-5 lg:overflow-hidden">
-        <span v-if="invalid" :id="errorId" class="font-sans text-destructive">
-          “{{ addressText }}” isn't a hex address (use 0–9 and A–F). Showing
-          {{ formatAddress(format, 0) }}.
+        <span v-if="invalid" :id="errorId" class="ui-text font-sans text-destructive">
+          {{ t.memory.badAddress(addressText, formatAddress(format, 0)) }}
         </span>
         <template v-else-if="access">
           <span class="truncate">{{ access.text }}</span>
@@ -165,7 +166,7 @@ function reveal(jump: () => void): void {
             class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
-            Show in table
+            {{ t.memory.showInTable }}
           </button>
         </template>
       </p>
@@ -174,7 +175,7 @@ function reveal(jump: () => void): void {
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pr-3 text-left font-normal">address</th>
+              <th class="py-1 pr-3 text-left font-normal">{{ t.memory.addressColumn }}</th>
               <th
                 v-for="column in COLUMNS"
                 :key="column"
@@ -202,8 +203,8 @@ function reveal(jump: () => void): void {
                 }"
                 :title="
                   byte.value === null
-                    ? `${formatAddress(format, byte.address)}: nothing is wired here`
-                    : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
+                    ? t.memory.unwired(formatAddress(format, byte.address))
+                    : t.memory.byte(formatAddress(format, byte.address), byte.value, byte.region)
                 "
               >
                 <span v-if="byte.value === null" class="text-muted-foreground/50">··</span>

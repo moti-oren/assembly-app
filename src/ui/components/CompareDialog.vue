@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { architectureLabel } from '@/ui/architectures';
 import { COMPARED, TRAITS, codeText, metricRows } from '@/ui/comparisonView';
+import { useLocale } from '@/ui/useLocale';
 
 const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ load: [task: ComparisonTask, id: ComparedId] }>();
@@ -22,19 +23,18 @@ const chosen = ref(0);
 const task = computed(() => COMPARISON_TASKS[chosen.value]);
 const measurements = computed(() => measure(task.value));
 const rows = computed(() => metricRows(measurements.value));
+const { t } = useLocale();
 </script>
 
 <template>
   <Dialog v-model:open="open">
     <DialogContent class="max-h-[calc(100svh-2rem)] gap-5 overflow-y-auto sm:max-w-5xl sm:p-6">
       <DialogHeader>
-        <DialogTitle>Compare the CPUs</DialogTitle>
-        <DialogDescription>
-          One task, written for each CPU: how big its program is, and what running it takes.
-        </DialogDescription>
+        <DialogTitle>{{ t.compare.title }}</DialogTitle>
+        <DialogDescription>{{ t.compare.description }}</DialogDescription>
       </DialogHeader>
 
-      <div class="flex flex-wrap gap-1.5" role="group" aria-label="Task">
+      <div class="flex flex-wrap gap-1.5" role="group" :aria-label="t.compare.task">
         <Button
           v-for="(each, index) in COMPARISON_TASKS"
           :key="each.id"
@@ -49,13 +49,13 @@ const rows = computed(() => metricRows(measurements.value));
         </Button>
       </div>
 
-      <p class="max-w-prose text-sm leading-relaxed text-pretty">{{ task.lesson }}</p>
+      <p class="ui-text max-w-prose text-sm leading-relaxed text-pretty">{{ task.lesson }}</p>
 
       <!-- The fewest in each row stands out: the others are dimmed rather than the winner coloured. -->
       <table class="w-full text-sm">
         <thead>
           <tr class="text-xs text-muted-foreground">
-            <th scope="col" class="pb-1.5 text-left font-normal">Measure</th>
+            <th scope="col" class="pb-1.5 text-left font-normal">{{ t.compare.measure }}</th>
             <th
               v-for="id in COMPARED"
               :key="id"
@@ -83,7 +83,7 @@ const rows = computed(() => metricRows(measurements.value));
               "
             >
               {{ row.values[id] }}
-              <span v-if="row.least.includes(id)" class="sr-only">(the fewest)</span>
+              <span v-if="row.least.includes(id)" class="sr-only">{{ t.compare.fewest }}</span>
             </td>
           </tr>
         </tbody>
@@ -94,7 +94,7 @@ const rows = computed(() => metricRows(measurements.value));
           v-for="id in COMPARED"
           :key="id"
           class="flex min-w-0 flex-col rounded-lg border"
-          :aria-label="`${architectureLabel(id)} program`"
+          :aria-label="t.compare.program(architectureLabel(id))"
         >
           <header class="border-b px-3 py-2">
             <h3 class="text-sm font-semibold">{{ architectureLabel(id) }}</h3>
@@ -118,7 +118,7 @@ const rows = computed(() => metricRows(measurements.value));
               {{ measurements[id].error }}
             </p>
             <p v-else class="flex min-w-0 flex-wrap gap-x-1.5 text-xs">
-              <span class="text-muted-foreground">Leaves</span>
+              <span class="text-muted-foreground">{{ t.compare.leaves }}</span>
               <span class="font-mono">{{ measurements[id].result }}</span>
             </p>
             <Button
@@ -127,14 +127,14 @@ const rows = computed(() => metricRows(measurements.value));
               class="pointer-coarse:h-11"
               @click="emit('load', task, id)"
             >
-              Load into {{ architectureLabel(id) }}
+              {{ t.compare.load(architectureLabel(id)) }}
               <ArrowRight />
             </Button>
           </footer>
         </section>
       </div>
-      <p class="text-xs text-muted-foreground">
-        Loading a program replaces that CPU's program and clears its history, as an example does.
+      <p class="ui-text text-xs text-muted-foreground">
+        {{ t.compare.loadNote }}
       </p>
     </DialogContent>
   </Dialog>

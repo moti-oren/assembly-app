@@ -23,7 +23,8 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { SPEED_LABELS, isRunSpeed, type RunSpeed } from '@/ui/runSpeeds';
+import { isRunSpeed, RUN_SPEED_NAMES, type RunSpeed } from '@/ui/runSpeeds';
+import { useLocale } from '@/ui/useLocale';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 
 const props = defineProps<{
@@ -59,19 +60,21 @@ const emit = defineEmits<{
   'update:bytesShown': [shown: boolean];
 }>();
 
+const { t } = useLocale();
+
 /** The select hands back whatever value its item had; only a known speed gets through. */
 function setSpeed(value: unknown): void {
   if (isRunSpeed(value)) emit('update:speed', value);
 }
 
-/** The phase button names what pressing it does next. */
+/** The phase button names what pressing it does next, by the phase's own name. */
 const nextPhase = computed(() =>
   props.phase === null ? 'Fetch' : props.phase === 'fetch' ? 'Decode' : 'Execute'
 );
 
 const total = computed(() => props.executed + props.undone);
 
-const positionText = computed(() => `${props.executed} of ${total.value} instructions run`);
+const positionText = computed(() => t.value.transport.position(props.executed, total.value));
 
 /** How far along the history the slider is, for the filled part of its track. */
 const progress = computed(() =>
@@ -80,19 +83,22 @@ const progress = computed(() =>
 
 const toggles = computed(() => [
   {
-    label: 'History',
+    key: 'history',
+    label: t.value.transport.history,
     icon: ListOrdered,
     shown: props.historyShown,
     flip: () => emit('update:historyShown', !props.historyShown)
   },
   {
-    label: 'I/O',
+    key: 'devices',
+    label: t.value.transport.devices,
     icon: Cable,
     shown: props.devicesShown,
     flip: () => emit('update:devicesShown', !props.devicesShown)
   },
   {
-    label: 'Machine code',
+    key: 'bytes',
+    label: t.value.transport.machineCode,
     icon: Binary,
     shown: props.bytesShown,
     flip: () => emit('update:bytesShown', !props.bytesShown)
@@ -116,12 +122,12 @@ const toggles = computed(() => [
     <div
       class="mx-auto flex max-w-(--page-width) flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6"
       role="toolbar"
-      aria-label="Program and history controls"
+      :aria-label="t.transport.controls"
     >
       <div class="flex flex-wrap items-center gap-1.5">
         <Button size="sm" class="pointer-coarse:h-11" :disabled="finished" @click="emit('step')">
           <StepForward />
-          Step
+          {{ t.transport.step }}
         </Button>
         <Tooltip>
           <TooltipTrigger as-child>
@@ -129,7 +135,7 @@ const toggles = computed(() => [
               variant="outline"
               size="sm"
               class="w-24 justify-start pointer-coarse:h-11"
-              :aria-label="`Step: ${nextPhase}`"
+              :aria-label="t.transport.phaseLabel(nextPhase)"
               :disabled="finished"
               @click="emit('phase')"
             >
@@ -138,7 +144,7 @@ const toggles = computed(() => [
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            Step one phase of the next line: fetch, decode, then execute
+            {{ t.transport.phaseHint }}
           </TooltipContent>
         </Tooltip>
         <Button
@@ -149,7 +155,7 @@ const toggles = computed(() => [
           @click="emit('pause')"
         >
           <Pause />
-          Pause
+          {{ t.transport.pause }}
         </Button>
         <Button
           v-else
@@ -160,13 +166,14 @@ const toggles = computed(() => [
           @click="emit('run')"
         >
           <FastForward />
-          <span>Run<span class="hidden sm:inline">&nbsp;program</span></span>
+          <span class="sm:hidden">{{ t.transport.run }}</span>
+          <span class="hidden sm:inline">{{ t.transport.runProgram }}</span>
         </Button>
         <Select :model-value="speed" @update:model-value="setSpeed">
           <SelectTrigger
             size="sm"
             class="sm:min-w-24 lg:min-w-38 pointer-coarse:data-[size=sm]:h-11"
-            :aria-label="`Run speed: ${SPEED_LABELS[speed]}`"
+            :aria-label="t.transport.speedLabel(t.speeds[speed])"
           >
             <!--
               The value alone ("Fast") does not say what it is the value of, so below lg an icon
@@ -174,13 +181,13 @@ const toggles = computed(() => [
             -->
             <SelectValue>
               <Gauge class="text-muted-foreground lg:hidden" aria-hidden="true" />
-              <span class="hidden text-muted-foreground lg:inline">Speed:</span>
-              <span class="hidden sm:inline">{{ SPEED_LABELS[speed] }}</span>
+              <span class="hidden text-muted-foreground lg:inline">{{ t.transport.speed }}</span>
+              <span class="hidden sm:inline">{{ t.speeds[speed] }}</span>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="(label, value) in SPEED_LABELS" :key="value" :value="value">
-              {{ label }}
+            <SelectItem v-for="value in RUN_SPEED_NAMES" :key="value" :value="value">
+              {{ t.speeds[value] }}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -198,15 +205,15 @@ const toggles = computed(() => [
               variant="ghost"
               size="sm"
               class="pointer-coarse:h-11"
-              aria-label="Reset the CPU"
+              :aria-label="t.transport.resetLabel"
               @click="emit('reset')"
             >
               <RotateCcw />
-              <span class="hidden xl:inline">Reset</span>
+              <span class="hidden xl:inline">{{ t.transport.reset }}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            Clears registers, flags, memory and the history. The program is kept.
+            {{ t.transport.resetHint }}
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -215,14 +222,14 @@ const toggles = computed(() => [
               variant="ghost"
               size="icon-sm"
               class="pointer-coarse:size-11"
-              aria-label="Undo the last instruction"
+              :aria-label="t.transport.undo"
               :disabled="executed === 0"
               @click="emit('undo')"
             >
               <Undo2 />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Undo the last instruction</TooltipContent>
+          <TooltipContent>{{ t.transport.undo }}</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger as-child>
@@ -230,14 +237,14 @@ const toggles = computed(() => [
               variant="ghost"
               size="icon-sm"
               class="pointer-coarse:size-11"
-              aria-label="Redo the undone instruction"
+              :aria-label="t.transport.redo"
               :disabled="undone === 0"
               @click="emit('redo')"
             >
               <Redo2 />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Redo the undone instruction</TooltipContent>
+          <TooltipContent>{{ t.transport.redo }}</TooltipContent>
         </Tooltip>
         <input
           type="range"
@@ -247,7 +254,7 @@ const toggles = computed(() => [
           :max="Math.max(total, 1)"
           :value="executed"
           :disabled="total === 0"
-          aria-label="Move through the executed instructions"
+          :aria-label="t.transport.seek"
           :aria-valuetext="positionText"
           @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
         />
@@ -263,9 +270,9 @@ const toggles = computed(() => [
       <span class="hidden h-6 w-px bg-border lg:block" aria-hidden="true" />
 
       <!-- What the page shows, apart from the controls that drive the program. -->
-      <div class="flex items-center gap-1.5" role="group" aria-label="Panels">
+      <div class="flex items-center gap-1.5" role="group" :aria-label="t.transport.panels">
         <!-- Icons only below xl, so the name moves into the label and a tooltip. -->
-        <Tooltip v-for="toggle in toggles" :key="toggle.label">
+        <Tooltip v-for="toggle in toggles" :key="toggle.key">
           <TooltipTrigger as-child>
             <Button
               variant="ghost"

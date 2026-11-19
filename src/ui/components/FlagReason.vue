@@ -4,6 +4,7 @@ import type { ExecutionRecord } from '@/core/x86/execute';
 import { explainFlag } from '@/core/x86/flagReasons';
 import { FLAG_INFO, type FlagName } from '@/core/x86/flags';
 import { formatInstruction } from '@/core/x86/instructions';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   flag: FlagName;
@@ -12,6 +13,7 @@ const props = defineProps<{
 }>();
 
 const reason = computed(() => props.record && explainFlag(props.record, props.flag));
+const { t } = useLocale();
 </script>
 
 <template>
@@ -24,7 +26,7 @@ const reason = computed(() => props.record && explainFlag(props.record, props.fl
     <p v-if="record && reason" class="border-t border-background/25 pt-1.5">
       <span class="font-mono font-semibold">
         {{ formatInstruction(record.instruction) }} →
-        {{ reason.value === null ? `${flag} unchanged` : `${flag} = ${reason.value ? 1 : 0}` }}
+        {{ reason.value === null ? t.flags.unchanged(flag) : `${flag} = ${reason.value ? 1 : 0}` }}
       </span>
       <br />
       {{ reason.text }}

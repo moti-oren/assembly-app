@@ -4,6 +4,7 @@ import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import InfoTip from './InfoTip.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   history: ExecutionRecord<Instruction>[];
@@ -49,21 +50,22 @@ watch(
   () => nextTick(showCurrent),
   { flush: 'post' }
 );
+const { t } = useLocale();
 </script>
 
 <template>
   <Card>
     <CardHeader>
       <CardTitle class="flex items-center gap-1">
-        History
-        <InfoTip label="About the history">
-          Every instruction you run appears here. Pick one to go back to the moment after it ran.
-        </InfoTip>
+        {{ t.history.title }}
+        <InfoTip :label="t.history.about">{{ t.history.intro }}</InfoTip>
       </CardTitle>
       <CardDescription>
-        <template v-if="total === 0">Nothing executed yet</template>
-        <template v-else-if="future.length === 0">{{ history.length }} executed</template>
-        <template v-else>At {{ history.length }} of {{ total }}</template>
+        <template v-if="total === 0">{{ t.history.empty }}</template>
+        <template v-else-if="future.length === 0">{{
+          t.history.executed(history.length)
+        }}</template>
+        <template v-else>{{ t.history.position(history.length, total) }}</template>
       </CardDescription>
     </CardHeader>
     <CardContent v-if="total > 0">
@@ -73,7 +75,7 @@ watch(
         class="relative max-h-56 overflow-y-auto rounded-lg bg-inset py-1 lg:max-h-80"
       >
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
-          {{ history.length - SHOWN }} earlier instructions are not shown.
+          {{ t.history.hidden(history.length - SHOWN) }}
         </p>
         <ol class="font-mono text-code">
           <li
@@ -99,10 +101,8 @@ watch(
               }}</span>
               <span
                 class="text-xs text-muted-foreground"
-                :title="
-                  record.line === null ? 'Run from the builder, not from the program' : undefined
-                "
-                >{{ record.line === null ? 'direct' : formatLabel(record.line) }}</span
+                :title="record.line === null ? t.history.directHint : undefined"
+                >{{ record.line === null ? t.history.direct : formatLabel(record.line) }}</span
               >
               <span class="truncate">{{ format(record.instruction) }}</span>
             </button>

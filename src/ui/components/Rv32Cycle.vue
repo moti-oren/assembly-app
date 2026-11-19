@@ -8,6 +8,7 @@ import { describeDecode, describeExecute, describeFetch } from '@/ui/rv32Explain
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import CycleStrip from './CycleStrip.vue';
 import Rv32CycleToggle from './Rv32CycleToggle.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -34,12 +35,16 @@ const detail = computed(() => {
   return record ? describeExecute(record, state, program) : null;
 });
 
-const INTRO =
-  'Every instruction is fetched, decoded, then executed. A RISC-V instruction is always one 4-byte word, so PC moves on by 4. Use the Fetch button below to walk a line through the three phases.';
+const { t } = useLocale();
 </script>
 
 <template>
-  <CycleStrip :active="active" :instruction="instruction" :detail="detail" :intro="INTRO">
+  <CycleStrip
+    :active="active"
+    :instruction="instruction"
+    :detail="detail"
+    :intro="t.rv32.cycleIntro"
+  >
     <template #actions><Rv32CycleToggle /></template>
   </CycleStrip>
 </template>

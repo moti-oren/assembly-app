@@ -13,6 +13,7 @@ import DiagramAlu from './DiagramAlu.vue';
 import DiagramFlags from './DiagramFlags.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 defineProps<{
   model: CpuDiagramModel;
@@ -24,20 +25,21 @@ defineProps<{
 const EU_REGISTERS: readonly WordRegister[] = ['ax', 'bx', 'cx', 'dx', 'sp', 'bp', 'si', 'di'];
 /** The pointer and index registers start a group of their own. */
 const GROUP_START: WordRegister = 'sp';
+const { t } = useLocale();
 </script>
 
 <template>
-  <section class="min-w-0" aria-label="Execution unit">
-    <h3 class="unit-title">Execution unit <span>EU</span></h3>
+  <section class="min-w-0" :aria-label="t.diagram.eu">
+    <h3 class="unit-title">{{ t.diagram.eu }} <span>EU</span></h3>
     <div class="flex flex-col font-mono text-code">
       <!-- The number system of each column, as in the register table. -->
       <div
         class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
       >
         <span class="w-6" />
-        <span class="w-14">Hex</span>
-        <span class="flex w-11 justify-end whitespace-nowrap">Decimal</span>
-        <span class="hidden @min-[36rem]:inline">Binary</span>
+        <span class="w-14">{{ t.registers.hex }}</span>
+        <span class="flex w-11 justify-end whitespace-nowrap">{{ t.registers.decimal }}</span>
+        <span class="hidden @min-[36rem]:inline">{{ t.registers.binary }}</span>
       </div>
       <div
         v-for="name in EU_REGISTERS"
@@ -94,7 +96,7 @@ const GROUP_START: WordRegister = 'sp';
 
         <span
           class="w-11 text-right text-xs text-muted-foreground tabular-nums"
-          :title="`${model.value(name)} unsigned, ${toSigned(model.value(name), 16)} signed`"
+          :title="t.registers.both(model.value(name), toSigned(model.value(name), 16))"
         >
           <RollingDigits :text="String(model.value(name))" />
         </span>

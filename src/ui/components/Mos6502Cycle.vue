@@ -7,6 +7,7 @@ import type { CpuState } from '@/core/mos6502/state';
 import { describeDecode, describeExecute, describeFetch } from '@/ui/mos6502Explain';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import CycleStrip from './CycleStrip.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -33,10 +34,14 @@ const detail = computed(() => {
   return record ? describeExecute(record, state, program) : null;
 });
 
-const INTRO =
-  'Every instruction is fetched, decoded, then executed. The opcode, one byte, says both the instruction and its addressing mode; the 6502 then reads 0 to 2 more bytes. Use the Fetch button below to walk a line through.';
+const { t } = useLocale();
 </script>
 
 <template>
-  <CycleStrip :active="active" :instruction="instruction" :detail="detail" :intro="INTRO" />
+  <CycleStrip
+    :active="active"
+    :instruction="instruction"
+    :detail="detail"
+    :intro="t.mos6502.cycleIntro"
+  />
 </template>

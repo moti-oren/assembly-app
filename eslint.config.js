@@ -78,7 +78,7 @@ export default tseslint.config(
   },
   // UI helpers are plain functions over plain data: no Vue, no composables, no components.
   {
-    files: ['src/ui/*.ts', 'src/ui/messages/*.ts'],
+    files: ['src/ui/*.ts', 'src/ui/messages/**/*.ts'],
     ignores: ['src/ui/use*.ts', 'src/ui/*.test.ts'],
     rules: {
       'no-restricted-imports': [
@@ -90,7 +90,7 @@ export default tseslint.config(
               message: 'Reactive code belongs in a use*.ts composable, not in a helper.'
             },
             {
-              group: ['./use*', '../use*', '@/ui/use*', '*.vue'],
+              group: ['./use*', '../use*', '../../use*', '@/ui/use*', '*.vue'],
               message: 'A helper must not import composables or components.'
             }
           ]

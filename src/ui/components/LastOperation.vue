@@ -5,6 +5,7 @@ import { formatInstruction } from '@/core/x86/instructions';
 import type { CpuState } from '@/core/x86/state';
 import { Card, CardContent } from '@/components/ui/card';
 import { describeEquation } from '@/ui/describe';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -12,6 +13,7 @@ const props = defineProps<{
 }>();
 
 const equation = computed(() => props.record && describeEquation(props.state, props.record));
+const { t } = useLocale();
 </script>
 
 <template>
@@ -39,12 +41,14 @@ const equation = computed(() => props.record && describeEquation(props.state, pr
             >{{ equation.result }}</span
           >
           <span class="font-sans text-xs text-muted-foreground">
-            {{ equation.discarded ? 'only the flags are kept' : `into ${equation.destination}` }}
+            {{
+              equation.discarded ? t.operation.flagsOnly : t.operation.into(equation.destination)
+            }}
           </span>
         </span>
       </template>
       <span v-else class="font-sans text-sm text-muted-foreground">
-        Run an instruction to see how its result was computed.
+        {{ t.operation.none }}
       </span>
     </CardContent>
   </Card>

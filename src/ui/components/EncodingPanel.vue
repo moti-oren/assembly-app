@@ -6,6 +6,7 @@ import { formatBits, formatBytes, formatHex } from '@/core/shared/numbers';
 import type { AssembledLine } from '@/core/x86/encode';
 import type { EncodingShown } from '@/ui/encodingShown';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   /** The instruction on show with its machine code, or null when there is nothing to encode. */
@@ -27,24 +28,25 @@ const summary = computed(() => {
   const count = `${bytes.length} byte${bytes.length === 1 ? '' : 's'}`;
   return `${count} at offset ${formatHex(props.shown.assembled.offset, 16)}h, ${props.shown.where}`;
 });
+const { t } = useLocale();
 </script>
 
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">Machine code</CardTitle>
+      <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.encoding.title }}</CardTitle>
       <CardDescription v-if="shown">
         <span class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</span>
         · {{ summary }}
       </CardDescription>
       <CardDescription v-else>
-        Build an instruction or add one to the program to see the bytes it assembles to.
+        {{ t.encoding.x86Empty }}
       </CardDescription>
     </CardHeader>
 
     <CardContent v-if="shown" class="flex flex-col gap-2">
       <!-- One box per field, in the order the bytes sit in memory. -->
-      <ol class="flex flex-wrap items-stretch gap-2" aria-label="The fields of the instruction">
+      <ol class="flex flex-wrap items-stretch gap-2" :aria-label="t.encoding.fields">
         <li
           v-for="(field, index) in shown.assembled.encoding.fields"
           :key="index"

@@ -8,6 +8,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -26,12 +27,13 @@ function isSet(flag: FlagName): boolean {
 function changed(flag: FlagName): boolean {
   return props.previous !== null && isFlagSet(props.previous ^ props.state.flags, flag);
 }
+const { t } = useLocale();
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Flags</CardTitle>
+      <CardTitle>{{ t.flags.title }}</CardTitle>
       <CardAction>
         <Badge variant="outline" class="font-mono text-muted-foreground">
           FLAGS {{ formatHex(state.flags, 16) }}h
@@ -52,7 +54,7 @@ function changed(flag: FlagName): boolean {
                     ? 'border-foreground/20 bg-secondary'
                     : 'border-border'
               ]"
-              :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}`"
+              :aria-label="t.flags.value(FLAG_INFO[flag].label, isSet(flag) ? 1 : 0)"
             >
               <span v-if="changed(flag)" :key="tick" class="change-flash" aria-hidden="true" />
               <div class="flex items-baseline justify-between font-mono">

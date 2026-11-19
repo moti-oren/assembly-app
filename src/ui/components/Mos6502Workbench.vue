@@ -13,7 +13,7 @@ import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
 import { mos6502StepSound } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
-import { PANEL_LABELS } from '@/ui/usePanelOrder';
+import { useLocale } from '@/ui/useLocale';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
 import { useWorkbench } from '@/ui/useWorkbench';
 import AppChrome from './AppChrome.vue';
@@ -55,7 +55,11 @@ const {
   running
 } = cpu;
 
-const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
+const { t } = useLocale();
+const labels = computed(() => ({
+  ...t.value.panels.names,
+  operation: t.value.panels.mos6502Operation
+}));
 
 const builder = useTemplateRef('builder');
 const memoryView = useTemplateRef('memoryView');
@@ -139,7 +143,7 @@ const encodingShown = computed(() =>
     class="mx-auto grid w-full max-w-(--page-width) flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
   >
     <!-- Each column's cards can be dragged into any order, but never into the other column. -->
-    <SortableColumn :keys="leftKeys" :labels="LABELS" @move="(key, to) => move('left', key, to)">
+    <SortableColumn :keys="leftKeys" :labels="labels" @move="(key, to) => move('left', key, to)">
       <template #builder>
         <InstructionBuilder
           ref="builder"
@@ -183,7 +187,7 @@ const encodingShown = computed(() =>
 
     <SortableColumn
       :keys="rightKeys"
-      :labels="LABELS"
+      :labels="labels"
       @move="(key, to) => move(rightColumn, key, to)"
     >
       <template #cpu>
@@ -234,7 +238,7 @@ const encodingShown = computed(() =>
           :initial="0x0200"
           :heat="memoryHeat"
           :access="memoryAccess"
-          intro="64K of 16-bit addresses: the zero page at $0000, the stack in page $01, the code from $0600, the devices at $D000 and the vectors at $FFFA."
+          :intro="t.mos6502.memoryIntro"
           :tick="history.length"
         />
       </template>

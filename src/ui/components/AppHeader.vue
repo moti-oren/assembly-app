@@ -58,7 +58,11 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
         <h1 class="truncate text-base font-semibold tracking-tight">CPU Playground</h1>
       </div>
       <!-- Each CPU keeps its own program and history, so switching back finds them as they were. -->
-      <div class="flex shrink-0 rounded-md border p-0.5" role="group" aria-label="Architecture">
+      <div
+        class="flex shrink-0 rounded-md border p-0.5"
+        role="group"
+        :aria-label="t.header.architecture"
+      >
         <Button
           v-for="choice in ARCHITECTURE_CHOICES"
           :key="choice.id"
@@ -78,12 +82,12 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
           variant="outline"
           size="sm"
           class="mr-1 text-muted-foreground pointer-coarse:h-11"
-          aria-label="Commands"
+          :aria-label="t.header.commands"
           aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"
         >
           <Search />
-          <span class="hidden sm:inline">Commands</span>
+          <span class="hidden sm:inline">{{ t.header.commands }}</span>
           <Kbd class="hidden sm:inline-flex">{{ shortcut }}</Kbd>
         </Button>
         <!-- Narrower headers have no room for it: there the palette opens the comparison. -->
@@ -93,25 +97,30 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
               variant="ghost"
               size="sm"
               class="hidden pointer-coarse:h-11 lg:inline-flex"
-              aria-label="Compare the CPUs"
+              :aria-label="t.header.compareLabel"
               @click="comparisonOpen = true"
             >
               <Columns3 />
-              <span>Compare</span>
+              <span>{{ t.header.compare }}</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>The same task on all three CPUs, side by side</TooltipContent>
+          <TooltipContent>{{ t.header.compareHint }}</TooltipContent>
         </Tooltip>
         <DropdownMenu v-model:open="examplesOpen">
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="sm" class="pointer-coarse:h-11" aria-label="Examples">
+            <Button
+              variant="ghost"
+              size="sm"
+              class="pointer-coarse:h-11"
+              :aria-label="t.header.examples"
+            >
               <BookOpen />
-              <span class="hidden sm:inline">Examples</span>
+              <span class="hidden sm:inline">{{ t.header.examples }}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-72">
             <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">
-              Replaces your program and clears the CPU and its history
+              {{ t.header.examplesHint }}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -134,16 +143,18 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
               variant="ghost"
               size="icon-sm"
               class="pointer-coarse:size-11"
-              aria-label="Settings"
-              title="Settings"
+              :aria-label="t.header.settings"
+              :title="t.header.settings"
             >
               <Settings2 />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-56">
-            <DropdownMenuCheckboxItem v-model="soundOn">Sound</DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem v-model="soundOn">{{
+              t.header.sound
+            }}</DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem :model-value="isDark" @update:model-value="toggleTheme">
-              Dark theme
+              {{ t.header.darkTheme }}
             </DropdownMenuCheckboxItem>
             <!-- While the system asks for less motion, the app's own setting cannot bring it back. -->
             <DropdownMenuCheckboxItem
@@ -151,7 +162,7 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
               :disabled="systemReducesMotion"
               @update:model-value="reduceMotion = !reduceMotion"
             >
-              Reduce animations
+              {{ t.header.reduceAnimations }}
             </DropdownMenuCheckboxItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel class="text-xs font-normal text-muted-foreground">

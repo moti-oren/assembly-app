@@ -23,6 +23,7 @@ import {
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -89,7 +90,7 @@ const pointed = ref<number | null>(null);
 const worked = computed(() => {
   if (pointed.value !== null) {
     return {
-      label: 'This byte',
+      label: t.value.memory.thisByte,
       segment: segment.value,
       sum: explainAddress(props.state.registers[segment.value], pointed.value),
       offsetParts: null,
@@ -99,7 +100,7 @@ const worked = computed(() => {
   const access = lastAccess.value;
   if (!access) return null;
   return {
-    label: access.write ? 'Last write' : 'Last read',
+    label: access.write ? t.value.memory.lastWrite : t.value.memory.lastRead,
     segment: access.segment,
     sum: explainAddress(access.segmentValue, access.offset),
     offsetParts: access.offsetParts,
@@ -114,7 +115,7 @@ const offsetNote = computed(() => {
   const base = parts.base.toUpperCase();
   if (parts.displacement === 0) return `offset = ${base}`;
   const sum = `offset = ${base} ${formatHex(parts.baseValue, 16)}h + ${formatHex(parts.displacement, 16)}h`;
-  return parts.wrapped ? `${sum}, wraps at 64K` : sum;
+  return parts.wrapped ? t.value.memory.wraps64k(sum) : sum;
 });
 
 function showLastAccess(): void {
@@ -142,18 +143,17 @@ function reveal(jump: () => void): void {
   jump();
   card.value?.$el.scrollIntoView({ block: 'nearest' });
 }
+const { t } = useLocale();
 </script>
 
 <template>
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
-        <InfoTip label="About memory">
-          Point at a byte, or run an instruction that uses memory, to see how its address is formed.
-        </InfoTip>
+        <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.memory.title }}</CardTitle>
+        <InfoTip :label="t.memory.about">{{ t.memory.x86Intro }}</InfoTip>
         <Select v-model="segment">
-          <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
+          <SelectTrigger size="sm" class="w-36 font-mono" :aria-label="t.memory.segment">
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
             <SelectValue>
               {{ segment.toUpperCase() }}
@@ -172,7 +172,7 @@ function reveal(jump: () => void): void {
         <div class="relative">
           <span
             class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
-            >Offset</span
+            >{{ t.memory.offset }}</span
           >
           <Input
             v-model="offsetText"
@@ -184,12 +184,12 @@ function reveal(jump: () => void): void {
             autocapitalize="characters"
             autocorrect="off"
             spellcheck="false"
-            aria-label="Offset (hex)"
+            :aria-label="t.memory.offsetInput"
           />
         </div>
         <Button variant="outline" size="sm" class="ml-auto" @click="showStackTop">
           <Layers />
-          Stack top
+          {{ t.memory.stackTop }}
         </Button>
       </div>
 
@@ -200,9 +200,9 @@ function reveal(jump: () => void): void {
       <p
         class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 font-mono text-xs lg:h-5 lg:flex-nowrap lg:overflow-hidden lg:whitespace-nowrap"
       >
-        <span v-if="offsetInvalid" :id="offsetErrorId" class="font-sans text-destructive">
-          “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
-        </span>
+        <span v-if="offsetInvalid" :id="offsetErrorId" class="ui-text font-sans text-destructive">{{
+          t.memory.badOffset(offsetText)
+        }}</span>
         <template v-else-if="worked">
           <span
             class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 lg:shrink-0 lg:flex-nowrap"
@@ -212,7 +212,7 @@ function reveal(jump: () => void): void {
               >{{ worked.segment.toUpperCase() }}:{{ formatHex(worked.sum.offset, 16) }}</span
             >
             <span class="text-muted-foreground">=</span>
-            <span :title="`${worked.segment.toUpperCase()} shifted left by 4 bits`"
+            <span :title="t.memory.shifted(worked.segment.toUpperCase())"
               >{{ formatHex(worked.sum.segment, 16) }}h × 10h</span
             >
             <span class="text-muted-foreground">+</span>
@@ -222,7 +222,7 @@ function reveal(jump: () => void): void {
               <span class="text-muted-foreground line-through decoration-1"
                 >{{ formatPhysical(worked.sum.sum) }}h</span
               >
-              <span class="font-sans text-muted-foreground">wraps past 1MB to</span>
+              <span class="font-sans text-muted-foreground">{{ t.memory.wraps }}</span>
             </template>
             <span class="font-semibold text-pointer"
               >{{ formatPhysical(worked.sum.physical) }}h</span
@@ -240,7 +240,7 @@ function reveal(jump: () => void): void {
             class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
-            Show in table
+            {{ t.memory.showInTable }}
           </button>
         </template>
       </p>
@@ -271,7 +271,7 @@ function reveal(jump: () => void): void {
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
                 :class="{ 'pl-2.5': column === 8 }"
-                :title="`Physical ${formatPhysical(byte.address)}h = ${byte.value}`"
+                :title="t.memory.physical(formatPhysical(byte.address), byte.value)"
                 @mouseenter="pointed = (row.offset + column) & 0xffff"
               >
                 <ChangeMark

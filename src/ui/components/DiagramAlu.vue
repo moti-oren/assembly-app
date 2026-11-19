@@ -2,8 +2,10 @@
 import { formatInstruction } from '@/core/x86/instructions';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import DiagramWire from './DiagramWire.vue';
+import { useLocale } from '@/ui/useLocale';
 
 defineProps<{ model: CpuDiagramModel }>();
+const { t } = useLocale();
 </script>
 
 <template>
@@ -20,7 +22,7 @@ defineProps<{ model: CpuDiagramModel }>();
             ? formatInstruction(model.shown.instruction)
             : model.pending
               ? model.pending.phase
-              : 'idle'
+              : t.cycle.idle
         }}</span>
       </div>
       <div
@@ -53,8 +55,8 @@ defineProps<{ model: CpuDiagramModel }>();
         <span class="truncate font-sans text-xs text-muted-foreground">
           {{
             model.equation.discarded
-              ? 'only the flags are kept'
-              : `into ${model.equation.destination}`
+              ? t.operation.flagsOnly
+              : t.operation.into(model.equation.destination)
           }}
         </span>
       </div>

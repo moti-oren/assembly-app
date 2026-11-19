@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CYCLE_PHASES, type CyclePhase } from '@/core/shared/cycle';
 import InfoTip from './InfoTip.vue';
+import { useLocale } from '@/ui/useLocale';
 
 defineProps<{
   /** The phase the instruction on show is in, or null before anything has run. */
@@ -18,14 +19,15 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
   decode: 'Decode',
   execute: 'Execute'
 };
+const { t } = useLocale();
 </script>
 
 <template>
   <div>
     <div class="flex items-center gap-3">
-      <span class="-mr-2 text-sm font-medium">Cycle</span>
-      <InfoTip label="About the instruction cycle">{{ intro }}</InfoTip>
-      <ol class="flex items-center gap-1 text-xs" aria-label="Instruction cycle">
+      <span class="-mr-2 text-sm font-medium">{{ t.cycle.title }}</span>
+      <InfoTip :label="t.cycle.about">{{ intro }}</InfoTip>
+      <ol class="flex items-center gap-1 text-xs" :aria-label="t.cycle.phases">
         <li
           v-for="(phase, index) in CYCLE_PHASES"
           :key="phase"
@@ -49,7 +51,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         </li>
       </ol>
       <span class="ml-auto truncate font-mono text-xs text-muted-foreground">{{
-        instruction ?? 'idle'
+        instruction ?? t.cycle.idle
       }}</span>
       <!-- Controls an architecture adds to its own cycle card. -->
       <slot name="actions" />
@@ -59,7 +61,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       <summary
         class="line-clamp-3 h-12 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
       >
-        <span aria-live="polite">{{ detail ?? 'Nothing has run yet.' }}</span>
+        <span class="ui-text block" aria-live="polite">{{ detail ?? t.cycle.nothingYet }}</span>
       </summary>
     </details>
   </div>

@@ -31,7 +31,7 @@ defineProps<{
         align="start"
         :side-offset="6"
         :collision-padding="16"
-        class="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-lg border bg-popover p-3 text-xs leading-relaxed text-popover-foreground shadow-md outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+        class="ui-text z-50 w-80 max-w-[calc(100vw-2rem)] rounded-lg border bg-popover p-3 text-xs leading-relaxed text-popover-foreground shadow-md outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
       >
         <slot />
       </PopoverContent>

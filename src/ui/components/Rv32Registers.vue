@@ -5,10 +5,11 @@ import type { RegisterName } from '@/core/rv32/registers';
 import type { CpuState } from '@/core/rv32/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { REGISTER_GROUPS, ROLE_DESCRIPTIONS, ROLE_LABELS, wasWritten } from '@/ui/rv32View';
+import { REGISTER_GROUPS, wasWritten } from '@/ui/rv32View';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -23,16 +24,17 @@ const props = defineProps<{
 function changed(key: RegisterName): boolean {
   return props.previous !== null && props.previous[key] !== props.state.registers[key];
 }
+const { t } = useLocale();
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Registers</CardTitle>
+      <CardTitle>{{ t.registers.title }}</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
-          changed by the last instruction
+          {{ t.registers.changed }}
         </span>
         <CpuViewToggle />
       </CardAction>
@@ -43,13 +45,13 @@ function changed(key: RegisterName): boolean {
         <section
           v-for="group in REGISTER_GROUPS"
           :key="group.role"
-          :aria-label="ROLE_LABELS[group.role]"
+          :aria-label="t.rv32.roles[group.role]"
         >
           <h3
             class="mb-1 font-sans text-xs text-muted-foreground"
-            :title="ROLE_DESCRIPTIONS[group.role]"
+            :title="t.rv32.roleHints[group.role]"
           >
-            {{ ROLE_LABELS[group.role] }}
+            {{ t.rv32.roles[group.role] }}
           </h3>
           <div
             v-for="row in group.rows"
@@ -68,7 +70,7 @@ function changed(key: RegisterName): boolean {
             </ChangeMark>
             <span
               class="truncate text-right text-xs text-muted-foreground tabular-nums"
-              :title="`${state.registers[row.key]} unsigned`"
+              :title="t.rv32.unsigned(state.registers[row.key])"
             >
               <RollingDigits :text="String(s32(state.registers[row.key]))" />
             </span>
@@ -85,7 +87,7 @@ function changed(key: RegisterName): boolean {
             >
           </TooltipTrigger>
           <TooltipContent side="right">
-            Program counter: the address of the next instruction. Not one of the 32 registers.
+            {{ t.rv32.pcHint }}
           </TooltipContent>
         </Tooltip>
         <ChangeMark :on="changed('pc')" :tick="tick" data-loc="reg:pc">

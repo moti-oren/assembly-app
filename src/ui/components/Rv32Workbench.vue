@@ -13,7 +13,7 @@ import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
 import { byteAt, rv32MemoryPlaces, RV32_ADDRESSES } from '@/ui/rv32View';
 import { rv32StepSound } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
-import { PANEL_LABELS } from '@/ui/usePanelOrder';
+import { useLocale } from '@/ui/useLocale';
 import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import { useWorkbench } from '@/ui/useWorkbench';
@@ -58,7 +58,12 @@ const {
 } = cpu;
 
 /** RISC-V has no flags: that card explains the comparisons that take their place. */
-const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
+const { t } = useLocale();
+const labels = computed(() => ({
+  ...t.value.panels.names,
+  flags: t.value.panels.rv32Flags,
+  operation: t.value.panels.rv32Operation
+}));
 
 const pipeline = useRv32Pipeline();
 const builder = useTemplateRef('builder');
@@ -143,7 +148,7 @@ const encodingShown = computed(() =>
     class="mx-auto grid w-full max-w-(--page-width) flex-1 content-start items-start gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:px-6"
   >
     <!-- Each column's cards can be dragged into any order, but never into the other column. -->
-    <SortableColumn :keys="leftKeys" :labels="LABELS" @move="(key, to) => move('left', key, to)">
+    <SortableColumn :keys="leftKeys" :labels="labels" @move="(key, to) => move('left', key, to)">
       <template #builder>
         <InstructionBuilder
           ref="builder"
@@ -187,7 +192,7 @@ const encodingShown = computed(() =>
 
     <SortableColumn
       :keys="rightKeys"
-      :labels="LABELS"
+      :labels="labels"
       @move="(key, to) => move(rightColumn, key, to)"
     >
       <template #cpu>
@@ -240,7 +245,7 @@ const encodingShown = computed(() =>
           :initial="DATA_BASE"
           :heat="memoryHeat"
           :access="memoryAccess"
-          intro="One flat space of 32-bit addresses: RAM from 0x00000000 (the code first), the devices at 0x10000000. Dots mark addresses with nothing wired to them."
+          :intro="t.rv32.memoryIntro"
           :tick="history.length"
         />
       </template>

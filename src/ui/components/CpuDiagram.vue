@@ -10,6 +10,7 @@ import DiagramBusUnit from './DiagramBusUnit.vue';
 import DiagramExecutionUnit from './DiagramExecutionUnit.vue';
 import DiagramExternalBus from './DiagramExternalBus.vue';
 import DiagramWire from './DiagramWire.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -23,6 +24,7 @@ const props = defineProps<{
 
 /** The CPU as two units and the buses between them; the parts below draw it. */
 const model = useCpuDiagram(props);
+const { t } = useLocale();
 </script>
 
 <template>
@@ -32,11 +34,11 @@ const model = useCpuDiagram(props);
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-pointer" aria-hidden="true" />
-          read
+          {{ t.diagram.read }}
         </span>
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block h-0.5 w-3 rounded-full bg-written" aria-hidden="true" />
-          written
+          {{ t.diagram.written }}
         </span>
         <CpuViewToggle />
       </CardAction>
@@ -55,7 +57,7 @@ const model = useCpuDiagram(props);
             class="hidden h-auto w-0.5 sm:block"
             :kind="model.internalKind"
             :tick="model.pulse"
-            title="Internal bus"
+            :title="t.diagram.internalBus"
           />
 
           <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->

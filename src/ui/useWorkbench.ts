@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
+import type { Messages } from './messages/en';
 import { useCommands, type PageActions, type PaletteCommand } from './useCommands';
 import type { CpuControls } from './useCpu';
 import { usePanelColumns } from './usePanelOrder';
@@ -19,7 +20,7 @@ export interface WorkbenchHooks<Instruction, Record> {
   soundOf: SoundOf<Record>;
   page: WorkbenchPage;
   /** Palette commands for the architecture's own panels, labelled for the current state. */
-  commands?: () => PaletteCommand[];
+  commands?: (m: Messages) => PaletteCommand[];
 }
 
 /**

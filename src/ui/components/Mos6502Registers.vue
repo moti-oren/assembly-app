@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -18,27 +19,11 @@ const props = defineProps<{
 }>();
 
 /** The three 8-bit registers, then SP, which is 8 bits into page 1. */
-const BYTES: { name: 'a' | 'x' | 'y' | 'sp'; label: string; description: string }[] = [
-  {
-    name: 'a',
-    label: 'A',
-    description: 'Accumulator: the only register the ALU adds, ANDs and compares into'
-  },
-  {
-    name: 'x',
-    label: 'X',
-    description: 'Index register: counts, and is added to an address ($nn,X, ($nn,X))'
-  },
-  {
-    name: 'y',
-    label: 'Y',
-    description: 'Index register: counts, and is added to an address ($nn,Y, ($nn),Y)'
-  },
-  {
-    name: 'sp',
-    label: 'SP',
-    description: 'Stack pointer: the low byte of the next free slot in page $01'
-  }
+const BYTES: { name: 'a' | 'x' | 'y' | 'sp'; label: string }[] = [
+  { name: 'a', label: 'A' },
+  { name: 'x', label: 'X' },
+  { name: 'y', label: 'Y' },
+  { name: 'sp', label: 'SP' }
 ];
 
 function changed(name: RegisterName): boolean {
@@ -48,16 +33,17 @@ function changed(name: RegisterName): boolean {
 function written(name: RegisterName): boolean {
   return props.record?.registersWritten.includes(name) ?? false;
 }
+const { t } = useLocale();
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Registers</CardTitle>
+      <CardTitle>{{ t.registers.title }}</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
-          changed by the last instruction
+          {{ t.registers.changed }}
         </span>
         <CpuViewToggle />
       </CardAction>
@@ -66,8 +52,11 @@ function written(name: RegisterName): boolean {
       <div
         class="grid grid-cols-[2.5rem_3rem_3rem_3rem_minmax(0,1fr)] gap-x-3 font-sans text-xs text-muted-foreground"
       >
-        <span>Reg</span><span>Hex</span><span class="text-right">Unsigned</span>
-        <span class="text-right">Signed</span><span class="hidden sm:inline">Binary</span>
+        <span>{{ t.registers.name }}</span><span>{{ t.registers.hex }}</span
+        ><span class="text-right">{{ t.registers.unsigned }}</span>
+        <span class="text-right">{{ t.registers.signed }}</span><span class="hidden sm:inline">{{
+          t.registers.binary
+        }}</span>
       </div>
       <div
         v-for="register in BYTES"
@@ -82,7 +71,7 @@ function written(name: RegisterName): boolean {
               >{{ register.label }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">{{ register.description }}</TooltipContent>
+          <TooltipContent side="right">{{ t.mos6502.registerHints[register.name] }}</TooltipContent>
         </Tooltip>
         <ChangeMark
           :on="changed(register.name)"
@@ -98,7 +87,7 @@ function written(name: RegisterName): boolean {
         </span>
         <span class="hidden text-xs sm:inline">
           <template v-if="register.name === 'sp'">
-            <span class="font-sans text-muted-foreground">next free slot</span>
+            <span class="font-sans text-muted-foreground">{{ t.mos6502.nextFree }}</span>
             ${{ formatHex(STACK_PAGE | state.registers.sp, 16) }}
           </template>
           <RollingDigits
@@ -121,7 +110,7 @@ function written(name: RegisterName): boolean {
             >
           </TooltipTrigger>
           <TooltipContent side="right">
-            Program counter: the 16-bit address of the next instruction
+            {{ t.mos6502.registerHints.pc }}
           </TooltipContent>
         </Tooltip>
         <ChangeMark class="justify-self-start" :on="changed('pc')" :tick="tick" data-loc="reg:pc">

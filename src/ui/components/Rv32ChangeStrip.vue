@@ -6,6 +6,7 @@ import { formatInstruction } from '@/core/rv32/instructions';
 import { REGISTER_KEYS } from '@/core/rv32/registers';
 import { formatRegister } from '@/core/rv32/operands';
 import type { CpuState } from '@/core/rv32/state';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -31,6 +32,7 @@ const changes = computed(() => {
   }
   return list;
 });
+const { t } = useLocale();
 </script>
 
 <template>
@@ -40,7 +42,7 @@ const changes = computed(() => {
     aria-live="polite"
   >
     <span v-if="!record" class="font-sans text-muted-foreground">
-      Run an instruction to see what it changes
+      {{ t.changes.none }}
     </span>
     <span v-else class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
     <span
@@ -51,7 +53,7 @@ const changes = computed(() => {
       {{ change.name }} <span class="font-semibold">{{ change.value }}</span>
     </span>
     <span v-if="record && changes.length === 0" class="font-sans text-muted-foreground">
-      changed nothing
+      {{ t.changes.nothing }}
     </span>
   </div>
 </template>

@@ -12,7 +12,7 @@ import { X86_CODE_PLACE, x86LineCode } from '@/ui/programCode';
 import { raisedOverflow, stepSound } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
-import { PANEL_LABELS } from '@/ui/usePanelOrder';
+import { useLocale } from '@/ui/useLocale';
 import { x86UsesDevices } from '@/ui/usesDevices';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { X86_GRAMMAR } from '@/ui/x86Grammar';
@@ -110,6 +110,7 @@ const encodingShown = computed(() =>
     encode
   )
 );
+const { t } = useLocale();
 </script>
 
 <!-- The 8086's panels, in the columns every architecture shares. -->
@@ -136,7 +137,7 @@ const encodingShown = computed(() =>
     <!-- Each column's cards can be dragged into any order, but never into the other column. -->
     <SortableColumn
       :keys="leftKeys"
-      :labels="PANEL_LABELS"
+      :labels="t.panels.names"
       @move="(key, to) => move('left', key, to)"
     >
       <template #builder>
@@ -182,7 +183,7 @@ const encodingShown = computed(() =>
 
     <SortableColumn
       :keys="rightKeys"
-      :labels="PANEL_LABELS"
+      :labels="t.panels.names"
       @move="(key, to) => move(rightColumn, key, to)"
     >
       <template #cpu>

@@ -7,12 +7,6 @@ import { playSound } from './synth';
 
 type CpuView = 'diagram' | 'table';
 
-/** What switching to each CPU view is called, on its button and in the command palette. */
-export const CPU_VIEW_LABELS: Record<CpuView, string> = {
-  diagram: 'Show the CPU as a diagram',
-  table: 'Show the CPU as tables'
-};
-
 /** Theme, sound, view and motion, shared by the header and the command palette. All are remembered. */
 export const usePreferences = createGlobalState(() => {
   /** Dark until the user picks a theme. */

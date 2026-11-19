@@ -7,6 +7,8 @@ defineProps<{
   /** Changes on every execution, so the flash replays even when the same value changes twice. */
   tick: number;
 }>();
+import { useLocale } from '@/ui/useLocale';
+const { t } = useLocale();
 </script>
 
 <template>
@@ -19,6 +21,6 @@ defineProps<{
   >
     <span v-if="on" :key="tick" class="change-flash" aria-hidden="true" />
     <slot />
-    <span v-if="written && !on" class="sr-only">(written, value unchanged)</span>
+    <span v-if="written && !on" class="sr-only">{{ t.changes.writtenSame }}</span>
   </span>
 </template>

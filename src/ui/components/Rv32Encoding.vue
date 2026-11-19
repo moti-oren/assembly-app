@@ -6,6 +6,7 @@ import type { AssembledLine, FieldName } from '@/core/rv32/encode';
 import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EncodingShown } from '@/ui/encodingShown';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   /** The instruction on show with its machine code, or null when there is nothing to encode. */
@@ -37,18 +38,19 @@ const summary = computed(() => {
 function bitOf(bit: number): number {
   return encoding.value ? (encoding.value.word >>> bit) & 1 : 0;
 }
+const { t } = useLocale();
 </script>
 
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">Machine code</CardTitle>
+      <CardTitle class="group-data-[size=sm]/card:text-base">{{ t.encoding.title }}</CardTitle>
       <CardDescription v-if="shown">
         <span class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</span>
         · {{ summary }}
       </CardDescription>
       <CardDescription v-else>
-        Build an instruction or add one to the program to see the 32 bits it becomes.
+        {{ t.rv32.encodingEmpty }}
       </CardDescription>
     </CardHeader>
 
@@ -57,7 +59,7 @@ function bitOf(bit: number): number {
       <div class="overflow-x-auto">
         <div
           class="grid min-w-[30rem] grid-cols-[repeat(32,minmax(0,1fr))] gap-y-1 font-mono text-2xs"
-          aria-label="The 32 bits of the instruction"
+          :aria-label="t.rv32.bits"
         >
           <span
             v-for="field in encoding.fields"
@@ -94,14 +96,14 @@ function bitOf(bit: number): number {
       <p class="font-mono text-sm">
         = 0x{{ formatHex32(encoding.word) }}
         <span class="font-sans text-xs text-muted-foreground">
-          stored low byte first:
+          {{ t.rv32.lowByteFirst }}
           {{
             encoding.bytes.map((byte) => byte.toString(16).toUpperCase().padStart(2, '0')).join(' ')
           }}
         </span>
       </p>
 
-      <ol class="grid gap-1.5 text-xs sm:grid-cols-2" aria-label="The fields of the instruction">
+      <ol class="grid gap-1.5 text-xs sm:grid-cols-2" :aria-label="t.encoding.fields">
         <li
           v-for="field in encoding.fields"
           :key="`${field.label}-${field.high}`"
@@ -111,7 +113,7 @@ function bitOf(bit: number): number {
           <div class="flex items-baseline gap-2">
             <span class="font-mono font-semibold">{{ field.label }}</span>
             <span class="font-mono text-muted-foreground">
-              bits {{ field.high === field.low ? field.high : `${field.high}–${field.low}` }} =
+              {{ t.rv32.bitRange(field.high, field.low) }} =
               {{ formatBits(field.value, field.high - field.low + 1) }}
             </span>
           </div>

@@ -19,6 +19,7 @@ import {
 import { Kbd } from '@/components/ui/kbd';
 import { groupBy } from '@/ui/groupBy';
 import type { PaletteCommand } from '@/ui/useCommands';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{ commands: PaletteCommand[] }>();
 const open = defineModel<boolean>('open', { required: true });
@@ -50,6 +51,7 @@ function onCloseAutoFocus(event: Event): void {
   // This event comes before the dialog lifts its scroll lock, which would swallow a scroll.
   setTimeout(command.run);
 }
+const { t } = useLocale();
 </script>
 
 <template>
@@ -61,13 +63,13 @@ function onCloseAutoFocus(event: Event): void {
       @close-auto-focus="onCloseAutoFocus"
     >
       <DialogHeader class="sr-only">
-        <DialogTitle>Commands</DialogTitle>
-        <DialogDescription>Search for something to do</DialogDescription>
+        <DialogTitle>{{ t.palette.title }}</DialogTitle>
+        <DialogDescription>{{ t.palette.description }}</DialogDescription>
       </DialogHeader>
       <Command>
-        <CommandInput placeholder="Search commands" />
+        <CommandInput :placeholder="t.palette.search" />
         <CommandList class="max-h-[min(24rem,42svh)]">
-          <CommandEmpty class="py-10 text-muted-foreground">No command matches.</CommandEmpty>
+          <CommandEmpty class="py-10 text-muted-foreground">{{ t.palette.empty }}</CommandEmpty>
           <CommandGroup v-for="[group, items] in groups" :key="group" :heading="group">
             <CommandItem
               v-for="command in items"
@@ -78,13 +80,17 @@ function onCloseAutoFocus(event: Event): void {
               @select="choose(command)"
             >
               {{ command.label }}
+              <!-- The palette filters by an item's text; hidden, it is not shown or read out. -->
+              <span v-if="command.keywords" hidden>{{ command.keywords }}</span>
             </CommandItem>
           </CommandGroup>
         </CommandList>
         <div class="flex items-center gap-4 border-t px-3 pt-3 pb-1 text-xs text-muted-foreground">
-          <span class="flex items-center gap-1.5"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
-          <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run</span>
-          <span class="flex items-center gap-1.5"><Kbd>Esc</Kbd> close</span>
+          <span class="flex items-center gap-1.5"
+            ><Kbd>↑</Kbd><Kbd>↓</Kbd> {{ t.palette.move }}</span
+          >
+          <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> {{ t.palette.run }}</span>
+          <span class="flex items-center gap-1.5"><Kbd>Esc</Kbd> {{ t.palette.close }}</span>
         </div>
       </Command>
     </DialogContent>

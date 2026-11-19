@@ -23,6 +23,7 @@ import { wasWritten } from '@/ui/describe';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   state: CpuState;
@@ -44,20 +45,21 @@ function value(name: WordRegister): number {
 function changedBits(name: WordRegister): number {
   return props.previous ? props.previous[name] ^ value(name) : 0;
 }
+const { t } = useLocale();
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Registers</CardTitle>
+      <CardTitle>{{ t.registers.title }}</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
-          changed by the last instruction
+          {{ t.registers.changed }}
         </span>
         <span class="hidden items-center gap-1.5 md:flex">
           <span class="change-mark-written inline-block size-2.5 rounded-xs" aria-hidden="true" />
-          written, same value
+          {{ t.registers.writtenSame }}
         </span>
         <CpuViewToggle />
       </CardAction>
@@ -66,18 +68,22 @@ function changedBits(name: WordRegister): number {
       <Table class="font-mono text-code">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
-            <TableHead class="h-8 w-12 font-sans text-xs text-muted-foreground">Reg</TableHead>
-            <TableHead class="h-8 font-sans text-xs text-muted-foreground">Hex</TableHead>
+            <TableHead class="h-8 w-12 font-sans text-xs text-muted-foreground">{{
+              t.registers.name
+            }}</TableHead>
+            <TableHead class="h-8 font-sans text-xs text-muted-foreground">{{
+              t.registers.hex
+            }}</TableHead>
             <TableHead class="h-8 text-right font-sans text-xs text-muted-foreground">
-              Unsigned
+              {{ t.registers.unsigned }}
             </TableHead>
             <TableHead class="h-8 text-right font-sans text-xs text-muted-foreground">
-              Signed
+              {{ t.registers.signed }}
             </TableHead>
             <TableHead
               class="hidden h-8 pl-6 font-sans text-xs text-muted-foreground sm:table-cell"
             >
-              Binary
+              {{ t.registers.binary }}
             </TableHead>
           </TableRow>
         </TableHeader>

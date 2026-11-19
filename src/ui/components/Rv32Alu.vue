@@ -4,12 +4,14 @@ import type { ExecutionRecord } from '@/core/rv32/execute';
 import { formatInstruction } from '@/core/rv32/instructions';
 import { Card, CardContent } from '@/components/ui/card';
 import { aluEquation } from '@/ui/rv32Explain';
+import { useLocale } from '@/ui/useLocale';
 
 const props = defineProps<{
   record: ExecutionRecord | null;
 }>();
 
 const equation = computed(() => props.record && aluEquation(props.record));
+const { t } = useLocale();
 </script>
 
 <template>
@@ -30,11 +32,11 @@ const equation = computed(() => props.record && aluEquation(props.record));
           </span>
         </span>
         <span v-else class="ml-auto font-sans text-xs text-muted-foreground">
-          The ALU was not used.
+          {{ t.operation.aluUnused }}
         </span>
       </template>
       <span v-else class="font-sans text-sm text-muted-foreground">
-        Run an instruction to see how its result was computed.
+        {{ t.operation.none }}
       </span>
     </CardContent>
   </Card>
