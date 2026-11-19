@@ -39,13 +39,13 @@ const REPEAT_PREFIXES: Record<RepeatPrefix, string> = {
 };
 
 const OPERAND_KINDS: Record<OperandKind, string> = {
-  r8: 'רגיסטר של 8 סיביות',
-  r16: 'רגיסטר של 16 סיביות',
-  sreg: 'רגיסטר segment',
-  sregw: 'רגיסטר segment',
+  r8: 'אוגר של 8 סיביות',
+  r16: 'אוגר של 16 סיביות',
+  sreg: 'אוגר segment',
+  sregw: 'אוגר segment',
   cl: 'כמות הזזה ב-CL',
-  al: 'רגיסטר נתונים של 8 סיביות',
-  ax: 'רגיסטר נתונים של 16 סיביות',
+  al: 'אוגר נתונים של 8 סיביות',
+  ax: 'אוגר נתונים של 16 סיביות',
   dx: 'מספר פורט ב-DX',
   one: 'כמות הזזה של 1',
   imm8: 'immediate של 8 סיביות',
@@ -252,7 +252,7 @@ const PSEUDO_DESCRIPTIONS: Record<PseudoMnemonic, string> = {
 
 const MOS6502_CATEGORIES: Record<Mos6502Category, string> = {
   load: 'טעינה ושמירה',
-  transfer: 'העברה בין רגיסטרים',
+  transfer: 'העברה בין אוגרים',
   stack: 'מחסנית',
   arithmetic: 'אריתמטיקה והשוואה',
   logic: 'לוגיקה',

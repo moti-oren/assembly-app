@@ -10,8 +10,8 @@ export const CPU_ERROR_TEXTS: Record<CpuErrorKey, string> = {
   invalidInstruction:
     '{instruction} אינה הוראה חוקית של {cpu}. מסירים את המילה האחרונה ובוחרים שוב.',
 
-  numberDestination: 'מספר לא יכול להיות יעד. קודם בוחרים רגיסטר או זיכרון.',
-  labelDestination: 'תווית של שורה לא יכולה להיות יעד. קודם בוחרים רגיסטר או זיכרון.',
+  numberDestination: 'מספר לא יכול להיות יעד. קודם בוחרים אוגר או זיכרון.',
+  labelDestination: 'תווית של שורה לא יכולה להיות יעד. קודם בוחרים אוגר או זיכרון.',
   jumpNeedsLine: 'קפיצה צריכה שורה בתוכנית (L0, L1, …) כיעד.',
   noHandler:
     'ל-INT {type}h עוד אין מטפל: הווקטור שלה ב-0000:{vector} ריק. קודם שומרים בווקטור הזה את השורה של המטפל (ראו את הדוגמה "פסיקת תוכנה").',
