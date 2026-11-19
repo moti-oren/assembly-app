@@ -17,6 +17,7 @@ describe('diagramView', () => {
       pending: { phase: 'fetch', line: 0, instruction: program[0] }
     });
     expect(view.registers).toEqual({ pc: 'read' });
+    expect(view.internal).toBe('read');
     expect(view.bus.text).toBe('Read the opcode $BD from $0600');
     expect(view.address.use).toBeUndefined();
   });
@@ -46,5 +47,15 @@ describe('diagramView', () => {
     expect(view.address.text).toBe('$02F0 + X ($20) = $0310, into page $03');
     expect(view.bus).toEqual({ use: 'read', text: 'Read $55 from $0310' });
     expect(view.cycles).toEqual({ count: 5, text: '5 cycles: 4, plus 1 for crossing a page' });
+  });
+
+  it('leaves the internal bus dark before anything has run', () => {
+    expect(diagramView({ program, record: null, pending: null }).internal).toBeUndefined();
+  });
+
+  it('lights the internal bus as a write once a register was written', () => {
+    const state = createCpuState();
+    const record = execute(state, program[0], 0, program);
+    expect(diagramView({ program, record, pending: null }).internal).toBe('write');
   });
 });

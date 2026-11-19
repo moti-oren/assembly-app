@@ -8,15 +8,17 @@ defineProps<{
   stage: StageView;
   /** Changes with every execution and phase, so a used stage lights up afresh. */
   tick: number;
+  /** The colour the tag is set in, where each stage has one of its own. */
+  tint?: string;
 }>();
 </script>
 
 <template>
   <section
-    class="relative min-w-0 overflow-hidden chip-block rounded-lg border px-2.5 py-2 transition duration-300"
+    class="chip-block relative min-w-0 overflow-hidden rounded-lg border px-3 py-2"
     :class="{
-      'border-pointer/60': stage.use === 'read',
-      'border-written/70': stage.use === 'write',
+      'border-pointer/70': stage.use === 'read',
+      'border-written/80': stage.use === 'write',
       'unit-idle': !stage.use
     }"
     :aria-label="title"
@@ -28,10 +30,11 @@ defineProps<{
       :data-kind="stage.use"
       aria-hidden="true"
     />
-    <h3 class="unit-title">
-      {{ title }} <span>{{ tag }}</span>
+    <h3 class="unit-title mb-1">
+      {{ title }}
+      <span :class="tint ? [tint, 'rounded-sm px-1 text-foreground'] : ''">{{ tag }}</span>
     </h3>
-    <p class="mt-1 font-mono text-xs break-words" :class="{ 'text-muted-foreground': !stage.use }">
+    <p class="font-mono text-xs break-words" :class="{ standby: !stage.use }">
       {{ stage.text }}
     </p>
     <slot />

@@ -32,7 +32,12 @@ export interface Mos6502DiagramView {
   address: UnitView & { mode: string | null };
   bus: UnitView;
   cycles: { count: number; text: string } | null;
+  /** The bus inside the chip that joins the registers to the units. */
+  internal: Use;
 }
+
+/** The parts of the diagram, before the bus that joins them is worked out from them. */
+type Units = Omit<Mos6502DiagramView, 'internal'>;
 
 export interface DiagramInput {
   program: Program<Instruction>;
@@ -42,7 +47,7 @@ export interface DiagramInput {
 
 const IDLE: UnitView = { use: undefined, text: 'idle' };
 
-function idle(instruction: Instruction | null): Mos6502DiagramView {
+function idle(instruction: Instruction | null): Units {
   return {
     instruction: instruction && formatInstruction(instruction),
     registers: {},
@@ -67,7 +72,7 @@ function fetching(program: Program<Instruction>, line: number, instruction: Inst
 }
 
 /** Decode knows the mode, the registers it will use and whether it goes to memory. */
-function planned(instruction: Instruction): Mos6502DiagramView {
+function planned(instruction: Instruction): Units {
   const decoded = decode(instruction);
   const registers: Partial<Record<RegisterName, Use>> = {};
   for (const name of decoded.reads) registers[name] = 'read';
@@ -87,7 +92,7 @@ function planned(instruction: Instruction): Mos6502DiagramView {
   };
 }
 
-function executed(record: ExecutionRecord): Mos6502DiagramView {
+function executed(record: ExecutionRecord): Units {
   const decoded = decode(record.instruction);
   const registers: Partial<Record<RegisterName, Use>> = {};
   for (const name of decoded.reads) registers[name] = 'read';
@@ -107,8 +112,20 @@ function executed(record: ExecutionRecord): Mos6502DiagramView {
   };
 }
 
-export function diagramView({ program, record, pending }: DiagramInput): Mos6502DiagramView {
+function units({ program, record, pending }: DiagramInput): Units {
   if (pending?.phase === 'fetch') return fetching(program, pending.line, pending.instruction);
   if (pending) return planned(pending.instruction);
   return record ? executed(record) : idle(null);
+}
+
+/** The internal bus carries whatever moved: lit as a write if anything on it was written. */
+function internalUse({ registers, alu, address }: Units): Use {
+  const uses = [alu.use, address.use, ...Object.values(registers)];
+  if (uses.includes('write')) return 'write';
+  return uses.includes('read') ? 'read' : undefined;
+}
+
+export function diagramView(input: DiagramInput): Mos6502DiagramView {
+  const view = units(input);
+  return { ...view, internal: internalUse(view) };
 }
