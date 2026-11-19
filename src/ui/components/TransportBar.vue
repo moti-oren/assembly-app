@@ -10,6 +10,7 @@ import {
   ListOrdered,
   Pause,
   Redo2,
+  RotateCcw,
   StepForward,
   Undo2
 } from '@lucide/vue';
@@ -49,6 +50,8 @@ const emit = defineEmits<{
   pause: [];
   undo: [];
   redo: [];
+  /** Asks for a reset of the CPU, which may need confirming. */
+  reset: [];
   seek: [position: number];
   'update:speed': [speed: RunSpeed];
   'update:historyShown': [shown: boolean];
@@ -188,6 +191,24 @@ const toggles = computed(() => [
 
       <!-- No min-w-0: when its buttons do not fit beside the run controls, it wraps whole. -->
       <div class="flex flex-1 basis-72 items-center gap-1.5">
+        <!-- With the history, since a reset clears it too. -->
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              class="pointer-coarse:h-11"
+              aria-label="Reset the CPU"
+              @click="emit('reset')"
+            >
+              <RotateCcw />
+              <span class="hidden xl:inline">Reset</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Clears registers, flags, memory and the history. The program is kept.
+          </TooltipContent>
+        </Tooltip>
         <Tooltip>
           <TooltipTrigger as-child>
             <Button
