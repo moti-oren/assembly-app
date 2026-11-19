@@ -15,7 +15,7 @@ export const explainRv32: ExplainRv32Messages = {
       `PC הוא ${pc}, המקום שבו ${line} מתחילה. ה-CPU קורא את המילה של 4 הבתים שם, ${word}, ו-PC מתקדם ל-${next} לפני שמשהו רץ.`,
     sizes: { 1: 'בית', 2: 'חצי מילה', 4: 'מילה' },
     kind: (category, format, description) => `${category}, ${format}-type: ${description}.`,
-    fields: (fields) => `שדות הרגיסטרים אומרים ${fields}.`,
+    fields: (fields) => `שדות האוגרים אומרים ${fields}.`,
     immediate: (hex, decimal) => `ה-immediate הוא ${hex} (${decimal}).`,
     willRead: (items) => `היא תקרא את ${items}.`,
     willAccess: (access, size) => `היא ${accessWord(access)} ${size}.`,
@@ -25,7 +25,7 @@ export const explainRv32: ExplainRv32Messages = {
     memory: 'הזיכרון',
     device: 'התקן',
     changed: (items) => `היא שינתה את ${items}.`,
-    changedNothing: 'היא לא שינתה אף רגיסטר או זיכרון.',
+    changedNothing: 'היא לא שינתה אף אוגר או זיכרון.',
     direct: 'הורצה ישירות, ולכן שום דבר לא נקרא מהתוכנית.',
     jumped: (pc) => `היא קפצה: PC עכשיו ${pc}.`,
     nextLine: (pc) => `PC ב-${pc}, השורה הבאה.`,
@@ -79,7 +79,7 @@ export const explainRv32: ExplainRv32Messages = {
   pipelineNotes: {
     pastEnd: 'אחרי הסוף',
     load: (source) => `הטעינה ב-${source} מקבלת אותו רק אחרי MEM`,
-    noForwarding: (source) => `ה-forwarding כבוי, ולכן ${source} חייבת קודם לכתוב אותו לרגיסטר`,
+    noForwarding: (source) => `ה-forwarding כבוי, ולכן ${source} חייבת קודם לכתוב אותו לאוגר`,
     waits: (row, count, register, why) =>
       `${row} ממתינה ${cycles(count)} ב-ID ל-${register}: ${why}.`,
     flushes: (row) => `${row} משנה את PC ב-EX: שתי ההוראות שנקראו אחריה נזרקות (flush).`,

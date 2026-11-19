@@ -104,7 +104,7 @@ export const panels: PanelMessages = {
     blue: 'כחול',
     blueMeans: 'קוד המכונה של התוכנית,',
     amber: 'ענבר',
-    amberMeans: 'רגיסטרים של התקנים.',
+    amberMeans: 'אוגרים של התקנים.',
     goTo: 'מעבר אל',
     places: {
       code: 'קוד',
@@ -141,10 +141,10 @@ export const panels: PanelMessages = {
     terminalEmpty: 'כל בית שנכתב לכאן מודפס כתו.'
   },
   registers: {
-    title: 'רגיסטרים',
+    title: 'אוגרים',
     changed: 'השתנה בהוראה האחרונה',
     writtenSame: 'נכתב, אותו ערך',
-    name: 'רגיסטר',
+    name: 'אוגר',
     hex: 'הקס',
     decimal: 'עשרוני',
     unsigned: 'ללא סימן',

@@ -88,7 +88,7 @@ export const app: AppMessages = {
   resetDialog: {
     title: 'לאפס את ה-CPU?',
     description: (instructions) =>
-      `הרגיסטרים, הדגלים והזיכרון חוזרים לערכי ההתחלה שלהם, וההיסטוריה נמחקת (${instructionCount(instructions)}). התוכנית נשארת. אי אפשר לבטל את זה.`,
+      `האוגרים, הדגלים והזיכרון חוזרים לערכי ההתחלה שלהם, וההיסטוריה נמחקת (${instructionCount(instructions)}). התוכנית נשארת. אי אפשר לבטל את זה.`,
     keep: 'השארת המצב הנוכחי',
     confirm: 'איפוס ה-CPU'
   },
@@ -109,7 +109,7 @@ export const app: AppMessages = {
     speedLabel: (speed) => `מהירות הרצה: ${speed}`,
     reset: 'איפוס',
     resetLabel: 'איפוס ה-CPU',
-    resetHint: 'מוחק את הרגיסטרים, הדגלים, הזיכרון וההיסטוריה. התוכנית נשארת.',
+    resetHint: 'מוחק את האוגרים, הדגלים, הזיכרון וההיסטוריה. התוכנית נשארת.',
     undo: 'ביטול ההוראה האחרונה',
     redo: 'ביצוע מחדש של ההוראה שבוטלה',
     seek: 'מעבר בין ההוראות שרצו',
@@ -127,7 +127,7 @@ export const app: AppMessages = {
       encoding: 'קוד מכונה',
       cpu: 'CPU',
       cycle: 'מחזור',
-      registers: 'רגיסטרים',
+      registers: 'אוגרים',
       operation: 'הפעולה האחרונה',
       flags: 'דגלים',
       devices: 'התקני I/O',
