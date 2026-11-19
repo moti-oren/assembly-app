@@ -22,7 +22,7 @@ import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 import { useLocale } from '@/ui/useLocale';
 
-const { t } = useLocale();
+const { t, direction } = useLocale();
 
 const props = defineProps<{
   /** What the words of an instruction can be, on this architecture. */
@@ -325,7 +325,7 @@ function onBackspace(event: KeyboardEvent): void {
         <input
           ref="input"
           v-model="filter"
-          dir="auto"
+          :dir="filter ? 'auto' : direction"
           class="h-7 min-w-40 flex-1 bg-transparent px-1 outline-none placeholder:font-sans placeholder:text-muted-foreground"
           :placeholder="moreToChoose ? hint : t.builder.ready"
           :aria-invalid="doesNotFit || undefined"
@@ -453,7 +453,7 @@ function onBackspace(event: KeyboardEvent): void {
           {{ t.builder.addAt(formatLabel(insertLine)) }}
         </Button>
         <Button size="sm" :disabled="!complete" @click="submit(false)">
-          <Play />
+          <Play class="rtl:-scale-x-100" />
           {{ t.builder.runNow }}
         </Button>
       </div>
