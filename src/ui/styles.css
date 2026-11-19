@@ -230,6 +230,48 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /*
+   * In Hebrew the page keeps its left-to-right layout (registers, memory, diagrams), and only
+   * text runs right to left: menus, tooltips and confirmations, dialog headers, buttons (their
+   * icon moves to the right of the label), and any block marked `ui-text`. Code, numbers and keys inside such text stay left
+   * to right.
+   */
+  :root[lang='he'] {
+    :is(
+      .ui-text,
+      [data-slot='tooltip-content'],
+      [data-slot='dialog-header'],
+      [data-slot='alert-dialog-content'],
+      [data-slot='alert'],
+      [data-slot='dropdown-menu-content'],
+      [data-slot='select-content'],
+      [data-slot='command'],
+      [data-slot='button']:not(.font-mono),
+      [data-slot='select-trigger']:not(.font-mono),
+      [data-slot='card-description']
+    ) {
+      direction: rtl;
+      unicode-bidi: isolate;
+    }
+    /* Under a title on the left, a short description stays on the left too. */
+    [data-slot='card-description'] {
+      text-align: left;
+    }
+    :is(.ui-text, [data-slot='tooltip-content'], [data-slot='alert'], [data-slot='command'])
+      :is(code, kbd, .font-mono, [data-slot='kbd']) {
+      direction: ltr;
+      unicode-bidi: isolate;
+    }
+  }
+  /*
+   * Short labels in the left-to-right layout run in the direction of their first letter, so
+   * "התקני I/O" or "7 מקטעים" read right to left and Latin labels stay as they are. Without
+   * specificity, so a utility class or the rules above still win; they stay on the left.
+   */
+  :where(:root[lang='he']) :where(span, h3, label, dt, dd, th, summary):where(:not(.font-mono)) {
+    unicode-bidi: plaintext;
+    text-align: left;
+  }
   html {
     @apply font-sans antialiased;
   }
