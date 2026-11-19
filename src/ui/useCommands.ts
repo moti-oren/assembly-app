@@ -192,7 +192,7 @@ export function useCommands(
     },
     ...cpu.architecture.examples.map((example, index) => ({
       group: m.commandGroups.examples,
-      label: m.commands.loadExample(example.name),
+      label: m.commands.loadExample(m.examples.name(architecture.value, example.id)),
       run: () => cpu.loadExample(index)
     })),
     {

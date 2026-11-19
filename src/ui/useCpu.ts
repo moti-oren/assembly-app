@@ -212,7 +212,7 @@ export interface CpuControls<
   architecture: {
     id: string;
     name: string;
-    examples: readonly { name: string; description: string }[];
+    examples: readonly { id: string }[];
   };
   program: Readonly<Ref<readonly Instruction[]>>;
   history: Readonly<Ref<readonly Record[]>>;

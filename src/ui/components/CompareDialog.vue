@@ -46,11 +46,13 @@ const rows = computed(() => metricRows(t.value, measurements.value));
           :aria-pressed="index === chosen"
           @click="chosen = index"
         >
-          {{ each.name }}
+          {{ t.tasks.name(each.id) }}
         </Button>
       </div>
 
-      <p class="ui-text max-w-prose text-sm leading-relaxed text-pretty">{{ task.lesson }}</p>
+      <p class="ui-text max-w-prose text-sm leading-relaxed text-pretty">
+        {{ t.tasks.lesson(task.id) }}
+      </p>
 
       <!-- The fewest in each row stands out: the others are dimmed rather than the winner coloured. -->
       <table class="w-full text-sm">

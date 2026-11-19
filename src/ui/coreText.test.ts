@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { COMPARISON_TASKS } from '@/core/comparisonTasks';
 import { decode } from '@/core/x86/decode';
+import { X86 } from '@/core/x86/architecture';
+import { RV32 } from '@/core/rv32/architecture';
+import { MOS6502 } from '@/core/mos6502/architecture';
 import { FLAG_NAMES } from '@/core/x86/flags';
 import { MNEMONICS as X86_MNEMONICS } from '@/core/x86/instructions';
 import { MNEMONICS as RV32_MNEMONICS } from '@/core/rv32/instructions';
@@ -40,5 +44,36 @@ describe('instruction texts', () => {
     const he = messagesFor('he');
     expect(he.x86Text.category('string')).toBe('מחרוזות');
     expect(he.mos6502Text.description('lda')).toBe('A = האופרנד');
+  });
+});
+
+describe('example and task texts', () => {
+  const architectures = { x86: X86, rv32: RV32, mos6502: MOS6502 } as const;
+
+  it('exist in Hebrew for every example and every comparison task', () => {
+    const he = messagesFor('he');
+    const en = messagesFor('en');
+    for (const [id, architecture] of Object.entries(architectures)) {
+      for (const example of architecture.examples) {
+        const key = id as keyof typeof architectures;
+        expect(he.examples.name(key, example.id), `${id}/${example.id}`).not.toBe(example.name);
+        expect(he.examples.description(key, example.id), `${id}/${example.id}`).not.toBe(
+          example.description
+        );
+        expect(en.examples.name(key, example.id)).toBe(example.name);
+      }
+    }
+    for (const task of COMPARISON_TASKS) {
+      expect(he.tasks.name(task.id), task.id).not.toBe(task.name);
+      expect(he.tasks.lesson(task.id), task.id).not.toBe(task.lesson);
+      expect(en.tasks.lesson(task.id)).toBe(task.lesson);
+    }
+  });
+
+  it('give every example of an architecture an id of its own', () => {
+    for (const architecture of Object.values(architectures)) {
+      const ids = architecture.examples.map((example) => example.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
   });
 });

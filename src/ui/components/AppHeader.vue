@@ -23,7 +23,7 @@ import { usePreferences } from '@/ui/usePreferences';
 
 defineProps<{
   /** The example programs of the architecture on show, by name. */
-  examples: readonly { name: string; description: string }[];
+  examples: readonly { id: string }[];
 }>();
 defineEmits<{ loadExample: [index: number]; commands: [] }>();
 /** The examples menu, which the empty program panel can also open. */
@@ -125,12 +125,14 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
             <DropdownMenuSeparator />
             <DropdownMenuItem
               v-for="(example, index) in examples"
-              :key="example.name"
+              :key="example.id"
               class="flex-col items-start gap-0.5"
               @select="$emit('loadExample', index)"
             >
-              <span class="font-medium">{{ example.name }}</span>
-              <span class="text-xs text-muted-foreground">{{ example.description }}</span>
+              <span class="font-medium">{{ t.examples.name(architecture, example.id) }}</span>
+              <span class="text-xs text-muted-foreground">{{
+                t.examples.description(architecture, example.id)
+              }}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

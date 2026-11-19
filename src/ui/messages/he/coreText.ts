@@ -1,4 +1,6 @@
 import type { CoreTextMessages } from '../en/coreText';
+import { coreText as english } from '../en/coreText';
+import { EXAMPLE_TEXTS, TASK_TEXTS } from './examples';
 import type { FlagName } from '@/core/x86/flags';
 import type {
   Category as X86Category,
@@ -337,5 +339,16 @@ export const coreText: CoreTextMessages = {
   mos6502Text: {
     category: (category) => MOS6502_CATEGORIES[category],
     description: (mnemonic) => MOS6502_DESCRIPTIONS[mnemonic]
+  },
+  // An example or task with no Hebrew text yet shows its English one; a test lists those.
+  examples: {
+    name: (architecture, id) =>
+      EXAMPLE_TEXTS[architecture][id]?.name ?? english.examples.name(architecture, id),
+    description: (architecture, id) =>
+      EXAMPLE_TEXTS[architecture][id]?.description ?? english.examples.description(architecture, id)
+  },
+  tasks: {
+    name: (id) => TASK_TEXTS[id]?.name ?? english.tasks.name(id),
+    lesson: (id) => TASK_TEXTS[id]?.lesson ?? english.tasks.lesson(id)
   }
 };

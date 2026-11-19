@@ -1,4 +1,9 @@
 import type { Widen } from '../widen';
+import { COMPARISON_TASKS } from '@/core/comparisonTasks';
+import { MOS6502 } from '@/core/mos6502/architecture';
+import { RV32 } from '@/core/rv32/architecture';
+import { X86 } from '@/core/x86/architecture';
+import type { ArchitectureId } from '../../architectures';
 import { OPERAND_KIND_LABELS } from '@/core/x86/decode';
 import { FLAG_INFO, type FlagName } from '@/core/x86/flags';
 import {
@@ -24,6 +29,20 @@ import {
   type Category as Mos6502Category,
   type Mnemonic as Mos6502Mnemonic
 } from '@/core/mos6502/instructions';
+
+const EXAMPLES = { x86: X86.examples, rv32: RV32.examples, mos6502: MOS6502.examples };
+
+function exampleOf(architecture: ArchitectureId, id: string) {
+  const found = EXAMPLES[architecture].find((example) => example.id === id);
+  if (!found) throw new Error(`No ${architecture} example with the id ${id}`);
+  return found;
+}
+
+function taskOf(id: string) {
+  const found = COMPARISON_TASKS.find((task) => task.id === id);
+  if (!found) throw new Error(`No comparison task with the id ${id}`);
+  return found;
+}
 
 /**
  * What the instruction sets and the CPU's parts are called and described. In English these are
@@ -51,6 +70,16 @@ export const coreText = {
   mos6502Text: {
     category: (category: Mos6502Category) => MOS6502_CATEGORIES[category],
     description: (mnemonic: Mos6502Mnemonic) => mos6502Spec(mnemonic).description
+  },
+  /** The example programs and the comparison tasks, by the id each one has in the core. */
+  examples: {
+    name: (architecture: ArchitectureId, id: string) => exampleOf(architecture, id).name,
+    description: (architecture: ArchitectureId, id: string) =>
+      exampleOf(architecture, id).description
+  },
+  tasks: {
+    name: (id: string) => taskOf(id).name,
+    lesson: (id: string) => taskOf(id).lesson
   }
 };
 
