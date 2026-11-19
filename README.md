@@ -35,7 +35,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   `shared/`.
   - `shared/`: what every architecture is built on: the `Architecture` interface, the CPU state and
     the undo record, programs (stepping, running, and edits that keep jump targets on the right
-    lines), and the devices behind the I/O ports.
+    lines), the devices behind the I/O ports, and the sentences the CPU says (a flag's reason, a
+    machine code field, a CPU error) as templates with keys, so the interface can word them in its
+    own language.
   - `x86/`: the 8086.
     - `state.ts`: registers (8-bit registers are views into AX..DX), FLAGS, 1MB memory.
     - `instructions.ts`: the instruction set as data. Each mnemonic lists its legal operand forms.
@@ -261,7 +263,9 @@ npm run verify:6502 # check the 6502 core against py65
 
 - `src/core/`: ה-CPU, ללא תלות ב-Vue. לכל ארכיטקטורה יש תיקייה משלה, שבנויה על `shared/`.
   - `shared/`: מה שכל ארכיטקטורה בנויה עליו: הממשק `Architecture`, מצב ה-CPU ורשומת ה-undo,
-    תוכניות (צעידה, הרצה ועריכות ששומרות על יעדי הקפיצה בשורות הנכונות), וההתקנים שמאחורי פורטי ה-I/O.
+    תוכניות (צעידה, הרצה ועריכות ששומרות על יעדי הקפיצה בשורות הנכונות), ההתקנים שמאחורי פורטי ה-I/O,
+    והמשפטים שה-CPU אומר (סיבה לדגל, שדה בקוד המכונה, שגיאת CPU) כתבניות עם מפתחות, כדי שהממשק יוכל
+    לנסח אותם בשפה שלו.
   - `x86/`: ה-8086.
     - `state.ts`: רגיסטרים (רגיסטרים של 8 סיביות הם תצוגות על AX..DX), FLAGS וזיכרון של 1MB.
     - `instructions.ts`: סט ההוראות כנתונים. כל מנמוניק מפרט את צורות האופרנדים החוקיות שלו.
