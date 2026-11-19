@@ -13,6 +13,7 @@ const rep = (mnemonic: Mnemonic): Instruction => ({ prefix: 'rep', mnemonic, ope
 
 export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
   {
+    id: 'sum',
     name: 'Sum 1..10',
     description: 'LOOP counts CX down; AX ends up as 55',
     program: [
@@ -23,6 +24,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'max',
     name: 'Max of AX, BX',
     description: 'CMP + a signed conditional jump; DX ends up as the larger value',
     program: [
@@ -36,6 +38,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'call',
     name: 'Call a subroutine',
     description: 'CALL pushes the return line, RET pops it back into IP',
     program: [
@@ -48,6 +51,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'swap',
     name: 'Swap with the stack',
     description: 'PUSH/POP in reverse order swaps AX and BX',
     program: [
@@ -60,6 +64,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'fill-copy',
     name: 'Fill and copy a string',
     description: 'REP STOSB fills 8 bytes at DS:0000, REP MOVSB copies them to DS:0010',
     program: [
@@ -74,6 +79,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'running-light',
     name: 'Running light',
     description: 'OUT sends a single 1 bit to the LEDs on port 10h, shifted left 8 times',
     program: [
@@ -85,6 +91,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'switches',
     name: 'Switches, digits and terminal',
     description: 'IN reads the switches; OUT copies them to the LEDs and a digit, then prints HI',
     program: [
@@ -98,6 +105,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
     ]
   },
   {
+    id: 'interrupt',
     name: 'Software interrupt',
     description: 'Installs a handler in vector 21h, then INT 21h prints AL on the terminal twice',
     program: [
