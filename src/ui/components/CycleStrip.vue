@@ -71,7 +71,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       <slot name="actions" />
     </div>
     <!-- Three lines, whatever the text, so the panels below never move until it is opened. -->
-    <details class="group mt-2.5 text-code leading-5 text-foreground/80">
+    <details class="group mt-2.5 text-code leading-5 text-muted-foreground">
       <summary
         class="line-clamp-3 h-15 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
       >

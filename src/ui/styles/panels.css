@@ -3,7 +3,7 @@
 @layer components {
   /* Where execution is in the program: a bar on each edge of the line, and a tint between. */
   .ip-marker {
-    background: color-mix(in oklch, var(--pointer) 14%, transparent);
+    background: var(--pointer-soft);
   }
   .ip-marker::before,
   .ip-marker::after {

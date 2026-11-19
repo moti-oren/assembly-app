@@ -125,7 +125,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   on its own, so the program stays in view under a long CPU column, and the bottom bar sits below
   both.
 - The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
-  the command palette has them too.
+  the command palette has them too. The app starts in the light theme until you pick one.
 - **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
   flashes and the glowing wires; the changed values stay marked. It is remembered, and it is on by
   itself when the system asks for reduced motion.
@@ -343,7 +343,7 @@ npm run verify:6502 # check the 6502 core against py65
   (Ctrl+K) מחזירה אותו לברירת המחדל. במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת גלויה
   לצד עמודת CPU ארוכה, והסרגל התחתון נמצא מתחת לשתיהן.
 - תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
-  הפקודות מציעה אותם.
+  הפקודות מציעה אותם. האפליקציה נפתחת בערכת הנושא הבהירה עד שבוחרים אחרת.
 - **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
   הזוהרים; הערכים שהשתנו נשארים מסומנים. ההגדרה נשמרת, והיא פועלת מעצמה כשהמערכת מבקשת להפחית
   תנועה.

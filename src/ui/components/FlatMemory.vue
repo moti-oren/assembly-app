@@ -119,7 +119,7 @@ function reveal(jump: () => void): void {
           <p>{{ intro }}</p>
           <p class="mt-2">
             <span class="font-mono text-pointer">blue</span> the program's machine code,
-            <span class="font-mono text-written">amber</span> device registers.
+            <span class="font-mono text-written">orange</span> device registers.
           </p>
         </InfoTip>
         <div class="flex gap-1" role="group" aria-label="Go to">
@@ -211,7 +211,7 @@ function reveal(jump: () => void): void {
                 "
                 @mouseenter="pointed = byte.address"
               >
-                <span v-if="byte.value === null" class="text-muted-foreground/50">··</span>
+                <span v-if="byte.value === null" class="text-tertiary-foreground">··</span>
                 <ChangeMark
                   v-else
                   :on="heat.get(byte.address) === 0"

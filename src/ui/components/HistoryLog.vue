@@ -88,8 +88,8 @@ watch(
                 number === history.length
                   ? 'bg-background font-semibold'
                   : number > history.length
-                    ? 'text-muted-foreground'
-                    : 'text-foreground/75'
+                    ? 'text-tertiary-foreground'
+                    : 'text-muted-foreground'
               "
               :aria-current="number === history.length ? 'step' : undefined"
               @click="emit('seek', number)"

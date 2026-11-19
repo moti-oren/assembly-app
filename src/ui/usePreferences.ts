@@ -15,8 +15,8 @@ export const CPU_VIEW_LABELS: Record<CpuView, string> = {
 
 /** Theme, sound, view and motion, shared by the header and the command palette. All are remembered. */
 export const usePreferences = createGlobalState(() => {
-  /** Dark until the user picks a theme. */
-  const isDark = useDark({ initialValue: 'dark' });
+  /** Light until the user picks a theme. */
+  const isDark = useDark({ initialValue: 'light' });
   const soundOn = useLocalStorage(STORAGE_KEYS.sound, false);
   /** The CPU's state as one wired diagram, or as the separate register and flag tables. */
   const cpuView = useLocalStorage<CpuView>(STORAGE_KEYS.cpuView, 'diagram', {

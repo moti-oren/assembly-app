@@ -19,14 +19,11 @@
     min-width: 0;
     background: var(--pane);
   }
-  /* What you write: a quiet panel. Its lists are set into it in the canvas colour. */
+  /* What you write: a recessed pane. Its lists stand out of it as crisp wells. */
   .workbench-pane[data-pane='sidebar'] {
-    --pane: var(--card);
+    --pane: var(--recessed);
+    --inset: var(--sidebar-inset);
     border-bottom: 1px solid var(--border);
-  }
-  /* The machine: an open canvas. What is set into it takes the panel colour instead. */
-  .workbench-pane[data-pane='stage'] {
-    --inset: var(--card);
   }
   /* Side by side, each pane scrolls on its own, so the program stays put under a long stage. */
   @media (min-width: 64rem) {

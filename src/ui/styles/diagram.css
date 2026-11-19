@@ -19,7 +19,7 @@
   }
   .chip-package .chip-block {
     border-color: var(--border);
-    background-color: var(--page);
+    background-color: var(--recessed);
   }
 
   /*
@@ -86,7 +86,7 @@
 
   /* A place a value will be once there is one: the standby reading of a unit. */
   .standby {
-    color: var(--muted-foreground);
+    color: var(--tertiary-foreground);
     letter-spacing: 0.08em;
   }
 
