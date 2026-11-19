@@ -1,4 +1,4 @@
-import { CpuError } from '../shared/cpuError';
+import { cpuError } from '../shared/cpuError';
 import { FLAGS_MASK, FLAGS_RESERVED, type FlagName } from './flags';
 import { formatHex, hasEvenParity, mask, signBit, truncate, type Size } from '../shared/numbers';
 import { effectiveAddress, type Operand } from './operands';
@@ -86,9 +86,7 @@ export class ExecutionContext {
         return;
       case 'imm':
       case 'label':
-        throw new CpuError(
-          `${operand.type === 'imm' ? 'A number' : 'A line label'} can't be a destination. Pick a register or memory first.`
-        );
+        throw cpuError(operand.type === 'imm' ? 'numberDestination' : 'labelDestination');
     }
   }
 
@@ -105,7 +103,7 @@ export class ExecutionContext {
 
   jump(target: Operand): void {
     if (target.type !== 'label') {
-      throw new CpuError('A jump needs a program line (L0, L1, …) as its target.');
+      throw cpuError('jumpNeedsLine');
     }
     this.writeRegister('ip', target.target);
   }
@@ -206,10 +204,7 @@ export class ExecutionContext {
     const handler = this.handler(type);
     if (!handler) {
       const vector = formatHex(type * VECTOR_SIZE, 16);
-      throw new CpuError(
-        `INT ${formatHex(type, 8)}h has no handler yet: its vector at 0000:${vector} is empty. ` +
-          `Store the handler's line in that vector first (see the "Software interrupt" example).`
-      );
+      throw cpuError('noHandler', { type: formatHex(type, 8), vector });
     }
     this.push(this.state.flags);
     this.setFlag('IF', false);
