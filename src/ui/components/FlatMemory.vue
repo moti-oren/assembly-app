@@ -209,7 +209,7 @@ function reveal(jump: () => void): void {
                   :class="{
                     'font-semibold': heat.get(byte.address) === 0 || accessed(byte.address),
                     underline: accessed(byte.address),
-                    'text-muted-foreground': byte.value === 0 && byte.region === 'ram'
+                    'byte-zero': byte.value === 0 && byte.region === 'ram'
                   }"
                 >
                   <RollingDigits :text="formatHex(byte.value, 8)" />

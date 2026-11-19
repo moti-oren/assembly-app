@@ -52,7 +52,7 @@ const shortcut = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgen
         >
           {{ ARCHITECTURE_CHOICES.find((choice) => choice.id === architecture)?.badge }}
         </div>
-        <h1 class="truncate text-[15px] font-semibold tracking-tight">CPU Playground</h1>
+        <h1 class="truncate text-base font-semibold tracking-tight">CPU Playground</h1>
       </div>
       <!-- Each CPU keeps its own program and history, so switching back finds them as they were. -->
       <div class="flex shrink-0 rounded-md border p-0.5" role="group" aria-label="Architecture">

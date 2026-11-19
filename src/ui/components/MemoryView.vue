@@ -282,7 +282,7 @@ function reveal(jump: () => void): void {
                     heat.get(byte.address) === 0
                       ? 'font-semibold'
                       : byte.value === 0
-                        ? 'text-muted-foreground'
+                        ? 'byte-zero'
                         : ''
                   "
                 >

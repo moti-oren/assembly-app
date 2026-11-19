@@ -124,6 +124,8 @@
   --written: oklch(0.666 0.179 58.318);
   --pointer: oklch(0.55 0.18 255);
   --pointer-foreground: oklch(0.985 0 0);
+  /* A memory byte that holds 0. Muted text on white is already near 4.5:1, so no fainter here. */
+  --zero-byte: var(--muted-foreground);
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
@@ -177,6 +179,8 @@
   --drag-shadow: 0 18px 40px -12px oklch(0 0 0 / 60%);
   --pointer: oklch(0.76 0.12 235);
   --pointer-foreground: oklch(0.18 0.02 260);
+  /* As faint as an unlit digit (.digit-off), still above 4.5:1 on the memory table. */
+  --zero-byte: color-mix(in oklch, var(--foreground) 55%, transparent);
   --background: oklch(0.16 0.02 305);
   --foreground: oklch(0.95 0.012 90);
   --card: oklch(0.2 0.024 305);
@@ -353,14 +357,19 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
+  /* The unit's short name: told apart by its font, not by a frame of its own. */
   .unit-title > span {
-    margin-left: 0.25rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0 0.25rem;
-    color: var(--foreground);
+    margin-left: 0.375rem;
     font-family: var(--font-mono);
     letter-spacing: 0;
+  }
+
+  /*
+   * A unit the instruction on show does not use. It keeps its place and size, so nothing below
+   * moves from one step to the next, and steps back instead.
+   */
+  .unit-idle {
+    opacity: 0.6;
   }
 
   /* One character of a number; see RollingDigits.vue. */
@@ -382,6 +391,10 @@
   /* Unlit, but still a digit to read: 0.55 keeps it near 4.5:1 in both themes. */
   .digit-off {
     opacity: 0.55;
+  }
+  /* A memory byte that holds 0: quieter than the bytes that hold data. */
+  .byte-zero {
+    color: var(--zero-byte);
   }
   .roll-up-enter-active,
   .roll-up-leave-active,
@@ -682,6 +695,17 @@
 .command-palette [data-slot='command-item'][data-disabled] {
   opacity: 0.4;
   pointer-events: none;
+}
+/*
+ * shadcn's small button sets 0.8rem, a size between text-xs and text-code that nothing else uses.
+ * Unlayered, like the palette above, so it beats the generated utility without editing it. `cn`
+ * drops that class wherever a button sets a size of its own, so this never overrides one.
+ */
+.text-\[0\.8rem\] {
+  font-size: var(--text-xs);
+}
+.text-\[0\.8rem\].font-mono {
+  font-size: var(--text-code);
 }
 .dark [data-slot='dialog-overlay'] {
   background: var(--overlay);

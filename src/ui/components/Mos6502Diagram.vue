@@ -147,7 +147,11 @@ const flagChanged = (bit: number) =>
             :tick="pulse"
           />
           <DatapathStage title="Data bus" tag="memory · devices" :stage="view.bus" :tick="pulse" />
-          <section class="rounded-lg border bg-card px-2.5 py-2" aria-label="Cycles">
+          <section
+            class="rounded-lg border bg-card px-2.5 py-2 transition-opacity duration-300"
+            :class="{ 'unit-idle': !view.cycles }"
+            aria-label="Cycles"
+          >
             <h3 class="unit-title">Cycles <span>clock</span></h3>
             <template v-if="view.cycles">
               <div class="mt-1.5 flex flex-wrap gap-1" aria-hidden="true">
