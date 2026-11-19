@@ -30,11 +30,13 @@ const detail = computed(() => {
   const { pending, record, state, program } = props;
   if (pending?.phase === 'fetch') return describeFetch(pending.line, program);
   if (pending) return describeDecode(pending.instruction);
-  if (record) return describeExecute(record, state, program);
-  return 'Every instruction is fetched, decoded, then executed. The opcode, one byte, says both the instruction and its addressing mode; the 6502 then reads 0 to 2 more bytes. Use the Fetch button below to walk a line through.';
+  return record ? describeExecute(record, state, program) : null;
 });
+
+const INTRO =
+  'Every instruction is fetched, decoded, then executed. The opcode, one byte, says both the instruction and its addressing mode; the 6502 then reads 0 to 2 more bytes. Use the Fetch button below to walk a line through.';
 </script>
 
 <template>
-  <CycleStrip :active="active" :instruction="instruction" :detail="detail" />
+  <CycleStrip :active="active" :instruction="instruction" :detail="detail" :intro="INTRO" />
 </template>

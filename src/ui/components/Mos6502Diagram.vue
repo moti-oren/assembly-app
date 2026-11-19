@@ -83,7 +83,7 @@ const flagChanged = (bit: number) =>
       <div class="grid gap-3 @min-[40rem]:grid-cols-[auto_minmax(0,1fr)]">
         <!-- Three 8-bit registers do all the work; SP and PC point at the stack and the code. -->
         <section
-          class="rounded-xl border border-foreground/20 bg-muted/20 p-2.5"
+          class="rounded-xl border border-foreground/20 bg-inset p-2.5"
           aria-label="Registers"
         >
           <h3 class="unit-title">Registers <span>8-bit</span></h3>

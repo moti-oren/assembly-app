@@ -78,7 +78,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
     <CardContent class="@container flex flex-col gap-3">
       <!-- The register file: 32 registers with two read ports (rs1, rs2) and one write port (rd). -->
       <section
-        class="rounded-xl border border-foreground/20 bg-muted/20 p-2.5"
+        class="rounded-xl border border-foreground/20 bg-inset p-2.5"
         aria-label="Register file"
       >
         <h3 class="unit-title">Register file <span>x0–x31</span></h3>

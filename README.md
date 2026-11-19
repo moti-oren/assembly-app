@@ -66,13 +66,13 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 ## Model
 
 - An instruction can run immediately (Enter) or be added to the program (Shift+Enter).
-- In the instruction box, the arrow keys move through the choices below it (Left/Right one at a time, Up/Down by row) and Enter picks the highlighted one. While the box has text, hold Alt to use the arrows this way; without Alt they edit the text.
+- In the instruction box, the arrow keys move through the choices below it (Left/Right one at a time, Up/Down by row) and Enter picks the highlighted one. Once the box holds words or text, hold Alt to use the arrows this way; without Alt, Left and Right move between the words and through the text, and Up and Down go to the start and the end of the box. The row of keys under the box shows the ones that work at that moment.
 - On a wide screen, stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
-- **Reset** sets registers, flags and memory back to their start values and clears the history;
-  the program is kept. When the history holds instructions it asks first, since Undo cannot
-  bring them back.
+- **Reset**, in the bottom bar next to Undo, sets registers, flags and memory back to their start
+  values and clears the history; the program is kept. When the history holds instructions it
+  asks first, since Undo cannot bring them back.
 - A register the last instruction changed is filled in amber. One it wrote with the value it
   already held is outlined instead, e.g. `mov si, 0` while SI is 0, so a write is never invisible.
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
@@ -117,9 +117,13 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   it and use the arrow keys (Home and End move it to the top or bottom). A card stays in its own
   column. The order is remembered, separately for the CPU diagram and the tables, and **Reset the
   card order** in the command palette (Ctrl+K) puts it back.
-- **Reduce animations** in the command palette turns off the values that fly between panels, the
+- The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
+  the command palette has them too.
+- **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
   flashes and the glowing wires; the changed values stay marked. It is remembered, and it is on by
   itself when the system asks for reduced motion.
+- A panel's explanation is behind the ⓘ button next to its name, so it is there when you want it
+  and out of the way the rest of the time.
 
 ## RISC-V mode
 
@@ -276,10 +280,11 @@ npm run verify:6502 # check the 6502 core against py65
 ## המודל
 
 - אפשר להריץ הוראה מיד (Enter) או להוסיף אותה לתוכנית (Shift+Enter).
-- בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש טקסט בתיבה, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt הם עורכים את הטקסט.
+- בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש בתיבה מילים או טקסט, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt, ימינה ושמאלה עוברים בין המילים ובתוך הטקסט, ולמעלה ולמטה מגיעים לתחילת התיבה ולסופה. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע.
 - במסך רחב, הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
-- **Reset** מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את ההיסטוריה; התוכנית נשמרת.
+- **Reset**, בסרגל התחתון ליד Undo, מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את
+  ההיסטוריה; התוכנית נשמרת.
   כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
 - רגיסטר שההוראה האחרונה שינתה ממולא בענבר. רגיסטר שהיא כתבה אליו את הערך שכבר היה בו מוקף
   במסגרת מקווקוות במקום, למשל `mov si, 0` כש-SI כבר 0, כך שכתיבה אף פעם לא נעלמת.
@@ -323,9 +328,13 @@ npm run verify:6502 # check the 6502 core against py65
   אותה ומשתמשים במקשי החיצים (Home ו-End מעבירים אותה לראש העמודה או לסופה). כרטיסייה נשארת בעמודה
   שלה. הסדר נשמר, בנפרד לדיאגרמת ה-CPU ולטבלאות, והפקודה **Reset the card order** בפלטת הפקודות
   (Ctrl+K) מחזירה אותו לברירת המחדל.
-- **Reduce animations** בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
+- תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
+  הפקודות מציעה אותם.
+- **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
   הזוהרים; הערכים שהשתנו נשארים מסומנים. ההגדרה נשמרת, והיא פועלת מעצמה כשהמערכת מבקשת להפחית
   תנועה.
+- ההסבר של כל חלונית נמצא מאחורי כפתור ה-ⓘ שליד שמה, כך שהוא זמין כשרוצים אותו ולא מפריע בשאר
+  הזמן.
 
 ## מצב RISC-V
 

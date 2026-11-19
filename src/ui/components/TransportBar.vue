@@ -10,6 +10,7 @@ import {
   ListOrdered,
   Pause,
   Redo2,
+  RotateCcw,
   StepForward,
   Undo2
 } from '@lucide/vue';
@@ -49,6 +50,8 @@ const emit = defineEmits<{
   pause: [];
   undo: [];
   redo: [];
+  /** Asks for a reset of the CPU, which may need confirming. */
+  reset: [];
   seek: [position: number];
   'update:speed': [speed: RunSpeed];
   'update:historyShown': [shown: boolean];
@@ -69,6 +72,11 @@ const nextPhase = computed(() =>
 const total = computed(() => props.executed + props.undone);
 
 const positionText = computed(() => `${props.executed} of ${total.value} instructions run`);
+
+/** How far along the history the slider is, for the filled part of its track. */
+const progress = computed(() =>
+  total.value === 0 ? '0%' : `${(props.executed / total.value) * 100}%`
+);
 
 const toggles = computed(() => [
   {
@@ -183,6 +191,24 @@ const toggles = computed(() => [
 
       <!-- No min-w-0: when its buttons do not fit beside the run controls, it wraps whole. -->
       <div class="flex flex-1 basis-72 items-center gap-1.5">
+        <!-- With the history, since a reset clears it too. -->
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              class="pointer-coarse:h-11"
+              aria-label="Reset the CPU"
+              @click="emit('reset')"
+            >
+              <RotateCcw />
+              <span class="hidden xl:inline">Reset</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Clears registers, flags, memory and the history. The program is kept.
+          </TooltipContent>
+        </Tooltip>
         <Tooltip>
           <TooltipTrigger as-child>
             <Button
@@ -215,7 +241,8 @@ const toggles = computed(() => [
         </Tooltip>
         <input
           type="range"
-          class="mx-1.5 h-4 w-10 flex-1 sm:w-16 cursor-pointer pointer-coarse:h-11 accent-pointer disabled:cursor-default disabled:opacity-40"
+          class="timeline mx-1.5 h-4 w-10 flex-1 cursor-pointer disabled:cursor-default disabled:opacity-40 sm:w-16 pointer-coarse:h-11"
+          :style="{ '--progress': progress }"
           min="0"
           :max="Math.max(total, 1)"
           :value="executed"
@@ -231,6 +258,12 @@ const toggles = computed(() => [
         >
           {{ executed }} / {{ total }}
         </span>
+      </div>
+
+      <span class="hidden h-6 w-px bg-border lg:block" aria-hidden="true" />
+
+      <!-- What the page shows, apart from the controls that drive the program. -->
+      <div class="flex items-center gap-1.5" role="group" aria-label="Panels">
         <!-- Icons only below xl, so the name moves into the label and a tooltip. -->
         <Tooltip v-for="toggle in toggles" :key="toggle.label">
           <TooltipTrigger as-child>

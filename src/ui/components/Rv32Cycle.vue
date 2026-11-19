@@ -31,13 +31,15 @@ const detail = computed(() => {
   const { pending, record, state, program } = props;
   if (pending?.phase === 'fetch') return describeFetch(pending.line, program);
   if (pending) return describeDecode(pending.instruction);
-  if (record) return describeExecute(record, state, program);
-  return 'Every instruction is fetched, decoded, then executed. A RISC-V instruction is always one 4-byte word, so PC moves on by 4. Use the Fetch button below to walk a line through the three phases.';
+  return record ? describeExecute(record, state, program) : null;
 });
+
+const INTRO =
+  'Every instruction is fetched, decoded, then executed. A RISC-V instruction is always one 4-byte word, so PC moves on by 4. Use the Fetch button below to walk a line through the three phases.';
 </script>
 
 <template>
-  <CycleStrip :active="active" :instruction="instruction" :detail="detail">
+  <CycleStrip :active="active" :instruction="instruction" :detail="detail" :intro="INTRO">
     <template #actions><Rv32CycleToggle /></template>
   </CycleStrip>
 </template>

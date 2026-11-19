@@ -21,6 +21,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import ChangeMark from './ChangeMark.vue';
+import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
@@ -147,7 +148,10 @@ function reveal(jump: () => void): void {
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="mr-1 group-data-[size=sm]/card:text-base">Memory</CardTitle>
+        <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
+        <InfoTip label="About memory">
+          Point at a byte, or run an instruction that uses memory, to see how its address is formed.
+        </InfoTip>
         <Select v-model="segment">
           <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
@@ -239,12 +243,9 @@ function reveal(jump: () => void): void {
             Show in table
           </button>
         </template>
-        <span v-else class="font-sans text-muted-foreground">
-          Point at a byte, or run an instruction that uses memory, to see how its address is formed.
-        </span>
       </p>
 
-      <div class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5">
+      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">

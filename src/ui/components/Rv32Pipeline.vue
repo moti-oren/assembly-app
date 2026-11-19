@@ -13,6 +13,7 @@ import {
   type PipelineCell
 } from '@/ui/rv32Pipeline';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
+import InfoTip from './InfoTip.vue';
 import Rv32CycleToggle from './Rv32CycleToggle.vue';
 
 const props = defineProps<{
@@ -43,7 +44,22 @@ const summary = computed(() => pipelineSummary(timing.value));
 <template>
   <div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      <span class="text-sm font-medium">Pipeline</span>
+      <span class="flex items-center gap-1">
+        <span class="text-sm font-medium">Pipeline</span>
+        <InfoTip label="About the pipeline">
+          <p>
+            A pipelined CPU works on five instructions at once, each in a different stage. Step or
+            run the program: every instruction shows up here, cycle by cycle, with the stalls and
+            flushes the overlap costs.
+          </p>
+          <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+            <template v-for="stage in PIPELINE_STAGES" :key="stage">
+              <dt class="font-mono">{{ stage }}</dt>
+              <dd class="text-muted-foreground">{{ STAGE_INFO[stage] }}</dd>
+            </template>
+          </dl>
+        </InfoTip>
+      </span>
       <Button
         variant="outline"
         size="xs"
@@ -58,9 +74,7 @@ const summary = computed(() => pipelineSummary(timing.value));
     </div>
 
     <p v-if="grid.rows.length === 0" class="mt-2 text-xs leading-4 text-muted-foreground">
-      A pipelined CPU works on five instructions at once, each in a different stage. Step or run the
-      program: every instruction shows up here, cycle by cycle, with the stalls and flushes the
-      overlap costs.
+      Nothing has run yet.
     </p>
     <template v-else>
       <div class="mt-2 overflow-x-auto">
@@ -110,12 +124,5 @@ const summary = computed(() => pipelineSummary(timing.value));
       </ul>
       <p class="mt-2 text-xs text-foreground">{{ summary }}</p>
     </template>
-
-    <dl class="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-2xs text-muted-foreground">
-      <div v-for="stage in PIPELINE_STAGES" :key="stage" class="flex gap-1">
-        <dt class="font-mono text-foreground">{{ stage }}</dt>
-        <dd>{{ STAGE_INFO[stage] }}</dd>
-      </div>
-    </dl>
   </div>
 </template>

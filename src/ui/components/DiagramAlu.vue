@@ -14,7 +14,7 @@ defineProps<{ model: CpuDiagramModel }>();
       :class="{ 'unit-idle': !model.equation && !model.alu.input && !model.alu.output }"
     >
       <div class="flex items-baseline justify-between gap-3">
-        <span class="text-sm font-medium">ALU</span>
+        <h3 class="unit-title mb-0">ALU</h3>
         <span class="truncate font-mono text-xs text-muted-foreground">{{
           model.shown
             ? formatInstruction(model.shown.instruction)

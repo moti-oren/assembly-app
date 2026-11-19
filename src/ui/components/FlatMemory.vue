@@ -16,6 +16,7 @@ import {
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
 import { useTwoColumns } from '@/ui/useTwoColumns';
 import ChangeMark from './ChangeMark.vue';
+import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
 
 const props = defineProps<{
@@ -30,7 +31,7 @@ const props = defineProps<{
   heat: Map<number, number>;
   /** The last load or store: its first byte, how many bytes it moved, and what it was in words. */
   access: { address: number; size: number; text: string } | null;
-  /** What the panel says before any access: how this memory is laid out. */
+  /** How this memory is laid out, behind the info button. */
   intro: string;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
@@ -110,7 +111,14 @@ function reveal(jump: () => void): void {
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="mr-1 group-data-[size=sm]/card:text-base">Memory</CardTitle>
+        <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
+        <InfoTip label="About memory">
+          <p>{{ intro }}</p>
+          <p class="mt-2">
+            <span class="font-mono text-pointer">blue</span> the program's machine code,
+            <span class="font-mono text-written">amber</span> device registers.
+          </p>
+        </InfoTip>
         <div class="flex gap-1" role="group" aria-label="Go to">
           <Button
             v-for="place in places"
@@ -160,10 +168,9 @@ function reveal(jump: () => void): void {
             Show in table
           </button>
         </template>
-        <span v-else class="font-sans text-muted-foreground">{{ intro }}</span>
       </p>
 
-      <div class="overflow-auto rounded-lg border bg-muted/30 px-2 py-1.5">
+      <div class="overflow-auto rounded-lg bg-inset px-2 py-1.5">
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">
@@ -224,10 +231,6 @@ function reveal(jump: () => void): void {
           </tbody>
         </table>
       </div>
-      <p class="flex flex-wrap gap-x-4 text-xs text-muted-foreground">
-        <span><span class="font-mono text-pointer">blue</span> the program's machine code</span>
-        <span><span class="font-mono text-written">amber</span> device registers</span>
-      </p>
     </CardContent>
   </Card>
 </template>
