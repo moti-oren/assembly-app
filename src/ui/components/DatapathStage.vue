@@ -8,8 +8,8 @@ defineProps<{
   stage: StageView;
   /** Changes with every execution and phase, so a used stage lights up afresh. */
   tick: number;
-  /** The colour the tag is set in, where each stage has one of its own. */
-  tint?: string;
+  /** Whether the tag is a pipeline stage, set as a chip that lights up while the stage works. */
+  chip?: boolean;
 }>();
 </script>
 
@@ -32,7 +32,7 @@ defineProps<{
     />
     <h3 class="unit-title mb-1">
       {{ title }}
-      <span :class="tint ? [tint, 'rounded-sm px-1 text-foreground'] : ''">{{ tag }}</span>
+      <span :class="chip ? ['stage-chip', { 'stage-chip-active': stage.use }] : ''">{{ tag }}</span>
     </h3>
     <p class="font-mono text-xs break-words" :class="{ standby: !stage.use }">
       {{ stage.text }}

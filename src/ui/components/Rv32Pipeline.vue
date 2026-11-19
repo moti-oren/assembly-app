@@ -10,7 +10,6 @@ import {
   pipelineNotes,
   pipelineSummary,
   STAGE_INFO,
-  STAGE_TINTS,
   type PipelineCell
 } from '@/ui/rv32Pipeline';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
@@ -27,9 +26,9 @@ const props = defineProps<{
 const ROWS = 8;
 
 const CELL_CLASSES: Record<PipelineCell['kind'], string> = {
-  run: 'text-foreground',
+  run: 'stage-chip',
   stall: 'border border-dashed border-changed-foreground/60 bg-changed/40 text-changed-foreground',
-  flushed: 'bg-muted text-muted-foreground/70 line-through'
+  flushed: 'bg-muted text-tertiary-foreground line-through'
 };
 
 const { forwarding } = useRv32Pipeline();
@@ -55,7 +54,7 @@ const summary = computed(() => pipelineSummary(timing.value));
           </p>
           <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
             <template v-for="stage in PIPELINE_STAGES" :key="stage">
-              <dt class="rounded-sm px-1 font-mono" :class="STAGE_TINTS[stage]">{{ stage }}</dt>
+              <dt class="stage-chip font-mono">{{ stage }}</dt>
               <dd class="text-muted-foreground">{{ STAGE_INFO[stage] }}</dd>
             </template>
           </dl>
@@ -123,7 +122,7 @@ const summary = computed(() => pipelineSummary(timing.value));
                 class="relative h-5 rounded-sm text-center"
                 :class="[
                   cell ? CELL_CLASSES[cell.kind] : '',
-                  cell?.kind === 'run' && STAGE_TINTS[cell.stage],
+                  cell?.kind === 'run' && row.newest && 'stage-chip-active',
                   { 'inset-ring-2 inset-ring-pointer': cell?.forwarded || cell?.source }
                 ]"
                 :title="cell?.forwarded?.map((link) => link.text).join('; ')"

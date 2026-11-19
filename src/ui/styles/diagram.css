@@ -23,6 +23,22 @@
   }
 
   /*
+   * The tag of a pipeline stage: neutral, until the stage is the one at work. Doubled up to win
+   * over the colour of a unit's short name, which it also is.
+   */
+  .stage-chip.stage-chip {
+    border-radius: var(--radius-sm);
+    padding-inline: 0.25rem;
+    background: var(--stage-chip);
+    color: var(--stage-chip-foreground);
+  }
+  .stage-chip.stage-chip-active {
+    background: var(--pointer-soft);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--pointer) 45%, transparent);
+    color: var(--foreground);
+  }
+
+  /*
    * A connection in the CPU diagram. When the last instruction used it, it lights up in the
    * colour of that use: a short glow, then a steady light until the next instruction.
    */

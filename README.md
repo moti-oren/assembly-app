@@ -168,7 +168,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   EX, so when it is taken the two instructions fetched behind it are struck out (flushed). Turn
   **Forwarding** off to see every instruction wait in ID until the one before it has written its
   result back. With it on, a blue line down the chart joins an EX to the stage above it that handed
-  it a result before that result was written back. Under the chart, a sentence says why each stall and flush happened, and a line adds
+  it a result before that result was written back. The stages of the last instruction run are
+  tinted blue. Under the chart, a sentence says why each stall and flush happened, and a line adds
   up the cycles. The CPU itself still runs one instruction at a time; the chart is worked out from
   the history.
 - The **Machine code** panel shows the 32 bits of an instruction with each field over its bits:
@@ -381,7 +382,8 @@ npm run verify:6502 # check the 6502 core against py65
   אחר מחזור. משבצת מקווקוות היא מחזור של המתנה: הוראה שצריכה ערך שטעינה עוד לא הביאה מחכה מחזור
   אחד ב-ID. ענף או קפיצה משנים את PC ב-EX, ולכן כשהם נלקחים שתי ההוראות שנשלפו אחריהם מסומנות בקו
   (flush). כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. כשהוא
-  פועל, קו כחול לאורך התרשים מחבר EX לשלב שמעליו שמסר לו תוצאה לפני שנכתבה חזרה. מתחת
+  פועל, קו כחול לאורך התרשים מחבר EX לשלב שמעליו שמסר לו תוצאה לפני שנכתבה חזרה. השלבים של
+  ההוראה האחרונה שרצה צבועים בכחול. מתחת
   לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים. המעבד עצמו עדיין מריץ
   הוראה אחת בכל פעם; התרשים מחושב מתוך ההיסטוריה.
 - חלונית **Machine code** מציגה את 32 הסיביות של הוראה, וכל שדה מעל הסיביות שלו: opcode, rd,

@@ -6,7 +6,6 @@ import type { Instruction } from '@/core/rv32/instructions';
 import type { REGISTER_KEYS } from '@/core/rv32/registers';
 import type { CpuState } from '@/core/rv32/state';
 import { datapathView } from '@/ui/rv32Datapath';
-import { STAGE_TINTS } from '@/ui/rv32Pipeline';
 import { REGISTER_GROUPS, ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/ui/rv32View';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import ChangeMark from './ChangeMark.vue';
@@ -42,11 +41,11 @@ const pulse = computed(
 
 /** The five stages in the order an instruction passes through them. */
 const STAGES = [
-  { key: 'fetch', title: 'Fetch', tag: 'IF', tint: STAGE_TINTS.IF },
-  { key: 'decode', title: 'Decode', tag: 'ID', tint: STAGE_TINTS.ID },
-  { key: 'execute', title: 'Execute', tag: 'EX', tint: STAGE_TINTS.EX },
-  { key: 'memory', title: 'Memory', tag: 'MEM', tint: STAGE_TINTS.MEM },
-  { key: 'writeBack', title: 'Write back', tag: 'WB', tint: STAGE_TINTS.WB }
+  { key: 'fetch', title: 'Fetch', tag: 'IF' },
+  { key: 'decode', title: 'Decode', tag: 'ID' },
+  { key: 'execute', title: 'Execute', tag: 'EX' },
+  { key: 'memory', title: 'Memory', tag: 'MEM' },
+  { key: 'writeBack', title: 'Write back', tag: 'WB' }
 ] as const;
 
 function use(index: number): 'read' | 'write' | undefined {
@@ -137,7 +136,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
               class="min-h-24 flex-1"
               :title="stage.title"
               :tag="stage.tag"
-              :tint="stage.tint"
+              chip
               :stage="view[stage.key]"
               :tick="pulse"
             >
