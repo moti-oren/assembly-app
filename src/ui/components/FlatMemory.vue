@@ -137,13 +137,13 @@ function reveal(jump: () => void): void {
         </div>
         <div class="relative ml-auto">
           <span
-            class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
+            class="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-xs text-muted-foreground"
             >{{ format.prefix }}</span
           >
           <Input
             v-model="addressText"
             class="h-7 w-28 font-mono text-sm"
-            :class="format.prefix.length > 1 ? 'pl-7' : 'pl-5'"
+            :class="format.prefix.length > 1 ? 'ps-7' : 'ps-5'"
             :aria-invalid="invalid || undefined"
             :aria-describedby="invalid ? errorId : undefined"
             :maxlength="format.digits + format.prefix.length"
@@ -164,7 +164,7 @@ function reveal(jump: () => void): void {
           <span class="ui-auto truncate">{{ access.text }}</span>
           <button
             type="button"
-            class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            class="ms-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
             {{ t.memory.showInTable }}
@@ -176,21 +176,21 @@ function reveal(jump: () => void): void {
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pr-3 text-left font-normal">{{ t.memory.addressColumn }}</th>
+              <th class="py-1 pe-3 text-start font-normal">{{ t.memory.addressColumn }}</th>
               <th
                 v-for="column in COLUMNS"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'pl-2.5': column === 9 }"
+                :class="{ 'ps-2.5': column === 9 }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
-              <th class="py-1 pl-3 text-left font-normal">ascii</th>
+              <th class="py-1 ps-3 text-start font-normal">ascii</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in rows" :key="row[0].address">
-              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
+              <th class="py-0.5 pe-3 text-start font-normal text-muted-foreground">
                 {{ hex(row[0].address) }}
               </th>
               <td
@@ -198,7 +198,7 @@ function reveal(jump: () => void): void {
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
                 :class="{
-                  'pl-2.5': column === 8,
+                  'ps-2.5': column === 8,
                   'text-pointer': byte.region === 'code',
                   'text-written': byte.region === 'device'
                 }"
@@ -224,7 +224,7 @@ function reveal(jump: () => void): void {
                   <RollingDigits :text="formatHex(byte.value, 8)" />
                 </ChangeMark>
               </td>
-              <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
+              <td class="py-0.5 ps-3 whitespace-pre text-muted-foreground">
                 {{
                   row.map((byte) => (byte.value === null ? ' ' : printable(byte.value))).join('')
                 }}

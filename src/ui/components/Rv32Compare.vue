@@ -45,7 +45,7 @@ const setLessThan = computed(() => {
     <CardContent class="font-mono text-code">
       <div v-if="comparison" class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span class="font-semibold">{{ formatInstruction(record!.instruction) }}</span>
-        <span class="ml-auto">{{ comparison.left }}</span>
+        <span class="ms-auto">{{ comparison.left }}</span>
         <span class="text-muted-foreground">{{ comparison.operator }}</span>
         <span>{{ comparison.right }}</span>
         <span class="text-muted-foreground">?</span>
@@ -54,13 +54,13 @@ const setLessThan = computed(() => {
           :class="comparison.taken ? 'bg-changed text-changed-foreground' : 'bg-muted'"
           >{{ comparison.outcome }}</span
         >
-        <span class="w-full text-right font-sans text-xs text-muted-foreground">
+        <span class="w-full text-end font-sans text-xs text-muted-foreground">
           {{ t.rv32.compared(comparison.how) }}
         </span>
       </div>
       <div v-else-if="setLessThan" class="flex flex-wrap items-baseline gap-x-2">
         <span class="font-semibold">{{ formatInstruction(record!.instruction) }}</span>
-        <span class="ml-auto">{{ setLessThan.left }}</span>
+        <span class="ms-auto">{{ setLessThan.left }}</span>
         <span class="text-muted-foreground">&lt;</span>
         <span>{{ setLessThan.right }}</span>
         <span class="text-muted-foreground">?</span>

@@ -13,7 +13,7 @@ defineProps<{ model: CpuDiagramModel }>();
   <div class="mt-3 flex items-end justify-between gap-3 sm:mt-0">
     <p class="truncate pb-1 text-xs text-muted-foreground">
       <span class="unit-title">{{ t.diagram.bus }}</span>
-      <span v-if="model.bus" class="ml-2 font-mono">{{ model.bus }}</span>
+      <span v-if="model.bus" class="ms-2 font-mono">{{ model.bus }}</span>
     </p>
     <!--
             Starts at the adder, so it crosses the edge of the package like a pin. The adder's
@@ -21,7 +21,7 @@ defineProps<{ model: CpuDiagramModel }>();
             border (0.6875rem) on the right.
           -->
     <DiagramWire
-      class="-mt-2.75 mr-[calc((var(--biu-width)_-_1.25rem)/2_+_0.6875rem)] hidden h-9 w-0.5 shrink-0 sm:block"
+      class="-mt-2.75 me-[calc((var(--biu-width)_-_1.25rem)/2_+_0.6875rem)] hidden h-9 w-0.5 shrink-0 sm:block"
       :kind="model.busKind"
       :tick="model.pulse"
     />

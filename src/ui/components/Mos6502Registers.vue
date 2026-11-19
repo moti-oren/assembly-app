@@ -54,8 +54,8 @@ function written(name: RegisterName): boolean {
         class="grid grid-cols-[2.5rem_3rem_3rem_3rem_minmax(0,1fr)] gap-x-3 font-sans text-xs text-muted-foreground"
       >
         <span>{{ t.registers.name }}</span><span>{{ t.registers.hex }}</span
-        ><span class="text-right">{{ t.registers.unsigned }}</span>
-        <span class="text-right">{{ t.registers.signed }}</span><span class="hidden sm:inline">{{
+        ><span class="text-end">{{ t.registers.unsigned }}</span>
+        <span class="text-end">{{ t.registers.signed }}</span><span class="hidden sm:inline">{{
           t.registers.binary
         }}</span>
       </div>
@@ -82,8 +82,8 @@ function written(name: RegisterName): boolean {
         >
           <RollingDigits :text="formatHex(state.registers[register.name], 8)" />
         </ChangeMark>
-        <span class="text-right tabular-nums">{{ state.registers[register.name] }}</span>
-        <span class="text-right text-muted-foreground tabular-nums">
+        <span class="text-end tabular-nums">{{ state.registers[register.name] }}</span>
+        <span class="text-end text-muted-foreground tabular-nums">
           {{ register.name === 'sp' ? '' : toSigned(state.registers[register.name], 8) }}
         </span>
         <span class="hidden text-xs sm:inline">

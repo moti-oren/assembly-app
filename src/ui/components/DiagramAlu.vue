@@ -31,21 +31,21 @@ defineProps<{ model: CpuDiagramModel }>();
         class="mt-2 grid grid-cols-[auto_auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 font-mono text-code"
       >
         <span />
-        <span class="text-right">{{ model.equation.left }}</span>
+        <span class="text-end">{{ model.equation.left }}</span>
         <span />
         <span class="text-muted-foreground">{{ model.equation.operator }}</span>
-        <span class="text-right">{{ model.equation.right }}</span>
+        <span class="text-end">{{ model.equation.right }}</span>
         <span />
         <template v-if="model.equation.carry !== null">
           <span class="text-muted-foreground">{{ model.equation.operator }}</span>
-          <span class="text-right">{{ model.equation.carry }}</span>
+          <span class="text-end">{{ model.equation.carry }}</span>
           <span class="font-sans text-xs text-muted-foreground">CF</span>
         </template>
         <span class="col-span-2 my-0.5 border-t border-foreground/25" />
         <span />
         <span class="text-muted-foreground">=</span>
         <span
-          class="-mx-1 rounded-sm px-1 text-right font-semibold"
+          class="-mx-1 rounded-sm px-1 text-end font-semibold"
           :class="
             model.equation.discarded
               ? 'text-muted-foreground line-through decoration-1'

@@ -77,11 +77,11 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
         </Button>
       </div>
 
-      <div class="ml-auto flex items-center gap-1">
+      <div class="ms-auto flex items-center gap-1">
         <Button
           variant="outline"
           size="sm"
-          class="mr-1 text-muted-foreground pointer-coarse:h-11"
+          class="me-1 text-muted-foreground pointer-coarse:h-11"
           :aria-label="t.header.commands"
           aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"

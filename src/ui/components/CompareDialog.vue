@@ -56,12 +56,12 @@ const rows = computed(() => metricRows(t.value, measurements.value));
       <table class="w-full text-sm">
         <thead>
           <tr class="text-xs text-muted-foreground">
-            <th scope="col" class="pb-1.5 text-left font-normal">{{ t.compare.measure }}</th>
+            <th scope="col" class="pb-1.5 text-start font-normal">{{ t.compare.measure }}</th>
             <th
               v-for="id in COMPARED"
               :key="id"
               scope="col"
-              class="pb-1.5 pl-3 text-right font-medium whitespace-nowrap text-foreground"
+              class="pb-1.5 ps-3 text-end font-medium whitespace-nowrap text-foreground"
             >
               {{ architectureLabel(id) }}
             </th>
@@ -69,14 +69,14 @@ const rows = computed(() => metricRows(t.value, measurements.value));
         </thead>
         <tbody>
           <tr v-for="row in rows" :key="row.label" class="border-t">
-            <th scope="row" class="py-1.5 text-left font-normal">
+            <th scope="row" class="py-1.5 text-start font-normal">
               {{ row.label }}
               <span class="block text-xs text-muted-foreground">{{ row.hint }}</span>
             </th>
             <td
               v-for="id in COMPARED"
               :key="id"
-              class="py-1.5 pl-3 text-right font-mono tabular-nums"
+              class="py-1.5 ps-3 text-end font-mono tabular-nums"
               :class="
                 row.least.includes(id)
                   ? 'font-semibold'

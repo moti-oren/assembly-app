@@ -82,7 +82,7 @@ function bitOf(bit: number): number {
             :key="bit"
             class="border-y py-0.5 text-center text-xs"
             :class="[
-              bit % 4 === 0 ? 'border-r border-r-foreground/25' : '',
+              bit % 4 === 0 ? 'border-e border-e-foreground/25' : '',
               bitOf(bit) ? 'font-semibold' : 'text-muted-foreground'
             ]"
             :style="{ gridRow: 2 }"

@@ -19,7 +19,7 @@ const reason = computed(() => props.record && explainFlag(props.record, props.fl
 
 <template>
   <!-- The body of a flag's tooltip: what the flag means, then why it is 0 or 1 right now. -->
-  <div class="flex flex-col gap-1.5 py-0.5 text-left">
+  <div class="flex flex-col gap-1.5 py-0.5 text-start">
     <p>
       <span class="font-semibold">{{ FLAG_INFO[flag].label }}.</span>
       {{ FLAG_INFO[flag].description }}

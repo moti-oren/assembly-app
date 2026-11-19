@@ -70,7 +70,7 @@ function changed(key: RegisterName): boolean {
               <RollingDigits :text="formatHex32(state.registers[row.key])" />
             </ChangeMark>
             <span
-              class="truncate text-right text-xs text-muted-foreground tabular-nums"
+              class="truncate text-end text-xs text-muted-foreground tabular-nums"
               :title="t.rv32.unsigned(state.registers[row.key])"
             >
               <RollingDigits :text="String(s32(state.registers[row.key]))" />

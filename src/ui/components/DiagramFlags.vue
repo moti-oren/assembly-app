@@ -17,13 +17,13 @@ defineProps<{
 
 <template>
   <span
-    class="ml-[calc(50%-0.625rem)] hidden h-3 w-0.5 transition-colors duration-300 sm:block"
+    class="ms-[calc(50%-0.625rem)] hidden h-3 w-0.5 transition-colors duration-300 sm:block"
     :class="model.changedFlags !== 0 ? 'bg-written' : 'bg-foreground/15'"
     aria-hidden="true"
   />
 
   <!-- Nine in a row only where the diagram is wide; on a phone they take two rows. -->
-  <div class="mt-3 grid grid-cols-5 gap-1 sm:mt-0 sm:mr-5 sm:grid-cols-9">
+  <div class="mt-3 grid grid-cols-5 gap-1 sm:mt-0 sm:me-5 sm:grid-cols-9">
     <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
       <TooltipTrigger as-child>
         <div

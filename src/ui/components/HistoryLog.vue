@@ -86,7 +86,7 @@ watch(
           >
             <button
               type="button"
-              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-left outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60"
+              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-start outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60"
               :class="
                 number === history.length
                   ? 'bg-background font-semibold'
@@ -97,7 +97,7 @@ watch(
               :aria-current="number === history.length ? 'step' : undefined"
               @click="emit('seek', number)"
             >
-              <span class="pr-3 text-right text-xs text-muted-foreground tabular-nums">{{
+              <span class="pe-3 text-end text-xs text-muted-foreground tabular-nums">{{
                 number
               }}</span>
               <span

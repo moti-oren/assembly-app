@@ -172,12 +172,12 @@ function reveal(jump: () => void): void {
         </Select>
         <div class="relative">
           <span
-            class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
+            class="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-xs text-muted-foreground"
             >{{ t.memory.offset }}</span
           >
           <Input
             v-model="offsetText"
-            class="h-7 w-28 pl-13 font-mono text-sm"
+            class="h-7 w-28 ps-13 font-mono text-sm"
             :aria-invalid="offsetInvalid || undefined"
             :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
             maxlength="6"
@@ -188,7 +188,7 @@ function reveal(jump: () => void): void {
             :aria-label="t.memory.offsetInput"
           />
         </div>
-        <Button variant="outline" size="sm" class="ml-auto" @click="showStackTop">
+        <Button variant="outline" size="sm" class="ms-auto" @click="showStackTop">
           <Layers />
           {{ t.memory.stackTop }}
         </Button>
@@ -238,7 +238,7 @@ function reveal(jump: () => void): void {
           <button
             v-if="worked.isLastAccess"
             type="button"
-            class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            class="relative ms-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
             {{ t.memory.showInTable }}
@@ -250,28 +250,28 @@ function reveal(jump: () => void): void {
         <table class="w-full font-mono text-xs">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pr-3 text-left font-normal">offset</th>
+              <th class="py-1 pe-3 text-start font-normal">offset</th>
               <th
                 v-for="column in COLUMNS"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'pl-2.5': column === 9 }"
+                :class="{ 'ps-2.5': column === 9 }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
-              <th class="py-1 pl-3 text-left font-normal">ascii</th>
+              <th class="py-1 ps-3 text-start font-normal">ascii</th>
             </tr>
           </thead>
           <tbody @mouseleave="pointed = null">
             <tr v-for="row in rows" :key="row.offset">
-              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
+              <th class="py-0.5 pe-3 text-start font-normal text-muted-foreground">
                 {{ formatHex(row.offset, 16) }}
               </th>
               <td
                 v-for="(byte, column) in row.bytes"
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
-                :class="{ 'pl-2.5': column === 8 }"
+                :class="{ 'ps-2.5': column === 8 }"
                 :title="t.memory.physical(formatPhysical(byte.address), byte.value)"
                 @mouseenter="pointed = (row.offset + column) & 0xffff"
               >
@@ -291,7 +291,7 @@ function reveal(jump: () => void): void {
                   <RollingDigits :text="formatHex(byte.value, 8)" />
                 </ChangeMark>
               </td>
-              <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
+              <td class="py-0.5 ps-3 whitespace-pre text-muted-foreground">
                 {{ row.bytes.map((byte) => printable(byte.value)).join('') }}
               </td>
             </tr>

@@ -75,14 +75,14 @@ function changedBits(name: WordRegister): number {
             <TableHead class="h-8 font-sans text-xs text-muted-foreground">{{
               t.registers.hex
             }}</TableHead>
-            <TableHead class="h-8 text-right font-sans text-xs text-muted-foreground">
+            <TableHead class="h-8 text-end font-sans text-xs text-muted-foreground">
               {{ t.registers.unsigned }}
             </TableHead>
-            <TableHead class="h-8 text-right font-sans text-xs text-muted-foreground">
+            <TableHead class="h-8 text-end font-sans text-xs text-muted-foreground">
               {{ t.registers.signed }}
             </TableHead>
             <TableHead
-              class="hidden h-8 pl-6 font-sans text-xs text-muted-foreground sm:table-cell"
+              class="hidden h-8 ps-6 font-sans text-xs text-muted-foreground sm:table-cell"
             >
               {{ t.registers.binary }}
             </TableHead>
@@ -142,7 +142,7 @@ function changedBits(name: WordRegister): number {
                 <RollingDigits :text="formatHex(value(name), 16)" />
               </ChangeMark>
             </TableCell>
-            <TableCell class="py-1 text-right tabular-nums">
+            <TableCell class="py-1 text-end tabular-nums">
               <ChangeMark
                 :on="changedBits(name) !== 0"
                 :written="wasWritten(record, name)"
@@ -151,10 +151,10 @@ function changedBits(name: WordRegister): number {
                 <RollingDigits :text="String(value(name))" />
               </ChangeMark>
             </TableCell>
-            <TableCell class="py-1 text-right text-muted-foreground tabular-nums">
+            <TableCell class="py-1 text-end text-muted-foreground tabular-nums">
               <RollingDigits :text="String(toSigned(value(name), 16))" />
             </TableCell>
-            <TableCell class="hidden py-1 pl-6 text-xs sm:table-cell">
+            <TableCell class="hidden py-1 ps-6 text-xs sm:table-cell">
               <RollingDigits
                 effect="flip"
                 dim-zeros

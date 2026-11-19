@@ -63,7 +63,7 @@ const summary = computed(() => pipelineSummary(t.value, timing.value));
       >
         {{ t.rv32.pipeline.forwarding(forwarding) }}
       </Button>
-      <Rv32CycleToggle class="ml-auto" />
+      <Rv32CycleToggle class="ms-auto" />
     </div>
 
     <p v-if="grid.rows.length === 0" class="ui-text mt-2 text-xs leading-4 text-muted-foreground">
@@ -74,7 +74,7 @@ const summary = computed(() => pipelineSummary(t.value, timing.value));
         <table class="border-separate border-spacing-0.5 font-mono text-2xs">
           <thead>
             <tr class="text-muted-foreground">
-              <th scope="col" class="pr-2 text-left font-sans font-normal">
+              <th scope="col" class="pe-2 text-start font-sans font-normal">
                 {{ t.rv32.pipeline.cycle }}
               </th>
               <th
@@ -91,7 +91,7 @@ const summary = computed(() => pipelineSummary(t.value, timing.value));
             <tr v-for="row in grid.rows" :key="row.key">
               <th
                 scope="row"
-                class="max-w-48 truncate pr-2 text-left font-normal"
+                class="max-w-48 truncate pe-2 text-start font-normal"
                 :class="row.flushed ? 'text-muted-foreground line-through' : 'text-foreground'"
               >
                 <span class="text-muted-foreground">{{ row.label }}</span>

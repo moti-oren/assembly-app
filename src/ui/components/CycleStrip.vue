@@ -26,7 +26,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
 <template>
   <div>
     <div class="flex items-center gap-3">
-      <span class="-mr-2 text-sm font-medium">{{ t.cycle.title }}</span>
+      <span class="-me-2 text-sm font-medium">{{ t.cycle.title }}</span>
       <InfoTip :label="t.cycle.about">{{ intro }}</InfoTip>
       <ol class="flex items-center gap-1 text-xs" :aria-label="t.cycle.phases">
         <li
@@ -51,7 +51,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
           >
         </li>
       </ol>
-      <span class="ml-auto truncate font-mono text-xs text-muted-foreground">{{
+      <span class="ms-auto truncate font-mono text-xs text-muted-foreground">{{
         instruction ?? t.cycle.idle
       }}</span>
       <!-- Controls an architecture adds to its own cycle card. -->

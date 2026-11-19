@@ -118,7 +118,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
               class="rounded-sm bg-muted px-1"
             >
               <dt class="inline text-muted-foreground">{{ field.name }}</dt>
-              <dd class="ml-1 inline">{{ field.value }}</dd>
+              <dd class="ms-1 inline">{{ field.value }}</dd>
             </div>
           </dl>
         </DatapathStage>

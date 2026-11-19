@@ -22,7 +22,7 @@ const text = computed(() => equation.value && equationText(t.value, equation.val
     <CardContent class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-code">
       <template v-if="record">
         <span class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
-        <span v-if="equation" class="ml-auto flex flex-wrap items-center gap-x-2">
+        <span v-if="equation" class="ms-auto flex flex-wrap items-center gap-x-2">
           <span class="rounded-sm bg-changed px-1 font-semibold text-changed-foreground">{{
             text
           }}</span>
@@ -30,10 +30,10 @@ const text = computed(() => equation.value && equationText(t.value, equation.val
             {{ equation.destination }}{{ equation.note ? ` (${equation.note})` : '' }}
           </span>
         </span>
-        <span v-else class="ml-auto font-sans text-xs text-muted-foreground">
+        <span v-else class="ms-auto font-sans text-xs text-muted-foreground">
           {{ t.operation.aluUnused }}
         </span>
-        <span class="w-full text-right font-sans text-xs text-muted-foreground">
+        <span class="w-full text-end font-sans text-xs text-muted-foreground">
           {{ cyclesBreakdown(t, record) }}
         </span>
       </template>

@@ -443,7 +443,7 @@ function onBackspace(event: KeyboardEvent): void {
           {{ t.builder.keys[keyHint.action] }}
         </span>
       </div>
-      <div class="ml-auto flex gap-2">
+      <div class="ms-auto flex gap-2">
         <Button variant="outline" size="sm" :disabled="!complete" @click="submit(true)">
           <Plus />
           {{ t.builder.addAt(formatLabel(insertLine)) }}

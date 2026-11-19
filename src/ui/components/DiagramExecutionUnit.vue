@@ -96,7 +96,7 @@ const GROUP_START: WordRegister = 'sp';
         </span>
 
         <span
-          class="w-11 text-right text-xs text-muted-foreground tabular-nums"
+          class="w-11 text-end text-xs text-muted-foreground tabular-nums"
           :title="t.registers.both(model.value(name), toSigned(model.value(name), 16))"
         >
           <RollingDigits :text="String(model.value(name))" />

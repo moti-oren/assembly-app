@@ -259,7 +259,7 @@ const toggles = computed(() => [
           @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
         />
         <span
-          class="hidden min-w-16 shrink-0 text-right sm:inline font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums"
+          class="hidden min-w-16 shrink-0 text-end sm:inline font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums"
           :title="positionText"
           aria-hidden="true"
         >

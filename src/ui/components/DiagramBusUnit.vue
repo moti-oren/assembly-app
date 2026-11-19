@@ -26,12 +26,12 @@ const GROUP_START: WordRegister = 'ip';
 <template>
   <!-- As wide as its register rows, with or without their bits; the adder's notes wrap. -->
   <section class="flex flex-col sm:w-(--biu-width)" :aria-label="t.diagram.biu">
-    <h3 class="unit-title sm:pl-7">{{ t.diagram.biu }} <span>BIU</span></h3>
+    <h3 class="unit-title sm:ps-7">{{ t.diagram.biu }} <span>BIU</span></h3>
     <div class="flex flex-col font-mono text-code">
       <div
         class="mb-1 flex h-5 items-center gap-2.5 border-b border-foreground/20 font-sans text-xs font-medium text-foreground/85"
       >
-        <span class="-mr-0.5 hidden w-5 sm:block" />
+        <span class="-me-0.5 hidden w-5 sm:block" />
         <span class="w-6" />
         <span class="w-10">{{ t.registers.hex }}</span>
         <span class="flex w-11 justify-end whitespace-nowrap">{{ t.registers.decimal }}</span>
@@ -44,7 +44,7 @@ const GROUP_START: WordRegister = 'ip';
         :class="{ 'mt-1.5': name === GROUP_START }"
       >
         <DiagramWire
-          class="-mr-0.5 hidden w-5 sm:block"
+          class="-me-0.5 hidden w-5 sm:block"
           :kind="model.use(name)"
           :tick="model.pulse"
         />
@@ -69,7 +69,7 @@ const GROUP_START: WordRegister = 'ip';
           </ChangeMark>
         </span>
         <span
-          class="w-11 text-right text-xs text-muted-foreground tabular-nums"
+          class="w-11 text-end text-xs text-muted-foreground tabular-nums"
           :title="t.registers.both(model.value(name), toSigned(model.value(name), 16))"
         >
           <RollingDigits :text="String(model.value(name))" />
@@ -88,7 +88,7 @@ const GROUP_START: WordRegister = 'ip';
 
     <!-- The segment drops down into the adder; the offset comes in off the internal bus. -->
     <DiagramWire
-      class="ml-[calc(50%+0.625rem)] hidden h-auto min-h-3 w-0.5 flex-1 sm:block"
+      class="ms-[calc(50%+0.625rem)] hidden h-auto min-h-3 w-0.5 flex-1 sm:block"
       :kind="model.adderKind"
       :tick="model.pulse"
     />
@@ -109,14 +109,14 @@ const GROUP_START: WordRegister = 'ip';
           <span class="truncate font-sans text-xs text-muted-foreground">
             {{ model.memory.segment.toUpperCase() }} × 10h
           </span>
-          <span class="text-right">{{ formatPhysical(model.address.shifted) }}</span>
+          <span class="text-end">{{ formatPhysical(model.address.shifted) }}</span>
           <span class="truncate font-sans text-xs text-muted-foreground">+ offset</span>
-          <span class="text-right">{{ formatHex(model.address.offset, 16) }}</span>
+          <span class="text-end">{{ formatHex(model.address.offset, 16) }}</span>
           <span class="col-span-2 my-0.5 border-t border-foreground/25" />
           <span class="truncate font-sans text-xs text-muted-foreground">
             {{ model.address.wrapped ? t.memory.wraps : t.diagram.address20 }}
           </span>
-          <span class="text-right font-semibold text-pointer">{{
+          <span class="text-end font-semibold text-pointer">{{
             formatPhysical(model.address.physical)
           }}</span>
         </div>
