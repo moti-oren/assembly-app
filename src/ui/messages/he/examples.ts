@@ -76,7 +76,7 @@ export const EXAMPLE_TEXTS: Record<ArchitectureId, Record<string, ExampleText>> 
     },
     'multiply-divide': {
       name: 'כפל וחילוק',
-      description: 'הרחבת M; חילוק באפס לא גורם ל-trap, אלא נותן הכול אחדות (‎-1)'
+      description: 'הרחבת M; חילוק באפס לא גורם ל-trap, אלא נותן הכול אחדות (\u200e-1)'
     }
   },
   mos6502: {

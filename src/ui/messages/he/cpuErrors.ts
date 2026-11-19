@@ -27,7 +27,7 @@ export const CPU_ERROR_TEXTS: Record<CpuErrorKey, string> = {
     'שמירה לא מיושרת: חצי מילה חייבת להתחיל בכפולה של 2, ו-{at} אינה. ה-CPU הזה עושה trap במקום לפצל את הגישה.',
   misalignedStoreWord:
     'שמירה לא מיושרת: מילה חייבת להתחיל בכפולה של 4, ו-{at} אינה. ה-CPU הזה עושה trap במקום לפצל את הגישה.',
-  deviceByteOnly: 'שגיאת גישה: ההתקנים ב-{at} הם בית אחד כל אחד. משתמשים ב-LB,‏ LBU או SB.',
+  deviceByteOnly: 'שגיאת גישה: ההתקנים ב-{at} הם בית אחד כל אחד. משתמשים ב-LB,\u200f LBU או SB.',
   nothingWired:
     'שגיאת גישה: שום דבר לא מחובר ב-{at}. ה-RAM הוא 0x00000000 עד 0x000FFFFF, וההתקנים מתחילים ב-0x10000000.',
   storeIntoCode:

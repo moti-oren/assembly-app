@@ -12,13 +12,17 @@ describe('hebrewText', () => {
 
   it('separates clauses and list items so they keep their order', () => {
     expect(hebrewText('את CX. IP')).toBe('את CX.\u200f IP');
-    expect(hebrewText('AX, BX')).toBe('AX,\u200f BX');
-    expect(hebrewText(hebrewText('AX, BX'))).toBe('AX,\u200f BX');
+    expect(hebrewText('\u05d0\u05ea AX, BX')).toBe('\u05d0\u05ea AX,\u200f BX');
+    expect(hebrewText(hebrewText('\u05d0\u05ea AX, BX'))).toBe('\u05d0\u05ea AX,\u200f BX');
   });
 
   it('leaves code set apart in an isolate as it is written', () => {
     const code = '\u2066bne t0, zero, L2\u2069';
     expect(hebrewText(`ב-${code}, אז`)).toBe(`ב-\u2060${code},\u200f אז`);
+  });
+
+  it('leaves text without a Hebrew letter as it is', () => {
+    expect(hebrewText('MOV r16, imm16: ADD r16, r/m16')).toBe('MOV r16, imm16: ADD r16, r/m16');
   });
 
   it('leaves numbers and words without a space after the punctuation alone', () => {

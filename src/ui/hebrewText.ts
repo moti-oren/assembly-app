@@ -24,7 +24,11 @@ function separateClauses(text: string): string {
     .join('');
 }
 
+/** Text with no Hebrew letter is code or a name, whose punctuation is its own. */
+const HEBREW_LETTER = /[\u0590-\u05ff]/;
+
 export function hebrewText(text: string): string {
+  if (!HEBREW_LETTER.test(text)) return text;
   return separateClauses(joinPrefixes(text));
 }
 
