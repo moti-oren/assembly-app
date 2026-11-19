@@ -12,7 +12,11 @@ const VIEWS = [
 
 <template>
   <div
-    class="flex shrink-0 items-center gap-0.5 rounded-md border p-0.5"
+    class="segmented shrink-0"
+    :style="{
+      '--segments': VIEWS.length,
+      '--active': VIEWS.findIndex((v) => v.pipeline === shown)
+    }"
     role="group"
     aria-label="Cycle view"
   >
@@ -21,7 +25,7 @@ const VIEWS = [
       :key="view.label"
       size="xs"
       class="h-5 px-1.5 text-2xs pointer-coarse:h-11"
-      :variant="shown === view.pipeline ? 'secondary' : 'ghost'"
+      variant="ghost"
       :aria-pressed="shown === view.pipeline"
       :title="view.title"
       @click="shown = view.pipeline"
