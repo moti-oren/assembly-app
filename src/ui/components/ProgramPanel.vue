@@ -106,7 +106,7 @@ function machineCode(index: number): string {
             <Button
               variant="ghost"
               size="icon-sm"
-              class="pointer-coarse:size-11"
+              class="pointer-coarse:size-11 max-md:relative max-md:-mr-0.5 max-md:size-5 max-md:pointer-coarse:size-5 max-md:pointer-coarse:after:absolute max-md:pointer-coarse:after:-inset-3 max-md:pointer-coarse:after:content-['']"
               aria-label="Clear the program"
               :disabled="program.length === 0"
               @click="emit('clear')"
