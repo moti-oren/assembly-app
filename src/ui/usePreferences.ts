@@ -1,6 +1,7 @@
 import { computed, nextTick, watch, watchEffect } from 'vue';
 import { createGlobalState, useDark, useLocalStorage, useMediaQuery } from '@vueuse/core';
 import { isArchitectureId, type ArchitectureId } from './architectures';
+import { modeForWidth } from './layoutMode';
 import { STORAGE_KEYS } from './storageKeys';
 import { sound } from './soundEngine';
 
@@ -18,8 +19,13 @@ export const usePreferences = createGlobalState(() => {
   const isDark = useDark({ initialValue: 'light' });
   const soundOn = useLocalStorage(STORAGE_KEYS.sound, false);
   watch(soundOn, sound.setEnabled, { immediate: true });
-  /** The CPU's state as one wired diagram, or as the separate register and flag tables. */
-  const cpuView = useLocalStorage<CpuView>(STORAGE_KEYS.cpuView, 'diagram', {
+  /**
+   * The CPU's state as one wired diagram, or as the separate register and flag tables. A phone
+   * starts on the tables, where the diagram would be a long column with its wires gone; the
+   * choice made after that is the one remembered.
+   */
+  const firstView: CpuView = modeForWidth(window.innerWidth) === 'phone' ? 'table' : 'diagram';
+  const cpuView = useLocalStorage<CpuView>(STORAGE_KEYS.cpuView, firstView, {
     // Anything else in storage (an old or hand-edited value) falls back to the diagram.
     serializer: { read: (raw) => (raw === 'table' ? 'table' : 'diagram'), write: (view) => view }
   });
