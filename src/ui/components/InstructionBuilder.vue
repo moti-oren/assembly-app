@@ -286,7 +286,7 @@ function onBackspace(event: KeyboardEvent): void {
             <button
               type="button"
               data-token
-              class="inline-flex h-7 items-center rounded-md px-2 transition-colors hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              class="inline-flex h-7 items-center rounded-md px-2 transition-colors pointer-coarse:h-9 hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               :class="[
                 token.head
                   ? 'bg-foreground font-semibold text-background'
@@ -305,7 +305,7 @@ function onBackspace(event: KeyboardEvent): void {
         <input
           ref="input"
           v-model="filter"
-          class="h-7 min-w-40 flex-1 bg-transparent px-1 outline-none placeholder:font-sans placeholder:text-muted-foreground"
+          class="h-7 min-w-40 flex-1 bg-transparent px-1 outline-none pointer-coarse:h-9 placeholder:font-sans placeholder:text-muted-foreground"
           :placeholder="moreToChoose ? hint : 'Ready to run'"
           :aria-invalid="doesNotFit || undefined"
           aria-label="Instruction"
@@ -378,7 +378,7 @@ function onBackspace(event: KeyboardEvent): void {
               :key="option.key"
               variant="outline"
               size="sm"
-              class="font-mono"
+              class="font-mono pointer-coarse:h-11 pointer-coarse:px-3.5"
               :data-selected="option === enterOption"
               data-option
               :class="
@@ -419,9 +419,9 @@ function onBackspace(event: KeyboardEvent): void {
     </CardContent>
 
     <!-- In a narrow pane the buttons take a row of their own rather than being cut off. -->
-    <CardFooter class="flex-wrap justify-between gap-x-3 gap-y-2">
+    <CardFooter class="builder-actions flex-wrap justify-between gap-x-3 gap-y-2">
       <!-- The keys that do something right now; see builderKeys.ts. -->
-      <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
+      <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex touch:hidden">
         <span v-for="keyHint in hints" :key="keyHint.label" class="flex items-center gap-1.5">
           <KbdGroup
             ><Kbd v-for="key in keyHint.keys" :key="key">{{ key }}</Kbd></KbdGroup
@@ -434,7 +434,7 @@ function onBackspace(event: KeyboardEvent): void {
         <Button
           variant="outline"
           size="sm"
-          class="quiet-disabled disabled:opacity-100"
+          class="quiet-disabled pointer-coarse:h-11 disabled:opacity-100"
           :disabled="!complete"
           @click="submit(true)"
         >
@@ -443,7 +443,7 @@ function onBackspace(event: KeyboardEvent): void {
         </Button>
         <Button
           size="sm"
-          class="quiet-disabled px-3 hover:bg-primary/85 disabled:opacity-100"
+          class="quiet-disabled px-3 pointer-coarse:h-11 hover:bg-primary/85 disabled:opacity-100"
           :disabled="!complete"
           @click="submit(false)"
         >
