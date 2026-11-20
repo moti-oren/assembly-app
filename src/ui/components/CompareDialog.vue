@@ -26,7 +26,7 @@ const rows = computed(() => metricRows(measurements.value));
 
 <template>
   <Dialog v-model:open="open">
-    <!-- Only the body scrolls, so its scrollbar runs along the dialog's edge and the title and the close button stay put. -->
+    <!-- Only the body scrolls, with its scrollbar set in from the dialog's edge and corners; the title and the close button stay put. -->
     <DialogContent
       class="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-5xl sm:p-0"
     >
@@ -37,7 +37,9 @@ const rows = computed(() => metricRows(measurements.value));
         </DialogDescription>
       </DialogHeader>
 
-      <div class="flex min-h-0 flex-col gap-5 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
+      <div
+        class="mr-2 mb-2 flex min-h-0 flex-col gap-5 overflow-y-auto pr-2.5 pb-4 pl-4 sm:pr-3.5 sm:pb-6 sm:pl-6"
+      >
         <div class="flex flex-wrap gap-1.5" role="group" aria-label="Task">
           <Button
             v-for="(each, index) in COMPARISON_TASKS"
