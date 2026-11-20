@@ -128,8 +128,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   left one is a drawer that **Code**, at the top, slides over it (Esc closes it); Reset and the
   panel buttons move behind **⋯** at the end of the bottom bar. On a phone one view shows at a
   time, chosen under the header: **Code** (the left column), **CPU**, or **Memory & I/O**. The
-  strip above them always shows the last instruction and what it changed, with the line that runs
-  next, and a tap on it goes to the CPU. The bottom bar keeps Step, the phase button, Run and Undo,
+  strip above them always shows the last instruction and what it changed, as `CX 0000 → 000A`,
+  with the line that runs next, and a tap on it goes to the CPU. When more changed than fits, a
+  `+N` at its end lists every change. The bottom bar keeps Step, the phase button, Run and Undo,
   and its **⋯** holds the rest; Compare, the examples and the settings are in the **⋯** menu of
   the header. A phone starts with the CPU as tables, and a row of its memory holds eight bytes.
   On a touch screen the panels are not dragged, and a tap on a register's name or on a flag shows
@@ -375,7 +376,8 @@ npm run verify:6502 # check the 6502 core against py65
   שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc סוגר אותה); Reset וכפתורי החלוניות עוברים אל
   **⋯** שבקצה הסרגל התחתון. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
   (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
-  שהיא שינתה, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. בסרגל התחתון נשארים Step, כפתור
+  שהיא שינתה, בצורה `CX 0000 → 000A`, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. כשהשתנה
+  יותר ממה שנכנס, `+N` בסופו מציג את כל השינויים. בסרגל התחתון נשארים Step, כפתור
   השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; Compare, הדוגמאות וההגדרות נמצאים בתפריט **⋯** של
   הכותרת. טלפון מתחיל עם ה-CPU כטבלאות, ושורה בזיכרון שלו מחזיקה שמונה בתים. במסך מגע לא גוררים
   חלוניות, והקשה על שם של רגיסטר או על דגל מציגה את מה שריחוף מציג עם עכבר.
