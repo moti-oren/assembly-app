@@ -25,6 +25,17 @@ interface Flight {
   text: string;
 }
 
+/** Whether any of a box is drawn inside the window. */
+function inSight(box: DOMRect): boolean {
+  return (
+    box.width > 0 &&
+    box.bottom > 0 &&
+    box.right > 0 &&
+    box.top < window.innerHeight &&
+    box.left < window.innerWidth
+  );
+}
+
 function at(location: string): string {
   return `[data-loc="${location}"]`;
 }
@@ -102,8 +113,9 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
     for (const flight of flights) {
       const from = flight.from && document.querySelector(flight.from)?.getBoundingClientRect();
       const to = flight.to && document.querySelector(flight.to)?.getBoundingClientRect();
-      // Either end may be off screen, e.g. a memory cell outside the rows on show.
-      if (!from || !to || from.width === 0 || to.width === 0) continue;
+      // Either end may be out of sight: a memory cell outside the rows on show, a panel of a view
+      // a phone is not on, or one scrolled out of its pane.
+      if (!from || !to || !inSight(from) || !inSight(to)) continue;
 
       const x0 = from.left + from.width / 2;
       const y0 = from.top + from.height / 2;
