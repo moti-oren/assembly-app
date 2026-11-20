@@ -32,7 +32,7 @@ import Rv32Encoding from './Rv32Encoding.vue';
 import Rv32Pipeline from './Rv32Pipeline.vue';
 import Rv32Registers from './Rv32Registers.vue';
 import SidebarColumn from './SidebarColumn.vue';
-import SortableColumn from './SortableColumn.vue';
+import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
 
 const props = defineProps<{
@@ -88,7 +88,7 @@ const {
   }
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
-const { leftKeys, rightKeys, rightColumn, closable, move, close } = columns;
+const { leftKeys, rightKeys, closable, move, close } = columns;
 const { shown: pipelineShown } = pipeline;
 
 const memoryPlaces = rv32MemoryPlaces(state);
@@ -148,7 +148,7 @@ const encodingShown = computed(() =>
       :keys="leftKeys"
       :labels="LABELS"
       :closable="closable"
-      @move="(key, to) => move('left', key, to)"
+      @move="move"
       @close="close"
     >
       <template #builder>
@@ -192,13 +192,7 @@ const encodingShown = computed(() =>
       </template>
     </SidebarColumn>
 
-    <SortableColumn
-      class="workbench-pane"
-      data-pane="stage"
-      :keys="rightKeys"
-      :labels="LABELS"
-      @move="(key, to) => move(rightColumn, key, to)"
-    >
+    <StageColumn class="workbench-pane" data-pane="stage" :keys="rightKeys">
       <template #cpu>
         <Rv32Diagram
           :state="state"
@@ -253,7 +247,7 @@ const encodingShown = computed(() =>
           :tick="history.length"
         />
       </template>
-    </SortableColumn>
+    </StageColumn>
   </main>
 
   <TransportBar

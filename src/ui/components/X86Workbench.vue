@@ -31,7 +31,7 @@ import MemoryView from './MemoryView.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import RegistersPanel from './RegistersPanel.vue';
 import SidebarColumn from './SidebarColumn.vue';
-import SortableColumn from './SortableColumn.vue';
+import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
 
 const props = defineProps<{
@@ -101,7 +101,7 @@ const {
   }
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
-const { leftKeys, rightKeys, rightColumn, closable, move, close } = columns;
+const { leftKeys, rightKeys, closable, move, close } = columns;
 
 const programLines = computed(() => program.value.map(formatInstruction));
 
@@ -151,7 +151,7 @@ const encodingShown = computed(() =>
       :keys="leftKeys"
       :labels="PANEL_LABELS"
       :closable="closable"
-      @move="(key, to) => move('left', key, to)"
+      @move="move"
       @close="close"
     >
       <template #builder>
@@ -195,13 +195,7 @@ const encodingShown = computed(() =>
       </template>
     </SidebarColumn>
 
-    <SortableColumn
-      class="workbench-pane"
-      data-pane="stage"
-      :keys="rightKeys"
-      :labels="PANEL_LABELS"
-      @move="(key, to) => move(rightColumn, key, to)"
-    >
+    <StageColumn class="workbench-pane" data-pane="stage" :keys="rightKeys">
       <template #cpu>
         <CpuDiagram :state="state" :record="lastRecord" :pending="pending" :tick="history.length" />
       </template>
@@ -243,7 +237,7 @@ const encodingShown = computed(() =>
           :tick="history.length"
         />
       </template>
-    </SortableColumn>
+    </StageColumn>
   </main>
 
   <TransportBar
