@@ -63,23 +63,28 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         >
           <span
             v-if="index > 0"
-            class="w-4 border-t transition-colors duration-300 max-sm:w-2"
+            class="w-4 border-t transition-colors duration-300 max-sm:w-3"
             :class="reached(index) ? 'border-pointer/70' : 'border-foreground/15'"
             aria-hidden="true"
           />
-          <!-- The phase on show is filled; the ones already behind it keep an outline. -->
+          <!--
+            The phase on show is filled; the ones already behind it keep an outline. On a phone
+            the others are only their number, in a circle.
+          -->
           <span
-            class="flex items-center gap-1.5 rounded-full border py-0.5 pr-2.5 pl-1 transition-colors duration-300"
-            :class="
+            class="flex items-center gap-1.5 rounded-full border py-0.5 pr-2.5 pl-1 transition-colors duration-300 max-sm:h-6"
+            :class="[
+              phase === active ? '' : 'max-sm:w-6 max-sm:justify-center max-sm:gap-0 max-sm:p-0',
               phase === active
                 ? 'border-transparent bg-pointer font-semibold text-pointer-foreground shadow-[0_0_14px_-3px_var(--pointer)]'
                 : reached(index + 1)
                   ? 'border-pointer/45 bg-pointer/10 text-foreground'
                   : 'text-muted-foreground'
-            "
+            ]"
           >
             <span
               class="grid size-4 place-items-center rounded-full bg-current/15 font-mono text-2xs"
+              :class="{ 'max-sm:bg-transparent': phase !== active }"
               aria-hidden="true"
               >{{ index + 1 }}</span
             >
@@ -95,15 +100,21 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       <!-- Controls an architecture adds to its own cycle card. -->
       <slot name="actions" />
     </div>
-    <!-- Three lines (two on a low window), whatever the text, so the panels below never move until it is opened. -->
+    <!--
+      Three lines (two on a low window or a phone), whatever the text, so the panels below never
+      move until it is opened. A phone gives the idle line no more room than it takes.
+    -->
     <details
-      class="group mt-2.5 text-code leading-5 text-muted-foreground"
+      class="group mt-2.5 text-code leading-5 text-muted-foreground max-sm:mt-1.5"
       @toggle="open = ($event.target as HTMLDetailsElement).open"
     >
       <summary
         ref="summary"
-        class="line-clamp-3 h-15 list-none short:line-clamp-2 short:h-10 rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
-        :class="{ 'cursor-pointer': truncated || open }"
+        class="line-clamp-3 h-15 list-none short:line-clamp-2 short:h-10 rounded-sm outline-none max-sm:line-clamp-2 group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 max-sm:group-open:line-clamp-none max-sm:group-open:h-auto [&::-webkit-details-marker]:hidden"
+        :class="[
+          detail === null ? 'max-sm:h-5' : 'max-sm:h-10',
+          { 'cursor-pointer': truncated || open }
+        ]"
         @click="onSummaryClick"
       >
         <span aria-live="polite">{{ detail ?? 'Nothing has run yet.' }}</span>
