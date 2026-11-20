@@ -42,9 +42,12 @@ const listed = ref<ComparedId>(COMPARED[0]);
       <div
         class="mr-2 mb-2 flex min-h-0 flex-col gap-5 overflow-x-hidden overflow-y-auto pr-2.5 pb-4 pl-4 sm:pr-3.5 sm:pb-6 sm:pl-6"
       >
-        <!-- On a phone the tasks are one row that scrolls sideways, not three rows of the screen. -->
+        <!--
+          On a phone the tasks are one row that scrolls sideways, not three rows of the screen. Its
+          right edge fades, and the scrollbar keeps clear of the buttons.
+        -->
         <div
-          class="flex shrink-0 flex-wrap gap-1.5 max-sm:flex-nowrap max-sm:overflow-x-auto"
+          class="flex shrink-0 flex-wrap gap-1.5 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pr-6 max-sm:pb-2 max-sm:[mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)] max-sm:[scrollbar-width:thin]"
           role="group"
           aria-label="Task"
         >
@@ -64,7 +67,10 @@ const listed = ref<ComparedId>(COMPARED[0]);
 
         <p class="max-w-prose text-sm leading-relaxed text-pretty">{{ task.lesson }}</p>
 
-        <!-- The fewest in each row stands out in a pill of its own; the others step back. -->
+        <!--
+          The fewest in each row stands out in a pill of its own; the others step back. On a phone
+          each column is centred, so a number in a pill sits on the same axis as one without.
+        -->
         <div class="well rounded-lg px-3.5 py-1.5">
           <table class="w-full text-sm">
             <thead>
@@ -74,7 +80,7 @@ const listed = ref<ComparedId>(COMPARED[0]);
                   v-for="id in COMPARED"
                   :key="id"
                   scope="col"
-                  class="w-16 py-1.5 pl-3 text-right font-medium whitespace-nowrap text-foreground sm:w-24"
+                  class="w-16 py-1.5 pl-3 text-right font-medium whitespace-nowrap text-foreground max-sm:text-center sm:w-24"
                 >
                   {{ architectureLabel(id) }}
                 </th>
@@ -89,13 +95,13 @@ const listed = ref<ComparedId>(COMPARED[0]);
                 <td
                   v-for="id in COMPARED"
                   :key="id"
-                  class="py-2 pl-3 text-right font-mono text-code"
+                  class="py-2 pl-3 text-right font-mono text-code tabular-nums max-sm:text-center"
                   :class="{
                     'text-muted-foreground': row.least.length > 0 && !row.least.includes(id)
                   }"
                 >
                   <span
-                    class="-mr-2 inline-block min-w-9 rounded-md px-2 py-0.5"
+                    class="-mr-2 inline-block min-w-9 rounded-md px-2 py-0.5 max-sm:mr-0 max-sm:text-center"
                     :class="
                       row.least.includes(id)
                         ? 'bg-pointer/15 font-semibold text-foreground inset-ring inset-ring-pointer/40'
