@@ -9,7 +9,7 @@ import { X86_DEVICE_ACCESS } from '@/ui/deviceAccess';
 import { describeMemoryAccess } from '@/ui/describe';
 import { chooseEncoding } from '@/ui/encodingShown';
 import { X86_CODE_PLACE, x86LineCode } from '@/ui/programCode';
-import { raisedOverflow, stepSound } from '@/ui/sounds';
+import { x86Sounds } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { useDataFlow } from '@/ui/useDataFlow';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
@@ -85,10 +85,7 @@ const {
       }
     }
   ],
-  soundOf: (record) => ({
-    step: stepSound(record, state),
-    overflow: raisedOverflow(record, state)
-  }),
+  soundOf: (record) => x86Sounds(record, state),
   page: {
     focusBuilder: () => builder.value?.focus(),
     foldBuilder: () => builder.value?.fold(),

@@ -11,7 +11,7 @@ import { RV32_CODE_PLACE, rv32LineCode } from '@/ui/programCode';
 import { describeAccess } from '@/ui/rv32Explain';
 import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
 import { byteAt, rv32MemoryPlaces, RV32_ADDRESSES } from '@/ui/rv32View';
-import { rv32StepSound } from '@/ui/sounds';
+import { rv32Sounds } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { rv32UsesDevices } from '@/ui/usesDevices';
@@ -77,7 +77,11 @@ const {
   askReset
 } = useWorkbench(cpu, {
   usesDevices: rv32UsesDevices,
-  soundOf: (record) => ({ step: rv32StepSound(record, state), overflow: false }),
+  soundOf: () =>
+    rv32Sounds(history.value, state, program.value, {
+      shown: pipeline.shown.value,
+      forwarding: pipeline.forwarding.value
+    }),
   commands: pipeline.commands,
   page: {
     focusBuilder: () => builder.value?.focus(),

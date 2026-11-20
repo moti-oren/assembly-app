@@ -16,6 +16,7 @@ import {
 } from '@/ui/builderGrammar';
 import { boxMove, keyHints } from '@/ui/builderKeys';
 import { rowNeighbour } from '@/ui/gridNavigation';
+import { sound } from '@/ui/soundEngine';
 import { groupBy } from '@/ui/groupBy';
 import { isApple } from '@/ui/platform';
 import { useTwoColumns } from '@/ui/useTwoColumns';
@@ -222,6 +223,7 @@ defineExpose({
 });
 
 function choose(option: BuilderOption<Action>): void {
+  sound.play('pick');
   draft.apply(option.action);
   hovered.value = null;
   filter.value = '';
@@ -235,6 +237,7 @@ function truncateTo(index: number): void {
     return;
   }
   draft.truncateTo(index);
+  sound.play('pick');
   focusInput();
 }
 

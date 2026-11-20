@@ -7,6 +7,7 @@ import type { ComparedId } from '@/core/comparison';
 import type { ComparisonTask } from '@/core/comparisonTasks';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useComparison } from '@/ui/useComparison';
+import { sound } from '@/ui/soundEngine';
 import { useCpu } from '@/ui/useCpu';
 import { usePreferences } from '@/ui/usePreferences';
 
@@ -48,6 +49,7 @@ watch(architecture, () => {
   x86.pause();
   rv32.pause();
   mos6502.pause();
+  sound.play('detent');
 });
 </script>
 
