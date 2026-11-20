@@ -134,6 +134,12 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   of them.
 - The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
   the command palette has them too. The app starts in the light theme until you pick one.
+- With the sound on, the app plays short, quiet cues, all synthesized in the browser. Fetch,
+  decode and execute climb three notes, and each instruction sounds like what it did: a register
+  or memory write, the stack, a jump taken or not, a call or a return. The devices, undo and redo,
+  the builder and edits to the program have lighter cues of their own. A fast run plays one soft
+  pulse per line instead, and RISC-V's pipeline a tick per instruction, with a cue for a forward
+  or a stall. Nothing plays while the tab is hidden.
 - **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
   flashes and the glowing wires; the changed values stay marked. It is remembered, and it is on by
   itself when the system asks for reduced motion.
@@ -361,6 +367,11 @@ npm run verify:6502 # check the 6502 core against py65
   מקופל ומה הגובה של כל חלונית נשמרים, ופלטת הפקודות יכולה לקפל או לפתוח כל אחת מהן.
 - תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
   הפקודות מציעה אותם. האפליקציה נפתחת בערכת הנושא הבהירה עד שבוחרים אחרת.
+- כשהצליל פועל, האפליקציה משמיעה רמזים קצרים ושקטים, שכולם נוצרים בדפדפן. Fetch, decode ו-execute
+  עולים בשלושה צלילים, וכל הוראה נשמעת כמו מה שעשתה: כתיבה לרגיסטר או לזיכרון, המחסנית, קפיצה
+  שבוצעה או לא, קריאה או חזרה. להתקנים, ל-undo ול-redo, לבונה ולעריכות בתוכנית יש רמזים קלים יותר
+  משלהם. בריצה מהירה נשמעת במקומם פעימה רכה אחת לכל שורה, וב-pipeline של RISC-V תקתוק לכל הוראה,
+  עם רמז ל-forward או ל-stall. שום דבר לא מתנגן כשהלשונית מוסתרת.
 - **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
   הזוהרים; הערכים שהשתנו נשארים מסומנים. ההגדרה נשמרת, והיא פועלת מעצמה כשהמערכת מבקשת להפחית
   תנועה.
