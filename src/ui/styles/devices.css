@@ -1,10 +1,13 @@
 /* The I/O devices: lit parts glow in the "written" colour, like a wire that was just driven. */
 
 @layer components {
+  /* Where a device's column is narrow (a phone), its port goes under its name, whole. */
   .device-title {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.5rem;
+    gap: 0 0.5rem;
+    white-space: nowrap;
     margin-bottom: 0.5rem;
     font-size: 0.75rem;
     font-weight: 600;
