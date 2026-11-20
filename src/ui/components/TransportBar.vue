@@ -1,32 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import {
-  Binary,
-  Cable,
-  CircleAlert,
-  FastForward,
-  Footprints,
-  Gauge,
-  ListOrdered,
-  Pause,
-  Redo2,
-  RotateCcw,
-  StepForward,
-  Undo2
-} from '@lucide/vue';
+import { ref } from 'vue';
+import { CircleAlert, RotateCcw } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { SPEED_LABELS, isRunSpeed, type RunSpeed } from '@/ui/runSpeeds';
+import type { RunSpeed } from '@/ui/runSpeeds';
+import { useLayoutMode } from '@/ui/useLayoutMode';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
+import TransportHistory from './TransportHistory.vue';
+import TransportMore from './TransportMore.vue';
+import TransportPanels from './TransportPanels.vue';
+import TransportRun from './TransportRun.vue';
+import TransportSpeed from './TransportSpeed.vue';
 
-const props = defineProps<{
+defineProps<{
   finished: boolean;
   /** True while the program is running line by line. */
   running: boolean;
@@ -59,52 +45,18 @@ const emit = defineEmits<{
   'update:bytesShown': [shown: boolean];
 }>();
 
-/** The select hands back whatever value its item had; only a known speed gets through. */
-function setSpeed(value: unknown): void {
-  if (isRunSpeed(value)) emit('update:speed', value);
+const mode = useLayoutMode();
+const moreOpen = ref(false);
+
+/** From the More popover: it closes first, since a reset may open a dialog to confirm. */
+function resetFromMore(): void {
+  moreOpen.value = false;
+  emit('reset');
 }
-
-/** The phase button names what pressing it does next. */
-const nextPhase = computed(() =>
-  props.phase === null ? 'Fetch' : props.phase === 'fetch' ? 'Decode' : 'Execute'
-);
-
-const total = computed(() => props.executed + props.undone);
-
-const positionText = computed(() => `${props.executed} of ${total.value} instructions run`);
-
-/** How far along the history the slider is, for the filled part of its track. */
-const progress = computed(() =>
-  total.value === 0 ? '0%' : `${(props.executed / total.value) * 100}%`
-);
-
-const toggles = computed(() => [
-  {
-    label: 'History',
-    icon: ListOrdered,
-    shown: props.historyShown,
-    flip: () => emit('update:historyShown', !props.historyShown)
-  },
-  {
-    label: 'I/O',
-    icon: Cable,
-    shown: props.devicesShown,
-    flip: () => emit('update:devicesShown', !props.devicesShown)
-  },
-  {
-    label: 'Machine code',
-    icon: Binary,
-    shown: props.bytesShown,
-    flip: () => emit('update:bytesShown', !props.bytesShown)
-  }
-]);
 </script>
 
 <template>
-  <!--
-    The bottom of the shell: with two panes nothing scrolls behind it. On a narrower screen, where
-    the page itself scrolls, it stays at the bottom of the window.
-  -->
+  <!-- The bottom of the shell: nothing scrolls behind it. -->
   <footer class="transport">
     <!-- Next to the buttons that ran the program, so a stop is seen where it was caused. -->
     <p
@@ -116,82 +68,36 @@ const toggles = computed(() => [
       {{ error }}
     </p>
     <!--
-      Three zones: running the program, moving through its history, and the panels on show. Side
-      by side where they fit; otherwise each wraps onto a row of its own.
+      Three zones: running the program, moving through its history, and the panels on show. One
+      row at every width: what a narrower bar has no room for moves behind its More button.
     -->
     <div
-      class="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto]"
+      class="flex items-center gap-x-5 px-4 py-2 max-md:gap-x-1.5 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto]"
       role="toolbar"
       aria-label="Program and history controls"
     >
-      <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Run">
-        <Button
-          size="sm"
-          class="quiet-disabled px-3 pointer-coarse:h-11 hover:bg-primary/85 disabled:opacity-100"
-          :disabled="finished"
-          @click="emit('step')"
-        >
-          <StepForward />
-          Step
-        </Button>
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              variant="outline"
-              size="sm"
-              class="w-24 justify-start pointer-coarse:h-11"
-              :aria-label="`Step: ${nextPhase}`"
-              :disabled="finished"
-              @click="emit('phase')"
-            >
-              <Footprints />
-              {{ nextPhase }}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Step one phase of the next line: fetch, decode, then execute
-          </TooltipContent>
-        </Tooltip>
-        <Button
-          v-if="running"
-          variant="outline"
-          size="sm"
-          class="pointer-coarse:h-11"
-          @click="emit('pause')"
-        >
-          <Pause />
-          Pause
-        </Button>
-        <Button
-          v-else
-          variant="outline"
-          size="sm"
-          class="pointer-coarse:h-11"
-          :disabled="finished"
-          @click="emit('run')"
-        >
-          <FastForward />
-          Run
-        </Button>
-        <Select :model-value="speed" @update:model-value="setSpeed">
-          <SelectTrigger
-            size="sm"
-            class="sm:min-w-24 pointer-coarse:data-[size=sm]:h-11"
-            :aria-label="`Run speed: ${SPEED_LABELS[speed]}`"
-          >
-            <!-- The value alone ("Fast") does not say what it is the value of, so an icon says it. -->
-            <SelectValue>
-              <Gauge class="text-muted-foreground" aria-hidden="true" />
-              <span class="hidden sm:inline">{{ SPEED_LABELS[speed] }}</span>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="(label, value) in SPEED_LABELS" :key="value" :value="value">
-              {{ label }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <Tooltip>
+      <div
+        class="flex items-center gap-1.5"
+        :class="{ 'min-w-0 flex-1': mode === 'phone' }"
+        role="group"
+        aria-label="Run"
+      >
+        <TransportRun
+          :finished="finished"
+          :running="running"
+          :phase="phase"
+          :compact="mode === 'phone'"
+          @step="emit('step')"
+          @phase="emit('phase')"
+          @run="emit('run')"
+          @pause="emit('pause')"
+        />
+        <TransportSpeed
+          v-if="mode !== 'phone'"
+          :speed="speed"
+          @update:speed="emit('update:speed', $event)"
+        />
+        <Tooltip v-if="mode === 'desktop'">
           <TooltipTrigger as-child>
             <Button
               variant="ghost"
@@ -210,83 +116,73 @@ const toggles = computed(() => [
         </Tooltip>
       </div>
 
-      <!-- No min-w-0 below lg: when it does not fit beside the run controls, it wraps whole. -->
       <div
-        class="flex flex-1 basis-56 items-center gap-1 lg:min-w-0 lg:border-x lg:px-4"
+        class="flex items-center gap-1 lg:border-x lg:px-4"
+        :class="{ 'min-w-0 flex-1': mode !== 'phone' }"
         role="group"
         aria-label="History"
       >
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              class="pointer-coarse:size-11"
-              aria-label="Undo the last instruction"
-              :disabled="executed === 0"
-              @click="emit('undo')"
-            >
-              <Undo2 />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Undo the last instruction</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              class="pointer-coarse:size-11"
-              aria-label="Redo the undone instruction"
-              :disabled="undone === 0"
-              @click="emit('redo')"
-            >
-              <Redo2 />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Redo the undone instruction</TooltipContent>
-        </Tooltip>
-        <input
-          type="range"
-          class="timeline mx-2 h-4 w-10 flex-1 cursor-pointer disabled:cursor-default disabled:opacity-40 sm:w-16 pointer-coarse:h-11"
-          :style="{ '--progress': progress }"
-          min="0"
-          :max="Math.max(total, 1)"
-          :value="executed"
-          :disabled="total === 0"
-          aria-label="Move through the executed instructions"
-          :aria-valuetext="positionText"
-          @input="emit('seek', Number(($event.target as HTMLInputElement).value))"
+        <TransportHistory
+          :executed="executed"
+          :undone="undone"
+          :parts="mode === 'phone' ? 'undo' : 'all'"
+          @undo="emit('undo')"
+          @redo="emit('redo')"
+          @seek="emit('seek', $event)"
         />
-        <span
-          class="min-w-14 shrink-0 text-right font-mono text-xs whitespace-nowrap text-muted-foreground"
-          :title="positionText"
-          aria-hidden="true"
-        >
-          <span class="text-foreground">{{ executed }}</span> / {{ total }}
-        </span>
       </div>
 
-      <!-- What the page shows, apart from the controls that drive the program. -->
-      <div class="toggle-group" role="group" aria-label="Panels">
-        <!-- Icons only below xl, so the name moves into the label and a tooltip. -->
-        <Tooltip v-for="toggle in toggles" :key="toggle.label">
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="sm"
-              class="px-2.5 pointer-coarse:h-11"
-              :aria-label="toggle.label"
-              :aria-pressed="toggle.shown"
-              @click="toggle.flip"
-            >
-              <component :is="toggle.icon" />
-              <span class="hidden xl:inline">{{ toggle.label }}</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent class="xl:hidden">{{ toggle.label }}</TooltipContent>
-        </Tooltip>
-      </div>
+      <TransportPanels
+        v-if="mode === 'desktop'"
+        :history-shown="historyShown"
+        :devices-shown="devicesShown"
+        :bytes-shown="bytesShown"
+        @update:history-shown="emit('update:historyShown', $event)"
+        @update:devices-shown="emit('update:devicesShown', $event)"
+        @update:bytes-shown="emit('update:bytesShown', $event)"
+      />
+      <TransportMore v-else v-model:open="moreOpen">
+        <div
+          v-if="mode === 'phone'"
+          class="flex items-center gap-1"
+          role="group"
+          aria-label="History"
+        >
+          <TransportHistory
+            :executed="executed"
+            :undone="undone"
+            parts="rest"
+            @redo="emit('redo')"
+            @seek="emit('seek', $event)"
+          />
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <TransportSpeed
+            v-if="mode === 'phone'"
+            :speed="speed"
+            named
+            @update:speed="emit('update:speed', $event)"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            class="ml-auto pointer-coarse:h-11"
+            @click="resetFromMore"
+          >
+            <RotateCcw />
+            Reset the CPU
+          </Button>
+        </div>
+        <TransportPanels
+          named
+          :history-shown="historyShown"
+          :devices-shown="devicesShown"
+          :bytes-shown="bytesShown"
+          @update:history-shown="emit('update:historyShown', $event)"
+          @update:devices-shown="emit('update:devicesShown', $event)"
+          @update:bytes-shown="emit('update:bytesShown', $event)"
+        />
+      </TransportMore>
     </div>
   </footer>
 </template>
