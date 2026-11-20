@@ -1,15 +1,19 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { formatHex32, s32 } from '@/core/rv32/bits';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { RegisterName } from '@/core/rv32/registers';
 import type { CpuState } from '@/core/rv32/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { rv32Pointer, rv32RegisterChange } from '@/ui/architectureDiffs';
 import { REGISTER_GROUPS, ROLE_DESCRIPTIONS, ROLE_LABELS, wasWritten } from '@/ui/rv32View';
+import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -24,6 +28,14 @@ const props = defineProps<{
 function changed(key: RegisterName): boolean {
   return props.previous !== null && props.previous[key] !== props.state.registers[key];
 }
+
+/** What the last instruction did to register `index`. */
+function change(index: number): ValueChange | null {
+  return props.record && rv32RegisterChange(props.record, props.state, index);
+}
+
+/** Where the last instruction sent PC, and whether it jumped. */
+const pcMove = computed(() => props.record && rv32Pointer(props.record, props.state));
 </script>
 
 <template>
@@ -57,12 +69,26 @@ function changed(key: RegisterName): boolean {
             :key="row.key"
             class="grid h-5 grid-cols-[3rem_2.25rem_auto_minmax(0,1fr)] items-center gap-x-2"
           >
-            <span class="font-semibold">{{ row.abi }}</span>
+            <TapTooltip v-slot="{ toggle }">
+              <TooltipTrigger as-child>
+                <span
+                  tabindex="0"
+                  class="cursor-help justify-self-start font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+                  @click="toggle"
+                  >{{ row.abi }}</span
+                >
+              </TooltipTrigger>
+              <TooltipContent class="flex-col items-start" side="right">
+                <p>{{ row.abi }} is x{{ row.index }}. {{ ROLE_DESCRIPTIONS[group.role] }}.</p>
+                <ValueDiff :change="change(row.index)" />
+              </TooltipContent>
+            </TapTooltip>
             <span class="text-xs text-muted-foreground">x{{ row.index }}</span>
             <ChangeMark
               :on="changed(row.key)"
               :written="wasWritten(record, row.index)"
               :tick="tick"
+              :title="changeTitle(row.abi, change(row.index))"
               :data-loc="`reg:${row.key}`"
             >
               <RollingDigits :text="formatHex32(state.registers[row.key])" />
@@ -86,13 +112,24 @@ function changed(key: RegisterName): boolean {
               >pc</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">
-            Program counter: the address of the next instruction. Not one of the 32 registers.
+          <TooltipContent class="flex-col items-start" side="right">
+            <p>
+              Program counter: the address of the next instruction. Not one of the 32 registers.
+            </p>
+            <ValueDiff :change="pcMove" />
           </TooltipContent>
         </TapTooltip>
-        <ChangeMark :on="changed('pc')" :tick="tick" data-loc="reg:pc">
+        <ChangeMark
+          :on="changed('pc')"
+          :tick="tick"
+          :title="changeTitle('pc', pcMove)"
+          data-loc="reg:pc"
+        >
           <RollingDigits :text="formatHex32(state.registers.pc)" />
         </ChangeMark>
+        <span v-if="pcMove?.jump" class="font-sans text-2xs text-pointer">
+          jumped from {{ pcMove!.before }}
+        </span>
       </div>
     </CardContent>
   </Card>

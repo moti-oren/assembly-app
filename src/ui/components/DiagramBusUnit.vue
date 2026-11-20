@@ -4,12 +4,14 @@ import { formatPhysical } from '@/core/x86/address';
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
 import { REGISTER_DESCRIPTIONS, type WordRegister } from '@/core/x86/registers';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { changeTitle } from '@/ui/stepDiff';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import { usePreferences } from '@/ui/usePreferences';
 import ChangeMark from './ChangeMark.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
   model: CpuDiagramModel;
@@ -70,13 +72,17 @@ const GROUP_START: WordRegister = 'ip';
               >{{ name.toUpperCase() }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="left">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+          <TooltipContent side="left" class="flex-col items-start">
+            <p>{{ REGISTER_DESCRIPTIONS[name] }}</p>
+            <ValueDiff :change="model.change(name)" />
+          </TooltipContent>
         </TapTooltip>
         <span class="w-10">
           <ChangeMark
             :on="model.changedBits(name) !== 0"
             :written="model.wrote(name)"
             :tick="tick"
+            :title="changeTitle(name.toUpperCase(), model.change(name))"
             :data-loc="`reg:${name}`"
           >
             <RollingDigits :text="formatHex(model.value(name), 16)" />

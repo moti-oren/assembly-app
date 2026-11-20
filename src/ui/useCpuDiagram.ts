@@ -7,6 +7,8 @@ import { isFlagSet, type FlagName } from '@/core/x86/flags';
 import type { Instruction } from '@/core/x86/instructions';
 import { WORD_REGISTERS, type RegisterName, type WordRegister } from '@/core/x86/registers';
 import type { CpuState } from '@/core/x86/state';
+import { x86RegisterChange } from './architectureDiffs';
+import type { ValueChange } from './stepDiff';
 import {
   aluUse,
   describeEquation,
@@ -117,6 +119,11 @@ export function useCpuDiagram(input: CpuDiagramInput) {
     return wasWritten(shown.value, name);
   }
 
+  /** What the last instruction did to a register or half of one; IP says when it jumped. */
+  function change(name: RegisterName): ValueChange | null {
+    return shown.value && x86RegisterChange(shown.value, input.state, name);
+  }
+
   /** A written register wins over a read one: `add ax, cx` reads AX but what matters is the write. */
   function use(name: WordRegister): WireKind {
     if (changedBits(name) !== 0 || written.value.has(name)) return 'write';
@@ -162,6 +169,7 @@ export function useCpuDiagram(input: CpuDiagramInput) {
     value,
     changedBits,
     wrote,
+    change,
     use,
     isSet,
     flagChanged

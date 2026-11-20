@@ -78,6 +78,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   asks first, since Undo cannot bring them back.
 - A register the last instruction changed is filled in amber. One it wrote with the value it
   already held is outlined instead, e.g. `mov si, 0` while SI is 0, so a write is never invisible.
+- Hovering over a register's name or value (or tapping its name) shows what the last instruction
+  did to it, `Previous 0000 → Now 000A`. The same goes for a memory byte it wrote, which is outlined
+  instead of filled when the byte kept its value. When IP or PC went anywhere but the next
+  instruction, it says `(jump)`, and on RISC-V and the 6502 the PC line says where it jumped from.
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
   fetch, decode, then execute. Fetch and decode show what is about to happen in the **Cycle**
   card above the CPU and on the wires; the registers, flags and memory change only at execute.
@@ -327,6 +331,10 @@ npm run verify:6502 # check the 6502 core against py65
   כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
 - רגיסטר שההוראה האחרונה שינתה ממולא בענבר. רגיסטר שהיא כתבה אליו את הערך שכבר היה בו מוקף
   במסגרת מקווקוות במקום, למשל `mov si, 0` כש-SI כבר 0, כך שכתיבה אף פעם לא נעלמת.
+- ריחוף מעל שם של רגיסטר או מעל הערך שלו (או הקשה על השם) מראה מה ההוראה האחרונה עשתה לו,
+  `Previous 0000 → Now 000A`. כך גם בבית בזיכרון שהיא כתבה, שמסומן בקו במקום במילוי כשהבית שמר
+  על ערכו. כש-IP או PC הלכו לכל מקום שאינו ההוראה הבאה כתוב `(jump)`, וב-RISC-V וב-6502 שורת
+  ה-PC אומרת מאיפה הוא קפץ.
 - אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
   fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בכרטיסיית **Cycle** שמעל
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.

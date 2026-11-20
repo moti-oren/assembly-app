@@ -6,6 +6,7 @@ import { FLAG_NAMES, flagBit, type CpuState, type FlagName } from '@/core/mos650
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { flagReason } from '@/ui/mos6502Alu';
 import { FLAG_INFO } from '@/ui/mos6502View';
+import { describeFlag } from '@/ui/stepDiff';
 import ChangeMark from './ChangeMark.vue';
 
 const props = defineProps<{
@@ -25,7 +26,9 @@ const reasons = computed(() => {
   if (!record) return [];
   return FLAG_NAMES.flatMap((flag) => {
     const reason = flagReason(record, flag);
-    return reason ? [{ flag, value: Number(isSet(flag)), reason }] : [];
+    if (!reason) return [];
+    const was = (record.before.flags & flagBit(flag)) !== 0;
+    return [{ flag, outcome: describeFlag(flag, was, isSet(flag)), reason }];
   });
 });
 </script>
@@ -55,9 +58,7 @@ const reasons = computed(() => {
       </div>
       <ul v-if="reasons.length" class="flex flex-col gap-0.5 text-xs text-muted-foreground">
         <li v-for="item in reasons" :key="item.flag">
-          <span class="font-mono font-semibold text-foreground"
-            >{{ item.flag }} = {{ item.value }}</span
-          >
+          <span class="font-mono font-semibold text-foreground">{{ item.outcome }}</span>
           because {{ item.reason }}
         </li>
       </ul>
