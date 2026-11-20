@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onDeactivated, ref } from 'vue';
 import { Tooltip } from '@/components/ui/tooltip';
 
 const open = ref(false);
+// A workbench left for another architecture is kept alive, and would leave the tooltip on show.
+onDeactivated(() => {
+  open.value = false;
+});
 </script>
 
 <!--
