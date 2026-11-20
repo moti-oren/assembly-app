@@ -19,7 +19,6 @@ import { rowNeighbour } from '@/ui/gridNavigation';
 import { sound } from '@/ui/soundEngine';
 import { groupBy } from '@/ui/groupBy';
 import { isApple } from '@/ui/platform';
-import { useTwoColumns } from '@/ui/useTwoColumns';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 
 const props = defineProps<{
@@ -48,22 +47,13 @@ const input = ref<HTMLInputElement | null>(null);
 /** The box that holds the words chosen so far and the text input. */
 const box = ref<HTMLElement | null>(null);
 const card = ref<{ $el: HTMLElement } | null>(null);
-/** True while focus is inside the builder. */
-const active = ref(false);
 /**
- * With two columns the choices do not follow focus: folding them away would move every panel
- * below the builder each time focus came and went, under a pointer that is about to click. In
- * one column they fold away when the builder is not in use, so the CPU panels are not pushed
- * off screen.
- */
-const twoColumns = useTwoColumns();
-/**
- * With two columns, set while the program is being stepped, so the program below moves up and
- * the line at IP stays in view. Only working in the builder opens them again: a click, a key or
- * typing. Focus alone does not, since the command palette hands focus back as it closes.
+ * Set while the program is being stepped, so the program below moves up and the line at IP
+ * stays in view. Only working in the builder opens the choices again: a click, a key or typing.
+ * Focus alone does not, since the command palette hands focus back as it closes.
  */
 const folded = ref(false);
-const choicesShown = computed(() => (twoColumns.value ? !folded.value : active.value));
+const choicesShown = computed(() => !folded.value);
 
 /** Folds the choices, unless someone is using the builder right now. */
 function fold(): void {
@@ -79,12 +69,6 @@ function onKeydown(event: KeyboardEvent): void {
   if (!event.ctrlKey && !event.metaKey) unfold();
 }
 
-function onFocusOut(): void {
-  // Focus moves between the input and the choices; only leaving the card counts.
-  setTimeout(() => {
-    active.value = card.value?.$el.contains(document.activeElement) ?? false;
-  });
-}
 /** The option under the pointer or keyboard focus; its hint is previewed below the input. */
 const hovered = shallowRef<BuilderOption<Action> | null>(null);
 
@@ -283,13 +267,7 @@ function onBackspace(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <Card
-    ref="card"
-    @focusin="active = true"
-    @focusout="onFocusOut"
-    @pointerdown="unfold"
-    @keydown="onKeydown"
-  >
+  <Card ref="card" @pointerdown="unfold" @keydown="onKeydown">
     <CardHeader>
       <CardTitle>Instruction</CardTitle>
     </CardHeader>
@@ -369,7 +347,7 @@ function onBackspace(event: KeyboardEvent): void {
           </template>
         </p>
         <button
-          v-if="moreToChoose && !choicesShown && twoColumns"
+          v-if="moreToChoose && !choicesShown"
           type="button"
           class="flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-pointer outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
           @click="unfold"
