@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { nextTick, ref, useTemplateRef, watch } from 'vue';
+import { useResizeObserver } from '@vueuse/core';
 import { CYCLE_PHASES, type CyclePhase } from '@/core/shared/cycle';
 import InfoTip from './InfoTip.vue';
 
@@ -16,6 +18,28 @@ const props = defineProps<{
 /** True once the phase on show is at or past the one at `index`. */
 function reached(index: number): boolean {
   return props.active !== null && CYCLE_PHASES.indexOf(props.active) >= index;
+}
+
+const summary = useTemplateRef<HTMLElement>('summary');
+const open = ref(false);
+/** Whether the text is cut off at three lines; only then is there anything to open. */
+const truncated = ref(false);
+
+function measure(): void {
+  const text = summary.value;
+  if (text && !open.value) truncated.value = text.scrollHeight > text.clientHeight + 1;
+}
+
+useResizeObserver(summary, measure);
+watch(
+  () => props.detail,
+  () => nextTick(measure),
+  { flush: 'post' }
+);
+
+/** A click that would open nothing must not change the card's height. */
+function onSummaryClick(event: MouseEvent): void {
+  if (!truncated.value && !open.value) event.preventDefault();
 }
 
 const PHASE_LABELS: Record<CyclePhase, string> = {
@@ -71,9 +95,15 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       <slot name="actions" />
     </div>
     <!-- Three lines, whatever the text, so the panels below never move until it is opened. -->
-    <details class="group mt-2.5 text-code leading-5 text-muted-foreground">
+    <details
+      class="group mt-2.5 text-code leading-5 text-muted-foreground"
+      @toggle="open = ($event.target as HTMLDetailsElement).open"
+    >
       <summary
-        class="line-clamp-3 h-15 cursor-pointer list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
+        ref="summary"
+        class="line-clamp-3 h-15 list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
+        :class="{ 'cursor-pointer': truncated || open }"
+        @click="onSummaryClick"
       >
         <span aria-live="polite">{{ detail ?? 'Nothing has run yet.' }}</span>
       </summary>
