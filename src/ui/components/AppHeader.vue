@@ -99,7 +99,7 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
           </TooltipTrigger>
           <TooltipContent>The same task on all three CPUs, side by side</TooltipContent>
         </Tooltip>
-        <DropdownMenu v-model:open="examplesOpen">
+        <DropdownMenu v-model:open="examplesOpen" :modal="false">
           <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="sm" class="pointer-coarse:h-11" aria-label="Examples">
               <BookOpen />
@@ -124,7 +124,7 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
         </DropdownMenu>
 
         <!-- Settings that are changed once in a while, out of the way of the ones used all the time. -->
-        <DropdownMenu>
+        <DropdownMenu :modal="false">
           <!-- No tooltip: wrapped around the menu's trigger, it breaks where the menu opens. -->
           <DropdownMenuTrigger as-child>
             <Button
