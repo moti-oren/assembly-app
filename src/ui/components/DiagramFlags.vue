@@ -14,8 +14,8 @@ defineProps<{
 
 <template>
   <span
-    class="ml-[calc(50%-0.625rem)] hidden h-3 w-0.5 transition-colors duration-300 sm:block"
-    :class="model.changedFlags !== 0 ? 'bg-written' : 'bg-foreground/15'"
+    class="wire wire-v ml-[calc(50%-0.625rem)] hidden h-3 sm:block"
+    :class="{ 'wire-written': model.changedFlags !== 0 }"
     aria-hidden="true"
   />
 

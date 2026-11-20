@@ -96,7 +96,8 @@ const GROUP_START: WordRegister = 'ip';
 
     <!-- The segment drops down into the adder; the offset comes in off the internal bus. -->
     <DiagramWire
-      class="ml-[calc(50%+0.625rem)] hidden h-auto min-h-3 w-0.5 flex-1 sm:block"
+      vertical
+      class="ml-[calc(50%+0.625rem)] hidden h-auto min-h-3 flex-1 sm:block"
       :kind="model.adderKind"
       :tick="model.pulse"
     />

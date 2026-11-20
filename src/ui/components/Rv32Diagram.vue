@@ -112,14 +112,16 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
           <template v-for="stage in STAGES" :key="`port-${stage.key}`">
             <DiagramWire
               v-if="stage.key === 'decode'"
-              class="mx-auto hidden h-4 w-0.5 @min-[40rem]:block"
+              vertical
+              class="mx-auto hidden h-4 @min-[40rem]:block"
               :kind="view.reads.length > 0 ? 'read' : undefined"
               :tick="pulse"
               title="Decode reads rs1 and rs2 from the register file"
             />
             <DiagramWire
               v-else-if="stage.key === 'writeBack'"
-              class="mx-auto hidden h-4 w-0.5 @min-[40rem]:block"
+              vertical
+              class="mx-auto hidden h-4 @min-[40rem]:block"
               :kind="view.writes.length > 0 ? 'write' : undefined"
               :tick="pulse"
               title="Write back writes rd into the register file"

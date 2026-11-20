@@ -140,7 +140,8 @@ const flagChanged = (bit: number) =>
         </section>
 
         <DiagramWire
-          class="hidden h-auto w-0.5 @min-[40rem]:block"
+          vertical
+          class="hidden h-auto @min-[40rem]:block"
           :kind="view.internal"
           :tick="pulse"
           title="Internal bus"
@@ -205,7 +206,8 @@ const flagChanged = (bit: number) =>
         <p class="truncate pb-1 text-xs"><span class="unit-title">Address / data bus</span></p>
         <!-- Starts inside the chip's edge, so it crosses the edge like a pin. -->
         <DiagramWire
-          class="-mt-3.25 mr-16 hidden h-9 w-0.5 shrink-0 @min-[40rem]:block"
+          vertical
+          class="-mt-3.25 mr-16 hidden h-9 shrink-0 @min-[40rem]:block"
           :kind="view.bus.use"
           :tick="pulse"
         />
@@ -213,7 +215,8 @@ const flagChanged = (bit: number) =>
       <DiagramWire class="hidden @min-[40rem]:block" :kind="view.bus.use" :tick="pulse" />
       <div class="flex flex-col items-center">
         <DiagramWire
-          class="hidden h-3 w-0.5 @min-[40rem]:block"
+          vertical
+          class="hidden h-3 @min-[40rem]:block"
           :kind="view.bus.use"
           :tick="pulse"
         />
