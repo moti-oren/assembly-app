@@ -5,6 +5,7 @@ import { formatHex } from '@/core/shared/numbers';
 import type { CpuState } from '@/core/shared/state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { DeviceAccess } from '@/ui/deviceAccess';
+import { sound } from '@/ui/soundEngine';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import InfoTip from './InfoTip.vue';
 
@@ -54,6 +55,7 @@ function port(number: number): string {
 }
 
 function flip(bit: number): void {
+  sound.play(isOn(switches.value, bit) ? 'switch-off' : 'switch-on');
   emit('input', PORTS.switches, switches.value ^ (1 << bit));
 }
 </script>

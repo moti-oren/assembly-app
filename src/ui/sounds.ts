@@ -1,6 +1,11 @@
+import { PORTS } from '@/core/shared/devices';
+import type { ExecutionRecord as SharedRecord } from '@/core/shared/executionRecord';
+import type { Program } from '@/core/shared/program';
 import type { ExecutionRecord as Mos6502Record } from '@/core/mos6502/executionContext';
-import type { CpuState as Mos6502State } from '@/core/mos6502/state';
+import { flagBit, type CpuState as Mos6502State } from '@/core/mos6502/state';
 import type { ExecutionRecord as Rv32Record } from '@/core/rv32/execute';
+import type { Instruction as Rv32Instruction } from '@/core/rv32/instructions';
+import { pipelineTiming, type PipelineTiming } from '@/core/rv32/pipeline';
 import { RA, ZERO } from '@/core/rv32/registers';
 import type { CpuState as Rv32State } from '@/core/rv32/state';
 import { decode } from '@/core/x86/decode';
@@ -9,9 +14,11 @@ import { isFlagSet } from '@/core/x86/flags';
 import { INSTRUCTIONS } from '@/core/x86/instructions';
 import { changedRegisters } from '@/core/x86/registers';
 import type { CpuSnapshot } from '@/core/x86/state';
+import type { SoundName } from './soundPalette';
 
 /** What one executed instruction sounds like. Every register shares one sound on purpose. */
-export type StepSound =
+export type StepSound = Extract<
+  SoundName,
   | 'register'
   | 'memory'
   | 'push'
@@ -22,12 +29,8 @@ export type StepSound =
   | 'call'
   | 'ret'
   | 'flags'
-  | 'idle';
-
-/** Sounds that are not one executed instruction. */
-export type EventSound = 'undo' | 'ratchet' | 'error' | 'punch' | 'halt' | 'overflow';
-
-export type SoundKind = StepSound | EventSound;
+  | 'idle'
+>;
 
 /** Picks the sound for an instruction from what it actually did, given the CPU right after it. */
 export function stepSound(record: ExecutionRecord, after: CpuSnapshot): StepSound {
@@ -99,4 +102,60 @@ export function mos6502StepSound(record: Mos6502Record, after: Mos6502State): St
   );
   if (changed) return 'register';
   return after.flags !== record.before.flags ? 'flags' : 'idle';
+}
+
+/** What the output devices sound like when an instruction changed them: each kind at most once. */
+export function deviceSounds(record: SharedRecord): SoundName[] {
+  const sounds = new Set<SoundName>();
+  for (const write of record.portWrites) {
+    if (write.port === PORTS.terminal) sounds.add('terminal');
+    else if (write.before !== write.after) sounds.add('led');
+  }
+  return [...sounds];
+}
+
+/** One executed instruction: what it did, and anything laid over that. */
+export interface StepSounds {
+  step: SoundName;
+  layers: SoundName[];
+}
+
+export function x86Sounds(record: ExecutionRecord, after: CpuSnapshot): StepSounds {
+  return {
+    step: stepSound(record, after),
+    layers: raisedOverflow(record, after) ? ['overflow'] : []
+  };
+}
+
+export function mos6502Sounds(record: Mos6502Record, after: Mos6502State): StepSounds {
+  const raisedV = !(record.before.flags & flagBit('V')) && (after.flags & flagBit('V')) !== 0;
+  return { step: mos6502StepSound(record, after), layers: raisedV ? ['overflow'] : [] };
+}
+
+/**
+ * What the newest instruction cost or saved in RISC-V's pipeline: a wait in ID or a flush behind
+ * a taken branch is a stall, and an operand handed over early is a forward.
+ */
+function pipelineCue(timing: PipelineTiming): 'stall' | 'forward' | null {
+  const row = [...timing.rows].reverse().find((candidate) => candidate.step !== null);
+  if (!row) return null;
+  if (row.hazard || row.taken) return 'stall';
+  return row.forwards.length > 0 ? 'forward' : null;
+}
+
+/**
+ * A RISC-V instruction on its own, or as the pipeline chart shows it: there every instruction
+ * is one tick of the clock, and only what the overlap did to it stands out.
+ */
+export function rv32Sounds(
+  history: readonly Rv32Record[],
+  after: Rv32State,
+  program: Program<Rv32Instruction>,
+  pipeline: { shown: boolean; forwarding: boolean }
+): StepSounds {
+  const record = history.at(-1);
+  if (!record) return { step: 'idle', layers: [] };
+  if (!pipeline.shown) return { step: rv32StepSound(record, after), layers: [] };
+  const cue = pipelineCue(pipelineTiming(history, program, { forwarding: pipeline.forwarding }));
+  return { step: 'pipeline-tick', layers: cue ? [cue] : [] };
 }

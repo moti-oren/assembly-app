@@ -7,15 +7,26 @@ import type {
   Mnemonic as Rv32Mnemonic
 } from '@/core/rv32/instructions';
 import type { Operand as Rv32Operand } from '@/core/rv32/operands';
+import type { ExecutionRecord as Rv32Record } from '@/core/rv32/execute';
 import type { CpuState as Rv32State } from '@/core/rv32/state';
 import { execute } from '@/core/x86/execute';
 import type { Instruction, Mnemonic } from '@/core/x86/instructions';
 import type { Operand } from '@/core/x86/operands';
+import { PORTS } from '@/core/shared/devices';
 import { step, type Program } from '@/core/shared/program';
 import { X86 } from '@/core/x86/architecture';
 import type { RegisterName } from '@/core/x86/registers';
 import { createCpuState, writeRegister } from '@/core/x86/state';
-import { mos6502StepSound, raisedOverflow, rv32StepSound, stepSound } from './sounds';
+import {
+  deviceSounds,
+  mos6502Sounds,
+  mos6502StepSound,
+  raisedOverflow,
+  rv32Sounds,
+  rv32StepSound,
+  stepSound,
+  x86Sounds
+} from './sounds';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -144,5 +155,91 @@ describe('mos6502StepSound', () => {
     expect(mos6502StepSound(step(MOS6502, state, program), state)).toBe('ret');
     const push = MOS6502.execute(state, { mnemonic: 'pha', operands: [] }, null, []);
     expect(mos6502StepSound(push, state)).toBe('push');
+  });
+});
+
+describe('x86Sounds and mos6502Sounds', () => {
+  it('lays the overflow under the instruction that raised it', () => {
+    const state = createCpuState();
+    writeRegister(state, 'ax', 0x7fff);
+    const record = execute(state, line('add', reg('ax'), imm(1)));
+    expect(x86Sounds(record, state)).toEqual({ step: 'register', layers: ['overflow'] });
+  });
+
+  it('does the same for V on the 6502', () => {
+    const state = MOS6502.createState();
+    state.registers.a = 0x7f;
+    const adc: Mos6502Instruction = { mnemonic: 'adc', operands: [{ type: 'imm', value: 1 }] };
+    const record = MOS6502.execute(state, adc, null, []);
+    expect(mos6502Sounds(record, state)).toEqual({ step: 'register', layers: ['overflow'] });
+  });
+});
+
+describe('deviceSounds', () => {
+  const out = (port: number): Operand => imm(port);
+
+  it('hears an LED change, but not the same byte written again', () => {
+    const state = createCpuState();
+    writeRegister(state, 'al', 0x0f);
+    const leds = line('out', out(PORTS.leds), reg('al'));
+    expect(deviceSounds(execute(state, leds))).toEqual(['led']);
+    expect(deviceSounds(execute(state, leds))).toEqual([]);
+  });
+
+  it('hears every character printed, and nothing from an instruction without ports', () => {
+    const state = createCpuState();
+    const print = line('out', out(PORTS.terminal), reg('al'));
+    expect(deviceSounds(execute(state, print))).toEqual(['terminal']);
+    expect(deviceSounds(execute(state, print))).toEqual(['terminal']);
+    expect(deviceSounds(execute(state, line('nop')))).toEqual([]);
+  });
+});
+
+describe('rv32Sounds', () => {
+  const rv = (mnemonic: Rv32Mnemonic, ...operands: Rv32Operand[]): Rv32Instruction => ({
+    mnemonic,
+    operands
+  });
+  const x = (index: number): Rv32Operand => ({ type: 'reg', index });
+  const one: Rv32Operand = { type: 'imm', value: 1 };
+  // x5 is used straight after it is made, then loaded and used: a forward, then a stall.
+  const program = [
+    rv('addi', x(5), x(0), one),
+    rv('addi', x(6), x(5), one),
+    rv('lw', x(7), { type: 'mem', base: 0, offset: 0x100 }),
+    rv('addi', x(8), x(7), one),
+    rv('beq', x(0), x(0), { type: 'label', target: 0 })
+  ];
+
+  function soundsAfter(steps: number, pipeline: { shown: boolean; forwarding: boolean }) {
+    const state = RV32.createState();
+    const history: Rv32Record[] = [];
+    for (let i = 0; i < steps; i++) history.push(step(RV32, state, program));
+    return rv32Sounds(history, state, program, pipeline);
+  }
+
+  it('is the instruction itself while the pipeline is not shown', () => {
+    expect(soundsAfter(1, { shown: false, forwarding: true })).toEqual({
+      step: 'register',
+      layers: []
+    });
+  });
+
+  it('ticks once per instruction in the pipeline', () => {
+    expect(soundsAfter(1, { shown: true, forwarding: true })).toEqual({
+      step: 'pipeline-tick',
+      layers: []
+    });
+  });
+
+  it('marks a forwarded operand, a load-use stall and a flush', () => {
+    const shown = { shown: true, forwarding: true };
+    expect(soundsAfter(2, shown).layers).toEqual(['forward']);
+    expect(soundsAfter(4, shown).layers).toEqual(['stall']);
+    expect(soundsAfter(5, shown).layers).toEqual(['stall']);
+  });
+
+  it('stalls instead of forwarding when forwarding is off', () => {
+    expect(soundsAfter(2, { shown: true, forwarding: false }).layers).toEqual(['stall']);
   });
 });

@@ -3,7 +3,7 @@ import { computed, shallowRef, useTemplateRef } from 'vue';
 import { assemble, encode } from '@/core/mos6502/encode';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { formatInstruction, type Instruction } from '@/core/mos6502/instructions';
-import { flagBit, type CpuState } from '@/core/mos6502/state';
+import type { CpuState } from '@/core/mos6502/state';
 import { Card, CardContent } from '@/components/ui/card';
 import { MOS6502_DEVICE_ACCESS } from '@/ui/deviceAccess';
 import { chooseEncoding } from '@/ui/encodingShown';
@@ -11,7 +11,7 @@ import { MOS6502_CODE_PLACE, mos6502LineCode } from '@/ui/programCode';
 import { describeAccess } from '@/ui/mos6502Explain';
 import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
-import { mos6502StepSound } from '@/ui/sounds';
+import { mos6502Sounds } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
@@ -73,10 +73,7 @@ const {
   askReset
 } = useWorkbench(cpu, {
   usesDevices: mos6502UsesDevices,
-  soundOf: (record) => ({
-    step: mos6502StepSound(record, state),
-    overflow: !(record.before.flags & flagBit('V')) && (state.flags & flagBit('V')) !== 0
-  }),
+  soundOf: (record) => mos6502Sounds(record, state),
   page: {
     focusBuilder: () => builder.value?.focus(),
     foldBuilder: () => builder.value?.fold(),

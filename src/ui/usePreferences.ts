@@ -1,9 +1,8 @@
-import { computed, nextTick, watchEffect } from 'vue';
+import { computed, nextTick, watch, watchEffect } from 'vue';
 import { createGlobalState, useDark, useLocalStorage, useMediaQuery } from '@vueuse/core';
 import { isArchitectureId, type ArchitectureId } from './architectures';
-import type { SoundKind } from './sounds';
 import { STORAGE_KEYS } from './storageKeys';
-import { playSound } from './synth';
+import { sound } from './soundEngine';
 
 type CpuView = 'diagram' | 'table';
 
@@ -18,6 +17,7 @@ export const usePreferences = createGlobalState(() => {
   /** Light until the user picks a theme. */
   const isDark = useDark({ initialValue: 'light' });
   const soundOn = useLocalStorage(STORAGE_KEYS.sound, false);
+  watch(soundOn, sound.setEnabled, { immediate: true });
   /** The CPU's state as one wired diagram, or as the separate register and flag tables. */
   const cpuView = useLocalStorage<CpuView>(STORAGE_KEYS.cpuView, 'diagram', {
     // Anything else in storage (an old or hand-edited value) falls back to the diagram.
@@ -55,11 +55,6 @@ export const usePreferences = createGlobalState(() => {
     setTimeout(() => delete root.dataset.themeSwitch, 1);
   }
 
-  /** Does nothing while sound is off. */
-  function play(kind: SoundKind, delay = 0): void {
-    if (soundOn.value) playSound(kind, delay);
-  }
-
   return {
     isDark,
     soundOn,
@@ -69,7 +64,6 @@ export const usePreferences = createGlobalState(() => {
     reduceMotion,
     systemReducesMotion,
     calm,
-    toggleTheme,
-    play
+    toggleTheme
   };
 });
