@@ -1,5 +1,6 @@
 import { PORTS } from '@/core/shared/devices';
 import type { IoState } from '@/core/shared/state';
+import { rowStart, type MemoryColumns } from './memoryColumns';
 
 /**
  * Memory as one flat space of addresses, the way RISC-V and the 6502 see it: no segments, just
@@ -40,10 +41,15 @@ export function deviceByte(io: IoState, port: number): number {
   return port === PORTS.switches ? io.in[port] : io.out[port];
 }
 
-/** `count` rows of 16 bytes, from `start` rounded down to a row. */
-export function memoryRows(byteAt: ByteAt, start: number, count: number): ShownByte[][] {
-  const first = Math.floor(start / 16) * 16;
+/** `count` rows of `columns` bytes, from `start` rounded down to a row. */
+export function memoryRows(
+  byteAt: ByteAt,
+  start: number,
+  count: number,
+  columns: MemoryColumns = 16
+): ShownByte[][] {
+  const first = rowStart(start, columns);
   return Array.from({ length: count }, (_, row) =>
-    Array.from({ length: 16 }, (_, column) => byteAt(first + 16 * row + column))
+    Array.from({ length: columns }, (_, column) => byteAt(first + columns * row + column))
   );
 }

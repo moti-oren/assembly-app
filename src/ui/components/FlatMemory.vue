@@ -14,7 +14,8 @@ import {
   type MemoryPlace
 } from '@/ui/flatMemory';
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
-import { useTwoColumns } from '@/ui/useTwoColumns';
+import { columnGap, MEMORY_ROWS, rowStart } from '@/ui/memoryColumns';
+import { useMemoryColumns } from '@/ui/useMemoryColumns';
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -37,11 +38,9 @@ const props = defineProps<{
   tick: number;
 }>();
 
-const COMPACT_ROWS = 8;
-const WIDE_ROWS = 16;
-const COLUMNS = 16;
-const twoColumns = useTwoColumns();
-const rowCount = computed(() => (twoColumns.value ? WIDE_ROWS : COMPACT_ROWS));
+/** The box the table is drawn in: its width decides how many bytes a row holds. */
+const well = ref<HTMLElement | null>(null);
+const columns = useMemoryColumns(well);
 
 const hex = (address: number) => formatAddress({ ...props.format, prefix: '' }, address);
 
@@ -58,7 +57,7 @@ const start = computed(() => (parsed.value ?? 0) >>> 0);
 const rows = computed(() => {
   void props.state.memoryVersion;
   void props.state.ioVersion;
-  return memoryRows(props.byteAt, start.value, rowCount.value);
+  return memoryRows(props.byteAt, start.value, MEMORY_ROWS, columns.value);
 });
 
 /** A write cools down over the next few instructions instead of vanishing at once. */
@@ -79,7 +78,7 @@ function go(place: MemoryPlace): void {
   const address = place.start();
   // The stack grows down: its top goes on the last row, with what was pushed before it above.
   const first = place.stack
-    ? Math.max(0, (address & ~0xf) - (rowCount.value - 1) * COLUMNS)
+    ? Math.max(0, rowStart(address, columns.value) - (MEMORY_ROWS - 1) * columns.value)
     : address;
   addressText.value = hex(first);
 }
@@ -90,7 +89,7 @@ function showStackTop(): void {
 }
 
 function showLastAccess(): void {
-  if (props.access) addressText.value = hex(props.access.address & ~0xf);
+  if (props.access) addressText.value = hex(rowStart(props.access.address, columns.value));
 }
 
 /** The address of the byte under the mouse, in the hex columns or in the text beside them. */
@@ -173,16 +172,19 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div class="well overflow-auto rounded-lg px-2.5 py-1.5">
+      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5">
         <table class="w-full font-mono text-xs whitespace-nowrap">
           <thead>
             <tr class="text-muted-foreground">
               <th class="py-1 pr-3 text-left font-normal">address</th>
               <th
-                v-for="column in COLUMNS"
+                v-for="column in columns"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'pl-3': column === 9, 'pl-2': column === 5 || column === 13 }"
+                :class="{
+                  'pl-3': columnGap(column - 1) === 'wide',
+                  'pl-2': columnGap(column - 1) === 'narrow'
+                }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
@@ -199,8 +201,8 @@ function reveal(jump: () => void): void {
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
                 :class="{
-                  'pl-3': column === 8,
-                  'pl-2': column === 4 || column === 12,
+                  'pl-3': columnGap(column) === 'wide',
+                  'pl-2': columnGap(column) === 'narrow',
                   'text-pointer': byte.region === 'code',
                   'text-written': byte.region === 'device'
                 }"

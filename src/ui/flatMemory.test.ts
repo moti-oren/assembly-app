@@ -23,4 +23,10 @@ describe('flat memory', () => {
     expect(rows.map((row) => row[0].address)).toEqual([0x210, 0x220]);
     expect(rows[1].at(-1)?.address).toBe(0x22f);
   });
+
+  it('holds eight bytes a row when asked to', () => {
+    const rows = memoryRows((address) => ({ address, value: 0, region: 'ram' }), 0x21b, 2, 8);
+    expect(rows.map((row) => row[0].address)).toEqual([0x218, 0x220]);
+    expect(rows[0]).toHaveLength(8);
+  });
 });
