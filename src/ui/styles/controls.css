@@ -83,12 +83,16 @@
 
   /* The bar that drives the program: part of the shell, with nothing of the page behind it. */
   .transport {
-    position: sticky;
-    bottom: 0;
     z-index: var(--z-sticky);
     flex: none;
     border-top: 1px solid var(--border);
+    /* Clear of the home indicator on a phone without a home button. */
+    padding-bottom: env(safe-area-inset-bottom);
     background: var(--card);
+  }
+  /* While an on-screen keyboard is up (useKeyboardInset.ts) the room goes to what is typed. */
+  :root[data-keyboard] .transport {
+    display: none;
   }
 
   :root[data-motion='reduced'] .segmented::before {
@@ -132,4 +136,15 @@
 /* Not while focused: the focus ring is a box shadow too, and it matters more. */
 .toggle-group > button[aria-pressed='true']:not(:focus-visible) {
   box-shadow: inset 0 -2px 0 var(--pointer);
+}
+
+/*
+ * A field under 16px makes iOS zoom the page in when it takes focus. Unlayered, so it holds
+ * whatever size a field was given.
+ */
+@media (pointer: coarse) {
+  input:not([type='range']),
+  textarea {
+    font-size: 1rem;
+  }
 }

@@ -4,11 +4,12 @@ import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { RegisterName } from '@/core/rv32/registers';
 import type { CpuState } from '@/core/rv32/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { REGISTER_GROUPS, ROLE_DESCRIPTIONS, ROLE_LABELS, wasWritten } from '@/ui/rv32View';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -76,18 +77,19 @@ function changed(key: RegisterName): boolean {
         </section>
       </div>
       <div class="mt-3 flex items-center gap-x-2 border-t pt-2 font-mono text-code">
-        <Tooltip>
+        <TapTooltip v-slot="{ toggle }">
           <TooltipTrigger as-child>
             <span
               tabindex="0"
               class="w-12 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+              @click="toggle"
               >pc</span
             >
           </TooltipTrigger>
           <TooltipContent side="right">
             Program counter: the address of the next instruction. Not one of the 32 registers.
           </TooltipContent>
-        </Tooltip>
+        </TapTooltip>
         <ChangeMark :on="changed('pc')" :tick="tick" data-loc="reg:pc">
           <RollingDigits :text="formatHex32(state.registers.pc)" />
         </ChangeMark>

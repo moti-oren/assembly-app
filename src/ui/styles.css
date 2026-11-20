@@ -10,6 +10,10 @@
 @custom-variant dark (&:is(.dark *));
 /* Animations cut down, by the system setting or the app's own; see usePreferences.ts. */
 @custom-variant calm (&:is([data-motion='reduced'] *));
+/* A screen worked by touch alone: no pointer to hover with, and no keyboard to hint at. */
+@custom-variant touch (@media (hover: none) and (pointer: coarse));
+/* Two panes on a low window (a small laptop): the stage tightens so the CPU stays in view. */
+@custom-variant short (@media (min-width: 64rem) and (max-height: 50rem));
 
 /*
  * Local fonts reshaped to the metrics of Inter and JetBrains Mono, used until those arrive.
@@ -150,6 +154,7 @@
   /* Stacking, lowest first. Dialogs, menus and tooltips (shadcn) sit at 50, above all of these. */
   --z-drag: 5;
   --z-strip: 10;
+  --z-drawer: 15;
   --z-sticky: 20;
   --z-flight: 40;
   --drag-shadow: 0 18px 40px -12px rgb(16 24 40 / 22%);

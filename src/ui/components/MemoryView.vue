@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
-import { useTwoColumns } from '@/ui/useTwoColumns';
+import { columnGap, MEMORY_ROWS, rowStart } from '@/ui/memoryColumns';
+import { useMemoryColumns } from '@/ui/useMemoryColumns';
 import { Layers } from '@lucide/vue';
 import { explainAddress, formatPhysical } from '@/core/x86/address';
 import { printable } from '@/core/shared/devices';
@@ -34,21 +35,18 @@ const props = defineProps<{
   tick: number;
 }>();
 
-const COMPACT_ROWS = 8;
-/** One 256-byte page. */
-const WIDE_ROWS = 16;
-const COLUMNS = 16;
 const SEGMENTS: SegmentRegister[] = ['ds', 'es', 'ss', 'cs'];
 
 const segment = ref<SegmentRegister>('ds');
 const offsetText = ref('0000');
 
-const twoColumns = useTwoColumns();
-const rowCount = computed(() => (twoColumns.value ? WIDE_ROWS : COMPACT_ROWS));
+/** The box the table is drawn in: its width decides how many bytes a row holds. */
+const well = ref<HTMLElement | null>(null);
+const columns = useMemoryColumns(well);
 
 /** The offset box is always read as hex, with or without a 0x prefix or h suffix. */
 const parsedOffset = computed(() => parseNumber(`0x${offsetText.value.replace(/^0x|h$/gi, '')}`));
-const startOffset = computed(() => (parsedOffset.value ?? 0) & 0xfff0);
+const startOffset = computed(() => rowStart((parsedOffset.value ?? 0) & 0xffff, columns.value));
 /** Text that is not a hex number shows the rows from 0000, and the box says it was not understood. */
 const offsetInvalid = computed(() => offsetText.value.trim() !== '' && parsedOffset.value === null);
 const offsetErrorId = useId();
@@ -59,9 +57,9 @@ const rows = computed(() => {
   const segmentValue = props.state.registers[segment.value];
   const memory = props.state.memory;
 
-  return Array.from({ length: rowCount.value }, (_, row) => {
-    const offset = (startOffset.value + row * COLUMNS) & 0xffff;
-    const bytes = Array.from({ length: COLUMNS }, (_, column) => {
+  return Array.from({ length: MEMORY_ROWS }, (_, row) => {
+    const offset = (startOffset.value + row * columns.value) & 0xffff;
+    const bytes = Array.from({ length: columns.value }, (_, column) => {
       const address = physicalAddress(segmentValue, offset + column);
       return { address, value: memory[address] };
     });
@@ -121,13 +119,13 @@ function showLastAccess(): void {
   const access = lastAccess.value;
   if (!access) return;
   segment.value = access.segment;
-  offsetText.value = formatHex(access.offset & 0xfff0, 16);
+  offsetText.value = formatHex(rowStart(access.offset, columns.value), 16);
 }
 
 function showStackTop(): void {
   segment.value = 'ss';
-  const rowOfSp = props.state.registers.sp & 0xfff0;
-  offsetText.value = formatHex(rowOfSp - (rowCount.value - 1) * COLUMNS, 16);
+  const rowOfSp = rowStart(props.state.registers.sp, columns.value);
+  offsetText.value = formatHex(rowOfSp - (MEMORY_ROWS - 1) * columns.value, 16);
 }
 
 const card = ref<{ $el: HTMLElement } | null>(null);
@@ -153,7 +151,11 @@ function reveal(jump: () => void): void {
           Point at a byte, or run an instruction that uses memory, to see how its address is formed.
         </InfoTip>
         <Select v-model="segment">
-          <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
+          <SelectTrigger
+            size="sm"
+            class="w-36 font-mono pointer-coarse:data-[size=sm]:h-11"
+            aria-label="Segment"
+          >
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
             <SelectValue>
               {{ segment.toUpperCase() }}
@@ -176,7 +178,7 @@ function reveal(jump: () => void): void {
           >
           <Input
             v-model="offsetText"
-            class="h-7 w-28 pl-13 font-mono text-sm"
+            class="h-7 w-28 pl-13 font-mono text-sm pointer-coarse:h-11"
             :aria-invalid="offsetInvalid || undefined"
             :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
             maxlength="6"
@@ -187,7 +189,12 @@ function reveal(jump: () => void): void {
             aria-label="Offset (hex)"
           />
         </div>
-        <Button variant="outline" size="sm" class="ml-auto" @click="showStackTop">
+        <Button
+          variant="outline"
+          size="sm"
+          class="ml-auto pointer-coarse:h-11"
+          @click="showStackTop"
+        >
           <Layers />
           Stack top
         </Button>
@@ -245,16 +252,19 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div class="well overflow-auto rounded-lg px-2.5 py-1.5">
-        <table class="w-full font-mono text-xs whitespace-nowrap">
+      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5 max-sm:px-1.5">
+        <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pr-3 text-left font-normal">offset</th>
+              <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">offset</th>
               <th
-                v-for="column in COLUMNS"
+                v-for="column in columns"
                 :key="column"
                 class="px-0.5 py-1 text-center font-normal"
-                :class="{ 'pl-3': column === 9, 'pl-2': column === 5 || column === 13 }"
+                :class="{
+                  'pl-3': columnGap(column - 1) === 'wide',
+                  'pl-2': columnGap(column - 1) === 'narrow'
+                }"
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
@@ -263,14 +273,17 @@ function reveal(jump: () => void): void {
           </thead>
           <tbody @mouseleave="pointed = null">
             <tr v-for="row in rows" :key="row.offset">
-              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
+              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
                 {{ formatHex(row.offset, 16) }}
               </th>
               <td
                 v-for="(byte, column) in row.bytes"
                 :key="byte.address"
                 class="px-0.5 py-0.5 text-center"
-                :class="{ 'pl-3': column === 8, 'pl-2': column === 4 || column === 12 }"
+                :class="{
+                  'pl-3': columnGap(column) === 'wide',
+                  'pl-2': columnGap(column) === 'narrow'
+                }"
                 :title="`Physical ${formatPhysical(byte.address)}h = ${byte.value}`"
                 @mouseenter="pointed = (row.offset + column) & 0xffff"
               >

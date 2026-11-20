@@ -4,6 +4,7 @@ import { formatHex } from '@/core/shared/numbers';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { formatInstruction } from '@/core/mos6502/instructions';
 import { FLAG_NAMES, flagBit, REGISTER_NAMES, type CpuState } from '@/core/mos6502/state';
+import ResultStrip from './ResultStrip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -34,24 +35,5 @@ const changes = computed(() => {
 </script>
 
 <template>
-  <!-- On a narrow screen the CPU panels scroll away; this keeps the last result in sight. -->
-  <div
-    class="sticky top-0 z-(--z-strip) flex h-8.25 items-center gap-2 overflow-x-auto border-b bg-card px-4 py-1.5 font-mono text-xs leading-4 whitespace-nowrap"
-    aria-live="polite"
-  >
-    <span v-if="!record" class="font-sans text-muted-foreground">
-      Run an instruction to see what it changes
-    </span>
-    <span v-else class="font-semibold">{{ formatInstruction(record.instruction) }}</span>
-    <span
-      v-for="change in changes"
-      :key="change.name"
-      class="rounded-sm bg-changed px-1.5 py-0.5 text-changed-foreground"
-    >
-      {{ change.name }} <span class="font-semibold">{{ change.value }}</span>
-    </span>
-    <span v-if="record && changes.length === 0" class="font-sans text-muted-foreground">
-      changed nothing
-    </span>
-  </div>
+  <ResultStrip :ran="record ? formatInstruction(record.instruction) : null" :changes="changes" />
 </template>

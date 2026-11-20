@@ -2,22 +2,12 @@ import { computed, watch, type Ref } from 'vue';
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import { moveAmongVisible, sanitizeOrder } from './reorder';
 import { isSidebarKey, SIDEBAR_PANELS, type SidebarKey } from './sidebarLayout';
+import { STAGE, type StageKey } from './stagePanels';
 import { STORAGE_KEYS } from './storageKeys';
 import type { Panels } from './usePanels';
 import { usePreferences } from './usePreferences';
 import { useSidebarLayout } from './useSidebarLayout';
 
-/**
- * The stage's panels, top to bottom. Its order is fixed (only the sidebar's panels can be
- * moved), and it differs between the CPU views, since the diagram and the tables show
- * different panels.
- */
-const STAGE = {
-  diagram: ['cycle', 'cpu', 'devices', 'memory'],
-  table: ['cycle', 'registers', 'operation', 'flags', 'devices', 'memory']
-} as const;
-
-export type StageKey = (typeof STAGE)[keyof typeof STAGE][number];
 export type PanelKey = SidebarKey | StageKey;
 
 export const PANEL_LABELS: Record<PanelKey, string> = {

@@ -4,6 +4,7 @@ import { assemble, encode } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
 import { DATA_BASE, type CpuState } from '@/core/rv32/state';
+import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { RV32_DEVICE_ACCESS } from '@/ui/deviceAccess';
 import { chooseEncoding } from '@/ui/encodingShown';
@@ -34,6 +35,7 @@ import Rv32Registers from './Rv32Registers.vue';
 import SidebarColumn from './SidebarColumn.vue';
 import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
+import WorkbenchPanes from './WorkbenchPanes.vue';
 
 const props = defineProps<{
   cpu: CpuOf<Instruction, CpuState, ExecutionRecord>;
@@ -141,10 +143,16 @@ const encodingShown = computed(() =>
     @clear-program="cpu.clearProgram"
     @reset-cpu="cpu.reset"
   />
-  <Rv32ChangeStrip class="lg:hidden" :state="state" :record="lastRecord" />
+  <Rv32ChangeStrip
+    class="lg:hidden"
+    :state="state"
+    :record="lastRecord"
+    :phase="pending?.phase ?? null"
+    :next="finished ? null : formatLabel(nextLine)"
+  />
 
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
-  <main class="workbench">
+  <WorkbenchPanes>
     <!-- Each pane's panels can be dragged into any order, but never into the other pane. -->
     <SidebarColumn
       class="workbench-pane"
@@ -252,7 +260,7 @@ const encodingShown = computed(() =>
         />
       </template>
     </StageColumn>
-  </main>
+  </WorkbenchPanes>
 
   <TransportBar
     v-model:speed="speed"

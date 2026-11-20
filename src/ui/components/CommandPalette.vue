@@ -62,7 +62,7 @@ function onCloseAutoFocus(event: Event): void {
   <!-- CommandDialog, composed here to reach close-auto-focus for commands that move focus. -->
   <Dialog v-model:open="open">
     <DialogContent
-      class="command-palette top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0 sm:max-w-xl"
+      class="command-palette top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0 max-sm:top-3 sm:max-w-xl"
       :show-close-button="false"
       @close-auto-focus="onCloseAutoFocus"
     >
@@ -72,13 +72,16 @@ function onCloseAutoFocus(event: Event): void {
       </DialogHeader>
       <Command>
         <CommandInput placeholder="Search commands" />
-        <CommandList class="max-h-[min(24rem,42svh)]">
+        <!-- On a phone it hangs from the top, as tall as the on-screen keyboard leaves room for. -->
+        <CommandList
+          class="max-h-[min(24rem,42svh)] max-sm:max-h-[calc(var(--app-height,100dvh)-8.5rem)]"
+        >
           <CommandEmpty class="py-10 text-muted-foreground">No command matches.</CommandEmpty>
           <CommandGroup v-for="[group, items] in groups" :key="group" :heading="group">
             <CommandItem
               v-for="command in items"
               :key="command.label"
-              class="px-3 py-2.5"
+              class="px-3 py-2.5 pointer-coarse:min-h-11"
               :value="`${group} ${command.label}`"
               :disabled="command.disabled"
               @select="choose(command)"
@@ -87,7 +90,10 @@ function onCloseAutoFocus(event: Event): void {
             </CommandItem>
           </CommandGroup>
         </CommandList>
-        <div class="flex items-center gap-4 border-t px-3 pt-3 pb-1 text-xs text-muted-foreground">
+        <!-- Keys to press: of no use on a screen worked by touch. -->
+        <div
+          class="flex items-center gap-4 border-t px-3 pt-3 pb-1 text-xs text-muted-foreground touch:hidden"
+        >
           <span class="flex items-center gap-1.5"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
           <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run</span>
           <span class="flex items-center gap-1.5"><Kbd>Esc</Kbd> close</span>

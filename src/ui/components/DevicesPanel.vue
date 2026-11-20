@@ -72,9 +72,12 @@ function flip(bit: number): void {
       </CardTitle>
     </CardHeader>
 
-    <CardContent class="grid gap-x-6 gap-y-4 sm:grid-cols-[auto_auto_minmax(0,1fr)]">
-      <div class="flex flex-col gap-3">
-        <section aria-label="LEDs">
+    <!-- On a phone: the LEDs beside the digits, then the switches and the terminal full width. -->
+    <CardContent
+      class="grid gap-x-6 gap-y-4 max-sm:grid-cols-[auto_auto] max-sm:justify-between max-sm:gap-x-4 sm:grid-cols-[auto_auto_minmax(0,1fr)]"
+    >
+      <div class="flex flex-col gap-3 max-sm:contents">
+        <section class="max-sm:order-1" aria-label="LEDs">
           <h3 class="device-title">
             LEDs
             <span class="device-port"
@@ -94,7 +97,7 @@ function flip(bit: number): void {
           </div>
         </section>
 
-        <section aria-label="Switches">
+        <section class="max-sm:order-3 max-sm:col-span-2" aria-label="Switches">
           <h3 class="device-title">
             Switches
             <span class="device-port"
@@ -121,7 +124,7 @@ function flip(bit: number): void {
         </section>
       </div>
 
-      <section aria-label="7-segment display">
+      <section class="max-sm:order-2" aria-label="7-segment display">
         <h3 class="device-title">
           7-segment
           <span class="device-port"
@@ -197,7 +200,7 @@ function flip(bit: number): void {
         </div>
       </section>
 
-      <section class="flex min-w-0 flex-col" aria-label="Terminal">
+      <section class="flex min-w-0 flex-col max-sm:order-4 max-sm:col-span-2" aria-label="Terminal">
         <h3 class="device-title">
           Terminal
           <span class="device-port">{{ access.write }} {{ port(PORTS.terminal) }}</span>

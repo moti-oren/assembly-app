@@ -5,9 +5,10 @@ import { formatHex } from '@/core/shared/numbers';
 import type { CpuState } from '@/core/x86/state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -40,7 +41,7 @@ function changed(flag: FlagName): boolean {
     </CardHeader>
     <CardContent>
       <div class="grid grid-cols-3 gap-1.5 sm:grid-cols-5 xl:grid-cols-9">
-        <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
+        <TapTooltip v-for="flag in FLAG_NAMES" :key="flag" v-slot="{ toggle }">
           <TooltipTrigger as-child>
             <div
               tabindex="0"
@@ -53,6 +54,7 @@ function changed(flag: FlagName): boolean {
                     : 'border-border'
               ]"
               :aria-label="`${FLAG_INFO[flag].label} flag is ${isSet(flag) ? 1 : 0}`"
+              @click="toggle"
             >
               <span v-if="changed(flag)" :key="tick" class="change-flash" aria-hidden="true" />
               <div class="flex items-baseline justify-between font-mono">
@@ -69,7 +71,7 @@ function changed(flag: FlagName): boolean {
             </div>
           </TooltipTrigger>
           <TooltipContent><FlagReason :flag="flag" :record="record" /></TooltipContent>
-        </Tooltip>
+        </TapTooltip>
       </div>
     </CardContent>
   </Card>

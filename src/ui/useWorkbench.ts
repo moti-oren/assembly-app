@@ -7,6 +7,7 @@ import { usePanelColumns } from './usePanelOrder';
 import { usePanels, type UsesDevices } from './usePanels';
 import { useSidebarLayout } from './useSidebarLayout';
 import { useSoundEffects, type SoundOf } from './useSoundEffects';
+import { useWorkbenchView } from './useWorkbenchView';
 
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
 export type WorkbenchPage = Omit<PageActions, 'askClearProgram' | 'askReset'> & {
@@ -35,6 +36,7 @@ export function useWorkbench<
   const panels = usePanels(cpu, hooks.usesDevices);
   const columns = usePanelColumns(panels);
   const sidebar = useSidebarLayout();
+  const { show } = useWorkbenchView();
   const paletteOpen = ref(false);
   const examplesOpen = ref(false);
   /** True while the user is asked to confirm clearing the program. */
@@ -55,10 +57,21 @@ export function useWorkbench<
     panels,
     {
       ...hooks.page,
-      // A collapsed builder opens first; its input can only take focus once it is drawn.
+      // A builder out of sight or collapsed is brought back first; its input can only take
+      // focus once it is drawn.
       focusBuilder: () => {
+        show('code');
         sidebar.expand('builder');
         void nextTick(hooks.page.focusBuilder);
+      },
+      // On a phone the memory is a view of its own, which may not be the one on show.
+      showStackTop: () => {
+        show('memory');
+        void nextTick(hooks.page.showStackTop);
+      },
+      showLastAccess: () => {
+        show('memory');
+        void nextTick(hooks.page.showLastAccess);
       },
       askClearProgram: () => {
         clearAsked.value = true;

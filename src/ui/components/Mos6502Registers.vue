@@ -3,10 +3,11 @@ import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { STACK_PAGE, type CpuState, type RegisterName } from '@/core/mos6502/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -74,16 +75,17 @@ function written(name: RegisterName): boolean {
         :key="register.name"
         class="grid h-6 grid-cols-[2.5rem_3rem_3rem_3rem_minmax(0,1fr)] items-center gap-x-3"
       >
-        <Tooltip>
+        <TapTooltip v-slot="{ toggle }">
           <TooltipTrigger as-child>
             <span
               tabindex="0"
               class="cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+              @click="toggle"
               >{{ register.label }}</span
             >
           </TooltipTrigger>
           <TooltipContent side="right">{{ register.description }}</TooltipContent>
-        </Tooltip>
+        </TapTooltip>
         <ChangeMark
           :on="changed(register.name)"
           :written="written(register.name)"
@@ -112,18 +114,19 @@ function written(name: RegisterName): boolean {
       <div
         class="mt-1 grid h-6 grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 border-t pt-1"
       >
-        <Tooltip>
+        <TapTooltip v-slot="{ toggle }">
           <TooltipTrigger as-child>
             <span
               tabindex="0"
               class="cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+              @click="toggle"
               >PC</span
             >
           </TooltipTrigger>
           <TooltipContent side="right">
             Program counter: the 16-bit address of the next instruction
           </TooltipContent>
-        </Tooltip>
+        </TapTooltip>
         <ChangeMark class="justify-self-start" :on="changed('pc')" :tick="tick" data-loc="reg:pc">
           <RollingDigits :text="formatHex(state.registers.pc, 16)" />
         </ChangeMark>

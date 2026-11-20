@@ -51,10 +51,10 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
 
 <template>
   <div>
-    <div class="flex items-center gap-3">
-      <span class="-mr-2 text-sm font-medium">Cycle</span>
+    <div class="flex items-center gap-3 max-sm:gap-2">
+      <span class="-mr-2 text-sm font-medium max-sm:-mr-1">Cycle</span>
       <InfoTip label="About the instruction cycle">{{ intro }}</InfoTip>
-      <ol class="flex items-center gap-1 text-xs" aria-label="Instruction cycle">
+      <ol class="flex shrink-0 items-center gap-1 text-xs" aria-label="Instruction cycle">
         <li
           v-for="(phase, index) in CYCLE_PHASES"
           :key="phase"
@@ -63,7 +63,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         >
           <span
             v-if="index > 0"
-            class="w-4 border-t transition-colors duration-300"
+            class="w-4 border-t transition-colors duration-300 max-sm:w-2"
             :class="reached(index) ? 'border-pointer/70' : 'border-foreground/15'"
             aria-hidden="true"
           />
@@ -83,25 +83,26 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
               aria-hidden="true"
               >{{ index + 1 }}</span
             >
-            {{ PHASE_LABELS[phase] }}
+            <!-- A phone has room to name one phase: the one on show. The others keep their number. -->
+            <span :class="{ 'max-sm:sr-only': phase !== active }">{{ PHASE_LABELS[phase] }}</span>
             <span v-if="phase !== active && reached(index + 1)" class="sr-only">(done)</span>
           </span>
         </li>
       </ol>
-      <span class="ml-auto truncate font-mono text-xs text-muted-foreground">{{
+      <span class="ml-auto min-w-0 truncate font-mono text-xs text-muted-foreground">{{
         instruction ?? 'idle'
       }}</span>
       <!-- Controls an architecture adds to its own cycle card. -->
       <slot name="actions" />
     </div>
-    <!-- Three lines, whatever the text, so the panels below never move until it is opened. -->
+    <!-- Three lines (two on a low window), whatever the text, so the panels below never move until it is opened. -->
     <details
       class="group mt-2.5 text-code leading-5 text-muted-foreground"
       @toggle="open = ($event.target as HTMLDetailsElement).open"
     >
       <summary
         ref="summary"
-        class="line-clamp-3 h-15 list-none rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
+        class="line-clamp-3 h-15 list-none short:line-clamp-2 short:h-10 rounded-sm outline-none group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden"
         :class="{ 'cursor-pointer': truncated || open }"
         @click="onSummaryClick"
       >

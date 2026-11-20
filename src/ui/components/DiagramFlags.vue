@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { FLAG_INFO, FLAG_NAMES } from '@/core/x86/flags';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import FlagReason from './FlagReason.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
 
 defineProps<{
   model: CpuDiagramModel;
@@ -21,7 +22,7 @@ defineProps<{
 
   <!-- Nine in a row only where the diagram is wide; on a phone they take two rows. -->
   <div class="mt-3 grid grid-cols-5 gap-1 sm:mt-0 sm:mr-5 sm:grid-cols-9">
-    <Tooltip v-for="flag in FLAG_NAMES" :key="flag">
+    <TapTooltip v-for="flag in FLAG_NAMES" :key="flag" v-slot="{ toggle }">
       <TooltipTrigger as-child>
         <div
           tabindex="0"
@@ -34,6 +35,7 @@ defineProps<{
                 : 'border-border bg-raised'
           ]"
           :aria-label="`${FLAG_INFO[flag].label} flag is ${model.isSet(flag) ? 1 : 0}`"
+          @click="toggle"
         >
           <span
             v-if="model.flagChanged(flag)"
@@ -50,6 +52,6 @@ defineProps<{
       <TooltipContent>
         <FlagReason :flag="flag" :record="model.record" />
       </TooltipContent>
-    </Tooltip>
+    </TapTooltip>
   </div>
 </template>

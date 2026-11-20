@@ -119,6 +119,8 @@ function cardStyle(key: K, index: number): Record<string, string> | undefined {
 /** A press on a card's header (outside its own controls) is a drag once it moves far enough. */
 function onItemPointerDown(event: PointerEvent, key: K): void {
   if (event.button !== 0 || active.value !== null || pressed) return;
+  // On a touch screen a finger on a header scrolls the pane; panels are moved from the keyboard.
+  if (event.pointerType === 'touch' && window.matchMedia('(pointer: coarse)').matches) return;
   const target = event.target as HTMLElement;
   if (!target.closest('[data-slot="card-header"]') || target.closest(OWN_CONTROLS)) return;
   pressed = { key, pointerId: event.pointerId, x: event.clientX, y: event.clientY };

@@ -22,13 +22,15 @@ const chosen = ref(0);
 const task = computed(() => COMPARISON_TASKS[chosen.value]);
 const measurements = computed(() => measure(task.value));
 const rows = computed(() => metricRows(measurements.value));
+/** The CPU whose program is on show where the three do not fit side by side. */
+const listed = ref<ComparedId>(COMPARED[0]);
 </script>
 
 <template>
   <Dialog v-model:open="open">
-    <!-- Only the body scrolls, with its scrollbar set in from the dialog's edge and corners; the title and the close button stay put. -->
+    <!-- A phone gives it the whole screen. Only the body scrolls, with its scrollbar set in from the dialog's edge and corners; the title and the close button stay put. -->
     <DialogContent
-      class="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-5xl sm:p-0"
+      class="grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:max-h-[calc(100svh-2rem)] sm:max-w-5xl sm:p-0"
     >
       <DialogHeader class="px-4 pt-4 pr-12 pb-4 sm:px-6 sm:pt-6">
         <DialogTitle>Compare the CPUs</DialogTitle>
@@ -38,15 +40,20 @@ const rows = computed(() => metricRows(measurements.value));
       </DialogHeader>
 
       <div
-        class="mr-2 mb-2 flex min-h-0 flex-col gap-5 overflow-y-auto pr-2.5 pb-4 pl-4 sm:pr-3.5 sm:pb-6 sm:pl-6"
+        class="mr-2 mb-2 flex min-h-0 flex-col gap-5 overflow-x-hidden overflow-y-auto pr-2.5 pb-4 pl-4 sm:pr-3.5 sm:pb-6 sm:pl-6"
       >
-        <div class="flex flex-wrap gap-1.5" role="group" aria-label="Task">
+        <!-- On a phone the tasks are one row that scrolls sideways, not three rows of the screen. -->
+        <div
+          class="flex shrink-0 flex-wrap gap-1.5 max-sm:flex-nowrap max-sm:overflow-x-auto"
+          role="group"
+          aria-label="Task"
+        >
           <Button
             v-for="(each, index) in COMPARISON_TASKS"
             :key="each.id"
             :variant="index === chosen ? 'default' : 'outline'"
             size="sm"
-            class="pointer-coarse:h-11"
+            class="shrink-0 pointer-coarse:h-11"
             :class="{ 'font-semibold': index === chosen }"
             :aria-pressed="index === chosen"
             @click="chosen = index"
@@ -67,7 +74,7 @@ const rows = computed(() => metricRows(measurements.value));
                   v-for="id in COMPARED"
                   :key="id"
                   scope="col"
-                  class="w-24 py-1.5 pl-3 text-right font-medium whitespace-nowrap text-foreground"
+                  class="w-16 py-1.5 pl-3 text-right font-medium whitespace-nowrap text-foreground sm:w-24"
                 >
                   {{ architectureLabel(id) }}
                 </th>
@@ -103,11 +110,31 @@ const rows = computed(() => metricRows(measurements.value));
           </table>
         </div>
 
-        <div class="grid gap-3 md:grid-cols-3">
+        <!-- Three listings side by side need a wide screen; below it, one at a time. -->
+        <div
+          class="segmented self-start lg:hidden"
+          :style="{ '--segments': COMPARED.length, '--active': COMPARED.indexOf(listed) }"
+          role="group"
+          aria-label="Program shown"
+        >
+          <Button
+            v-for="id in COMPARED"
+            :key="id"
+            variant="ghost"
+            size="sm"
+            class="h-7 px-3 text-xs pointer-coarse:h-10"
+            :aria-pressed="listed === id"
+            @click="listed = id"
+          >
+            {{ architectureLabel(id) }}
+          </Button>
+        </div>
+        <div class="grid gap-3 lg:grid-cols-3">
           <section
             v-for="id in COMPARED"
             :key="id"
             class="flex min-w-0 flex-col overflow-hidden rounded-lg border bg-card/60"
+            :class="{ 'max-lg:hidden': id !== listed }"
             :aria-label="`${architectureLabel(id)} program`"
           >
             <header class="border-b px-3 py-2">

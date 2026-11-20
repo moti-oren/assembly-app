@@ -67,7 +67,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 - An instruction can run immediately (Enter) or be added to the program (Shift+Enter).
 - In the instruction box, the arrow keys move through the choices below it (Left/Right one at a time, Up/Down by row) and Enter picks the highlighted one. Once the box holds words or text, hold Alt to use the arrows this way; without Alt, Left and Right move between the words and through the text, and Up and Down go to the start and the end of the box. The row of keys under the box shows the ones that work at that moment.
-- On a wide screen, stepping or running the program folds those choices away, so the program
+- Stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
 - The choices are grouped by family (transfers, arithmetic, logic, shifts, jumps and branches,
@@ -124,9 +124,19 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **Reset the card order and sizes** in the command palette (Ctrl+K) puts it back. The panels of
   the right column stay where they are. On a wide screen each column scrolls on its own, so the
   program stays in view under a long CPU column, and the bottom bar sits below both.
+- The page fits the screen it is on. On a tablet the right column takes the whole width, and the
+  left one is a drawer that **Code**, at the top, slides over it (Esc closes it); Reset and the
+  panel buttons move behind **⋯** at the end of the bottom bar. On a phone one view shows at a
+  time, chosen under the header: **Code** (the left column), **CPU**, or **Memory & I/O**. The
+  strip above them always shows the last instruction and what it changed, with the line that runs
+  next, and a tap on it goes to the CPU. The bottom bar keeps Step, the phase button, Run and Undo,
+  and its **⋯** holds the rest; Compare, the examples and the settings are in the **⋯** menu of
+  the header. A phone starts with the CPU as tables, and a row of its memory holds eight bytes.
+  On a touch screen the panels are not dragged, and a tap on a register's name or on a flag shows
+  what hovering shows with a mouse.
 - The left column works like the side bar of an editor. Click a panel's header (or its arrow) to
   collapse it to the header and again to open it; **History** and **Machine code** also have a ✕
-  that closes them, and their buttons in the bottom bar bring them back. On a wide screen the open
+  that closes them, and their buttons in the bottom bar bring them back. Except on a phone, the open
   panels share the column's height, so the column itself never scrolls: each panel scrolls inside
   itself, no panel grows past its content, and dragging the line between two open panels (or
   focusing it and using the up and down arrows) moves room from one to the other. What is
@@ -221,7 +231,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## Comparing the CPUs
 
-- **Compare** at the top of the page (on a wide screen), or **Compare the CPUs on the same task…**
+- **Compare** at the top of the page (in the **⋯** menu on a phone), or **Compare the CPUs on the same task…**
   in the command palette, opens the same task written for all three CPUs: adding 1 to 10, a 16-bit
   sum, multiplying, filling memory, calling a function, and lighting the LEDs.
 - A table sets side by side the program's lines and machine code bytes, the instructions it runs,
@@ -306,7 +316,7 @@ npm run verify:6502 # check the 6502 core against py65
 
 - אפשר להריץ הוראה מיד (Enter) או להוסיף אותה לתוכנית (Shift+Enter).
 - בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש בתיבה מילים או טקסט, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt, ימינה ושמאלה עוברים בין המילים ובתוך הטקסט, ולמעלה ולמטה מגיעים לתחילת התיבה ולסופה. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע.
-- במסך רחב, הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
+- הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
 - האפשרויות מקובצות לפי משפחה (העברות, חשבון, לוגיקה, הזזות, קפיצות וענפים, המחסנית), כל אחת
   תחת כותרת משלה. הצבע שמור למה שהמעבד עושה: כחול במקום שבו הוא קורא ובמקום שבו נמצא הביצוע,
@@ -361,9 +371,17 @@ npm run verify:6502 # check the 6502 core against py65
   sizes** בפלטת הפקודות (Ctrl+K) מחזירה אותו לברירת המחדל. החלוניות של העמודה הימנית נשארות במקומן.
   במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת גלויה לצד עמודת CPU ארוכה, והסרגל התחתון נמצא
   מתחת לשתיהן.
+- העמוד מתאים את עצמו למסך. בטאבלט העמודה הימנית תופסת את כל הרוחב, והשמאלית היא מגירה
+  שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc סוגר אותה); Reset וכפתורי החלוניות עוברים אל
+  **⋯** שבקצה הסרגל התחתון. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
+  (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
+  שהיא שינתה, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. בסרגל התחתון נשארים Step, כפתור
+  השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; Compare, הדוגמאות וההגדרות נמצאים בתפריט **⋯** של
+  הכותרת. טלפון מתחיל עם ה-CPU כטבלאות, ושורה בזיכרון שלו מחזיקה שמונה בתים. במסך מגע לא גוררים
+  חלוניות, והקשה על שם של רגיסטר או על דגל מציגה את מה שריחוף מציג עם עכבר.
 - העמודה השמאלית עובדת כמו סרגל הצד של עורך קוד. לחיצה על הכותרת של חלונית (או על החץ שלה) מקפלת
   אותה עד הכותרת, ולחיצה נוספת פותחת אותה; ל-**History** ול-**Machine code** יש גם ✕ שסוגר אותן,
-  והכפתורים שלהן בסרגל התחתון מחזירים אותן. במסך רחב החלוניות הפתוחות מתחלקות בגובה העמודה, כך
+  והכפתורים שלהן בסרגל התחתון מחזירים אותן. חוץ מבטלפון, החלוניות הפתוחות מתחלקות בגובה העמודה, כך
   שהעמודה עצמה אף פעם לא נגללת: כל חלונית נגללת בתוך עצמה, אף חלונית לא גדלה מעבר לתוכן שלה, וגרירת
   הקו שבין שתי חלוניות פתוחות (או מיקוד עליו ומקשי החיצים למעלה ולמטה) מעבירה מקום מאחת לשנייה. מה
   מקופל ומה הגובה של כל חלונית נשמרים, ופלטת הפקודות יכולה לקפל או לפתוח כל אחת מהן. העמודה
@@ -446,7 +464,7 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## השוואת המעבדים
 
-- **Compare** בראש העמוד (במסך רחב), או **Compare the CPUs on the same task…** בפלטת הפקודות,
+- **Compare** בראש העמוד (בטלפון: בתפריט **⋯**), או **Compare the CPUs on the same task…** בפלטת הפקודות,
   פותח את אותה משימה כתובה לשלושת המעבדים: חיבור 1 עד 10, סכום של 16 סיביות, כפל, מילוי זיכרון,
   קריאה לפונקציה והדלקת הנורות.
 - טבלה מעמידה זו מול זו את מספר השורות ובתי קוד המכונה של התוכנית, את ההוראות שהיא מריצה, את
