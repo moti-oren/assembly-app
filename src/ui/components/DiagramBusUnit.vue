@@ -3,12 +3,13 @@ import { computed } from 'vue';
 import { formatPhysical } from '@/core/x86/address';
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
 import { REGISTER_DESCRIPTIONS, type WordRegister } from '@/core/x86/registers';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import { usePreferences } from '@/ui/usePreferences';
 import ChangeMark from './ChangeMark.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
 
 const props = defineProps<{
   model: CpuDiagramModel;
@@ -48,24 +49,29 @@ const GROUP_START: WordRegister = 'ip';
       <div
         v-for="name in BIU_REGISTERS"
         :key="name"
-        class="flex h-5 items-center gap-2.5"
-        :class="{ 'mt-1.5': name === GROUP_START }"
+        class="flex h-5 items-center gap-2.5 rounded-sm"
+        :class="{
+          'mt-1.5': name === GROUP_START,
+          'max-sm:bg-pointer/15': model.use(name) === 'read',
+          'max-sm:bg-written/20': model.use(name) === 'write'
+        }"
       >
         <DiagramWire
           class="-mr-0.5 hidden w-5 sm:block"
           :kind="model.use(name)"
           :tick="model.pulse"
         />
-        <Tooltip>
+        <TapTooltip v-slot="{ toggle }">
           <TooltipTrigger as-child>
             <span
               tabindex="0"
               class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+              @click="toggle"
               >{{ name.toUpperCase() }}</span
             >
           </TooltipTrigger>
           <TooltipContent side="left">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
-        </Tooltip>
+        </TapTooltip>
         <span class="w-10">
           <ChangeMark
             :on="model.changedBits(name) !== 0"

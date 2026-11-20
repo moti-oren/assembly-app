@@ -18,11 +18,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { wasWritten } from '@/ui/describe';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -89,16 +90,17 @@ function changedBits(name: WordRegister): number {
             :class="{ 'border-t': GROUP_STARTS.includes(name) }"
           >
             <TableCell class="py-1">
-              <Tooltip>
+              <TapTooltip v-slot="{ toggle }">
                 <TooltipTrigger as-child>
                   <span
                     tabindex="0"
                     class="cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+                    @click="toggle"
                     >{{ name.toUpperCase() }}</span
                   >
                 </TooltipTrigger>
                 <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
-              </Tooltip>
+              </TapTooltip>
             </TableCell>
             <TableCell class="py-1">
               <span
