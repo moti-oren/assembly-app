@@ -3,6 +3,11 @@ import { Ellipsis } from '@lucide/vue';
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui';
 import { Button } from '@/components/ui/button';
 
+defineProps<{
+  /** On a phone it is framed like the bar's other buttons, at their height. */
+  framed?: boolean;
+}>();
+
 /** Open while the controls are on show; one of them can close it (a reset asks to confirm). */
 const open = defineModel<boolean>('open', { default: false });
 </script>
@@ -12,9 +17,10 @@ const open = defineModel<boolean>('open', { default: false });
   <PopoverRoot v-model:open="open">
     <PopoverTrigger as-child>
       <Button
-        variant="ghost"
+        :variant="framed ? 'outline' : 'ghost'"
         size="icon-sm"
         class="shrink-0 text-muted-foreground pointer-coarse:size-11"
+        :class="{ 'size-11': framed }"
         aria-label="More controls"
       >
         <Ellipsis />

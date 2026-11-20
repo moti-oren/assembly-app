@@ -126,6 +126,7 @@ function resetFromMore(): void {
           :executed="executed"
           :undone="undone"
           :parts="mode === 'phone' ? 'undo' : 'all'"
+          :framed="mode === 'phone'"
           @undo="emit('undo')"
           @redo="emit('redo')"
           @seek="emit('seek', $event)"
@@ -141,7 +142,7 @@ function resetFromMore(): void {
         @update:devices-shown="emit('update:devicesShown', $event)"
         @update:bytes-shown="emit('update:bytesShown', $event)"
       />
-      <TransportMore v-else v-model:open="moreOpen">
+      <TransportMore v-else v-model:open="moreOpen" :framed="mode === 'phone'">
         <div
           v-if="mode === 'phone'"
           class="flex items-center gap-1"
