@@ -487,7 +487,7 @@
   .sortable-item {
     transition: translate var(--sortable-slide) var(--sortable-easing);
   }
-  .sortable-item > [data-slot='card'] {
+  .sortable-item [data-slot='card'] {
     transition: box-shadow 200ms ease-out;
   }
   /* The dragged card follows the pointer at once, lifted a little off the page. */
@@ -504,7 +504,7 @@
       scale var(--sortable-settle) ease-out;
   }
   .sortable-instant .sortable-item,
-  .sortable-instant .sortable-item > [data-slot='card'] {
+  .sortable-instant .sortable-item [data-slot='card'] {
     transition: none;
   }
   :root.sorting,
@@ -569,7 +569,7 @@
   /* Set by the system setting or by the app's own preference; see usePreferences.ts. */
   :root[data-motion='reduced'] {
     .sortable-item,
-    .sortable-item > [data-slot='card'] {
+    .sortable-item [data-slot='card'] {
       transition: none;
     }
     .sortable-lifted {

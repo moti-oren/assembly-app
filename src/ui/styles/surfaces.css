@@ -83,8 +83,8 @@
   letter-spacing: -0.005em;
 }
 /* A panel being dragged covers the ones it passes over. */
-.workbench .sortable-lifted > [data-slot='card'],
-.workbench .sortable-settling > [data-slot='card'] {
+.workbench .sortable-lifted [data-slot='card'],
+.workbench .sortable-settling [data-slot='card'] {
   --tw-ring-color: var(--border);
   --tw-shadow: var(--drag-shadow);
   border-bottom-color: transparent;
