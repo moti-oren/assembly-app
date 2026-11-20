@@ -5,8 +5,8 @@ import CpuViewToggle from './CpuViewToggle.vue';
 
 <!-- The CPU panel of every architecture: its header, and the sheet the diagram is drawn on. -->
 <template>
-  <Card class="gap-0 pb-0">
-    <CardHeader class="pb-3">
+  <Card class="gap-0 pb-0 short:pt-2">
+    <CardHeader class="pb-3 short:pb-2">
       <CardTitle>CPU</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
@@ -22,7 +22,7 @@ import CpuViewToggle from './CpuViewToggle.vue';
         <CpuViewToggle />
       </CardAction>
     </CardHeader>
-    <CardContent class="border-t py-4">
+    <CardContent class="border-t py-4 short:py-2">
       <slot />
     </CardContent>
   </Card>

@@ -81,7 +81,7 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
                 {{ ROLE_LABELS[group.role] }}
               </h4>
               <!-- As many columns as fit a whole register: a value never wraps under its name. -->
-              <div class="grid grid-cols-[repeat(auto-fill,minmax(6.75rem,1fr))] gap-x-1">
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-x-1">
                 <div
                   v-for="row in group.rows"
                   :key="row.key"
@@ -107,13 +107,13 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
           Decode reads the register file above it and write back writes into it: those two wires.
         -->
         <div
-          class="mt-2 grid gap-y-2 @min-[40rem]:mt-0 @min-[40rem]:grid-cols-[repeat(5,minmax(0,1fr))] @min-[40rem]:gap-x-4 @min-[40rem]:gap-y-0"
+          class="mt-2 grid gap-y-2 @min-[37rem]:mt-0 @min-[37rem]:grid-cols-[repeat(5,minmax(0,1fr))] @min-[37rem]:gap-x-4 @min-[37rem]:gap-y-0"
         >
           <template v-for="stage in STAGES" :key="`port-${stage.key}`">
             <DiagramWire
               v-if="stage.key === 'decode'"
               vertical
-              class="mx-auto hidden h-4 @min-[40rem]:block"
+              class="mx-auto hidden h-4 @min-[37rem]:block"
               :kind="view.reads.length > 0 ? 'read' : undefined"
               :tick="pulse"
               title="Decode reads rs1 and rs2 from the register file"
@@ -121,17 +121,17 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
             <DiagramWire
               v-else-if="stage.key === 'writeBack'"
               vertical
-              class="mx-auto hidden h-4 @min-[40rem]:block"
+              class="mx-auto hidden h-4 @min-[37rem]:block"
               :kind="view.writes.length > 0 ? 'write' : undefined"
               :tick="pulse"
               title="Write back writes rd into the register file"
             />
-            <span v-else class="hidden h-4 @min-[40rem]:block" />
+            <span v-else class="hidden h-4 @min-[37rem]:block" />
           </template>
           <div v-for="(stage, index) in STAGES" :key="stage.key" class="relative flex min-w-0">
             <DiagramWire
               v-if="index > 0"
-              class="absolute top-1/2 -left-4 hidden w-4 @min-[40rem]:block"
+              class="absolute top-1/2 -left-4 hidden w-4 @min-[37rem]:block"
               :kind="view[stage.key].use"
               :tick="pulse"
             />
