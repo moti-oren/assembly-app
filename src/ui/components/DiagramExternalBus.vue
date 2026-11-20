@@ -18,7 +18,8 @@ defineProps<{ model: CpuDiagramModel }>();
             border (0.8125rem) on the right.
           -->
     <DiagramWire
-      class="-mt-3.25 mr-[calc((var(--biu-width)_-_1.25rem)/2_+_0.8125rem)] hidden h-9 w-0.5 shrink-0 sm:block"
+      vertical
+      class="-mt-3.25 mr-[calc((var(--biu-width)_-_1.25rem)/2_+_0.8125rem)] hidden h-9 shrink-0 sm:block"
       :kind="model.busKind"
       :tick="model.pulse"
     />
@@ -26,7 +27,12 @@ defineProps<{ model: CpuDiagramModel }>();
   <DiagramWire class="hidden sm:block" :kind="model.busKind" :tick="model.pulse" />
   <div class="mt-2 grid gap-x-3 gap-y-2 sm:mt-0 sm:grid-cols-2">
     <div class="flex min-w-0 flex-col items-center">
-      <DiagramWire class="hidden h-3 w-0.5 sm:block" :kind="model.memoryKind" :tick="model.pulse" />
+      <DiagramWire
+        vertical
+        class="hidden h-3 sm:block"
+        :kind="model.memoryKind"
+        :tick="model.pulse"
+      />
       <div
         class="flex w-full min-w-0 items-baseline justify-between gap-3 chip-block rounded-lg border px-3 py-2.5"
         :class="{ 'unit-idle': !model.memoryKind }"
@@ -50,7 +56,12 @@ defineProps<{ model: CpuDiagramModel }>();
       </div>
     </div>
     <div class="flex min-w-0 flex-col items-center">
-      <DiagramWire class="hidden h-3 w-0.5 sm:block" :kind="model.portKind" :tick="model.pulse" />
+      <DiagramWire
+        vertical
+        class="hidden h-3 sm:block"
+        :kind="model.portKind"
+        :tick="model.pulse"
+      />
       <div
         class="flex w-full min-w-0 items-baseline justify-between gap-3 chip-block rounded-lg border px-3 py-2.5"
         :class="{ 'unit-idle': !model.portKind }"

@@ -41,14 +41,40 @@
     position: relative;
     height: 2px;
     border-radius: 1px;
-    background: color-mix(in oklch, var(--wire) 55%, transparent);
+  }
+  /* A vertical wire is as wide as a horizontal one is tall; its length comes from the layout. */
+  .wire-v {
+    width: 2px;
+    height: auto;
+  }
+  /*
+   * The line itself is a border, not a background: the browser rounds a border's width to whole
+   * device pixels, so every wire is the same thickness. A 2px background drawn at a fractional
+   * position (a 125% screen, say) came out 2 or 3 device pixels thick depending on where it sat.
+   */
+  .wire::before,
+  .wire-lit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-top: 2px solid var(--wire-color, color-mix(in oklch, var(--wire) 55%, transparent));
+    transition: border-color 300ms;
+  }
+  .wire-v::before,
+  .wire-v > .wire-lit::before {
+    border-top: 0;
+    border-left: 2px solid var(--wire-color, color-mix(in oklch, var(--wire) 55%, transparent));
+  }
+  /* A wire that only changes colour, without lighting up in a flash (the one down to the flags). */
+  .wire-written {
+    --wire-color: var(--written);
   }
   .wire-lit {
     --kind-color: var(--pointer);
+    --wire-color: var(--kind-color);
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: var(--kind-color);
     animation: wire-light 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .wire-lit[data-kind='write'] {

@@ -39,8 +39,8 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         >
           <span
             v-if="index > 0"
-            class="h-px w-4 transition-colors duration-300"
-            :class="reached(index) ? 'bg-pointer/70' : 'bg-foreground/15'"
+            class="w-4 border-t transition-colors duration-300"
+            :class="reached(index) ? 'border-pointer/70' : 'border-foreground/15'"
             aria-hidden="true"
           />
           <!-- The phase on show is filled; the ones already behind it keep an outline. -->

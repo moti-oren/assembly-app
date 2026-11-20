@@ -60,7 +60,8 @@ const { registerBits } = usePreferences();
         <DiagramExecutionUnit :model="model" :tick="tick" />
 
         <DiagramWire
-          class="hidden h-auto w-0.5 sm:block"
+          vertical
+          class="hidden h-auto sm:block"
           :kind="model.internalKind"
           :tick="model.pulse"
           title="Internal bus"
