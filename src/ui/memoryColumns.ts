@@ -23,3 +23,11 @@ export function columnGap(column: number): 'wide' | 'narrow' | null {
   if (column % 8 === 0) return 'wide';
   return column % 4 === 0 ? 'narrow' : null;
 }
+
+/**
+ * Whether the bytes' text fits beside them. Eight bytes and an 8-digit address already fill a
+ * phone's width, so there the text gives way.
+ */
+export function showsText(columns: MemoryColumns, addressDigits: number): boolean {
+  return columns === 16 || addressDigits <= 4;
+}

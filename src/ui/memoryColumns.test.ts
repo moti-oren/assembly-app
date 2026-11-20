@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { columnGap, memoryColumns, rowStart } from './memoryColumns';
+import { columnGap, memoryColumns, rowStart, showsText } from './memoryColumns';
 
 describe('memoryColumns', () => {
   it('holds sixteen bytes a row where they fit', () => {
@@ -28,5 +28,13 @@ describe('columnGap', () => {
     expect(columnGap(4)).toBe('narrow');
     expect(columnGap(8)).toBe('wide');
     expect(columnGap(12)).toBe('narrow');
+  });
+});
+
+describe('showsText', () => {
+  it('drops the text only from narrow rows with long addresses', () => {
+    expect(showsText(16, 8)).toBe(true);
+    expect(showsText(8, 4)).toBe(true);
+    expect(showsText(8, 8)).toBe(false);
   });
 });

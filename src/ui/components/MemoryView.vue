@@ -151,7 +151,11 @@ function reveal(jump: () => void): void {
           Point at a byte, or run an instruction that uses memory, to see how its address is formed.
         </InfoTip>
         <Select v-model="segment">
-          <SelectTrigger size="sm" class="w-36 font-mono" aria-label="Segment">
+          <SelectTrigger
+            size="sm"
+            class="w-36 font-mono pointer-coarse:data-[size=sm]:h-11"
+            aria-label="Segment"
+          >
             <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
             <SelectValue>
               {{ segment.toUpperCase() }}
@@ -174,7 +178,7 @@ function reveal(jump: () => void): void {
           >
           <Input
             v-model="offsetText"
-            class="h-7 w-28 pl-13 font-mono text-sm"
+            class="h-7 w-28 pl-13 font-mono text-sm pointer-coarse:h-11"
             :aria-invalid="offsetInvalid || undefined"
             :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
             maxlength="6"
@@ -185,7 +189,12 @@ function reveal(jump: () => void): void {
             aria-label="Offset (hex)"
           />
         </div>
-        <Button variant="outline" size="sm" class="ml-auto" @click="showStackTop">
+        <Button
+          variant="outline"
+          size="sm"
+          class="ml-auto pointer-coarse:h-11"
+          @click="showStackTop"
+        >
           <Layers />
           Stack top
         </Button>
@@ -243,11 +252,11 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5">
-        <table class="w-full font-mono text-xs whitespace-nowrap">
+      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5 max-sm:px-1.5">
+        <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pr-3 text-left font-normal">offset</th>
+              <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">offset</th>
               <th
                 v-for="column in columns"
                 :key="column"
@@ -264,7 +273,7 @@ function reveal(jump: () => void): void {
           </thead>
           <tbody @mouseleave="pointed = null">
             <tr v-for="row in rows" :key="row.offset">
-              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
+              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
                 {{ formatHex(row.offset, 16) }}
               </th>
               <td

@@ -14,7 +14,7 @@ import {
   type MemoryPlace
 } from '@/ui/flatMemory';
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
-import { columnGap, MEMORY_ROWS, rowStart } from '@/ui/memoryColumns';
+import { columnGap, MEMORY_ROWS, rowStart, showsText } from '@/ui/memoryColumns';
 import { useMemoryColumns } from '@/ui/useMemoryColumns';
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
@@ -121,13 +121,18 @@ function reveal(jump: () => void): void {
             <span class="font-mono text-written">orange</span> device registers.
           </p>
         </InfoTip>
-        <div class="flex gap-1" role="group" aria-label="Go to">
+        <!-- On a phone the places are a row of their own, which scrolls sideways if it must. -->
+        <div
+          class="flex gap-1 max-sm:order-last max-sm:w-full max-sm:overflow-x-auto"
+          role="group"
+          aria-label="Go to"
+        >
           <Button
             v-for="place in places"
             :key="place.label"
             variant="outline"
             size="sm"
-            class="h-6 rounded-full px-2.5 text-xs text-muted-foreground hover:text-foreground"
+            class="h-6 shrink-0 rounded-full px-2.5 text-xs text-muted-foreground hover:text-foreground pointer-coarse:h-11 pointer-coarse:px-3.5"
             @click="go(place)"
           >
             <Layers v-if="place.stack" />
@@ -141,7 +146,7 @@ function reveal(jump: () => void): void {
           >
           <Input
             v-model="addressText"
-            class="h-7 w-28 font-mono text-sm"
+            class="h-7 w-28 font-mono text-sm pointer-coarse:h-11"
             :class="format.prefix.length > 1 ? 'pl-7' : 'pl-5'"
             :aria-invalid="invalid || undefined"
             :aria-describedby="invalid ? errorId : undefined"
@@ -164,7 +169,7 @@ function reveal(jump: () => void): void {
           <span class="truncate">{{ access.text }}</span>
           <button
             type="button"
-            class="ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             @click="showLastAccess"
           >
             Show in table
@@ -172,11 +177,14 @@ function reveal(jump: () => void): void {
         </template>
       </p>
 
-      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5">
-        <table class="w-full font-mono text-xs whitespace-nowrap">
+      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5 max-sm:px-1.5">
+        <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
           <thead>
             <tr class="text-muted-foreground">
-              <th class="py-1 pr-3 text-left font-normal">address</th>
+              <!-- Eight bytes a row is a phone: the heading is cut to the width of an address. -->
+              <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">
+                {{ columns === 16 ? 'address' : 'addr' }}
+              </th>
               <th
                 v-for="column in columns"
                 :key="column"
@@ -188,12 +196,14 @@ function reveal(jump: () => void): void {
               >
                 {{ (column - 1).toString(16).toUpperCase() }}
               </th>
-              <th class="py-1 pl-3 text-left font-normal">ascii</th>
+              <th v-if="showsText(columns, format.digits)" class="py-1 pl-3 text-left font-normal">
+                ascii
+              </th>
             </tr>
           </thead>
           <tbody @mouseleave="pointed = null">
             <tr v-for="row in rows" :key="row[0].address">
-              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground">
+              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
                 {{ hex(row[0].address) }}
               </th>
               <td
@@ -231,7 +241,10 @@ function reveal(jump: () => void): void {
                 </ChangeMark>
               </td>
               <!-- A character and its byte light up together, whichever one is pointed at. -->
-              <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
+              <td
+                v-if="showsText(columns, format.digits)"
+                class="py-0.5 pl-3 whitespace-pre text-muted-foreground"
+              >
                 <span
                   v-for="byte in row"
                   :key="byte.address"
