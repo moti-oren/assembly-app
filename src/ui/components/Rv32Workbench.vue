@@ -13,6 +13,7 @@ import { describeAccess } from '@/ui/rv32Explain';
 import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
 import { byteAt, rv32MemoryPlaces, RV32_ADDRESSES } from '@/ui/rv32View';
 import { rv32Sounds } from '@/ui/sounds';
+import { byteChanges } from '@/ui/stepDiff';
 import type { CpuOf } from '@/ui/useCpu';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { rv32UsesDevices } from '@/ui/usesDevices';
@@ -98,6 +99,9 @@ const { leftKeys, rightKeys, closable, move, close } = columns;
 const { shown: pipelineShown } = pipeline;
 
 const memoryPlaces = rv32MemoryPlaces(state);
+/** The bytes the last instruction wrote, from what each held to what it holds now. */
+const lastWrites = computed(() => byteChanges(lastRecord.value?.memoryWrites ?? []));
+
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
   const access = record?.access;
@@ -254,6 +258,7 @@ const encodingShown = computed(() =>
           :format="RV32_ADDRESSES"
           :initial="DATA_BASE"
           :heat="memoryHeat"
+          :writes="lastWrites"
           :access="memoryAccess"
           intro="One flat space of 32-bit addresses: RAM from 0x00000000 (the code first), the devices at 0x10000000. Dots mark addresses with nothing wired to them."
           :tick="history.length"

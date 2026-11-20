@@ -13,6 +13,7 @@ import { describeAccess } from '@/ui/mos6502Explain';
 import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
 import { mos6502Sounds } from '@/ui/sounds';
+import { byteChanges } from '@/ui/stepDiff';
 import type { CpuOf } from '@/ui/useCpu';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
@@ -88,6 +89,9 @@ const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panel
 const { leftKeys, rightKeys, closable, move, close } = columns;
 
 const memoryPlaces = mos6502MemoryPlaces(state);
+/** The bytes the last instruction wrote, from what each held to what it holds now. */
+const lastWrites = computed(() => byteChanges(lastRecord.value?.memoryWrites ?? []));
+
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
   return record?.access
@@ -241,6 +245,7 @@ const encodingShown = computed(() =>
           :format="MOS6502_ADDRESSES"
           :initial="0x0200"
           :heat="memoryHeat"
+          :writes="lastWrites"
           :access="memoryAccess"
           intro="64K of 16-bit addresses: the zero page at $0000, the stack in page $01, the code from $0600, the devices at $D000 and the vectors at $FFFA."
           :tick="history.length"
