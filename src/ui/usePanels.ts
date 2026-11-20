@@ -1,5 +1,7 @@
 import { ref, watch, type Ref } from 'vue';
+import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
+import { STORAGE_KEYS } from './storageKeys';
 import type { CpuControls } from './useCpu';
 import { useSidebarLayout } from './useSidebarLayout';
 
@@ -21,14 +23,22 @@ export type UsesDevices<Instruction, Record> = (
   last: Record | null
 ) => boolean;
 
+/**
+ * Which panels are on show. One state for every architecture, remembered between visits, so
+ * switching CPU keeps the sidebar and the devices as they were.
+ */
+const useShown = createGlobalState(() => ({
+  historyShown: useLocalStorage(STORAGE_KEYS.historyShown, false),
+  bytesShown: useLocalStorage(STORAGE_KEYS.bytesShown, false),
+  devicesShown: useLocalStorage(STORAGE_KEYS.devicesShown, false)
+}));
+
 export function usePanels<Instruction, Record extends ExecutionRecord>(
   cpu: CpuControls<Instruction, Record>,
   usesDevices: UsesDevices<Instruction, Record>
 ): Panels {
   const { history, program, lastRecord } = cpu;
-  const historyShown = ref(false);
-  const bytesShown = ref(false);
-  const devicesShown = ref(false);
+  const { historyShown, bytesShown, devicesShown } = useShown();
   const inspectedLine = ref<number | null>(null);
   const sidebar = useSidebarLayout();
 

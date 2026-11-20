@@ -131,7 +131,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   itself, no panel grows past its content, and dragging the line between two open panels (or
   focusing it and using the up and down arrows) moves room from one to the other. What is
   collapsed and how tall each panel is are remembered, and the palette can collapse or expand any
-  of them.
+  of them. The left column is the same for all three CPUs: its order, what is collapsed, and which
+  of History, Machine code and the I/O devices are on show carry over when you switch CPU, and
+  are remembered between visits.
 - The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
   the command palette has them too. The app starts in the light theme until you pick one.
 - With the sound on, the app plays short, quiet cues, all synthesized in the browser. Fetch,
@@ -364,7 +366,9 @@ npm run verify:6502 # check the 6502 core against py65
   והכפתורים שלהן בסרגל התחתון מחזירים אותן. במסך רחב החלוניות הפתוחות מתחלקות בגובה העמודה, כך
   שהעמודה עצמה אף פעם לא נגללת: כל חלונית נגללת בתוך עצמה, אף חלונית לא גדלה מעבר לתוכן שלה, וגרירת
   הקו שבין שתי חלוניות פתוחות (או מיקוד עליו ומקשי החיצים למעלה ולמטה) מעבירה מקום מאחת לשנייה. מה
-  מקופל ומה הגובה של כל חלונית נשמרים, ופלטת הפקודות יכולה לקפל או לפתוח כל אחת מהן.
+  מקופל ומה הגובה של כל חלונית נשמרים, ופלטת הפקודות יכולה לקפל או לפתוח כל אחת מהן. העמודה
+  השמאלית זהה בשלושת המעבדים: הסדר שלה, מה מקופל, ואילו מבין History, Machine code והתקני ה-I/O
+  מוצגים עוברים איתך כשמחליפים מעבד, ונשמרים בין ביקורים.
 - תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
   הפקודות מציעה אותם. האפליקציה נפתחת בערכת הנושא הבהירה עד שבוחרים אחרת.
 - כשהצליל פועל, האפליקציה משמיעה רמזים קצרים ושקטים, שכולם נוצרים בדפדפן. Fetch, decode ו-execute
