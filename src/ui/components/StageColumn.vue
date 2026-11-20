@@ -1,14 +1,21 @@
-<script setup lang="ts" generic="K extends string">
-/** The stage's panels, one under the other in a fixed order; unlike the sidebar, not movable. */
+<script setup lang="ts">
+import { phoneViewOf, type StageKey } from '@/ui/stagePanels';
+
+/**
+ * The stage's panels, one under the other in a fixed order; unlike the sidebar, not movable.
+ * Each is marked with the view a phone shows it in.
+ */
 defineProps<{
-  keys: K[];
+  keys: StageKey[];
 }>();
 
-defineSlots<Record<K, () => unknown>>();
+defineSlots<Record<StageKey, () => unknown>>();
 </script>
 
 <template>
-  <div class="flex min-w-0 flex-col *:shrink-0">
-    <slot v-for="key in keys" :key="key" :name="key" />
+  <div class="flex min-w-0 flex-col">
+    <div v-for="key in keys" :key="key" class="min-w-0 shrink-0" :data-in-view="phoneViewOf(key)">
+      <slot :name="key" />
+    </div>
   </div>
 </template>

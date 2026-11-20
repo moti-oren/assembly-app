@@ -1,7 +1,7 @@
 /* The sidebar: panels that collapse to their header and share the pane's height between them. */
 
 /*
- * The sidebar's panels, VS Code style: each folds to its header, and on a wide screen the open
+ * The sidebar's panels, VS Code style: each folds to its header, and off a phone the open
  * ones share the pane's height (the sizes come from sidebarLayout.ts), each scrolling inside
  * itself, so the pane never scrolls around a list that scrolls too. Unlayered, so the sizes win
  * over the column's own utilities.
@@ -26,6 +26,12 @@
   user-select: none;
   /* A touch on a header drags the panel rather than scrolling the page. */
   touch-action: none;
+}
+/* Worked by touch the panels are not dragged (SortableColumn.vue), so a header scrolls the pane. */
+@media (pointer: coarse) {
+  .sidebar-section [data-slot='card-header'] {
+    touch-action: auto;
+  }
 }
 .sidebar-section:has(> .sidebar-close) [data-slot='card-header'] {
   padding-right: 2.75rem;
@@ -85,7 +91,7 @@
     inset: -0.75rem;
   }
 }
-/* The line between two open panels, which drags to resize them; only on a wide screen. */
+/* The line between two open panels, which drags to resize them; not on a phone. */
 .sidebar-sash {
   display: none;
 }
@@ -94,7 +100,7 @@
   cursor: row-resize !important;
   user-select: none;
 }
-@media (min-width: 64rem) {
+@media (width >= 48rem) {
   .workbench-pane[data-pane='sidebar'] > .sortable-item {
     display: flex;
     flex: var(--section-flex, 0 0 auto);

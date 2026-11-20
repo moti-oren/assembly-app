@@ -1,5 +1,6 @@
 import { computed, type ComputedRef, type Ref } from 'vue';
 import { ARCHITECTURE_CHOICES } from './architectures';
+import { PHONE_VIEW_LABELS, PHONE_VIEWS } from './layoutMode';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
 import type { CpuControls } from './useCpu';
 import { PANEL_LABELS, usePanelOrder } from './usePanelOrder';
@@ -7,7 +8,9 @@ import { useComparison } from './useComparison';
 import type { Panels } from './usePanels';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
 import type { SidebarKey } from './sidebarLayout';
+import { useLayoutMode } from './useLayoutMode';
 import { useSidebarLayout } from './useSidebarLayout';
+import { useWorkbenchView } from './useWorkbenchView';
 
 /** One entry in the command palette. */
 export interface PaletteCommand {
@@ -52,6 +55,8 @@ export function useCommands(
   const panelOrder = usePanelOrder();
   const sidebar = useSidebarLayout();
   const comparison = useComparison();
+  const mode = useLayoutMode();
+  const { view, drawerOpen } = useWorkbenchView();
   const { history, program, insertAt, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
@@ -211,6 +216,27 @@ export function useCommands(
             reduceMotion.value = !reduceMotion.value;
           }
         },
+    // What a narrow screen keeps out of sight: a phone's other views, a tablet's drawer.
+    ...(mode.value === 'phone'
+      ? PHONE_VIEWS.filter((each) => each !== view.value).map((each) => ({
+          group: 'View',
+          label: `Show the ${PHONE_VIEW_LABELS[each]} view`,
+          run: () => {
+            view.value = each;
+          }
+        }))
+      : []),
+    ...(mode.value === 'tablet'
+      ? [
+          {
+            group: 'View',
+            label: drawerOpen.value ? 'Hide the code drawer' : 'Show the code drawer',
+            run: () => {
+              drawerOpen.value = !drawerOpen.value;
+            }
+          }
+        ]
+      : []),
     ...(sidebarKeys?.value ?? []).map((key) => ({
       group: 'Sidebar',
       label: `${sidebar.isCollapsed(key) ? 'Expand' : 'Collapse'} the ${PANEL_LABELS[key]} panel`,

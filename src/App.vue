@@ -9,6 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { useComparison } from '@/ui/useComparison';
 import { sound } from '@/ui/soundEngine';
 import { useCpu } from '@/ui/useCpu';
+import { useKeyboardInset } from '@/ui/useKeyboardInset';
 import { usePreferences } from '@/ui/usePreferences';
 
 // Each workbench is its own chunk, so the first one shown does not wait for the others.
@@ -25,6 +26,7 @@ const x86 = useCpu(X86);
 const rv32 = useCpu(RV32);
 const mos6502 = useCpu(MOS6502);
 const { architecture } = usePreferences();
+useKeyboardInset();
 const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
 
 /** Opens a task's program on its CPU, from the comparison. */

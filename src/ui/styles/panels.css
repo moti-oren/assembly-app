@@ -31,3 +31,16 @@
     color: var(--foreground);
   }
 }
+
+/*
+ * While an on-screen keyboard is up, the builder's buttons stay above it, however long the
+ * list of choices over them. Unlayered, so it wins over the generated footer's utilities.
+ */
+:root[data-keyboard] .builder-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  padding-block: 0.5rem;
+  background: var(--pane);
+}

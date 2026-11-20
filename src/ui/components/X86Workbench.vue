@@ -4,6 +4,7 @@ import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { assemble, encode } from '@/core/x86/encode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { CpuState } from '@/core/x86/state';
+import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { X86_DEVICE_ACCESS } from '@/ui/deviceAccess';
 import { describeMemoryAccess } from '@/ui/describe';
@@ -33,6 +34,7 @@ import RegistersPanel from './RegistersPanel.vue';
 import SidebarColumn from './SidebarColumn.vue';
 import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
+import WorkbenchPanes from './WorkbenchPanes.vue';
 
 const props = defineProps<{
   cpu: CpuOf<Instruction, CpuState, ExecutionRecord>;
@@ -137,10 +139,16 @@ const encodingShown = computed(() =>
     @clear-program="cpu.clearProgram"
     @reset-cpu="cpu.reset"
   />
-  <ChangeStrip class="lg:hidden" :state="state" :record="lastRecord" />
+  <ChangeStrip
+    class="lg:hidden"
+    :state="state"
+    :record="lastRecord"
+    :phase="pending?.phase ?? null"
+    :next="finished ? null : formatLabel(nextLine)"
+  />
 
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
-  <main class="workbench">
+  <WorkbenchPanes>
     <!-- Each pane's panels can be dragged into any order, but never into the other pane. -->
     <SidebarColumn
       class="workbench-pane"
@@ -235,7 +243,7 @@ const encodingShown = computed(() =>
         />
       </template>
     </StageColumn>
-  </main>
+  </WorkbenchPanes>
 
   <TransportBar
     v-model:speed="speed"
