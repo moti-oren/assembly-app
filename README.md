@@ -118,12 +118,12 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
   instruction's own numbers (e.g. `7Fh + 01h` overflows as signed, so OF = 1). Hover or focus a register's
   name to see what it is for.
-- The cards in each column can be put in any order: drag the grip on a card's top edge, or focus
-  it and use the arrow keys (Home and End move it to the top or bottom). A card stays in its own
-  column. The order is remembered, separately for the CPU diagram and the tables, and **Reset the
-  card order and sizes** in the command palette (Ctrl+K) puts it back. On a wide screen each column
-  scrolls on its own, so the program stays in view under a long CPU column, and the bottom bar sits
-  below both.
+- The panels of the left column can be put in any order: drag a panel by its header (a plain
+  click on the header folds it instead), or focus its arrow button and press Alt with the up or
+  down arrow (Alt+Home and Alt+End move it to the top or bottom). The order is remembered, and
+  **Reset the card order and sizes** in the command palette (Ctrl+K) puts it back. The panels of
+  the right column stay where they are. On a wide screen each column scrolls on its own, so the
+  program stays in view under a long CPU column, and the bottom bar sits below both.
 - The left column works like the side bar of an editor. Click a panel's header (or its arrow) to
   collapse it to the header and again to open it; **History** and **Machine code** also have a ✕
   that closes them, and their buttons in the bottom bar bring them back. On a wide screen the open
@@ -347,11 +347,12 @@ npm run verify:6502 # check the 6502 core against py65
 - מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
   אותה הוראה (למשל `7Fh + 01h` גולש כמספר מסומן, ולכן OF = 1). מעבר עם העכבר או מיקוד על שם של רגיסטר מסביר
   למה הוא משמש.
-- אפשר לסדר את הכרטיסיות בכל עמודה בכל סדר: גוררים את הידית שבקצה העליון של הכרטיסייה, או ממקדים
-  אותה ומשתמשים במקשי החיצים (Home ו-End מעבירים אותה לראש העמודה או לסופה). כרטיסייה נשארת בעמודה
-  שלה. הסדר נשמר, בנפרד לדיאגרמת ה-CPU ולטבלאות, והפקודה **Reset the card order and sizes** בפלטת
-  הפקודות (Ctrl+K) מחזירה אותו לברירת המחדל. במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת
-  גלויה לצד עמודת CPU ארוכה, והסרגל התחתון נמצא מתחת לשתיהן.
+- אפשר לסדר את החלוניות של העמודה השמאלית בכל סדר: גוררים חלונית בכותרת שלה (לחיצה פשוטה על
+  הכותרת מקפלת אותה במקום), או ממקדים את כפתור החץ שלה ולוחצים Alt עם החץ למעלה או למטה (Alt+Home
+  ו-Alt+End מעבירים אותה לראש העמודה או לסופה). הסדר נשמר, והפקודה **Reset the card order and
+  sizes** בפלטת הפקודות (Ctrl+K) מחזירה אותו לברירת המחדל. החלוניות של העמודה הימנית נשארות במקומן.
+  במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת גלויה לצד עמודת CPU ארוכה, והסרגל התחתון נמצא
+  מתחת לשתיהן.
 - העמודה השמאלית עובדת כמו סרגל הצד של עורך קוד. לחיצה על הכותרת של חלונית (או על החץ שלה) מקפלת
   אותה עד הכותרת, ולחיצה נוספת פותחת אותה; ל-**History** ול-**Machine code** יש גם ✕ שסוגר אותן,
   והכפתורים שלהן בסרגל התחתון מחזירים אותן. במסך רחב החלוניות הפתוחות מתחלקות בגובה העמודה, כך

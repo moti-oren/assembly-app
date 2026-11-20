@@ -30,7 +30,7 @@ import Mos6502Encoding from './Mos6502Encoding.vue';
 import Mos6502Flags from './Mos6502Flags.vue';
 import Mos6502Registers from './Mos6502Registers.vue';
 import SidebarColumn from './SidebarColumn.vue';
-import SortableColumn from './SortableColumn.vue';
+import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
 
 const props = defineProps<{
@@ -86,7 +86,7 @@ const {
   }
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
-const { leftKeys, rightKeys, rightColumn, closable, move, close } = columns;
+const { leftKeys, rightKeys, closable, move, close } = columns;
 
 const memoryPlaces = mos6502MemoryPlaces(state);
 const memoryAccess = computed(() => {
@@ -144,7 +144,7 @@ const encodingShown = computed(() =>
       :keys="leftKeys"
       :labels="LABELS"
       :closable="closable"
-      @move="(key, to) => move('left', key, to)"
+      @move="move"
       @close="close"
     >
       <template #builder>
@@ -188,13 +188,7 @@ const encodingShown = computed(() =>
       </template>
     </SidebarColumn>
 
-    <SortableColumn
-      class="workbench-pane"
-      data-pane="stage"
-      :keys="rightKeys"
-      :labels="LABELS"
-      @move="(key, to) => move(rightColumn, key, to)"
-    >
+    <StageColumn class="workbench-pane" data-pane="stage" :keys="rightKeys">
       <template #cpu>
         <Mos6502Diagram
           :state="state"
@@ -247,7 +241,7 @@ const encodingShown = computed(() =>
           :tick="history.length"
         />
       </template>
-    </SortableColumn>
+    </StageColumn>
   </main>
 
   <TransportBar

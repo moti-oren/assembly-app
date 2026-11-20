@@ -8,18 +8,17 @@ import { usePreferences } from './usePreferences';
 import { useSidebarLayout } from './useSidebarLayout';
 
 /**
- * The cards of each column, in their default order. The right column has one order per CPU
- * view, since the diagram and the tables show different cards.
+ * The stage's panels, top to bottom. Its order is fixed (only the sidebar's panels can be
+ * moved), and it differs between the CPU views, since the diagram and the tables show
+ * different panels.
  */
-const DEFAULTS = {
-  left: SIDEBAR_PANELS,
+const STAGE = {
   diagram: ['cycle', 'cpu', 'devices', 'memory'],
   table: ['cycle', 'registers', 'operation', 'flags', 'devices', 'memory']
 } as const;
 
-export type Column = keyof typeof DEFAULTS;
-export type PanelKey = (typeof DEFAULTS)[Column][number];
-type Orders = { [C in Column]: PanelKey[] };
+export type StageKey = (typeof STAGE)[keyof typeof STAGE][number];
+export type PanelKey = SidebarKey | StageKey;
 
 export const PANEL_LABELS: Record<PanelKey, string> = {
   builder: 'Instruction',
@@ -35,17 +34,20 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   memory: 'Memory'
 };
 
-const COLUMNS = Object.keys(DEFAULTS) as Column[];
+interface Orders {
+  /** The sidebar, top to bottom. The key keeps its old name, so a saved order still loads. */
+  left: SidebarKey[];
+}
 
 function defaults(): Orders {
-  return { left: [...DEFAULTS.left], diagram: [...DEFAULTS.diagram], table: [...DEFAULTS.table] };
+  return { left: [...SIDEBAR_PANELS] };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-/** Anything unreadable in storage falls back to the defaults, column by column. */
+/** Anything unreadable in storage falls back to the defaults; saved stage orders are ignored. */
 function read(raw: string): Orders {
   let parsed: unknown;
   try {
@@ -54,25 +56,19 @@ function read(raw: string): Orders {
     parsed = null;
   }
   const stored: Record<string, unknown> = isRecord(parsed) ? parsed : {};
-  return {
-    left: sanitizeOrder(stored.left, DEFAULTS.left),
-    diagram: sanitizeOrder(stored.diagram, DEFAULTS.diagram),
-    table: sanitizeOrder(stored.table, DEFAULTS.table)
-  };
+  return { left: sanitizeOrder(stored.left, SIDEBAR_PANELS) };
 }
 
-/** The order the user dragged the cards into, remembered between visits. */
+/** The order the user dragged the sidebar's panels into, remembered between visits. */
 export const usePanelOrder = createGlobalState(() => {
   const orders = useLocalStorage<Orders>(STORAGE_KEYS.panelOrder, defaults(), {
     serializer: { read, write: (value) => JSON.stringify(value) }
   });
 
-  const isDefault = computed(() =>
-    COLUMNS.every((column) => orders.value[column].join() === DEFAULTS[column].join())
-  );
+  const isDefault = computed(() => orders.value.left.join() === SIDEBAR_PANELS.join());
 
-  function setOrder(column: Column, order: PanelKey[]): void {
-    orders.value = { ...orders.value, [column]: order };
+  function setOrder(order: SidebarKey[]): void {
+    orders.value = { left: order };
   }
 
   function reset(): void {
@@ -83,16 +79,15 @@ export const usePanelOrder = createGlobalState(() => {
 });
 
 /**
- * The cards each column shows, in their order, leaving out the ones that are hidden, and how to
- * move one of them. The right column follows the CPU view, which has an order of its own.
+ * The panels each column shows, in their order, leaving out the ones that are hidden, and how
+ * to move one of the sidebar's. The stage follows the CPU view.
  */
 export function usePanelColumns(panels: Panels) {
   const { orders, setOrder } = usePanelOrder();
   const { cpuView } = usePreferences();
   const sidebar = useSidebarLayout();
-  const rightColumn = computed<Column>(() => cpuView.value);
 
-  /** The cards that can be hidden, and whether each one is on show now. */
+  /** The panels that can be hidden, and whether each one is on show now. */
   const shown: Partial<Record<PanelKey, Ref<boolean>>> = {
     history: panels.historyShown,
     encoding: panels.bytesShown,
@@ -107,8 +102,15 @@ export function usePanelColumns(panels: Panels) {
     });
   }
 
-  function visible(column: Column): PanelKey[] {
-    return orders.value[column].filter((key) => shown[key]?.value !== false);
+  function onShow<K extends PanelKey>(keys: readonly K[]): K[] {
+    return keys.filter((key) => shown[key]?.value !== false);
+  }
+
+  const leftKeys = computed(() => onShow(orders.value.left).filter(isSidebarKey));
+
+  /** Makes `key` visible panel number `to`; hidden panels keep their places. */
+  function move(key: SidebarKey, to: number): void {
+    setOrder(moveAmongVisible(orders.value.left, leftKeys.value, key, to));
   }
 
   function close(key: SidebarKey): void {
@@ -116,15 +118,9 @@ export function usePanelColumns(panels: Panels) {
     if (panel) panel.value = false;
   }
 
-  /** Makes `key` visible card number `to`; hidden cards keep their places. */
-  function move(column: Column, key: PanelKey, to: number): void {
-    setOrder(column, moveAmongVisible(orders.value[column], visible(column), key, to));
-  }
-
   return {
-    leftKeys: computed(() => visible('left').filter(isSidebarKey)),
-    rightKeys: computed(() => visible(rightColumn.value)),
-    rightColumn,
+    leftKeys,
+    rightKeys: computed(() => onShow<StageKey>(STAGE[cpuView.value])),
     /** The sidebar panels that can be closed, not only collapsed. */
     closable,
     move,
