@@ -24,6 +24,8 @@
   padding-left: 2.25rem;
   cursor: pointer;
   user-select: none;
+  /* A touch on a header drags the panel rather than scrolling the page. */
+  touch-action: none;
 }
 .sidebar-section:has(> .sidebar-close) [data-slot='card-header'] {
   padding-right: 2.75rem;

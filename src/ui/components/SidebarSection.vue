@@ -3,8 +3,9 @@ import { ChevronRight, X } from '@lucide/vue';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 /**
- * One panel of the sidebar, VS Code style: its header folds it away and opens it again, a
- * closable one has a close button, and the line above it can be dragged to resize it.
+ * One panel of the sidebar, VS Code style: its header folds it away and opens it again (and
+ * drags it, see SortableColumn.vue), a closable one has a close button, and the line above it
+ * can be dragged to resize it. The arrow button is the panel's handle for moving it by keyboard.
  */
 const props = defineProps<{
   label: string;
@@ -50,6 +51,9 @@ function onClick(event: MouseEvent): void {
     <button
       type="button"
       class="sidebar-toggle"
+      data-sortable-handle
+      aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+      title="Alt+Up or Alt+Down moves the panel; so does dragging its header"
       :aria-expanded="!collapsed"
       :aria-label="collapsed ? `Expand the ${label} panel` : `Collapse the ${label} panel`"
       @click.stop="emit('toggle')"

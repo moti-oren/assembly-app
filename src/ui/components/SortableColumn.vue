@@ -1,6 +1,5 @@
 <script setup lang="ts" generic="K extends string">
-import { nextTick, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue';
-import { GripHorizontal } from '@lucide/vue';
+import { nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 import {
   autoScrollStep,
   dragTarget,
@@ -13,8 +12,9 @@ import {
 import { usePreferences } from '@/ui/usePreferences';
 
 /**
- * A column of cards the user can put in any order by dragging a card's grip, or with the
- * arrow keys on the grip. A card can only move within its own column.
+ * A column of cards the user can put in any order by dragging a card's header, or with Alt and
+ * the arrow keys on the card's handle (an element marked `data-sortable-handle`, which the card
+ * provides). A card can only move within its own column.
  *
  * While a card is dragged nothing moves in the page itself: the dragged card follows the
  * pointer and the others slide aside, all drawn with `translate`. The new order is saved once,
@@ -35,6 +35,11 @@ const emit = defineEmits<{
 }>();
 
 defineSlots<Record<K, () => unknown>>();
+
+/** How far the pointer must travel from a header before it is a drag and not a click. */
+const DRAG_DISTANCE = 4;
+/** What in a header keeps its own click: a drag never starts on these. */
+const OWN_CONTROLS = 'button, a, input, select, textarea, [role="button"], [role="separator"]';
 
 /** How long a dropped card takes to glide into its place. */
 const SETTLE_MS = 200;
@@ -59,7 +64,6 @@ const target = ref(0);
 /** Set for the one frame in which the new order replaces the drawn one, so nothing animates. */
 const instant = ref(false);
 const announcement = ref('');
-const hintId = useId();
 
 /* Measured when a drag begins; the page does not change under a drag. */
 let slots: Slot[] = [];
@@ -68,6 +72,8 @@ let gap = 0;
 let minY = 0;
 let maxY = 0;
 let start = { pointerId: -1, pageY: 0 };
+/** A pointer that went down on a header and has not yet moved far enough to drag. */
+let pressed: { key: K; pointerId: number; x: number; y: number } | null = null;
 /** What scrolls under the drag: the column, where it is a pane with a scroll of its own. */
 let scroller: HTMLElement | null = null;
 let pointerY = 0;
@@ -91,6 +97,7 @@ function card(key: K): HTMLElement | null {
   return root.value?.querySelector<HTMLElement>(`[data-sortable="${key}"]`) ?? null;
 }
 
+/** What gets focus back after a keyboard move: the card's own handle. */
 function handle(key: K): HTMLElement | null {
   return card(key)?.querySelector<HTMLElement>('[data-sortable-handle]') ?? null;
 }
@@ -109,9 +116,44 @@ function cardStyle(key: K, index: number): Record<string, string> | undefined {
 
 /* Dragging */
 
-function onPointerDown(event: PointerEvent, key: K): void {
-  if (event.button !== 0 || active.value !== null) return;
-  event.preventDefault();
+/** A press on a card's header (outside its own controls) is a drag once it moves far enough. */
+function onItemPointerDown(event: PointerEvent, key: K): void {
+  if (event.button !== 0 || active.value !== null || pressed) return;
+  const target = event.target as HTMLElement;
+  if (!target.closest('[data-slot="card-header"]') || target.closest(OWN_CONTROLS)) return;
+  pressed = { key, pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+  window.addEventListener('pointermove', onPressMove);
+  window.addEventListener('pointerup', letGo);
+  window.addEventListener('pointercancel', letGo);
+}
+
+function onPressMove(event: PointerEvent): void {
+  if (!pressed || event.pointerId !== pressed.pointerId) return;
+  if (Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) < DRAG_DISTANCE) return;
+  const { key, pointerId } = pressed;
+  letGo();
+  beginDrag(key, pointerId, event.clientY);
+}
+
+/** The press ended before it became a drag: it is a click, which the header handles. */
+function letGo(): void {
+  pressed = null;
+  window.removeEventListener('pointermove', onPressMove);
+  window.removeEventListener('pointerup', letGo);
+  window.removeEventListener('pointercancel', letGo);
+}
+
+/** The click that ends a drag lands on whatever is under the pointer; it must do nothing. */
+function swallowNextClick(): void {
+  const stop = (event: MouseEvent): void => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+  window.addEventListener('click', stop, { capture: true, once: true });
+  window.setTimeout(() => window.removeEventListener('click', stop, { capture: true }), 100);
+}
+
+function beginDrag(key: K, pointerId: number, clientY: number): void {
   const column = root.value;
   if (!column) return;
 
@@ -127,8 +169,8 @@ function onPointerDown(event: PointerEvent, key: K): void {
   maxY = last.top + last.height - (slots[home].top + slots[home].height);
 
   scroller = ownScroller(column);
-  start = { pointerId: event.pointerId, pageY: event.clientY + scrolled() };
-  pointerY = event.clientY;
+  start = { pointerId, pageY: clientY + scrolled() };
+  pointerY = clientY;
   target.value = home;
   dragY.value = 0;
   phase.value = 'dragging';
@@ -193,6 +235,7 @@ function drop(): void {
   const key = active.value;
   if (key === null || phase.value !== 'dragging') return;
   stopListening();
+  swallowNextClick();
   phase.value = 'settling';
   const to = target.value;
   dragY.value = settleOffset(slots, home, to, gap);
@@ -242,6 +285,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  letGo();
   stopListening();
   window.clearTimeout(settleTimer);
 });
@@ -275,6 +319,7 @@ async function reorder(change: () => void): Promise<void> {
 }
 
 function onHandleKey(event: KeyboardEvent, key: K): void {
+  if (!event.altKey || !(event.target as HTMLElement).closest('[data-sortable-handle]')) return;
   const index = props.keys.indexOf(key);
   const to = keyTarget(event.key, index, props.keys.length);
   if (to === null) return;
@@ -307,24 +352,11 @@ function onHandleKey(event: KeyboardEvent, key: K): void {
         'sortable-settling': key === active && phase === 'settling'
       }"
       :style="[itemStyle?.(key), cardStyle(key, index)]"
+      @pointerdown="onItemPointerDown($event, key)"
+      @keydown="onHandleKey($event, key)"
     >
-      <button
-        type="button"
-        data-sortable-handle
-        class="sortable-handle"
-        :aria-label="`Move the ${labels[key]} card`"
-        :aria-describedby="hintId"
-        title="Drag to move this card within its column"
-        @pointerdown="onPointerDown($event, key)"
-        @keydown="onHandleKey($event, key)"
-      >
-        <GripHorizontal aria-hidden="true" />
-      </button>
       <slot :name="key" />
     </div>
-    <p :id="hintId" class="sr-only">
-      Drag it, or use the up and down arrow keys, to move it within this column.
-    </p>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
   </div>
 </template>
