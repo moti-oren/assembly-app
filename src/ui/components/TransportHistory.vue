@@ -13,6 +13,8 @@ const props = defineProps<{
    * button.
    */
   parts?: 'all' | 'undo' | 'rest';
+  /** On a phone Undo is framed like the bar's other buttons, at their height. */
+  framed?: boolean;
 }>();
 
 const emit = defineEmits<{ undo: []; redo: []; seek: [position: number] }>();
@@ -32,9 +34,10 @@ const progress = computed(() =>
   <Tooltip v-if="parts !== 'rest'">
     <TooltipTrigger as-child>
       <Button
-        variant="ghost"
+        :variant="framed ? 'outline' : 'ghost'"
         size="icon-sm"
         class="pointer-coarse:size-11"
+        :class="{ 'size-11': framed }"
         aria-label="Undo the last instruction"
         :disabled="executed === 0"
         @click="emit('undo')"

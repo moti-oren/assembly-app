@@ -28,7 +28,7 @@ const nextPhase = computed(() =>
   <Button
     size="sm"
     class="quiet-disabled px-3 pointer-coarse:h-11 hover:bg-primary/85 disabled:opacity-100"
-    :class="{ 'min-w-0 flex-1': compact }"
+    :class="{ 'h-11 min-w-0 flex-1': compact }"
     :disabled="finished"
     @click="emit('step')"
   >
@@ -41,6 +41,7 @@ const nextPhase = computed(() =>
         variant="outline"
         size="sm"
         class="w-24 justify-start pointer-coarse:h-11"
+        :class="{ 'h-11': compact }"
         :aria-label="`Step: ${nextPhase}`"
         :disabled="finished"
         @click="emit('phase')"
@@ -56,7 +57,7 @@ const nextPhase = computed(() =>
     variant="outline"
     size="sm"
     class="pointer-coarse:h-11"
-    :class="{ 'pointer-coarse:w-11': compact }"
+    :class="{ 'size-11': compact }"
     aria-label="Pause"
     @click="emit('pause')"
   >
@@ -68,7 +69,7 @@ const nextPhase = computed(() =>
     variant="outline"
     size="sm"
     class="pointer-coarse:h-11"
-    :class="{ 'pointer-coarse:w-11': compact }"
+    :class="{ 'size-11': compact }"
     aria-label="Run"
     :disabled="finished"
     @click="emit('run')"

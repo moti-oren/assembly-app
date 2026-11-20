@@ -12,14 +12,15 @@ defineProps<{
 <template>
   <!--
     A panel's standing explanation, kept out of the way until asked for. A click rather than a
-    hover opens it, so it works on a touch screen and stays open while it is read.
+    hover opens it, so it works on a touch screen and stays open while it is read. On a phone it
+    keeps its size beside the title it explains, and a finger hits a larger area around it.
   -->
   <PopoverRoot>
     <PopoverTrigger as-child>
       <Button
         variant="ghost"
         size="icon-xs"
-        class="text-muted-foreground hover:text-foreground pointer-coarse:size-11"
+        class="text-muted-foreground hover:text-foreground max-md:relative max-md:pointer-coarse:after:absolute max-md:pointer-coarse:after:-inset-2.5 max-md:pointer-coarse:after:content-[''] md:pointer-coarse:size-11"
         :aria-label="label"
       >
         <Info />

@@ -13,6 +13,18 @@
   :is([data-slot='card-content'], [data-slot='card-footer']) {
   display: none;
 }
+/* On a phone a collapsed panel is its title alone: its summary line goes with its body. */
+@media (width < 48rem) {
+  .sidebar-section[data-state='collapsed'] [data-slot='card-description'] {
+    display: none;
+  }
+  .sidebar-section[data-state='collapsed'] [data-slot='card-header'] {
+    grid-template-rows: auto;
+  }
+  .sidebar-section[data-state='collapsed'] [data-slot='card-action'] {
+    grid-row: 1;
+  }
+}
 /* A collapsed builder keeps the padding its footer would have taken. */
 .sidebar-section[data-state='collapsed'] > [data-slot='card'] {
   padding-bottom: 1rem;

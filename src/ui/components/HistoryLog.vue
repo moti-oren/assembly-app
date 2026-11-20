@@ -54,7 +54,8 @@ watch(
 <template>
   <Card>
     <CardHeader>
-      <CardTitle class="flex items-center gap-1">
+      <!-- On a phone the title row is as tall as the other panels' titles, on the chevron's line. -->
+      <CardTitle class="flex items-center gap-1 max-md:h-5">
         History
         <InfoTip label="About the history">
           Every instruction you run appears here. Pick one to go back to the moment after it ran.

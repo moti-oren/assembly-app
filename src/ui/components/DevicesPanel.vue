@@ -72,19 +72,24 @@ function flip(bit: number): void {
       </CardTitle>
     </CardHeader>
 
-    <!-- On a phone: the LEDs beside the digits, then the switches and the terminal full width. -->
+    <!--
+      On a phone: the LEDs over the switches, each bit over its own, then the digits beside the
+      terminal, at the same height.
+    -->
     <CardContent
-      class="grid gap-x-6 gap-y-4 max-sm:grid-cols-[auto_auto] max-sm:justify-between max-sm:gap-x-4 sm:grid-cols-[auto_auto_minmax(0,1fr)]"
+      class="grid gap-x-6 gap-y-4 max-sm:grid-cols-[auto_minmax(0,1fr)] max-sm:gap-x-4 sm:grid-cols-[auto_auto_minmax(0,1fr)]"
     >
       <div class="flex flex-col gap-3 max-sm:contents">
-        <section class="max-sm:order-1" aria-label="LEDs">
+        <section class="max-sm:order-1 max-sm:col-span-2" aria-label="LEDs">
           <h3 class="device-title">
             LEDs
             <span class="device-port"
               >{{ access.write }} {{ port(PORTS.leds) }} = {{ formatHex(leds, 8) }}h</span
             >
           </h3>
-          <div class="flex gap-1.5">
+          <div
+            class="flex gap-1.5 max-sm:grid max-sm:grid-cols-8 max-sm:justify-items-center max-sm:gap-0"
+          >
             <span
               v-for="bit in BITS"
               :key="bit"
@@ -97,14 +102,16 @@ function flip(bit: number): void {
           </div>
         </section>
 
-        <section class="max-sm:order-3 max-sm:col-span-2" aria-label="Switches">
+        <section class="max-sm:order-2 max-sm:col-span-2" aria-label="Switches">
           <h3 class="device-title">
             Switches
             <span class="device-port"
               >{{ access.read }} {{ port(PORTS.switches) }} = {{ formatHex(switches, 8) }}h</span
             >
           </h3>
-          <div class="flex gap-1.5 pointer-coarse:gap-5">
+          <div
+            class="flex gap-1.5 pointer-coarse:gap-5 max-sm:grid max-sm:grid-cols-8 max-sm:justify-items-center max-sm:gap-0 max-sm:pointer-coarse:gap-0"
+          >
             <Tooltip v-for="bit in BITS" :key="bit">
               <TooltipTrigger as-child>
                 <button
@@ -124,19 +131,20 @@ function flip(bit: number): void {
         </section>
       </div>
 
-      <section class="max-sm:order-2" aria-label="7-segment display">
-        <h3 class="device-title">
+      <section class="max-sm:order-3" aria-label="7-segment display">
+        <!-- On a phone its column is narrow: the port goes under the name, as the terminal's does. -->
+        <h3 class="device-title max-sm:flex-col max-sm:items-start">
           7-segment
           <span class="device-port"
             >{{ access.write }} {{ port(PORTS.digits) }}, {{ port(PORTS.digits + 1) }}</span
           >
         </h3>
-        <div class="device-screen flex gap-2.5 px-3.5 py-3">
+        <div class="device-screen flex gap-2.5 px-3.5 py-3 max-sm:gap-2 max-sm:px-3 max-sm:py-2.5">
           <svg
             v-for="digit in digits"
             :key="digit.port"
             viewBox="0 0 42 64"
-            class="h-16 w-auto"
+            class="h-16 w-auto max-sm:h-12"
             role="img"
             :aria-label="`Digit at ${access.noun} ${port(digit.port)} shows ${formatHex(digit.value, 8)}h`"
           >
@@ -200,8 +208,8 @@ function flip(bit: number): void {
         </div>
       </section>
 
-      <section class="flex min-w-0 flex-col max-sm:order-4 max-sm:col-span-2" aria-label="Terminal">
-        <h3 class="device-title">
+      <section class="flex min-w-0 flex-col max-sm:order-4" aria-label="Terminal">
+        <h3 class="device-title max-sm:flex-col max-sm:items-start">
           Terminal
           <span class="device-port">{{ access.write }} {{ port(PORTS.terminal) }}</span>
         </h3>
@@ -210,13 +218,16 @@ function flip(bit: number): void {
           text at the top, where a terminal starts printing.
         -->
         <div
-          class="device-screen flex h-24 flex-col-reverse overflow-y-auto px-3 py-2.5 [scrollbar-color:oklch(1_0_0/30%)_transparent]"
+          class="device-screen flex h-24 flex-col-reverse overflow-y-auto px-3 py-2.5 max-sm:h-[4.375rem] [scrollbar-color:oklch(1_0_0/30%)_transparent]"
         >
           <pre
             v-if="terminal"
             class="mb-auto font-mono text-code leading-5 break-all whitespace-pre-wrap"
             aria-live="polite">{{ terminal }}<span class="device-caret" aria-hidden="true" /></pre>
-          <p v-else class="mb-auto text-xs leading-5 text-(--screen-foreground)/70">
+          <p
+            v-else
+            class="mb-auto text-xs leading-5 text-(--screen-foreground)/70 max-sm:leading-4"
+          >
             <span class="device-caret mr-2" aria-hidden="true" />Each byte written here is printed
             as a character.
           </p>

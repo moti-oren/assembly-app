@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
 import { PHONE_VIEW_LABELS, PHONE_VIEWS } from '@/ui/layoutMode';
 import { sound } from '@/ui/soundEngine';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
@@ -12,25 +11,21 @@ function choose(wanted: (typeof PHONE_VIEWS)[number]): void {
 }
 </script>
 
-<!-- A phone's three views of the workbench: what you write, the CPU, and what is on its bus. -->
+<!--
+  A phone's three views of the workbench: what you write, the CPU, and what is on its bus. Flat
+  tabs on a hairline, so they do not read as a second architecture switch under the header's.
+-->
 <template>
-  <nav class="flex-none border-b bg-card px-4 py-1.5" aria-label="View">
-    <div
-      class="segmented"
-      :style="{ '--segments': PHONE_VIEWS.length, '--active': PHONE_VIEWS.indexOf(view) }"
-      role="group"
+  <nav class="flex flex-none border-b bg-card" aria-label="View">
+    <button
+      v-for="each in PHONE_VIEWS"
+      :key="each"
+      type="button"
+      class="view-tab"
+      :aria-pressed="view === each"
+      @click="choose(each)"
     >
-      <Button
-        v-for="each in PHONE_VIEWS"
-        :key="each"
-        variant="ghost"
-        size="sm"
-        class="h-8 px-2 text-xs pointer-coarse:h-10"
-        :aria-pressed="view === each"
-        @click="choose(each)"
-      >
-        {{ PHONE_VIEW_LABELS[each] }}
-      </Button>
-    </div>
+      {{ PHONE_VIEW_LABELS[each] }}
+    </button>
   </nav>
 </template>
