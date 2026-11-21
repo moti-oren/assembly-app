@@ -17,6 +17,8 @@ npx vitest run -t "some test name"                 # a single test by name
 npm run typecheck    # vue-tsc --noEmit
 npm run lint         # eslint . (flat config)
 npm run format       # prettier --write src
+npm run check        # typecheck, lint, format:check and test: the gate before every commit
+npm run check:design # no raw colour outside src/ui/styles.css (scripts/claude/check-design-tokens.mjs)
 npm run verify:rv32  # RISC-V core vs Capstone and Unicorn (Python: pip install capstone unicorn)
 npm run verify:6502  # 6502 core vs py65's assembler and simulator (Python: pip install py65)
 ```
@@ -96,6 +98,15 @@ ESLint enforces the import rules of the core, helper and composable layers, and 
 - **Exports are the module's API:** export only what other files (including tests) use, plus types that appear in exported signatures. Remove exports nobody uses.
 - **Before finishing a task** that added a file or grew one noticeably, re-check it against this section.
 
+## Verification
+
+A change is checked in two tiers: deterministic gates first, review agents only where a gate cannot judge.
+
+- **While editing (hooks, `.claude/settings.json`):** after every Edit or Write, ESLint and Prettier check that one file (`scripts/claude/post-edit.mjs`). When a turn ends with uncommitted changes under `src` or `scripts`, the Stop hook runs the typecheck and `vitest --changed` (`stop-check.mjs`); it blocks the stop once at most. `git-guard.mjs` denies `--no-verify`, a force-push and deleting a remote branch, and asks before a commit on `main`; `pre-edit.mjs` asks before a hand edit in `src/components/ui`.
+- **`/verify` (`.claude/commands/verify.md`) is the one entry point before a commit.** `scripts/claude/route.mjs` reads the diff against `main` and decides what runs. Tier 1 always runs: `npm run check`, plus `check:design` for components and style sheets, `verify:rv32` / `verify:6502` with one fresh seed when that core or `shared/` changed, and `build` when a dependency or the build configuration changed. Tier 2 runs when simulator code changed or more than 30 lines of UI did, and only the agents whose files changed: `isa-correctness`, `vue-architecture`, `design-responsive`, `a11y-interaction`, `perf-runtime` (`.claude/agents/`). `/verify --full` runs all five on any code change. A change to documentation, tests or generated components alone runs no agent.
+- **Agents report, they never edit.** Each answers `PASS | WARN | BLOCK` with findings as `path:line`, a severity (Blocker, Warning, Nit), evidence and a fix. `/verify` merges them, confirms every Blocker in the code, fixes what is mechanical, and stops after two fix rounds. A fix to what an instruction does, to the undo record or to an encoding is never automatic.
+- **Changing the rules:** the routing lives in `route.mjs` and is tested in `route.test.mjs`; change both together. A colour that was in the code before `check:design` existed is listed under `KNOWN` in the script: delete its entry when it moves to a token.
+
 ## Execution model (non-obvious)
 
 - Instructions **run as data, not as bytes**. On the 8086, IP is the index of the next program line (L0, L1, …); jump/call targets are lines. CALL pushes the next line onto the stack and RET pops it. The machine code from `encode.ts` is shown beside the program but never executed, and it is not written into memory.
@@ -112,7 +123,7 @@ ESLint enforces the import rules of the core, helper and composable layers, and 
 
 ## Git
 
-- **Atomic commits:** one logical change per commit. Don't mix a refactor, a bug fix and a feature in one commit, and don't bundle unrelated files. Each commit should leave `npm run typecheck`, `npm run lint` and `npm test` passing. Stage selectively (`git add -p` or by path), never `git add -A` blindly.
+- **Atomic commits:** one logical change per commit. Don't mix a refactor, a bug fix and a feature in one commit, and don't bundle unrelated files. Each commit should leave `npm run check` passing (typecheck, lint, format check and tests; the deploy runs the same four). Stage selectively (`git add -p` or by path), never `git add -A` blindly.
 - **Tests with code:** a change to `src/core/` goes in the same commit as its test update.
 - **Message format:** `<type>: <description>`, all lowercase, imperative or short noun phrase, no trailing period, subject ≤ 72 characters. Types used in this repo's history: `create`, `update`, `change`, `fix`, `remove`, `init`. Use `create` for new files/features, `update` for extending existing ones, `change` for behavior or design changes, `fix` for bugs, `remove` for deletions.
   - Example: `fix: asHigh bits methods in the Mask class`
@@ -125,7 +136,7 @@ ESLint enforces the import rules of the core, helper and composable layers, and 
   - Don't mix two features on one branch. If unrelated work shows up mid-task, finish or commit the current one first.
 - **End-of-task Git workflow:** when a task is **fully completed**, do the Git work without waiting to be asked:
   1. Make sure you are on the right branch (create it per the rules above if the task is new).
-  2. Run `npm run typecheck`, `npm run lint` and `npm test`; fix failures first.
+  2. Run `/verify` (see "Verification"): `npm run check` and the other gates always, the review agents when the change calls for them. Fix failures first; do not commit on a BLOCK.
   3. Split the changes into atomic commits per the rules above and commit them.
   4. Verify `git status` is clean and report the branch and commits to the user, **in Hebrew** (see "Language with the user").
   - **Partial work is exempt:** if the task is only partly done (blocked, failing, waiting for a user decision, or the user stopped midway), do **not** commit or create a branch. Leave the changes uncommitted and say what remains.

@@ -15,9 +15,14 @@ npm run dev        # start the app
 npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
+npm run check      # typecheck, lint, format check and tests in one go
+npm run check:design # no colour written outside the theme tokens
 npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
 npm run verify:6502 # check the 6502 core against py65
 ```
+
+`npm run check:design` fails when a component or a style sheet writes a colour itself instead of
+using a token from `src/ui/styles.css`.
 
 `npm run verify:rv32` needs Python with `pip install capstone unicorn`. It encodes every RISC-V
 instruction with varied operands and has Capstone read the bytes back, then runs random programs
@@ -263,6 +268,8 @@ npm run dev        # start the app
 npm test           # unit tests for the CPU core
 npm run typecheck  # vue-tsc
 npm run lint
+npm run check      # typecheck, lint, format check and tests in one go
+npm run check:design # no colour written outside the theme tokens
 npm run verify:rv32 # check the RISC-V core against Capstone and Unicorn
 npm run verify:6502 # check the 6502 core against py65
 ```
@@ -274,6 +281,9 @@ npm run verify:6502 # check the 6502 core against py65
 - `npm test`: בדיקות יחידה ללב ה-CPU.
 - `npm run typecheck`: בדיקת טיפוסים (vue-tsc).
 - `npm run lint`: בדיקת קוד עם ESLint.
+- `npm run check`: בדיקת טיפוסים, lint, בדיקת פורמט ובדיקות היחידה בפקודה אחת.
+- `npm run check:design`: נכשלת כשקומפוננטה או גיליון סגנון כותבים צבע בעצמם במקום להשתמש בטוקן
+  מתוך `src/ui/styles.css`.
 - `npm run verify:rv32`: בדיקת ליבת ה-RISC-V מול Capstone ו-Unicorn. צריך Python עם
   `pip install capstone unicorn`. הפקודה מקודדת כל הוראת RISC-V עם אופרנדים שונים ונותנת ל-Capstone
   לקרוא את הבתים בחזרה, ואז מריצה תוכניות אקראיות מהבתים שלהן ב-Unicorn ומשווה רגיסטרים, PC
