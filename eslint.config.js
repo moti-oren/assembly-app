@@ -21,6 +21,11 @@ export default tseslint.config(
   {
     languageOptions: { globals: globals.browser }
   },
+  // The scripts run in Node, not in the page.
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: globals.node }
+  },
   // src/core is the CPU: it may import only itself, never Vue or the layers built on top of it.
   {
     files: ['src/core/*.ts'],
