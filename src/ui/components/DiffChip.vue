@@ -10,7 +10,7 @@ defineProps<{
   One value the last step touched, as `name before → after`. A write is orange; a write of the
   same value only underlined; the instruction pointer blue, as everywhere it shows where
   execution is. The old value is muted, the new one bold, both at AA contrast on the chip (blue
-  text is not, so the pointer's new value is in the foreground colour). When the strip runs out
+  text is not, so the pointer's name and new value are in the foreground colour). When the strip runs out
   of room, the old value is cut short first: the new one always stays whole.
 -->
 <template>
@@ -24,7 +24,9 @@ defineProps<{
           : 'bg-changed text-changed-foreground'
     "
   >
-    <span class="shrink-0">{{ entry.name }}</span>
+    <span class="shrink-0" :class="{ 'text-foreground': entry.kind === 'pointer' }">{{
+      entry.name
+    }}</span>
     <template v-if="entry.unchanged">
       <span class="shrink-0 font-semibold">{{ entry.after }}</span>
       <span class="shrink-0 font-sans text-2xs text-muted-foreground">written, unchanged</span>
