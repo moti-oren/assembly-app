@@ -40,8 +40,14 @@ export interface LineRunner<Instruction, State, Record> {
   nextLine(state: State, program: Program<Instruction>): number;
 }
 
-/** Stops runaway loops when running a whole program. */
-const MAX_STEPS = 10_000;
+/** Stops runaway loops when running a whole program, at once or on a timer. */
+export const MAX_STEPS = 10_000;
+
+export function tooManySteps(maxSteps = MAX_STEPS): CpuError {
+  return new CpuError(
+    `Stopped after ${maxSteps} steps, which usually means an endless loop. Use Step to see which jump keeps repeating.`
+  );
+}
 
 /**
  * Stops a run whose records would hold too many memory writes. Every written byte is kept for
@@ -136,12 +142,7 @@ export function runToEnd<I, S, R extends ExecutionRecord>(
   let writes = 0;
   while (!isFinished(cpu, state, program)) {
     if (records.length >= maxSteps) {
-      return {
-        records,
-        error: new CpuError(
-          `Stopped after ${maxSteps} steps, which usually means an endless loop. Use Step to see which jump keeps repeating.`
-        )
-      };
+      return { records, error: tooManySteps(maxSteps) };
     }
     if (writes >= maxWrites) {
       return { records, error: tooManyWrites(maxWrites) };
