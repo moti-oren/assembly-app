@@ -22,7 +22,7 @@ import { adderNote, aluNote, busText, planNote } from './diagramNotes';
 import type { PendingInstruction } from './usePhaseStepping';
 
 /** How the last instruction used a connection: lit as a read, lit as a write, or not at all. */
-export type WireKind = 'read' | 'write' | undefined;
+type WireKind = 'read' | 'write' | undefined;
 
 export interface CpuDiagramInput {
   state: CpuState;
