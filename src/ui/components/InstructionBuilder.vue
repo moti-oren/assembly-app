@@ -277,7 +277,7 @@ function onBackspace(event: KeyboardEvent): void {
       <div
         ref="box"
         data-loc="builder"
-        class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 font-mono text-sm transition-[border-color,outline-color] well outline-3 outline-transparent focus-within:border-pointer/70 focus-within:outline-pointer/20"
+        class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 font-mono text-sm transition-[border-color,outline-color] well outline-3 outline-transparent focus-within:border-ring focus-within:outline-ring/20"
         @click="focusInput"
         @keydown="onBoxKeydown"
       >
@@ -349,7 +349,7 @@ function onBackspace(event: KeyboardEvent): void {
         <button
           v-if="moreToChoose && !choicesShown"
           type="button"
-          class="flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-pointer outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+          class="flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-foreground outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
           @click="unfold"
         >
           Show the choices
