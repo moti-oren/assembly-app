@@ -78,7 +78,7 @@ const stepMemory =
       },
       'NZ'
     );
-    run.store(address, result);
+    run.rewrite(address, before, result);
   };
 
 const arithmetic =
@@ -151,7 +151,7 @@ const shiftOperation =
       'NZC'
     );
     if (address === null) run.set('a', result.result);
-    else run.store(address, result.result);
+    else run.rewrite(address, value, result.result);
   };
 
 const branch =

@@ -104,6 +104,15 @@ export class Run {
     return value;
   }
 
+  /**
+   * The write of a read-modify-write (INC, DEC, the shifts on memory). The NMOS chip writes the
+   * unchanged byte back before the result; only a device can tell, so only a device gets both.
+   */
+  rewrite(address: number, original: number, result: number): void {
+    if (regionAt(address, this.program) === 'device') this.store(address, original);
+    this.store(address, result);
+  }
+
   store(address: number, value: number): void {
     const result = writeByte(this.state, this.program, address, value);
     this.record.memoryWrites.push(...result.memoryWrites);
