@@ -85,6 +85,10 @@
 .sidebar-section[data-state='open'] > .sidebar-toggle svg {
   rotate: 90deg;
 }
+:root[data-motion='reduced'] :is(.sidebar-toggle, .sidebar-close),
+:root[data-motion='reduced'] .sidebar-toggle svg {
+  transition: none;
+}
 .sidebar-toggle:hover,
 .sidebar-close:hover {
   background: var(--muted);
