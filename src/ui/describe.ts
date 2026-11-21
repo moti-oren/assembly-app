@@ -4,16 +4,15 @@ import type { ExecutionRecord } from '@/core/x86/execute';
 import { getSpec, isStringCompare, type Mnemonic } from '@/core/x86/instructions';
 import { formatHex, littleEndian, truncate } from '@/core/shared/numbers';
 import {
-  effectiveAddress,
   effectiveOffset,
   formatOperand,
   memorySegment,
   operandSize,
+  readOperandMemory,
   type Operand
 } from '@/core/x86/operands';
 import { isByteRegister, wordOf, type RegisterName, type WordRegister } from '@/core/x86/registers';
-import { physicalAddress, readRegister, type CpuState, type RegisterFile } from '@/core/x86/state';
-import { readMemory } from '@/core/shared/state';
+import { readRegister, readSegmented, type CpuState, type RegisterFile } from '@/core/x86/state';
 
 /** Instructions whose result can be shown as `a <operator> b = result`. */
 const OPERATORS: Partial<Record<Mnemonic, string>> = {
@@ -90,7 +89,7 @@ export function describeEquation(state: CpuState, record: ExecutionRecord): Equa
   const read = (operand: Operand, registersFrom: RegisterFile): number => {
     if (operand.type === 'reg') return readRegister(registersFrom, operand.name);
     if (operand.type === 'mem') {
-      return readMemory(state, effectiveAddress(stateBefore, operand), size);
+      return readOperandMemory(state, stateBefore, operand, size);
     }
     return operand.type === 'imm' ? truncate(operand.value, size) : 0;
   };
@@ -169,7 +168,7 @@ function stringAccess(state: CpuState, record: ExecutionRecord): MemoryAccess | 
   const fromSource = decode(instruction).reads.includes('si');
   const segment = fromSource ? 'ds' : 'es';
   const offset = fromSource ? registers.si : registers.di;
-  const value = readMemory(state, physicalAddress(registers[segment], offset), size);
+  const value = readSegmented(state, registers[segment], offset, size);
   return memoryAccess(record, segment, offset, formatHex(value, size), false);
 }
 
@@ -185,8 +184,7 @@ function stackAccess(state: CpuState, record: ExecutionRecord): MemoryAccess | n
     return memoryAccess(record, 'ss', offset, formatHex(value, 16), true);
   }
   if (decode(instruction).stack === 'pop') {
-    const top = physicalAddress(registers.ss, registers.sp);
-    const value = formatHex(readMemory(state, top, 16), 16);
+    const value = formatHex(readSegmented(state, registers.ss, registers.sp, 16), 16);
     return memoryAccess(record, 'ss', registers.sp, value, false);
   }
   return null;
@@ -200,7 +198,7 @@ export function describeMemoryAccess(
   const operand = instruction.operands.find((candidate) => candidate.type === 'mem');
   if (operand) {
     const stateBefore = record.before;
-    const value = readMemory(state, effectiveAddress(stateBefore, operand), operand.size);
+    const value = readOperandMemory(state, stateBefore, operand, operand.size);
     return memoryAccess(
       record,
       memorySegment(operand),

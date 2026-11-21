@@ -3,8 +3,8 @@ import { execute } from '@/core/x86/execute';
 import type { Mnemonic } from '@/core/x86/instructions';
 import type { Operand } from '@/core/x86/operands';
 import type { RegisterName } from '@/core/x86/registers';
-import { createCpuState, writeRegister, type CpuState } from '@/core/x86/state';
-import { registersWritten, wasWritten } from './describe';
+import { createCpuState, physicalAddress, writeRegister, type CpuState } from '@/core/x86/state';
+import { describeMemoryAccess, registersWritten, wasWritten } from './describe';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -45,5 +45,16 @@ describe('registersWritten', () => {
     writeRegister(cpu, 'ax', 7);
     writeRegister(cpu, 'bl', 2);
     expect(registersWritten(run('div', reg('bl')))).toEqual(new Set(['ax']));
+  });
+});
+
+describe('describeMemoryAccess', () => {
+  it('shows a word at offset FFFF as the 8086 read it, wrapping inside the segment', () => {
+    const ds = cpu.registers.ds;
+    cpu.memory[physicalAddress(ds, 0xffff)] = 0x34;
+    cpu.memory[physicalAddress(ds, 0x0000)] = 0x12;
+    writeRegister(cpu, 'bx', 0xffff);
+    const record = run('mov', reg('ax'), { type: 'mem', size: 16, base: 'bx', displacement: 0 });
+    expect(describeMemoryAccess(cpu, record)?.value).toBe('1234');
   });
 });

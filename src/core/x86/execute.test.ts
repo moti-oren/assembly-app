@@ -333,6 +333,49 @@ describe('memory and stack', () => {
     expect(readRegister(cpu, 'sp')).toBe(sp);
   });
 
+  describe('a word at offset FFFF wraps to offset 0000 of the same segment', () => {
+    const atBx: Operand = { type: 'mem', size: 16, base: 'bx', displacement: 0 };
+    const ds = () => readRegister(cpu, 'ds');
+
+    it('when read', () => {
+      cpu.memory[physicalAddress(ds(), 0xffff)] = 0x34;
+      cpu.memory[physicalAddress(ds(), 0x0000)] = 0x12;
+      run('mov', reg('bx'), imm(0xffff));
+      run('mov', reg('ax'), atBx);
+      expect(readRegister(cpu, 'ax')).toBe(0x1234);
+    });
+
+    it('when written, and undone', () => {
+      run('mov', reg('bx'), imm(0xffff));
+      run('mov', reg('ax'), imm(0x1234));
+      const record = run('mov', atBx, reg('ax'));
+      expect(cpu.memory[physicalAddress(ds(), 0xffff)]).toBe(0x34);
+      expect(cpu.memory[physicalAddress(ds(), 0x0000)]).toBe(0x12);
+      expect(cpu.memory[(ds() << 4) + 0x10000]).toBe(0);
+
+      undo(cpu, record);
+      expect(cpu.memory[physicalAddress(ds(), 0x0000)]).toBe(0);
+    });
+
+    it('on the stack', () => {
+      writeRegister(cpu, 'sp', 0x0001);
+      run('mov', reg('ax'), imm(0xbeef));
+      run('push', reg('ax'));
+      expect(readRegister(cpu, 'sp')).toBe(0xffff);
+      expect(cpu.memory[physicalAddress(readRegister(cpu, 'ss'), 0x0000)]).toBe(0xbe);
+      run('pop', reg('cx'));
+      expect(readRegister(cpu, 'cx')).toBe(0xbeef);
+    });
+
+    it('in a string instruction', () => {
+      cpu.memory[physicalAddress(ds(), 0xffff)] = 0xcd;
+      cpu.memory[physicalAddress(ds(), 0x0000)] = 0xab;
+      run('mov', reg('si'), imm(0xffff));
+      run('lodsw');
+      expect(readRegister(cpu, 'ax')).toBe(0xabcd);
+    });
+  });
+
   it('push sp stores the SP after the decrement, as the 8086 does', () => {
     const sp = readRegister(cpu, 'sp');
     run('push', reg('sp'));

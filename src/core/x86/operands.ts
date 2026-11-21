@@ -7,7 +7,13 @@ import {
   registerSize,
   type RegisterName
 } from './registers';
-import { physicalAddress, readRegister, type RegisterFile } from './state';
+import {
+  physicalAddress,
+  readRegister,
+  readSegmented,
+  type CpuState,
+  type RegisterFile
+} from './state';
 
 /** Registers the 8086 accepts on their own inside [ ]. */
 export const MEMORY_BASES = ['bx', 'si', 'di', 'bp'] as const;
@@ -106,6 +112,17 @@ export function effectiveOffset(
 ): number {
   const base = operand.base ? readRegister(state, operand.base) : 0;
   return (base + operand.displacement) & 0xffff;
+}
+
+/** A memory operand's value in `state`, located with the registers of `registers`. */
+export function readOperandMemory(
+  state: CpuState,
+  registers: RegisterFile,
+  operand: Extract<Operand, { type: 'mem' }>,
+  size: Size
+): number {
+  const segment = readRegister(registers, memorySegment(operand));
+  return readSegmented(state, segment, effectiveOffset(registers, operand), size);
 }
 
 export function effectiveAddress(

@@ -2,9 +2,13 @@ import { onScopeDispose, watch, type ShallowRef } from 'vue';
 import { decode } from '@/core/x86/decode';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { formatHex } from '@/core/shared/numbers';
-import { effectiveAddress, operandSize, type Operand } from '@/core/x86/operands';
+import {
+  effectiveAddress,
+  operandSize,
+  readOperandMemory,
+  type Operand
+} from '@/core/x86/operands';
 import { physicalAddress, readRegister, type CpuState } from '@/core/x86/state';
-import { readMemory } from '@/core/shared/state';
 import { usePreferences } from './usePreferences';
 
 /**
@@ -74,7 +78,7 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
     const read = (operand: Operand): string => {
       if (operand.type === 'reg') return formatHex(readRegister(state, operand.name), size);
       if (operand.type === 'mem') {
-        return formatHex(readMemory(state, effectiveAddress(stateBefore, operand), size), size);
+        return formatHex(readOperandMemory(state, stateBefore, operand, size), size);
       }
       return formatHex(operand.type === 'imm' ? operand.value : operand.target, size);
     };
