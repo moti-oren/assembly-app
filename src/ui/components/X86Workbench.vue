@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from 'vue';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { assemble, encode } from '@/core/x86/encode';
 import type { ExecutionRecord } from '@/core/x86/execute';
@@ -8,7 +7,6 @@ import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { X86_DEVICE_ACCESS } from '@/ui/deviceAccess';
 import { describeMemoryAccess } from '@/ui/describe';
-import { chooseEncoding } from '@/ui/encodingShown';
 import { X86_CODE_PLACE, x86LineCode } from '@/ui/programCode';
 import { x86Sounds } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
@@ -17,7 +15,9 @@ import { useDataFlow } from '@/ui/useDataFlow';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { usePreferences } from '@/ui/usePreferences';
 import { x86UsesDevices } from '@/ui/usesDevices';
+import { useProgramCode } from '@/ui/useProgramCode';
 import { useWorkbench } from '@/ui/useWorkbench';
+import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
 import { X86_GRAMMAR } from '@/ui/x86Grammar';
 import AppChrome from './AppChrome.vue';
 import ChangeStrip from './ChangeStrip.vue';
@@ -69,9 +69,6 @@ const layout = useLayoutMode();
 
 const { registerBits } = usePreferences();
 
-const builder = useTemplateRef('builder');
-const memoryView = useTemplateRef('memoryView');
-
 const {
   panels,
   commands,
@@ -94,40 +91,19 @@ const {
     }
   ],
   soundOf: (record) => x86Sounds(record, state),
-  page: {
-    focusBuilder: () => builder.value?.focus(),
-    foldBuilder: () => builder.value?.fold(),
-    showStackTop: () => memoryView.value?.showStackTop(),
-    showLastAccess: () => memoryView.value?.showLastAccess(),
-    hasLastAccess: () => {
-      void state.memoryVersion;
-      return lastRecord.value !== null && describeMemoryAccess(state, lastRecord.value) !== null;
-    }
-  }
+  page: useWorkbenchPage(() => {
+    void state.memoryVersion;
+    return lastRecord.value !== null && describeMemoryAccess(state, lastRecord.value) !== null;
+  })
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 
-const programLines = computed(() => program.value.map(formatInstruction));
-
-/** The machine code of every program line; the program itself is never run from these bytes. */
-const assembled = computed(() => assemble(program.value));
-/** The complete instruction sitting in the builder, if any. */
-const draft = shallowRef<Instruction | null>(null);
-
-const encodingShown = computed(() =>
-  chooseEncoding(
-    {
-      program: program.value,
-      lines: assembled.value.lines,
-      draft: draft.value,
-      inspected: inspectedLine.value,
-      next: finished.value ? null : nextLine.value,
-      last: lastRecord.value
-    },
-    encode
-  )
-);
+const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, inspectedLine, {
+  format: formatInstruction,
+  assemble,
+  encode
+});
 </script>
 
 <!-- The 8086's panels, in the columns every architecture shares. -->

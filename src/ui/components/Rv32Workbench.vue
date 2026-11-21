@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from 'vue';
+import { computed } from 'vue';
 import { assemble, encode } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
@@ -7,7 +7,6 @@ import { DATA_BASE, type CpuState } from '@/core/rv32/state';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { RV32_DEVICE_ACCESS } from '@/ui/deviceAccess';
-import { chooseEncoding } from '@/ui/encodingShown';
 import { RV32_CODE_PLACE, rv32LineCode } from '@/ui/programCode';
 import { describeAccess } from '@/ui/rv32Explain';
 import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
@@ -18,7 +17,9 @@ import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
+import { useProgramCode } from '@/ui/useProgramCode';
 import { useWorkbench } from '@/ui/useWorkbench';
+import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
 import AppChrome from './AppChrome.vue';
 import DevicesPanel from './DevicesPanel.vue';
 import FlatMemory from './FlatMemory.vue';
@@ -70,8 +71,6 @@ const layout = useLayoutMode();
 const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
 
 const pipeline = useRv32Pipeline();
-const builder = useTemplateRef('builder');
-const memoryView = useTemplateRef('memoryView');
 
 const {
   panels,
@@ -91,13 +90,7 @@ const {
       forwarding: pipeline.forwarding.value
     }),
   commands: pipeline.commands,
-  page: {
-    focusBuilder: () => builder.value?.focus(),
-    foldBuilder: () => builder.value?.fold(),
-    showStackTop: () => memoryView.value?.showStackTop(),
-    showLastAccess: () => memoryView.value?.showLastAccess(),
-    hasLastAccess: () => lastRecord.value?.access != null
-  }
+  page: useWorkbenchPage(() => lastRecord.value?.access != null)
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
@@ -107,32 +100,17 @@ const memoryPlaces = rv32MemoryPlaces(state);
 
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
-  const access = record?.access;
-  return access && record
-    ? { address: access.address, size: access.size, text: describeAccess(record)! }
+  const text = record && describeAccess(record);
+  return record?.access && text
+    ? { address: record.access.address, size: record.access.size, text }
     : null;
 });
 
-const programLines = computed(() => program.value.map(formatInstruction));
-
-/** The machine code of every program line; the program itself is never run from these bytes. */
-const assembled = computed(() => assemble(program.value));
-/** The first instruction the builder's entry stands for, once it is complete. */
-const draft = shallowRef<Instruction | null>(null);
-
-const encodingShown = computed(() =>
-  chooseEncoding(
-    {
-      program: program.value,
-      lines: assembled.value.lines,
-      draft: draft.value,
-      inspected: inspectedLine.value,
-      next: finished.value ? null : nextLine.value,
-      last: lastRecord.value
-    },
-    encode
-  )
-);
+const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, inspectedLine, {
+  format: formatInstruction,
+  assemble,
+  encode
+});
 </script>
 
 <!-- RISC-V's panels, in the columns every architecture shares. -->
