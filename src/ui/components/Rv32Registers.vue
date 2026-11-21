@@ -7,7 +7,12 @@ import type { CpuState } from '@/core/rv32/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { rv32Pointer, rv32RegisterChange } from '@/ui/architectureDiffs';
-import { REGISTER_GROUPS, ROLE_DESCRIPTIONS, ROLE_LABELS, wasWritten } from '@/ui/rv32View';
+import {
+  REGISTER_GROUPS,
+  ROLE_DESCRIPTIONS,
+  ROLE_LABELS,
+  rv32RegisterWritten
+} from '@/ui/rv32View';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
@@ -90,7 +95,7 @@ const pcMove = computed(
             <span class="text-xs text-muted-foreground">x{{ row.index }}</span>
             <ChangeMark
               :on="changed(row.key)"
-              :written="wasWritten(record, row.index)"
+              :written="rv32RegisterWritten(record, row.index)"
               :tick="tick"
               :title="changeTitle(row.abi, change(row.index))"
               :data-loc="`reg:${row.key}`"

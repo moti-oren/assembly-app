@@ -53,7 +53,7 @@ export const REGISTER_GROUPS: { role: RegisterRole; rows: RegisterRow[] }[] = RO
 );
 
 /** Whether the last instruction wrote register `index`, whether or not its value changed. */
-export function wasWritten(record: ExecutionRecord | null, index: number): boolean {
+export function rv32RegisterWritten(record: ExecutionRecord | null, index: number): boolean {
   return record?.registersWritten.includes(registerKey(index)) ?? false;
 }
 
