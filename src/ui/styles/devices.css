@@ -36,7 +36,7 @@
     border-radius: inherit;
     background: radial-gradient(
       circle at 35% 30%,
-      #fff7ed,
+      var(--led-highlight),
       var(--changed-glow) 45%,
       var(--written) 100%
     );
@@ -52,7 +52,7 @@
 
   /* The 7-segment display and the terminal: dark slate modules in a hairline bezel. */
   .device-screen {
-    --written: #fb923c;
+    --written: var(--screen-written);
     border: 1px solid var(--screen-border);
     border-radius: var(--radius-lg);
     background: var(--screen);

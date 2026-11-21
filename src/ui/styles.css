@@ -200,6 +200,11 @@
   --screen-border: #232730;
   --screen-foreground: #f8fafc;
   --screen-unlit: rgb(255 255 255 / 12%);
+  --screen-scrollbar: rgb(255 255 255 / 30%);
+  /* A write shown on the glass, which is dark in both themes. */
+  --screen-written: #fb923c;
+  /* The hot spot of a lit LED. */
+  --led-highlight: #fff7ed;
   /* A button that cannot be used yet: flat and quiet, but still a button. */
   --disabled: #f2f4f7;
   --disabled-foreground: #98a2b3;

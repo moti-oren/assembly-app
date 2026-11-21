@@ -21,11 +21,7 @@ const NOT_A_COLOUR = /\bmask(?:-image)?\s*:|#0000\b/;
 
 // Colours that were in the code before this check existed. They are reported, not failed:
 // move each to a token (or mark it with the allow comment) and delete its entry.
-const KNOWN = [
-  { file: 'src/ui/components/DevicesPanel.vue', has: 'scrollbar-color:oklch(1_0_0/30%)' },
-  { file: 'src/ui/styles/devices.css', has: '#fff7ed' },
-  { file: 'src/ui/styles/devices.css', has: '--written: #fb923c' }
-];
+const KNOWN = [];
 
 const inScope = (file) =>
   (file === 'src/App.vue' || /^src\/ui\/.*\.(vue|css)$/.test(file)) && file !== TOKEN_SHEET;
