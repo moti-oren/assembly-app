@@ -1,10 +1,8 @@
 import { computed, shallowRef, type ShallowRef } from 'vue';
 import { redo as redoRecord, undo, type ExecutionRecord } from '@/core/shared/executionRecord';
 import { snapshot, type CpuSnapshot, type CpuState } from '@/core/shared/state';
+import { HEAT_STEPS } from './memoryHeat';
 import { byteChanges } from './stepDiff';
-
-/** How many instructions back a memory write still shows as warm. */
-export const HEAT_STEPS = 6;
 
 /** An undone instruction, with the CPU as it left it, so it can be redone without re-running. */
 interface Undone<Record> {

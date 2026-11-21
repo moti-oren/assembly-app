@@ -3,15 +3,16 @@ import { computed, ref, useId } from 'vue';
 import { columnGap, MEMORY_ROWS, rowStart } from '@/ui/memoryColumns';
 import { useMemoryColumns } from '@/ui/useMemoryColumns';
 import { Layers } from '@lucide/vue';
-import { explainAddress, formatPhysical } from '@/core/x86/address';
+import { formatPhysical } from '@/core/x86/address';
 import { printable } from '@/core/shared/devices';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { formatHex, parseNumber } from '@/core/shared/numbers';
 import type { SegmentRegister } from '@/core/x86/registers';
-import { physicalAddress, type CpuState } from '@/core/x86/state';
+import type { CpuState } from '@/core/x86/state';
 import { describeMemoryAccess } from '@/ui/describe';
+import { warmth as byteWarmth } from '@/ui/memoryHeat';
 import { writtenByte, type ByteChange } from '@/ui/stepDiff';
-import { HEAT_STEPS } from '@/ui/useCpuHistory';
+import { segmentRows, workedAddress } from '@/ui/x86MemoryView';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import AddressSum from './AddressSum.vue';
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -59,25 +61,10 @@ const rows = computed(() => {
   // Reading memoryVersion makes this re-run after writes: the byte array itself is not reactive.
   void props.state.memoryVersion;
   const segmentValue = props.state.registers[segment.value];
-  const memory = props.state.memory;
-
-  return Array.from({ length: MEMORY_ROWS }, (_, row) => {
-    const offset = (startOffset.value + row * columns.value) & 0xffff;
-    const bytes = Array.from({ length: columns.value }, (_, column) => {
-      const address = physicalAddress(segmentValue, offset + column);
-      return { address, value: memory[address] };
-    });
-    return { offset, bytes };
-  });
+  return segmentRows(props.state, segmentValue, startOffset.value, MEMORY_ROWS, columns.value);
 });
 
-/** A write cools down over the next few instructions instead of vanishing at once. */
-function warmth(address: number): string | undefined {
-  const age = props.heat.get(address);
-  if (!age) return undefined;
-  const strength = Math.round((1 - age / HEAT_STEPS) * 70);
-  return `color-mix(in oklch, var(--changed) ${strength}%, transparent)`;
-}
+const warmth = (address: number): string | undefined => byteWarmth(props.heat, address);
 
 const lastAccess = computed(() => {
   void props.state.memoryVersion;
@@ -88,36 +75,18 @@ const lastAccess = computed(() => {
 const pointed = ref<number | null>(null);
 
 /** The address being worked out: the pointed byte, or else the last instruction's access. */
-const worked = computed(() => {
-  if (pointed.value !== null) {
-    return {
-      label: 'This byte',
-      segment: segment.value,
-      sum: explainAddress(props.state.registers[segment.value], pointed.value),
-      offsetParts: null,
-      isLastAccess: false
-    };
-  }
-  const access = lastAccess.value;
-  if (!access) return null;
-  return {
-    label: access.write ? 'Last write' : 'Last read',
-    segment: access.segment,
-    sum: explainAddress(access.segmentValue, access.offset),
-    offsetParts: access.offsetParts,
-    isLastAccess: true
-  };
-});
-
-/** Where the offset came from, when a register supplied it. */
-const offsetNote = computed(() => {
-  const parts = worked.value?.offsetParts;
-  if (!parts?.base) return null;
-  const base = parts.base.toUpperCase();
-  if (parts.displacement === 0) return `offset = ${base}`;
-  const sum = `offset = ${base} ${formatHex(parts.baseValue, 16)}h + ${formatHex(parts.displacement, 16)}h`;
-  return parts.wrapped ? `${sum}, wraps at 64K` : sum;
-});
+const worked = computed(() =>
+  workedAddress(
+    pointed.value === null
+      ? null
+      : {
+          segment: segment.value,
+          segmentValue: props.state.registers[segment.value],
+          offset: pointed.value
+        },
+    lastAccess.value || null
+  )
+);
 
 function showLastAccess(): void {
   const access = lastAccess.value;
@@ -214,46 +183,7 @@ function reveal(jump: () => void): void {
         <span v-if="offsetInvalid" :id="offsetErrorId" class="font-sans text-destructive">
           “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
         </span>
-        <template v-else-if="worked">
-          <span
-            class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 lg:shrink-0 lg:flex-nowrap"
-          >
-            <span class="font-sans text-muted-foreground">{{ worked.label }}</span>
-            <span class="font-semibold"
-              >{{ worked.segment.toUpperCase() }}:{{ formatHex(worked.sum.offset, 16) }}</span
-            >
-            <span class="text-muted-foreground">=</span>
-            <span :title="`${worked.segment.toUpperCase()} shifted left by 4 bits`"
-              >{{ formatHex(worked.sum.segment, 16) }}h × 10h</span
-            >
-            <span class="text-muted-foreground">+</span>
-            <span>{{ formatHex(worked.sum.offset, 16) }}h</span>
-            <span class="text-muted-foreground">=</span>
-            <template v-if="worked.sum.wrapped">
-              <span class="text-muted-foreground line-through decoration-1"
-                >{{ formatPhysical(worked.sum.sum) }}h</span
-              >
-              <span class="font-sans text-muted-foreground">wraps past 1MB to</span>
-            </template>
-            <span class="font-semibold text-pointer"
-              >{{ formatPhysical(worked.sum.physical) }}h</span
-            >
-          </span>
-          <span
-            v-if="offsetNote"
-            class="font-sans text-muted-foreground lg:min-w-0 lg:truncate"
-            :title="offsetNote"
-            >· {{ offsetNote }}</span
-          >
-          <button
-            v-if="worked.isLastAccess"
-            type="button"
-            class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-            @click="showLastAccess"
-          >
-            Show in table
-          </button>
-        </template>
+        <AddressSum v-else-if="worked" :worked="worked" @show="showLastAccess" />
       </p>
 
       <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5 max-sm:px-1.5">
