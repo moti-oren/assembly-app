@@ -5,6 +5,7 @@ import {
   SPLIT_REGISTERS,
   WORD_REGISTERS,
   half,
+  type RegisterName,
   type WordRegister
 } from '@/core/x86/registers';
 import type { ExecutionRecord } from '@/core/x86/execute';
@@ -19,11 +20,14 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { x86RegisterChange } from '@/ui/architectureDiffs';
 import { wasWritten } from '@/ui/describe';
+import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -31,6 +35,8 @@ const props = defineProps<{
   previous: Record<WordRegister, number> | null;
   /** The last executed instruction: it marks the registers it wrote without changing them. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -44,6 +50,11 @@ function value(name: WordRegister): number {
 
 function changedBits(name: WordRegister): number {
   return props.previous ? props.previous[name] ^ value(name) : 0;
+}
+
+/** What the last instruction did to a register, or a half of one: IP says when it jumped. */
+function change(name: RegisterName): ValueChange | null {
+  return props.record && props.after && x86RegisterChange(props.record, props.after, name);
 }
 </script>
 
@@ -99,7 +110,10 @@ function changedBits(name: WordRegister): number {
                     >{{ name.toUpperCase() }}</span
                   >
                 </TooltipTrigger>
-                <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+                <TooltipContent class="flex-col items-start" side="right">
+                  <p>{{ REGISTER_DESCRIPTIONS[name] }}</p>
+                  <ValueDiff :change="change(name)" />
+                </TooltipContent>
               </TapTooltip>
             </TableCell>
             <TableCell class="py-1">
@@ -112,7 +126,7 @@ function changedBits(name: WordRegister): number {
                   :on="(changedBits(name) & 0xff00) !== 0"
                   :written="wasWritten(record, half(name, 'h'))"
                   :tick="tick"
-                  :title="`${name[0].toUpperCase()}H`"
+                  :title="changeTitle(half(name, 'h').toUpperCase(), change(half(name, 'h')))"
                   :data-loc="`reg:${name[0]}h`"
                 >
                   <RollingDigits :text="formatHex(value(name) >> 8, 8)" />
@@ -121,7 +135,7 @@ function changedBits(name: WordRegister): number {
                   :on="(changedBits(name) & 0x00ff) !== 0"
                   :written="wasWritten(record, half(name, 'l'))"
                   :tick="tick"
-                  :title="`${name[0].toUpperCase()}L`"
+                  :title="changeTitle(half(name, 'l').toUpperCase(), change(half(name, 'l')))"
                   :data-loc="`reg:${name[0]}l`"
                 >
                   <RollingDigits :text="formatHex(value(name), 8)" />
@@ -132,6 +146,7 @@ function changedBits(name: WordRegister): number {
                 :on="changedBits(name) !== 0"
                 :written="wasWritten(record, name)"
                 :tick="tick"
+                :title="changeTitle(name.toUpperCase(), change(name))"
                 :data-loc="`reg:${name}`"
               >
                 <RollingDigits :text="formatHex(value(name), 16)" />

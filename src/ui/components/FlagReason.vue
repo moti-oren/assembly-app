@@ -2,8 +2,9 @@
 import { computed } from 'vue';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import { explainFlag } from '@/core/x86/flagReasons';
-import { FLAG_INFO, type FlagName } from '@/core/x86/flags';
+import { FLAG_INFO, isFlagSet, type FlagName } from '@/core/x86/flags';
 import { formatInstruction } from '@/core/x86/instructions';
+import { describeFlag } from '@/ui/stepDiff';
 
 const props = defineProps<{
   flag: FlagName;
@@ -12,6 +13,13 @@ const props = defineProps<{
 }>();
 
 const reason = computed(() => props.record && explainFlag(props.record, props.flag));
+
+/** What the instruction did to the flag, e.g. `ZF 0 → 1`. */
+const outcome = computed(() => {
+  const { record, flag } = props;
+  if (!record || !reason.value) return null;
+  return describeFlag(flag, isFlagSet(record.before.flags, flag), reason.value.value);
+});
 </script>
 
 <template>
@@ -23,8 +31,7 @@ const reason = computed(() => props.record && explainFlag(props.record, props.fl
     </p>
     <p v-if="record && reason" class="border-t border-background/25 pt-1.5">
       <span class="font-mono font-semibold">
-        {{ formatInstruction(record.instruction) }} →
-        {{ reason.value === null ? `${flag} unchanged` : `${flag} = ${reason.value ? 1 : 0}` }}
+        {{ formatInstruction(record.instruction) }}: {{ outcome }}
       </span>
       <br />
       {{ reason.text }}

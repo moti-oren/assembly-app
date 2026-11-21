@@ -10,6 +10,7 @@ import { formatHex, parseNumber } from '@/core/shared/numbers';
 import type { SegmentRegister } from '@/core/x86/registers';
 import { physicalAddress, type CpuState } from '@/core/x86/state';
 import { describeMemoryAccess } from '@/ui/describe';
+import { writtenByte, type ByteChange } from '@/ui/stepDiff';
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import {
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
+import WriteTip from './WriteTip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -31,6 +33,8 @@ const props = defineProps<{
   heat: Map<number, number>;
   /** The last executed instruction: its memory access is the address worked out by default. */
   record: ExecutionRecord | null;
+  /** The bytes the last instruction wrote. */
+  writes: ReadonlyMap<number, ByteChange>;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -284,25 +288,35 @@ function reveal(jump: () => void): void {
                   'pl-3': columnGap(column) === 'wide',
                   'pl-2': columnGap(column) === 'narrow'
                 }"
-                :title="`Physical ${formatPhysical(byte.address)}h = ${byte.value}`"
+                :title="
+                  writes.has(byte.address)
+                    ? undefined
+                    : `Physical ${formatPhysical(byte.address)}h = ${byte.value}`
+                "
                 @mouseenter="pointed = (row.offset + column) & 0xffff"
               >
-                <ChangeMark
-                  :on="heat.get(byte.address) === 0"
-                  :tick="tick"
-                  :data-loc="`mem:${byte.address}`"
-                  :style="{ backgroundColor: warmth(byte.address) }"
-                  :class="[
-                    heat.get(byte.address) === 0
-                      ? 'font-semibold'
-                      : byte.value === 0
-                        ? 'byte-zero'
-                        : '',
-                    { 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }
-                  ]"
+                <WriteTip
+                  :change="writtenByte(writes, byte.address)"
+                  :label="`Physical ${formatPhysical(byte.address)}h`"
                 >
-                  <RollingDigits :text="formatHex(byte.value, 8)" />
-                </ChangeMark>
+                  <ChangeMark
+                    :on="writtenByte(writes, byte.address)?.unchanged === false"
+                    :written="writtenByte(writes, byte.address)?.unchanged"
+                    :tick="tick"
+                    :data-loc="`mem:${byte.address}`"
+                    :style="{ backgroundColor: warmth(byte.address) }"
+                    :class="[
+                      heat.get(byte.address) === 0
+                        ? 'font-semibold'
+                        : byte.value === 0
+                          ? 'byte-zero'
+                          : '',
+                      { 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }
+                    ]"
+                  >
+                    <RollingDigits :text="formatHex(byte.value, 8)" />
+                  </ChangeMark>
+                </WriteTip>
               </td>
               <!-- A character and its byte light up together, whichever one is pointed at. -->
               <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">

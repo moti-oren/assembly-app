@@ -7,6 +7,7 @@ import {
   type WordRegister
 } from '@/core/x86/registers';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { changeTitle } from '@/ui/stepDiff';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import { usePreferences } from '@/ui/usePreferences';
 import ChangeMark from './ChangeMark.vue';
@@ -15,6 +16,7 @@ import DiagramFlags from './DiagramFlags.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import ValueDiff from './ValueDiff.vue';
 
 defineProps<{
   model: CpuDiagramModel;
@@ -65,7 +67,10 @@ const GROUP_START: WordRegister = 'sp';
               >{{ name.toUpperCase() }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">{{ REGISTER_DESCRIPTIONS[name] }}</TooltipContent>
+          <TooltipContent side="right" class="flex-col items-start">
+            <p>{{ REGISTER_DESCRIPTIONS[name] }}</p>
+            <ValueDiff :change="model.change(name)" />
+          </TooltipContent>
         </TapTooltip>
 
         <span class="w-14">
@@ -78,7 +83,7 @@ const GROUP_START: WordRegister = 'sp';
               :on="(model.changedBits(name) & 0xff00) !== 0"
               :written="model.wrote(half(name, 'h'))"
               :tick="tick"
-              :title="`${name[0].toUpperCase()}H`"
+              :title="changeTitle(half(name, 'h').toUpperCase(), model.change(half(name, 'h')))"
               :data-loc="`reg:${name[0]}h`"
             >
               <RollingDigits :text="formatHex(model.value(name) >> 8, 8)" />
@@ -87,7 +92,7 @@ const GROUP_START: WordRegister = 'sp';
               :on="(model.changedBits(name) & 0x00ff) !== 0"
               :written="model.wrote(half(name, 'l'))"
               :tick="tick"
-              :title="`${name[0].toUpperCase()}L`"
+              :title="changeTitle(half(name, 'l').toUpperCase(), model.change(half(name, 'l')))"
               :data-loc="`reg:${name[0]}l`"
             >
               <RollingDigits :text="formatHex(model.value(name), 8)" />
@@ -98,6 +103,7 @@ const GROUP_START: WordRegister = 'sp';
             :on="model.changedBits(name) !== 0"
             :written="model.wrote(name)"
             :tick="tick"
+            :title="changeTitle(name.toUpperCase(), model.change(name))"
             :data-loc="`reg:${name}`"
           >
             <RollingDigits :text="formatHex(model.value(name), 16)" />

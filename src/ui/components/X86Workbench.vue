@@ -12,6 +12,7 @@ import { chooseEncoding } from '@/ui/encodingShown';
 import { X86_CODE_PLACE, x86LineCode } from '@/ui/programCode';
 import { x86Sounds } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
+import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useDataFlow } from '@/ui/useDataFlow';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { usePreferences } from '@/ui/usePreferences';
@@ -50,6 +51,8 @@ const {
   program,
   insertAt,
   lastRecord,
+  lastAfter,
+  lastWrites,
   future,
   memoryHeat,
   nextLine,
@@ -60,6 +63,9 @@ const {
 } = cpu;
 
 useDataFlow(state, history);
+
+// The result strip is shown only off a desktop; elsewhere it is not even worked out.
+const layout = useLayoutMode();
 
 const { registerBits } = usePreferences();
 
@@ -140,8 +146,9 @@ const encodingShown = computed(() =>
     @reset-cpu="cpu.reset"
   />
   <ChangeStrip
-    class="lg:hidden"
-    :state="state"
+    v-if="layout !== 'desktop'"
+    :after="lastAfter"
+    :running="running"
     :record="lastRecord"
     :phase="pending?.phase ?? null"
     :next="finished ? null : formatLabel(nextLine)"
@@ -202,7 +209,13 @@ const encodingShown = computed(() =>
 
     <StageColumn class="workbench-pane" data-pane="stage" :keys="rightKeys">
       <template #cpu>
-        <CpuDiagram :state="state" :record="lastRecord" :pending="pending" :tick="history.length" />
+        <CpuDiagram
+          :state="state"
+          :record="lastRecord"
+          :after="lastAfter"
+          :pending="pending"
+          :tick="history.length"
+        />
       </template>
       <template #cycle>
         <Card size="sm">
@@ -216,6 +229,7 @@ const encodingShown = computed(() =>
           :state="state"
           :previous="lastRecord?.before.registers ?? null"
           :record="lastRecord"
+          :after="lastAfter"
           :tick="history.length"
         />
       </template>
@@ -239,6 +253,7 @@ const encodingShown = computed(() =>
           :state="state"
           :heat="memoryHeat"
           :record="lastRecord"
+          :writes="lastWrites"
           :tick="history.length"
         />
       </template>

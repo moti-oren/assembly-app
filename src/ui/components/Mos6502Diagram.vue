@@ -10,7 +10,9 @@ import {
   type CpuState,
   type RegisterName
 } from '@/core/mos6502/state';
+import { mos6502RegisterChange } from '@/ui/architectureDiffs';
 import { diagramView } from '@/ui/mos6502Diagram';
+import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import ChangeMark from './ChangeMark.vue';
 import CpuCanvas from './CpuCanvas.vue';
@@ -23,6 +25,8 @@ const props = defineProps<{
   program: Instruction[];
   /** The last executed instruction: it decides which parts light up. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** A program line being stepped by phase: until it executes, the parts show its plan. */
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes. */
@@ -49,6 +53,13 @@ const REGISTERS: { name: RegisterName; label: string; note: string }[] = [
   { name: 'sp', label: 'SP', note: 'stack' },
   { name: 'pc', label: 'PC', note: 'program counter' }
 ];
+
+/** What the last instruction did to a register; none while a line is being stepped by phase. */
+function change(name: RegisterName): ValueChange | null {
+  return props.pending || !props.record || !props.after
+    ? null
+    : mos6502RegisterChange(props.record, props.after, name);
+}
 
 function changed(name: RegisterName): boolean {
   return (
@@ -88,7 +99,9 @@ const flagChanged = (bit: number) =>
                 <span class="w-10">
                   <ChangeMark
                     :on="changed(register.name)"
+                    :written="change(register.name)?.unchanged"
                     :tick="tick"
+                    :title="changeTitle(register.label, change(register.name))"
                     :data-loc="`reg:${register.name}`"
                   >
                     <RollingDigits
@@ -101,6 +114,11 @@ const flagChanged = (bit: number) =>
                 <span class="truncate text-2xs text-muted-foreground">
                   <template v-if="register.name === 'sp'"
                     >→ ${{ formatHex(STACK_PAGE | state.registers.sp, 16) }}</template
+                  >
+                  <span
+                    v-else-if="register.name === 'pc' && change('pc')?.jump"
+                    class="text-pointer"
+                    >jumped from ${{ change('pc')!.before }}</span
                   >
                   <template v-else-if="register.name === 'pc'">{{ register.note }}</template>
                   <RollingDigits

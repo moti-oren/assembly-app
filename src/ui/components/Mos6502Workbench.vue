@@ -14,6 +14,7 @@ import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
 import { mos6502Sounds } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
+import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
 import { useWorkbench } from '@/ui/useWorkbench';
@@ -49,6 +50,8 @@ const {
   program,
   insertAt,
   lastRecord,
+  lastAfter,
+  lastWrites,
   future,
   memoryHeat,
   nextLine,
@@ -57,6 +60,9 @@ const {
   speed,
   running
 } = cpu;
+
+// The result strip is shown only off a desktop; elsewhere it is not even worked out.
+const layout = useLayoutMode();
 
 const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
 
@@ -88,6 +94,7 @@ const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panel
 const { leftKeys, rightKeys, closable, move, close } = columns;
 
 const memoryPlaces = mos6502MemoryPlaces(state);
+
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
   return record?.access
@@ -133,8 +140,9 @@ const encodingShown = computed(() =>
     @reset-cpu="cpu.reset"
   />
   <Mos6502ChangeStrip
-    class="lg:hidden"
-    :state="state"
+    v-if="layout !== 'desktop'"
+    :after="lastAfter"
+    :running="running"
     :record="lastRecord"
     :phase="pending?.phase ?? null"
     :next="finished ? null : formatLabel(nextLine)"
@@ -199,6 +207,7 @@ const encodingShown = computed(() =>
           :state="state"
           :program="program"
           :record="lastRecord"
+          :after="lastAfter"
           :pending="pending"
           :tick="history.length"
         />
@@ -220,6 +229,7 @@ const encodingShown = computed(() =>
           :state="state"
           :previous="lastRecord?.before.registers ?? null"
           :record="lastRecord"
+          :after="lastAfter"
           :tick="history.length"
         />
       </template>
@@ -241,6 +251,7 @@ const encodingShown = computed(() =>
           :format="MOS6502_ADDRESSES"
           :initial="0x0200"
           :heat="memoryHeat"
+          :writes="lastWrites"
           :access="memoryAccess"
           intro="64K of 16-bit addresses: the zero page at $0000, the stack in page $01, the code from $0600, the devices at $D000 and the vectors at $FFFA."
           :tick="history.length"

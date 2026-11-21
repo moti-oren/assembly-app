@@ -83,6 +83,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   asks first, since Undo cannot bring them back.
 - A register the last instruction changed is filled in amber. One it wrote with the value it
   already held is outlined instead, e.g. `mov si, 0` while SI is 0, so a write is never invisible.
+- Hovering over a register's name or value (or tapping its name) shows what the last instruction
+  did to it, `Previous 0000 → Now 000A`. The same goes for a memory byte it wrote, which is outlined
+  instead of filled when the byte kept its value. When IP or PC went anywhere but the next
+  instruction, it says `(jump)`, and on RISC-V and the 6502 the PC line says where it jumped from.
 - A program line can also be stepped one phase at a time with the phase button next to **Step**:
   fetch, decode, then execute. Fetch and decode show what is about to happen in the **Cycle**
   card above the CPU and on the wires; the registers, flags and memory change only at execute.
@@ -133,8 +137,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   left one is a drawer that **Code**, at the top, slides over it (Esc closes it); Reset and the
   panel buttons move behind **⋯** at the end of the bottom bar. On a phone one view shows at a
   time, chosen under the header: **Code** (the left column), **CPU**, or **Memory & I/O**. The
-  strip above them always shows the last instruction and what it changed, with the line that runs
-  next, and a tap on it goes to the CPU. The bottom bar keeps Step, the phase button, Run and Undo,
+  strip above them always shows the last instruction and what it changed, as `CX 0000 → 000A`,
+  with the line that runs next, and a tap on it goes to the CPU. When more changed than fits, a
+  `+N` at its end lists every change. The bottom bar keeps Step, the phase button, Run and Undo,
   and its **⋯** holds the rest; Compare, the examples and the settings are in the **⋯** menu of
   the header. A phone starts with the CPU as tables, and a row of its memory holds eight bytes.
   On a touch screen the panels are not dragged, and a tap on a register's name or on a flag shows
@@ -336,6 +341,10 @@ npm run verify:6502 # check the 6502 core against py65
   כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
 - רגיסטר שההוראה האחרונה שינתה ממולא בענבר. רגיסטר שהיא כתבה אליו את הערך שכבר היה בו מוקף
   במסגרת מקווקוות במקום, למשל `mov si, 0` כש-SI כבר 0, כך שכתיבה אף פעם לא נעלמת.
+- ריחוף מעל שם של רגיסטר או מעל הערך שלו (או הקשה על השם) מראה מה ההוראה האחרונה עשתה לו,
+  `Previous 0000 → Now 000A`. כך גם בבית בזיכרון שהיא כתבה, שמסומן בקו במקום במילוי כשהבית שמר
+  על ערכו. כש-IP או PC הלכו לכל מקום שאינו ההוראה הבאה כתוב `(jump)`, וב-RISC-V וב-6502 שורת
+  ה-PC אומרת מאיפה הוא קפץ.
 - אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
   fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בכרטיסיית **Cycle** שמעל
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.
@@ -385,7 +394,8 @@ npm run verify:6502 # check the 6502 core against py65
   שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc סוגר אותה); Reset וכפתורי החלוניות עוברים אל
   **⋯** שבקצה הסרגל התחתון. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
   (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
-  שהיא שינתה, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. בסרגל התחתון נשארים Step, כפתור
+  שהיא שינתה, בצורה `CX 0000 → 000A`, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. כשהשתנה
+  יותר ממה שנכנס, `+N` בסופו מציג את כל השינויים. בסרגל התחתון נשארים Step, כפתור
   השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; Compare, הדוגמאות וההגדרות נמצאים בתפריט **⋯** של
   הכותרת. טלפון מתחיל עם ה-CPU כטבלאות, ושורה בזיכרון שלו מחזיקה שמונה בתים. במסך מגע לא גוררים
   חלוניות, והקשה על שם של רגיסטר או על דגל מציגה את מה שריחוף מציג עם עכבר.

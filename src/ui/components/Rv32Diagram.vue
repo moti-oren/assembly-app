@@ -5,7 +5,9 @@ import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
 import type { REGISTER_KEYS } from '@/core/rv32/registers';
 import type { CpuState } from '@/core/rv32/state';
+import { rv32RegisterChange } from '@/ui/architectureDiffs';
 import { datapathView } from '@/ui/rv32Datapath';
+import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import { REGISTER_GROUPS, ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/ui/rv32View';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import ChangeMark from './ChangeMark.vue';
@@ -19,6 +21,8 @@ const props = defineProps<{
   program: Instruction[];
   /** The last executed instruction: it decides which stages and registers light up. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** A program line being stepped by phase: until it executes, the stages show its plan. */
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes. */
@@ -60,6 +64,13 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
     props.record.before.registers[key] !== props.state.registers[key]
   );
 }
+
+/** What the last instruction did to register `index`; none while a line is being stepped by phase. */
+function change(index: number): ValueChange | null {
+  return props.pending || !props.record || !props.after
+    ? null
+    : rv32RegisterChange(props.record, props.after, index);
+}
 </script>
 
 <template>
@@ -93,7 +104,13 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
                   :title="`x${row.index}`"
                 >
                   <span class="w-8 font-semibold">{{ row.abi }}</span>
-                  <ChangeMark :on="changed(row.key)" :tick="tick" :data-loc="`reg:${row.key}`">
+                  <ChangeMark
+                    :on="changed(row.key)"
+                    :written="change(row.index)?.unchanged"
+                    :tick="tick"
+                    :title="changeTitle(row.abi, change(row.index))"
+                    :data-loc="`reg:${row.key}`"
+                  >
                     <RollingDigits :text="formatHex32(state.registers[row.key])" />
                   </ChangeMark>
                 </div>

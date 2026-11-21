@@ -1,19 +1,25 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { STACK_PAGE, type CpuState, type RegisterName } from '@/core/mos6502/state';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { mos6502RegisterChange } from '@/ui/architectureDiffs';
+import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
   state: CpuState;
   /** Register values before the last instruction, used to highlight what changed. */
   previous: Record<RegisterName, number> | null;
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -49,6 +55,13 @@ function changed(name: RegisterName): boolean {
 function written(name: RegisterName): boolean {
   return props.record?.registersWritten.includes(name) ?? false;
 }
+
+/** What the last instruction did to a register; PC says when it jumped. */
+function change(name: RegisterName): ValueChange | null {
+  return props.record && props.after && mos6502RegisterChange(props.record, props.after, name);
+}
+
+const pcMove = computed(() => change('pc'));
 </script>
 
 <template>
@@ -84,12 +97,16 @@ function written(name: RegisterName): boolean {
               >{{ register.label }}</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">{{ register.description }}</TooltipContent>
+          <TooltipContent class="flex-col items-start" side="right">
+            <p>{{ register.description }}</p>
+            <ValueDiff :change="change(register.name)" />
+          </TooltipContent>
         </TapTooltip>
         <ChangeMark
           :on="changed(register.name)"
           :written="written(register.name)"
           :tick="tick"
+          :title="changeTitle(register.label, change(register.name))"
           :data-loc="`reg:${register.name}`"
         >
           <RollingDigits :text="formatHex(state.registers[register.name], 8)" />
@@ -123,13 +140,24 @@ function written(name: RegisterName): boolean {
               >PC</span
             >
           </TooltipTrigger>
-          <TooltipContent side="right">
-            Program counter: the 16-bit address of the next instruction
+          <TooltipContent class="flex-col items-start" side="right">
+            <p>Program counter: the 16-bit address of the next instruction</p>
+            <ValueDiff :change="pcMove" />
           </TooltipContent>
         </TapTooltip>
-        <ChangeMark class="justify-self-start" :on="changed('pc')" :tick="tick" data-loc="reg:pc">
-          <RollingDigits :text="formatHex(state.registers.pc, 16)" />
-        </ChangeMark>
+        <span class="flex items-baseline gap-2">
+          <ChangeMark
+            :on="changed('pc')"
+            :tick="tick"
+            :title="changeTitle('PC', pcMove)"
+            data-loc="reg:pc"
+          >
+            <RollingDigits :text="formatHex(state.registers.pc, 16)" />
+          </ChangeMark>
+          <span v-if="pcMove?.jump" class="font-sans text-2xs text-pointer">
+            jumped from ${{ pcMove.before }}
+          </span>
+        </span>
       </div>
     </CardContent>
   </Card>

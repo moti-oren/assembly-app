@@ -16,9 +16,11 @@ import {
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
 import { columnGap, MEMORY_ROWS, rowStart, showsText } from '@/ui/memoryColumns';
 import { useMemoryColumns } from '@/ui/useMemoryColumns';
+import { writtenByte, type ByteChange } from '@/ui/stepDiff';
 import ChangeMark from './ChangeMark.vue';
 import InfoTip from './InfoTip.vue';
 import RollingDigits from './RollingDigits.vue';
+import WriteTip from './WriteTip.vue';
 
 const props = defineProps<{
   /** Its versions say when memory or a device changed: the byte arrays are not reactive. */
@@ -30,6 +32,8 @@ const props = defineProps<{
   initial: number;
   /** Recently written addresses, mapped to how many instructions ago (0 = the last). */
   heat: Map<number, number>;
+  /** The bytes the last instruction wrote, from what each held to what it holds now. */
+  writes: ReadonlyMap<number, ByteChange>;
   /** The last load or store: its first byte, how many bytes it moved, and what it was in words. */
   access: { address: number; size: number; text: string } | null;
   /** How this memory is laid out, behind the info button. */
@@ -217,28 +221,36 @@ function reveal(jump: () => void): void {
                   'text-written': byte.region === 'device'
                 }"
                 :title="
-                  byte.value === null
-                    ? `${formatAddress(format, byte.address)}: nothing is wired here`
-                    : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
+                  writes.has(byte.address)
+                    ? undefined
+                    : byte.value === null
+                      ? `${formatAddress(format, byte.address)}: nothing is wired here`
+                      : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
                 "
                 @mouseenter="pointed = byte.address"
               >
                 <span v-if="byte.value === null" class="text-tertiary-foreground">··</span>
-                <ChangeMark
+                <WriteTip
                   v-else
-                  :on="heat.get(byte.address) === 0"
-                  :tick="tick"
-                  :data-loc="`mem:${byte.address}`"
-                  :style="{ backgroundColor: warmth(byte.address) }"
-                  :class="{
-                    'byte-pointed': pointed === byte.address,
-                    'font-semibold': heat.get(byte.address) === 0 || accessed(byte.address),
-                    underline: accessed(byte.address),
-                    'byte-zero': byte.value === 0 && byte.region === 'ram'
-                  }"
+                  :change="writtenByte(writes, byte.address)"
+                  :label="formatAddress(format, byte.address)"
                 >
-                  <RollingDigits :text="formatHex(byte.value, 8)" />
-                </ChangeMark>
+                  <ChangeMark
+                    :on="writtenByte(writes, byte.address)?.unchanged === false"
+                    :written="writtenByte(writes, byte.address)?.unchanged"
+                    :tick="tick"
+                    :data-loc="`mem:${byte.address}`"
+                    :style="{ backgroundColor: warmth(byte.address) }"
+                    :class="{
+                      'byte-pointed': pointed === byte.address,
+                      'font-semibold': heat.get(byte.address) === 0 || accessed(byte.address),
+                      underline: accessed(byte.address),
+                      'byte-zero': byte.value === 0 && byte.region === 'ram'
+                    }"
+                  >
+                    <RollingDigits :text="formatHex(byte.value, 8)" />
+                  </ChangeMark>
+                </WriteTip>
               </td>
               <!-- A character and its byte light up together, whichever one is pointed at. -->
               <td
