@@ -1,8 +1,11 @@
-import { truncate } from '../shared/numbers';
+import { truncate, type Size } from '../shared/numbers';
 import {
   createIo,
+  readMemory,
+  writeMemory,
   type CpuSnapshot as SharedSnapshot,
-  type CpuState as SharedState
+  type CpuState as SharedState,
+  type MemoryWrite
 } from '../shared/state';
 import { FLAGS_RESERVED, flagBit, isFlagSet, type FlagName } from './flags';
 import {
@@ -80,4 +83,35 @@ export function setFlag(state: CpuState, flag: FlagName, value: boolean): void {
 /** segment:offset to a 20-bit physical address (wraps around at 1MB like the 8086). */
 export function physicalAddress(segment: number, offset: number): number {
   return ((segment << 4) + truncate(offset, 16)) % MEMORY_SIZE;
+}
+
+/** The physical address of each byte of a byte or word: past offset FFFF it wraps to 0000. */
+function segmentBytes(segment: number, offset: number, size: Size): number[] {
+  return Array.from({ length: size / 8 }, (_, i) => physicalAddress(segment, offset + i));
+}
+
+/** Little-endian read at segment:offset. */
+export function readSegmented(
+  state: CpuState,
+  segment: number,
+  offset: number,
+  size: Size
+): number {
+  return segmentBytes(segment, offset, size).reduce(
+    (value, address, i) => value | (readMemory(state, address, 8) << (8 * i)),
+    0
+  );
+}
+
+/** Little-endian write at segment:offset. Returns what changed, for undo and highlighting. */
+export function writeSegmented(
+  state: CpuState,
+  segment: number,
+  offset: number,
+  size: Size,
+  value: number
+): MemoryWrite[] {
+  return segmentBytes(segment, offset, size).flatMap((address, i) =>
+    writeMemory(state, address, 8, value >> (8 * i))
+  );
 }

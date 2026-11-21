@@ -1,17 +1,18 @@
 import { CpuError } from '../shared/cpuError';
 import { FLAGS_MASK, FLAGS_RESERVED, type FlagName } from './flags';
 import { formatHex, hasEvenParity, mask, signBit, truncate, type Size } from '../shared/numbers';
-import { effectiveAddress, type Operand } from './operands';
+import { effectiveOffset, memorySegment, type Operand } from './operands';
 import type { RegisterName, SegmentRegister } from './registers';
 import {
   getFlag,
-  physicalAddress,
   readRegister,
+  readSegmented,
   setFlag,
   writeRegister,
+  writeSegmented,
   type CpuState
 } from './state';
-import { readMemory, writeMemory, type MemoryWrite, type PortWrite } from '../shared/state';
+import { readMemory, type MemoryWrite, type PortWrite } from '../shared/state';
 
 /** What the ALU computed, kept so the flags it produced can be explained afterwards. */
 export type AluTrace =
@@ -61,7 +62,7 @@ export class ExecutionContext {
       case 'imm':
         return truncate(operand.value, this.size);
       case 'mem':
-        return readMemory(this.state, effectiveAddress(this.state, operand), this.size);
+        return this.readAt(memorySegment(operand), effectiveOffset(this.state, operand));
       case 'label':
         // As a value, a label is the number of its program line.
         return operand.target;
@@ -80,9 +81,7 @@ export class ExecutionContext {
         this.writeRegister(operand.name, value);
         return;
       case 'mem':
-        this.memoryWrites.push(
-          ...writeMemory(this.state, effectiveAddress(this.state, operand), this.size, value)
-        );
+        this.writeAt(memorySegment(operand), effectiveOffset(this.state, operand), value);
         return;
       case 'imm':
       case 'label':
@@ -92,15 +91,14 @@ export class ExecutionContext {
     }
   }
 
-  /** Memory at segment:offset, for instructions that address it without a memory operand. */
-  readAt(segment: SegmentRegister, offset: number): number {
-    const address = physicalAddress(readRegister(this.state, segment), offset);
-    return readMemory(this.state, address, this.size);
+  /** Memory at segment:offset, the instruction's size unless another is given. */
+  readAt(segment: SegmentRegister, offset: number, size: Size = this.size): number {
+    return readSegmented(this.state, readRegister(this.state, segment), offset, size);
   }
 
-  writeAt(segment: SegmentRegister, offset: number, value: number): void {
-    const address = physicalAddress(readRegister(this.state, segment), offset);
-    this.memoryWrites.push(...writeMemory(this.state, address, this.size, value));
+  writeAt(segment: SegmentRegister, offset: number, value: number, size: Size = this.size): void {
+    const base = readRegister(this.state, segment);
+    this.memoryWrites.push(...writeSegmented(this.state, base, offset, size, value));
   }
 
   jump(target: Operand): void {
@@ -178,13 +176,12 @@ export class ExecutionContext {
   push(value: number): void {
     const sp = truncate(readRegister(this.state, 'sp') - 2, 16);
     this.writeRegister('sp', sp);
-    const address = physicalAddress(readRegister(this.state, 'ss'), sp);
-    this.memoryWrites.push(...writeMemory(this.state, address, 16, value));
+    this.writeAt('ss', sp, value, 16);
   }
 
   pop(): number {
     const sp = readRegister(this.state, 'sp');
-    const value = readMemory(this.state, physicalAddress(readRegister(this.state, 'ss'), sp), 16);
+    const value = this.readAt('ss', sp, 16);
     this.writeRegister('sp', sp + 2);
     return value;
   }
