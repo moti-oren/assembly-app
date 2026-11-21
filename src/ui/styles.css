@@ -582,6 +582,7 @@
     }
     .change-flash,
     .wire-lit,
+    .wire-lit::after,
     .digit-glyph {
       animation: none;
       transition: none;
