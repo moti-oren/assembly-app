@@ -5,8 +5,10 @@ import { undo, type ExecutionRecord } from '@/core/shared/executionRecord';
 import {
   isFinished,
   MAX_RUN_WRITES,
+  MAX_STEPS,
   runToEnd,
   step,
+  tooManySteps,
   tooManyWrites,
   type ProgramInstruction
 } from '@/core/shared/program';
@@ -87,9 +89,10 @@ export function useCpu<
   }
 
   const { speed, running, pause, runProgram } = useProgramRun(finished, {
-    stepLine(writes) {
+    stepLine({ steps, writes }) {
       let entry: Record | null = null;
       attempt('program', () => {
+        if (steps >= MAX_STEPS) throw tooManySteps();
         if (writes >= MAX_RUN_WRITES) throw tooManyWrites();
         entry = step(architecture, state, program.value);
         record([entry]);

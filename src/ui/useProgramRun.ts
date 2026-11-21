@@ -2,13 +2,19 @@ import { onScopeDispose, ref, type Ref } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import { RUN_SPEEDS, type RunSpeed } from './runSpeeds';
 
+/** What a timed run has done so far. */
+export interface RunProgress {
+  steps: number;
+  writes: number;
+}
+
 /** How the CPU runs program lines for the runner. */
 export interface ProgramLines {
   /**
    * Runs the line at IP and returns its record, or null when the CPU stopped it with an error.
-   * `writes` is how many memory writes the run has made so far, which has a limit.
+   * `progress` is how many steps and memory writes the run has made so far; both have a limit.
    */
-  stepLine: (writes: number) => ExecutionRecord | null;
+  stepLine: (progress: RunProgress) => ExecutionRecord | null;
   /** Runs every remaining line at once. */
   runToEnd: () => void;
 }
@@ -19,8 +25,8 @@ export function useProgramRun(finished: Readonly<Ref<boolean>>, lines: ProgramLi
   /** True while the program is running line by line on a timer. */
   const running = ref(false);
   let timer: number | undefined;
-  /** Memory writes of the run in progress, held to the same limit as an instant run. */
-  let writes = 0;
+  /** Steps and memory writes of the run in progress, held to the limits of an instant run. */
+  const progress: RunProgress = { steps: 0, writes: 0 };
 
   function pause(): void {
     running.value = false;
@@ -31,8 +37,11 @@ export function useProgramRun(finished: Readonly<Ref<boolean>>, lines: ProgramLi
     let continues = false;
     // Whatever goes wrong, even an error that is not the CPU's, the run must not stay "running".
     try {
-      const entry = finished.value ? null : lines.stepLine(writes);
-      if (entry) writes += entry.memoryWrites.length;
+      const entry = finished.value ? null : lines.stepLine(progress);
+      if (entry) {
+        progress.steps++;
+        progress.writes += entry.memoryWrites.length;
+      }
       continues = entry !== null && !finished.value;
     } finally {
       if (continues) {
@@ -50,7 +59,8 @@ export function useProgramRun(finished: Readonly<Ref<boolean>>, lines: ProgramLi
       return;
     }
     running.value = true;
-    writes = 0;
+    progress.steps = 0;
+    progress.writes = 0;
     runNextLine();
   }
 

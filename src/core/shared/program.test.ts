@@ -6,9 +6,11 @@ import {
   isFinished,
   lineAfterInsert,
   lineAfterRemove,
+  MAX_STEPS,
   removeLine,
   runToEnd,
   step,
+  tooManySteps,
   type LabelOperand,
   type LineRunner,
   type Program
@@ -92,6 +94,10 @@ describe('runToEnd', () => {
     expect(result.records.length).toBe(5);
     expect(result.records.reduce((sum, record) => sum + record.memoryWrites.length, 0)).toBe(300);
     expect(result.error?.message).toContain('250 memory writes');
+  });
+
+  it('names the step limit a timed run shares with it', () => {
+    expect(tooManySteps().message).toContain(`${MAX_STEPS} steps`);
   });
 
   it('stops at the first error and keeps what ran before it', () => {
