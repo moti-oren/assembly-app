@@ -47,7 +47,7 @@ const setLessThan = computed(() => {
         <span class="text-muted-foreground">?</span>
         <span
           class="rounded-sm px-1 font-semibold"
-          :class="comparison.taken ? 'bg-changed text-changed-foreground' : 'bg-muted'"
+          :class="comparison.taken ? 'bg-foreground text-background' : 'bg-muted'"
           >{{ comparison.outcome }}</span
         >
         <span class="w-full text-right font-sans text-xs text-muted-foreground">

@@ -121,8 +121,9 @@ function reveal(jump: () => void): void {
         <InfoTip label="About memory">
           <p>{{ intro }}</p>
           <p class="mt-2">
-            <span class="font-mono text-pointer">blue</span> the program's machine code,
-            <span class="font-mono text-written">orange</span> device registers.
+            <span class="font-mono font-semibold">Bold</span> the program's machine code,
+            <span class="font-mono underline decoration-dotted underline-offset-2">dotted</span>
+            device registers. Colour is kept for the bytes an instruction reads and writes.
           </p>
         </InfoTip>
         <!-- On a phone the places are a row of their own, which scrolls sideways if it must. -->
@@ -217,8 +218,8 @@ function reveal(jump: () => void): void {
                 :class="{
                   'pl-3': columnGap(column) === 'wide',
                   'pl-2': columnGap(column) === 'narrow',
-                  'text-pointer': byte.region === 'code',
-                  'text-written': byte.region === 'device'
+                  'font-semibold': byte.region === 'code',
+                  'underline decoration-dotted underline-offset-2': byte.region === 'device'
                 }"
                 :title="
                   writes.has(byte.address)
