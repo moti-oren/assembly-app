@@ -1,6 +1,11 @@
 import { formatLabel } from '@/core/shared/program';
 import { formatRegister } from '@/core/rv32/operands';
-import type { PipelineRow, PipelineStage, PipelineTiming } from '@/core/rv32/pipeline';
+import type {
+  PipelineOptions,
+  PipelineRow,
+  PipelineStage,
+  PipelineTiming
+} from '@/core/rv32/pipeline';
 
 /** What each stage does, for the legend. */
 export const STAGE_INFO: Record<PipelineStage, string> = {
@@ -121,15 +126,21 @@ function named(row: PipelineRow): string {
 }
 
 /** Why the rows from `from` on were held up, in words: a sentence per stall and per flush. */
-export function pipelineNotes(timing: PipelineTiming, from: number): string[] {
+export function pipelineNotes(
+  timing: PipelineTiming,
+  from: number,
+  { forwarding }: PipelineOptions
+): string[] {
   const notes: string[] = [];
   timing.rows.slice(from).forEach((row) => {
     if (row.hazard) {
       const { register, producer, load, cycles } = row.hazard;
       const source = timing.rows[producer];
-      const why = load
-        ? `the load on ${named(source)} has it only after MEM`
-        : `forwarding is off, so ${named(source)} must write it back first`;
+      // Without forwarding a load waits for WB like everything else, not only for MEM.
+      const why =
+        load && forwarding
+          ? `the load on ${named(source)} has it only after MEM`
+          : `forwarding is off, so ${named(source)} must write it back first`;
       notes.push(
         `${named(row)} waits ${plural(cycles, 'cycle')} in ID for ${formatRegister(register)}: ${why}.`
       );

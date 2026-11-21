@@ -37,7 +37,9 @@ const timing = computed(() =>
   pipelineTiming(props.history, props.program, { forwarding: forwarding.value })
 );
 const grid = computed(() => pipelineGrid(timing.value, ROWS));
-const notes = computed(() => pipelineNotes(timing.value, grid.value.from));
+const notes = computed(() =>
+  pipelineNotes(timing.value, grid.value.from, { forwarding: forwarding.value })
+);
 const summary = computed(() => pipelineSummary(timing.value));
 </script>
 

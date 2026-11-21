@@ -79,6 +79,24 @@ describe('loads, stores and flags', () => {
     expect(() => run(line('sta', abs(CODE_BASE + 1)), program)).toThrow(/Write into code/);
   });
 
+  it('read-modify-write writes a device twice, the old byte first, as the NMOS chip does', () => {
+    setInputPort(cpu, PORTS.terminal, 0x40);
+    const record = run(line('inc', abs(DEVICE_BASE + PORTS.terminal)));
+    expect(record.portWrites.map((write) => write.after)).toEqual([0x40, 0x41]);
+    expect(cpu.io.terminal).toEqual([0x40, 0x41]);
+    undo(cpu, record);
+    expect(cpu.io.terminal).toEqual([]);
+
+    const shifted = run(line('asl', abs(DEVICE_BASE + PORTS.terminal)));
+    expect(shifted.portWrites.map((write) => write.after)).toEqual([0x40, 0x80]);
+  });
+
+  it('read-modify-write on RAM records one write', () => {
+    cpu.memory[0x10] = 5;
+    expect(run(line('dec', zp(0x10))).memoryWrites).toHaveLength(1);
+    expect(cpu.memory[0x10]).toBe(4);
+  });
+
   it('reaches the devices through memory', () => {
     run(line('lda', imm(0x81)));
     const record = run(line('sta', abs(DEVICE_BASE + PORTS.leds)));

@@ -90,19 +90,25 @@ describe('pipelineGrid', () => {
 
 describe('pipelineNotes', () => {
   it('says why an instruction waited, and what a taken branch flushed', () => {
-    expect(pipelineNotes(timing([load, use]), 0)).toEqual([
+    expect(pipelineNotes(timing([load, use]), 0, { forwarding: true })).toEqual([
       'L1 (add t1, t0, t0) waits 1 cycle in ID for t0: the load on L0 (lw t0, 0(zero)) has it only after MEM.'
     ]);
-    expect(pipelineNotes(timing([li(T0, 1), use], false), 0)).toEqual([
+    expect(pipelineNotes(timing([li(T0, 1), use], false), 0, { forwarding: false })).toEqual([
       'L1 (add t1, t0, t0) waits 2 cycles in ID for t0: forwarding is off, so L0 (addi t0, zero, 1) must write it back first.'
     ]);
-    expect(pipelineNotes(timing([branchTo(2), li(T0, 1)]), 0)).toEqual([
+    expect(pipelineNotes(timing([branchTo(2), li(T0, 1)]), 0, { forwarding: true })).toEqual([
       'L0 (beq zero, zero, L2) changes PC in EX: the two instructions fetched behind it are flushed.'
     ]);
   });
 
+  it('gives a load the write-back reason when forwarding is off, since it waits until WB', () => {
+    expect(pipelineNotes(timing([load, use], false), 0, { forwarding: false })).toEqual([
+      'L1 (add t1, t0, t0) waits 2 cycles in ID for t0: forwarding is off, so L0 (lw t0, 0(zero)) must write it back first.'
+    ]);
+  });
+
   it('leaves out the rows before the ones shown', () => {
-    expect(pipelineNotes(timing([load, use]), 2)).toEqual([]);
+    expect(pipelineNotes(timing([load, use]), 2, { forwarding: true })).toEqual([]);
   });
 });
 
