@@ -13,7 +13,7 @@ import {
   type ByteAt,
   type MemoryPlace
 } from '@/ui/flatMemory';
-import { HEAT_STEPS } from '@/ui/useCpuHistory';
+import { warmth as byteWarmth } from '@/ui/memoryHeat';
 import { columnGap, MEMORY_ROWS, rowStart, showsText } from '@/ui/memoryColumns';
 import { useMemoryColumns } from '@/ui/useMemoryColumns';
 import { writtenByte, type ByteChange } from '@/ui/stepDiff';
@@ -64,13 +64,7 @@ const rows = computed(() => {
   return memoryRows(props.byteAt, start.value, MEMORY_ROWS, columns.value);
 });
 
-/** A write cools down over the next few instructions instead of vanishing at once. */
-function warmth(address: number): string | undefined {
-  const age = props.heat.get(address);
-  if (!age) return undefined;
-  const strength = Math.round((1 - age / HEAT_STEPS) * 70);
-  return `color-mix(in oklch, var(--changed) ${strength}%, transparent)`;
-}
+const warmth = (address: number): string | undefined => byteWarmth(props.heat, address);
 
 /** Bytes the last load or store touched. */
 function accessed(address: number): boolean {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from 'vue';
+import { computed } from 'vue';
 import { assemble, encode } from '@/core/mos6502/encode';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { formatInstruction, type Instruction } from '@/core/mos6502/instructions';
@@ -7,7 +7,6 @@ import type { CpuState } from '@/core/mos6502/state';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { MOS6502_DEVICE_ACCESS } from '@/ui/deviceAccess';
-import { chooseEncoding } from '@/ui/encodingShown';
 import { MOS6502_CODE_PLACE, mos6502LineCode } from '@/ui/programCode';
 import { describeAccess } from '@/ui/mos6502Explain';
 import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
@@ -17,7 +16,9 @@ import type { CpuOf } from '@/ui/useCpu';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
+import { useProgramCode } from '@/ui/useProgramCode';
 import { useWorkbench } from '@/ui/useWorkbench';
+import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
 import AppChrome from './AppChrome.vue';
 import DevicesPanel from './DevicesPanel.vue';
 import FlatMemory from './FlatMemory.vue';
@@ -66,9 +67,6 @@ const layout = useLayoutMode();
 
 const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
 
-const builder = useTemplateRef('builder');
-const memoryView = useTemplateRef('memoryView');
-
 const {
   panels,
   commands,
@@ -82,13 +80,7 @@ const {
 } = useWorkbench(cpu, {
   usesDevices: mos6502UsesDevices,
   soundOf: (record) => mos6502Sounds(record, state),
-  page: {
-    focusBuilder: () => builder.value?.focus(),
-    foldBuilder: () => builder.value?.fold(),
-    showStackTop: () => memoryView.value?.showStackTop(),
-    showLastAccess: () => memoryView.value?.showLastAccess(),
-    hasLastAccess: () => lastRecord.value?.access != null
-  }
+  page: useWorkbenchPage(() => lastRecord.value?.access != null)
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
@@ -97,31 +89,15 @@ const memoryPlaces = mos6502MemoryPlaces(state);
 
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
-  return record?.access
-    ? { address: record.access.address, size: 1, text: describeAccess(record)! }
-    : null;
+  const text = record && describeAccess(record);
+  return record?.access && text ? { address: record.access.address, size: 1, text } : null;
 });
 
-const programLines = computed(() => program.value.map(formatInstruction));
-
-/** The machine code of every program line; the program itself is never run from these bytes. */
-const assembled = computed(() => assemble(program.value));
-/** The first instruction the builder's entry stands for, once it is complete. */
-const draft = shallowRef<Instruction | null>(null);
-
-const encodingShown = computed(() =>
-  chooseEncoding(
-    {
-      program: program.value,
-      lines: assembled.value.lines,
-      draft: draft.value,
-      inspected: inspectedLine.value,
-      next: finished.value ? null : nextLine.value,
-      last: lastRecord.value
-    },
-    encode
-  )
-);
+const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, inspectedLine, {
+  format: formatInstruction,
+  assemble,
+  encode
+});
 </script>
 
 <!-- The 6502's panels, in the columns every architecture shares. -->

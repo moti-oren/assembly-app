@@ -1,6 +1,5 @@
-import { computed, reactive, ref, type Ref } from 'vue';
+import { computed, reactive, type Ref } from 'vue';
 import type { Architecture } from '@/core/shared/architecture';
-import { CpuError } from '@/core/shared/cpuError';
 import { undo, type ExecutionRecord } from '@/core/shared/executionRecord';
 import {
   isFinished,
@@ -13,15 +12,13 @@ import {
   type ProgramInstruction
 } from '@/core/shared/program';
 import { setInputPort, type CpuState } from '@/core/shared/state';
+import { useCpuError, type ErrorSource } from './useCpuError';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
 import { useProgramLines } from './useProgramLines';
 import { useProgramRun } from './useProgramRun';
 import type { RunSpeed } from './runSpeeds';
 import type { ByteChange } from './stepDiff';
-
-/** What raised the error on show: the builder's own instruction, or the program. */
-export type ErrorSource = 'builder' | 'program';
 
 /**
  * Wraps a framework-free CPU core in Vue reactivity. The core mutates `state` through the
@@ -41,28 +38,10 @@ export function useCpu<
     state,
     timeline.forgetFuture
   );
-  const error = ref<string | null>(null);
-  /** What raised `error`: the builder's own instruction, or the program. Each shows its own. */
-  const errorFrom = ref<ErrorSource>('builder');
+  const { error, errorFrom, attempt, report, clearError } = useCpuError();
   /** The program line the instruction pointer points at: the one that runs next. */
   const nextLine = computed(() => architecture.nextLine(state, program.value));
   const finished = computed(() => isFinished(architecture, state, program.value));
-
-  /** Runs a CPU operation, turning a CpuError into the visible error message. */
-  function attempt(from: ErrorSource, operation: () => void): boolean {
-    try {
-      operation();
-      error.value = null;
-      return true;
-    } catch (caught) {
-      if (caught instanceof CpuError) {
-        error.value = caught.message;
-        errorFrom.value = from;
-        return false;
-      }
-      throw caught;
-    }
-  }
 
   /**
    * Runs instructions straight from the builder, as one: what one builder entry stands for, like
@@ -102,8 +81,7 @@ export function useCpu<
     runToEnd() {
       const result = runToEnd(architecture, state, program.value);
       record(result.records);
-      error.value = result.error?.message ?? null;
-      errorFrom.value = 'program';
+      report('program', result.error?.message ?? null);
     }
   });
 
@@ -135,7 +113,7 @@ export function useCpu<
   function seek(position: number): void {
     pause();
     timeline.seek(position);
-    error.value = null;
+    clearError();
   }
 
   function undoLast(): void {
@@ -161,7 +139,7 @@ export function useCpu<
     Object.assign(state, architecture.createState());
     state.io.in = inputs;
     timeline.clear();
-    error.value = null;
+    clearError();
   }
 
   return {

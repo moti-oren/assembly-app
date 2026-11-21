@@ -3,6 +3,7 @@ import {
   autoScrollStep,
   dragTarget,
   keyTarget,
+  movedAnnouncement,
   moveAmongVisible,
   sanitizeOrder,
   settleOffset,
@@ -16,6 +17,12 @@ describe('withMoved', () => {
   it('puts the key at its new index', () => {
     expect(withMoved(DEFAULTS, 'a', 2)).toEqual(['b', 'c', 'a', 'd']);
     expect(withMoved(DEFAULTS, 'd', 0)).toEqual(['d', 'a', 'b', 'c']);
+  });
+});
+
+describe('movedAnnouncement', () => {
+  it('names the card and its new place, counted from 1', () => {
+    expect(movedAnnouncement('Memory', DEFAULTS, 'a', 2)).toBe('Memory moved to position 3 of 4');
   });
 });
 

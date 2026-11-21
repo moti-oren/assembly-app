@@ -18,6 +18,16 @@ export function withMoved<K>(keys: readonly K[], key: K, to: number): K[] {
   return order;
 }
 
+/** What a screen reader hears when the card `label` of `keys` is moved to index `to`. */
+export function movedAnnouncement<K>(
+  label: string,
+  keys: readonly K[],
+  key: K,
+  to: number
+): string {
+  return `${label} moved to position ${to + 1} of ${withMoved(keys, key, to).length}`;
+}
+
 /** The place a key on a card's grip moves the card to, from `index` among `count`; null for other keys. */
 export function keyTarget(key: string, index: number, count: number): number | null {
   switch (key) {
