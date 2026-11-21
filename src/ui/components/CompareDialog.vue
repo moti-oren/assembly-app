@@ -104,7 +104,7 @@ const listed = ref<ComparedId>(COMPARED[0]);
                     class="-mr-2 inline-block min-w-9 rounded-md px-2 py-0.5 max-sm:mr-0 max-sm:text-center"
                     :class="
                       row.least.includes(id)
-                        ? 'bg-pointer/15 font-semibold text-foreground inset-ring inset-ring-pointer/40'
+                        ? 'bg-muted font-semibold text-foreground inset-ring inset-ring-foreground/40'
                         : ''
                     "
                     >{{ row.values[id] }}</span

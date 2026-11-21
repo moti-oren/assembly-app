@@ -27,7 +27,7 @@ const ROWS = 8;
 
 const CELL_CLASSES: Record<PipelineCell['kind'], string> = {
   run: 'stage-chip',
-  stall: 'border border-dashed border-changed-foreground/60 bg-changed/40 text-changed-foreground',
+  stall: 'border border-dashed border-foreground/50 text-muted-foreground',
   flushed: 'bg-muted text-tertiary-foreground line-through'
 };
 
@@ -66,7 +66,7 @@ const summary = computed(() => pipelineSummary(timing.value));
         class="h-5 gap-1.5 rounded-full px-2 text-2xs pointer-coarse:h-11"
         :class="
           forwarding
-            ? 'border-pointer/60 bg-pointer/15 text-foreground hover:bg-pointer/25 dark:border-pointer/50 dark:bg-pointer/15 dark:hover:bg-pointer/25'
+            ? 'border-foreground/60 bg-muted text-foreground hover:bg-accent'
             : 'border-dashed text-muted-foreground'
         "
         :aria-pressed="forwarding"
@@ -75,7 +75,7 @@ const summary = computed(() => pipelineSummary(timing.value));
       >
         <span
           class="size-1.5 rounded-full"
-          :class="forwarding ? 'bg-pointer shadow-[0_0_6px_var(--pointer)]' : 'bg-foreground/30'"
+          :class="forwarding ? 'bg-foreground' : 'bg-foreground/30'"
           aria-hidden="true"
         />
         Forwarding {{ forwarding ? 'on' : 'off' }}

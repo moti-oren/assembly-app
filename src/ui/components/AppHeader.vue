@@ -46,7 +46,7 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
         variant="outline"
         size="sm"
         class="pointer-coarse:h-11"
-        :class="drawerOpen ? 'border-pointer/60 bg-pointer/12 text-foreground' : ''"
+        :class="drawerOpen ? 'border-foreground/60 bg-muted text-foreground' : ''"
         :aria-pressed="drawerOpen"
         aria-label="Code: the instruction and the program"
         @click="drawerOpen = !drawerOpen"
