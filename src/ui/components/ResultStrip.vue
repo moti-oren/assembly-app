@@ -66,7 +66,10 @@ function reached(index: number): boolean {
       <span v-if="ran === null" class="truncate font-sans text-muted-foreground">
         Run an instruction to see what it changes
       </span>
-      <span v-else class="shrink-0 font-semibold">{{ ran }}</span>
+      <!-- From a tablet up, the instruction gives way before any chip is cut. -->
+      <span v-else class="shrink-0 font-semibold sm:min-w-0 sm:shrink-[100] sm:truncate">{{
+        ran
+      }}</span>
       <DiffChip
         v-for="(change, index) in changes.slice(0, STRIP_ENTRIES.wide)"
         :key="change.name"
