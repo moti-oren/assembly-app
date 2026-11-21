@@ -316,6 +316,13 @@ describe('memory and stack', () => {
     expect(readRegister(cpu, 'sp')).toBe(sp);
   });
 
+  it('push sp stores the SP after the decrement, as the 8086 does', () => {
+    const sp = readRegister(cpu, 'sp');
+    run('push', reg('sp'));
+    expect(readRegister(cpu, 'sp')).toBe(sp - 2);
+    expect(readMemory(cpu, physicalAddress(readRegister(cpu, 'ss'), sp - 2), 16)).toBe(sp - 2);
+  });
+
   it('xchg swaps', () => {
     writeRegister(cpu, 'ax', 1);
     writeRegister(cpu, 'bx', 2);
