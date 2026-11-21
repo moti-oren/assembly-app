@@ -112,41 +112,48 @@ export function useDataFlow(state: CpuState, history: ShallowRef<ExecutionRecord
     return [];
   }
 
-  function launch(flights: Flight[]): boolean {
-    let launched = false;
-    for (const flight of flights) {
+  /** Where each flight starts and lands, read in one pass before anything is added to the page. */
+  function measure(flights: Flight[]): { text: string; from: DOMRect; to: DOMRect }[] {
+    return flights.flatMap((flight) => {
       const from = flight.from && document.querySelector(flight.from)?.getBoundingClientRect();
       const to = flight.to && document.querySelector(flight.to)?.getBoundingClientRect();
       // Either end may be out of sight: a memory cell outside the rows on show, a panel of a view
       // a phone is not on, or one scrolled out of its pane.
-      if (!from || !to || !inSight(from) || !inSight(to)) continue;
+      if (!from || !to || !inSight(from) || !inSight(to)) return [];
+      return [{ text: flight.text, from, to }];
+    });
+  }
 
-      const x0 = from.left + from.width / 2;
-      const y0 = from.top + from.height / 2;
-      const x1 = to.left + to.width / 2;
-      const y1 = to.top + to.height / 2;
-      const position = (x: number, y: number, scale: number): string =>
-        `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${scale})`;
+  function fly(text: string, from: DOMRect, to: DOMRect): void {
+    const x0 = from.left + from.width / 2;
+    const y0 = from.top + from.height / 2;
+    const x1 = to.left + to.width / 2;
+    const y1 = to.top + to.height / 2;
+    const position = (x: number, y: number, scale: number): string =>
+      `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${scale})`;
 
-      const packet = document.createElement('span');
-      packet.className = 'data-packet';
-      packet.textContent = flight.text;
-      layer.append(packet);
+    const packet = document.createElement('span');
+    packet.className = 'data-packet';
+    packet.textContent = text;
+    layer.append(packet);
 
-      const animation = packet.animate(
-        [
-          { transform: position(x0, y0, 0.9), opacity: 0 },
-          { opacity: 1, offset: 0.15 },
-          { transform: position((x0 + x1) / 2, (y0 + y1) / 2 - 18, 1.15), offset: 0.5 },
-          { opacity: 1, offset: 0.85 },
-          { transform: position(x1, y1, 0.85), opacity: 0 }
-        ],
-        { duration: FLIGHT_MS, easing: 'cubic-bezier(0.45, 0, 0.2, 1)' }
-      );
-      animation.onfinish = animation.oncancel = () => packet.remove();
-      launched = true;
-    }
-    return launched;
+    const animation = packet.animate(
+      [
+        { transform: position(x0, y0, 0.9), opacity: 0 },
+        { opacity: 1, offset: 0.15 },
+        { transform: position((x0 + x1) / 2, (y0 + y1) / 2 - 18, 1.15), offset: 0.5 },
+        { opacity: 1, offset: 0.85 },
+        { transform: position(x1, y1, 0.85), opacity: 0 }
+      ],
+      { duration: FLIGHT_MS, easing: 'cubic-bezier(0.45, 0, 0.2, 1)' }
+    );
+    animation.onfinish = animation.oncancel = () => packet.remove();
+  }
+
+  function launch(flights: Flight[]): boolean {
+    const measured = measure(flights);
+    for (const { text, from, to } of measured) fly(text, from, to);
+    return measured.length > 0;
   }
 
   // Sync, so the packets are measured and `data-flight` is set before the panels re-render:
