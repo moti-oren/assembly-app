@@ -16,6 +16,7 @@ import { usePhaseStepping } from './usePhaseStepping';
 import { useProgramLines } from './useProgramLines';
 import { useProgramRun } from './useProgramRun';
 import type { RunSpeed } from './runSpeeds';
+import type { ByteChange } from './stepDiff';
 
 /** What raised the error on show: the builder's own instruction, or the program. */
 export type ErrorSource = 'builder' | 'program';
@@ -31,7 +32,7 @@ export function useCpu<
 >(architecture: Architecture<Instruction, State, Record>) {
   // The state holds no refs, so the reactive proxy has the same shape as the state itself.
   const state = reactive(architecture.createState()) as State;
-  const { history, lastRecord, future, memoryHeat, record, ...timeline } =
+  const { history, lastRecord, lastAfter, lastWrites, future, memoryHeat, record, ...timeline } =
     useCpuHistory<Record>(state);
   const { program, insertAt, addToProgram, removeProgramLine, replaceProgram } = useProgramLines(
     architecture,
@@ -169,6 +170,8 @@ export function useCpu<
     program,
     insertAt,
     lastRecord,
+    lastAfter,
+    lastWrites,
     future,
     memoryHeat,
     nextLine,
@@ -218,6 +221,10 @@ export interface CpuControls<
   history: Readonly<Ref<readonly Record[]>>;
   future: Readonly<Ref<readonly Record[]>>;
   lastRecord: Readonly<Ref<Record | null>>;
+  /** The CPU as the last instruction left it; see useCpuHistory. */
+  lastAfter: Readonly<Ref<Record['before'] | null>>;
+  /** The bytes the last instruction wrote. */
+  lastWrites: Readonly<Ref<ReadonlyMap<number, ByteChange>>>;
   insertAt: Ref<number | null>;
   error: Readonly<Ref<string | null>>;
   errorFrom: Readonly<Ref<ErrorSource>>;

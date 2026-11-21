@@ -28,6 +28,8 @@ export interface CpuDiagramInput {
   state: CpuState;
   /** The last executed instruction: it decides which wires light up. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** A program line being stepped by phase: until it executes, the wires show its plan. */
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far. */
@@ -121,7 +123,7 @@ export function useCpuDiagram(input: CpuDiagramInput) {
 
   /** What the last instruction did to a register or half of one; IP says when it jumped. */
   function change(name: RegisterName): ValueChange | null {
-    return shown.value && x86RegisterChange(shown.value, input.state, name);
+    return shown.value && input.after && x86RegisterChange(shown.value, input.after, name);
   }
 
   /** A written register wins over a read one: `add ax, cx` reads AX but what matters is the write. */

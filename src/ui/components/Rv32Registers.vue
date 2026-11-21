@@ -21,6 +21,8 @@ const props = defineProps<{
   previous: Record<RegisterName, number> | null;
   /** The last executed instruction: it marks the registers it wrote without changing them. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -31,11 +33,13 @@ function changed(key: RegisterName): boolean {
 
 /** What the last instruction did to register `index`. */
 function change(index: number): ValueChange | null {
-  return props.record && rv32RegisterChange(props.record, props.state, index);
+  return props.record && props.after && rv32RegisterChange(props.record, props.after, index);
 }
 
 /** Where the last instruction sent PC, and whether it jumped. */
-const pcMove = computed(() => props.record && rv32Pointer(props.record, props.state));
+const pcMove = computed(
+  () => props.record && props.after && rv32Pointer(props.record, props.after)
+);
 </script>
 
 <template>
@@ -73,7 +77,7 @@ const pcMove = computed(() => props.record && rv32Pointer(props.record, props.st
               <TooltipTrigger as-child>
                 <span
                   tabindex="0"
-                  class="cursor-help justify-self-start font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+                  class="cursor-help justify-self-start font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:rounded-xs focus-visible:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
                   @click="toggle"
                   >{{ row.abi }}</span
                 >
@@ -107,7 +111,7 @@ const pcMove = computed(() => props.record && rv32Pointer(props.record, props.st
           <TooltipTrigger as-child>
             <span
               tabindex="0"
-              class="w-12 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+              class="w-12 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:rounded-xs focus-visible:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
               @click="toggle"
               >pc</span
             >
@@ -128,7 +132,7 @@ const pcMove = computed(() => props.record && rv32Pointer(props.record, props.st
           <RollingDigits :text="formatHex32(state.registers.pc)" />
         </ChangeMark>
         <span v-if="pcMove?.jump" class="font-sans text-2xs text-pointer">
-          jumped from {{ pcMove!.before }}
+          jumped from {{ pcMove.before }}
         </span>
       </div>
     </CardContent>

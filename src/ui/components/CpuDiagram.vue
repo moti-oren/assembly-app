@@ -16,6 +16,8 @@ const props = defineProps<{
   state: CpuState;
   /** The last executed instruction: it decides which wires light up. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** A program line being stepped by phase: until it executes, the wires show its plan. */
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes and the wire pulses. */

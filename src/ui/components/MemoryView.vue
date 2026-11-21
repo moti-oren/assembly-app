@@ -10,7 +10,7 @@ import { formatHex, parseNumber } from '@/core/shared/numbers';
 import type { SegmentRegister } from '@/core/x86/registers';
 import { physicalAddress, type CpuState } from '@/core/x86/state';
 import { describeMemoryAccess } from '@/ui/describe';
-import { byteChanges, writtenByte } from '@/ui/stepDiff';
+import { writtenByte, type ByteChange } from '@/ui/stepDiff';
 import { HEAT_STEPS } from '@/ui/useCpuHistory';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -33,6 +33,8 @@ const props = defineProps<{
   heat: Map<number, number>;
   /** The last executed instruction: its memory access is the address worked out by default. */
   record: ExecutionRecord | null;
+  /** The bytes the last instruction wrote. */
+  writes: ReadonlyMap<number, ByteChange>;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -76,9 +78,6 @@ function warmth(address: number): string | undefined {
   const strength = Math.round((1 - age / HEAT_STEPS) * 70);
   return `color-mix(in oklch, var(--changed) ${strength}%, transparent)`;
 }
-
-/** The bytes the last instruction wrote, from what each held to what it holds now. */
-const writes = computed(() => byteChanges(props.record?.memoryWrites ?? []));
 
 const lastAccess = computed(() => {
   void props.state.memoryVersion;

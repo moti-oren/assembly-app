@@ -35,6 +35,8 @@ const props = defineProps<{
   previous: Record<WordRegister, number> | null;
   /** The last executed instruction: it marks the registers it wrote without changing them. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -52,7 +54,7 @@ function changedBits(name: WordRegister): number {
 
 /** What the last instruction did to a register, or a half of one: IP says when it jumped. */
 function change(name: RegisterName): ValueChange | null {
-  return props.record && x86RegisterChange(props.record, props.state, name);
+  return props.record && props.after && x86RegisterChange(props.record, props.after, name);
 }
 </script>
 

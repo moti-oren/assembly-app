@@ -18,6 +18,8 @@ const props = defineProps<{
   /** Register values before the last instruction, used to highlight what changed. */
   previous: Record<RegisterName, number> | null;
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -56,7 +58,7 @@ function written(name: RegisterName): boolean {
 
 /** What the last instruction did to a register; PC says when it jumped. */
 function change(name: RegisterName): ValueChange | null {
-  return props.record && mos6502RegisterChange(props.record, props.state, name);
+  return props.record && props.after && mos6502RegisterChange(props.record, props.after, name);
 }
 
 const pcMove = computed(() => change('pc'));

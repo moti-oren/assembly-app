@@ -3,11 +3,13 @@ import {
   byteChanges,
   changeTitle,
   describeChange,
+  describeWrite,
   describeFlag,
   flagEntries,
   leftOut,
   memoryEntries,
   pointerChange,
+  portEntries,
   prioritize,
   valueChange,
   writtenByte,
@@ -68,10 +70,27 @@ describe('memory', () => {
       { address: 0x11, before: 0, after: 0x01 },
       { address: 0x12, before: 7, after: 7 }
     ];
-    const entries = memoryEntries(writes, 2, (address) => `[${address}]`);
+    const { entries } = memoryEntries(writes, 2, (address) => `[${address}]`);
     expect(entries.map((item) => [item.name, item.before, item.after, item.unchanged])).toEqual([
       ['[16]', '0000', '012A', false],
       ['[18]', '07', '07', true]
+    ]);
+  });
+
+  it('makes entries of the first runs only, and counts the others', () => {
+    const writes = [0, 1, 4, 8, 9, 12].map((address) => ({ address, before: 0, after: 1 }));
+    const { entries, omitted } = memoryEntries(writes, 2, String, 2);
+    expect(entries.map((item) => item.name)).toEqual(['0', '4']);
+    expect(omitted).toBe(2);
+  });
+
+  it('lists each output port once, from its first value to its last', () => {
+    const writes = [
+      { port: 3, before: 0, after: 1 },
+      { port: 3, before: 1, after: 2 }
+    ];
+    expect(portEntries(writes, (port) => `port ${port}`)).toMatchObject([
+      { name: 'port 3', before: '00', after: '02', kind: 'memory' }
     ]);
   });
 });
@@ -146,6 +165,16 @@ describe('writtenByte', () => {
 
   it('is null for a byte the step did not write', () => {
     expect(writtenByte(bytes, 6)).toBeNull();
+  });
+});
+
+describe('describeWrite', () => {
+  it('reads both values in words', () => {
+    const change = { before: '00', after: '41', unchanged: false, jump: false };
+    expect(describeWrite('$0200', change)).toBe('$0200, written: was 00, now 41');
+    expect(describeWrite('$0200', { ...change, before: '41', unchanged: true })).toBe(
+      '$0200, written with the value it held: 41'
+    );
   });
 });
 

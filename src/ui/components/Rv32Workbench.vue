@@ -13,8 +13,8 @@ import { describeAccess } from '@/ui/rv32Explain';
 import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
 import { byteAt, rv32MemoryPlaces, RV32_ADDRESSES } from '@/ui/rv32View';
 import { rv32Sounds } from '@/ui/sounds';
-import { byteChanges } from '@/ui/stepDiff';
 import type { CpuOf } from '@/ui/useCpu';
+import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
@@ -52,6 +52,8 @@ const {
   program,
   insertAt,
   lastRecord,
+  lastAfter,
+  lastWrites,
   future,
   memoryHeat,
   nextLine,
@@ -60,6 +62,9 @@ const {
   speed,
   running
 } = cpu;
+
+// The result strip is shown only off a desktop; elsewhere it is not even worked out.
+const layout = useLayoutMode();
 
 /** RISC-V has no flags: that card explains the comparisons that take their place. */
 const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
@@ -99,8 +104,6 @@ const { leftKeys, rightKeys, closable, move, close } = columns;
 const { shown: pipelineShown } = pipeline;
 
 const memoryPlaces = rv32MemoryPlaces(state);
-/** The bytes the last instruction wrote, from what each held to what it holds now. */
-const lastWrites = computed(() => byteChanges(lastRecord.value?.memoryWrites ?? []));
 
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
@@ -148,8 +151,9 @@ const encodingShown = computed(() =>
     @reset-cpu="cpu.reset"
   />
   <Rv32ChangeStrip
-    class="lg:hidden"
-    :state="state"
+    v-if="layout !== 'desktop'"
+    :after="lastAfter"
+    :running="running"
     :record="lastRecord"
     :phase="pending?.phase ?? null"
     :next="finished ? null : formatLabel(nextLine)"
@@ -214,6 +218,7 @@ const encodingShown = computed(() =>
           :state="state"
           :program="program"
           :record="lastRecord"
+          :after="lastAfter"
           :pending="pending"
           :tick="history.length"
         />
@@ -237,6 +242,7 @@ const encodingShown = computed(() =>
           :state="state"
           :previous="lastRecord?.before.registers ?? null"
           :record="lastRecord"
+          :after="lastAfter"
           :tick="history.length"
         />
       </template>

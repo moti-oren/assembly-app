@@ -1,13 +1,20 @@
 import { describe, expect, it } from 'vitest';
+import { PORTS } from '@/core/shared/devices';
+import { snapshot } from '@/core/shared/state';
 import { execute as executeX86 } from '@/core/x86/execute';
-import { createCpuState as createX86 } from '@/core/x86/state';
+import { createCpuState as createX86, writeRegister as writeX86 } from '@/core/x86/state';
 import { execute as executeRv32 } from '@/core/rv32/execute';
 import type { Instruction as Rv32Instruction } from '@/core/rv32/instructions';
 import { parseRegister } from '@/core/rv32/registers';
-import { createCpuState as createRv32, DATA_BASE, writeRegister } from '@/core/rv32/state';
+import {
+  createCpuState as createRv32,
+  DATA_BASE,
+  DEVICE_BASE as RV32_DEVICES,
+  writeRegister
+} from '@/core/rv32/state';
 import { execute as execute6502 } from '@/core/mos6502/execute';
 import type { Instruction as Mos6502Instruction } from '@/core/mos6502/instructions';
-import { createCpuState as create6502 } from '@/core/mos6502/state';
+import { createCpuState as create6502, DEVICE_BASE as MOS6502_DEVICES } from '@/core/mos6502/state';
 import {
   mos6502RegisterChange,
   mos6502StepDiff,
@@ -17,9 +24,10 @@ import {
   x86RegisterChange,
   x86StepDiff
 } from './architectureDiffs';
-import type { DiffEntry } from './stepDiff';
+import { MEMORY_ENTRIES, type StepDiff } from './stepDiff';
 
-const shown = (entries: DiffEntry[]) =>
+// The tests pass the CPU itself as the state a step left: nothing moves it in between.
+const shown = ({ entries }: StepDiff) =>
   entries.map((entry) =>
     entry.unchanged
       ? `${entry.name} = ${entry.after}`
@@ -54,7 +62,7 @@ describe('the 8086', () => {
     });
     const diff = x86StepDiff(record, cpu);
     expect(shown(diff)[0]).toBe('AL = 00');
-    expect(diff.some((entry) => entry.name === 'PF')).toBe(true);
+    expect(diff.entries.some((entry) => entry.name === 'PF')).toBe(true);
   });
 
   it('marks a jump to another line', () => {
@@ -99,6 +107,40 @@ describe('the 8086', () => {
     });
     expect(shown(x86StepDiff(record, cpu))).toEqual(['[10010h] 0000→1234']);
   });
+
+  it('lists a byte written to an output port', () => {
+    const cpu = createX86();
+    writeX86(cpu, 'al', 0xa5);
+    const record = executeX86(cpu, {
+      mnemonic: 'out',
+      operands: [
+        { type: 'imm', value: PORTS.leds },
+        { type: 'reg', name: 'al' }
+      ]
+    });
+    expect(shown(x86StepDiff(record, cpu))).toContain('port 0010h 00→A5');
+  });
+
+  it('lists the first memory writes of a long string instruction and counts the rest', () => {
+    const cpu = createX86();
+    writeX86(cpu, 'al', 0x2a);
+    writeX86(cpu, 'cx', 200);
+    const record = executeX86(cpu, { prefix: 'rep', mnemonic: 'stosb', operands: [] });
+    const diff = x86StepDiff(record, cpu);
+    const memory = diff.entries.filter((entry) => entry.kind === 'memory');
+    expect(memory).toHaveLength(MEMORY_ENTRIES);
+    expect(diff.omitted).toBe(100 - MEMORY_ENTRIES);
+  });
+
+  it('tells IP against the CPU as the step left it, not after an edit moved it', () => {
+    const cpu = createX86();
+    const record = executeX86(cpu, { mnemonic: 'nop', operands: [] }, 0);
+    const after = snapshot(cpu);
+    // A line inserted above moves IP down one line, which the step never did.
+    writeX86(cpu, 'ip', 2);
+    expect(x86Pointer(record, after)).toMatchObject({ before: '0000', after: '0001', jump: false });
+    expect(x86Pointer(record, cpu)?.jump).toBe(true);
+  });
 });
 
 describe('RISC-V', () => {
@@ -136,6 +178,18 @@ describe('RISC-V', () => {
     const record = executeRv32(cpu, program[0], 0, program);
     expect(shown(rv32StepDiff(record, cpu))).toEqual(['pc 00000000→00000008 jump']);
   });
+
+  it('lists a store to a device at its address', () => {
+    const cpu = createRv32();
+    writeRegister(cpu, parseRegister('s0')!, RV32_DEVICES);
+    writeRegister(cpu, parseRegister('t0')!, 0x81);
+    const store: Rv32Instruction = {
+      mnemonic: 'sb',
+      operands: [r('t0'), { type: 'mem', base: parseRegister('s0')!, offset: PORTS.leds }]
+    };
+    const record = executeRv32(cpu, store, 0, [store]);
+    expect(shown(rv32StepDiff(record, cpu))[0]).toBe('[0x10000010] 00→81');
+  });
 });
 
 describe('the 6502', () => {
@@ -171,5 +225,16 @@ describe('the 6502', () => {
     ];
     const record = execute6502(cpu, program[0], 0, program);
     expect(shown(mos6502StepDiff(record, cpu))[0]).toBe('[$0200] = 00');
+  });
+
+  it('lists a store to a device at its address', () => {
+    const cpu = create6502();
+    const program: Mos6502Instruction[] = [
+      { mnemonic: 'lda', operands: [{ type: 'imm', value: 0x81 }] },
+      { mnemonic: 'sta', operands: [{ type: 'abs', address: MOS6502_DEVICES, index: null }] }
+    ];
+    execute6502(cpu, program[0], 0, program);
+    const record = execute6502(cpu, program[1], 1, program);
+    expect(shown(mos6502StepDiff(record, cpu))[0]).toBe('[$D000] 00→81');
   });
 });

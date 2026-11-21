@@ -1,4 +1,7 @@
-import type { MemoryWrite } from '@/core/shared/state';
+import { formatHex } from '@/core/shared/numbers';
+import type { MemoryWrite, PortWrite } from '@/core/shared/state';
+
+const hexByte = (value: number) => formatHex(value, 8);
 
 /** One value the last step wrote or moved: what it held before, and what it holds now. */
 export interface ValueChange {
@@ -23,6 +26,17 @@ export interface ByteChange {
   before: number;
   after: number;
 }
+
+/**
+ * A step's diff. A long string instruction can write tens of thousands of bytes in one step, so
+ * only the first `MEMORY_ENTRIES` runs of memory become entries; `omitted` counts the rest.
+ */
+export interface StepDiff {
+  entries: DiffEntry[];
+  omitted: number;
+}
+
+export const MEMORY_ENTRIES = 32;
 
 /**
  * A value's change, or null when the step neither wrote nor changed it. `written` counts a write
@@ -57,53 +71,69 @@ export function pointerChange(
   };
 }
 
+function firstToLast<Write extends ByteChange>(
+  writes: readonly Write[],
+  where: (write: Write) => number
+): Map<number, ByteChange> {
+  const changes = new Map<number, ByteChange>();
+  for (const write of writes) {
+    const known = changes.get(where(write));
+    changes.set(where(write), { before: known?.before ?? write.before, after: write.after });
+  }
+  return changes;
+}
+
 /** Every byte the writes touched, each once, from its first value to its last. */
 export function byteChanges(writes: readonly MemoryWrite[]): Map<number, ByteChange> {
-  const bytes = new Map<number, ByteChange>();
-  for (const write of writes) {
-    const known = bytes.get(write.address);
-    bytes.set(write.address, { before: known?.before ?? write.before, after: write.after });
-  }
-  return bytes;
+  return firstToLast(writes, (write) => write.address);
 }
 
 function littleEndianHex(values: number[]): string {
-  return values
-    .map((value) => value.toString(16).toUpperCase().padStart(2, '0'))
-    .reverse()
-    .join('');
+  return values.map(hexByte).reverse().join('');
+}
+
+function byteEntry(name: string, bytes: ByteChange[]): DiffEntry {
+  const before = littleEndianHex(bytes.map((byte) => byte.before));
+  const after = littleEndianHex(bytes.map((byte) => byte.after));
+  return { name, kind: 'memory', before, after, unchanged: before === after, jump: false };
 }
 
 /**
  * The memory a step wrote, as entries: bytes at consecutive addresses are read together as one
- * little-endian value, up to `maxBytes` (a word store is one entry, not two).
+ * little-endian value, up to `maxBytes` (a word store is one entry, not two). Past `limit` runs,
+ * the rest are only counted.
  */
 export function memoryEntries(
   writes: readonly MemoryWrite[],
   maxBytes: number,
-  formatAddress: (address: number) => string
-): DiffEntry[] {
+  formatAddress: (address: number) => string,
+  limit = MEMORY_ENTRIES
+): StepDiff {
   const runs: { address: number; bytes: ByteChange[] }[] = [];
+  let omitted = 0;
+  let next = -1;
+  let length = 0;
   for (const [address, change] of byteChanges(writes)) {
-    const run = runs.at(-1);
-    if (run && run.bytes.length < maxBytes && run.address + run.bytes.length === address) {
-      run.bytes.push(change);
-    } else {
-      runs.push({ address, bytes: [change] });
-    }
+    const joins = address === next && length < maxBytes;
+    length = joins ? length + 1 : 1;
+    next = address + 1;
+    if (joins && omitted === 0) runs.at(-1)!.bytes.push(change);
+    else if (joins) continue;
+    else if (runs.length < limit) runs.push({ address, bytes: [change] });
+    else omitted++;
   }
-  return runs.map(({ address, bytes }) => {
-    const before = littleEndianHex(bytes.map((byte) => byte.before));
-    const after = littleEndianHex(bytes.map((byte) => byte.after));
-    return {
-      name: formatAddress(address),
-      kind: 'memory',
-      before,
-      after,
-      unchanged: before === after,
-      jump: false
-    };
-  });
+  const entries = runs.map(({ address, bytes }) => byteEntry(formatAddress(address), bytes));
+  return { entries, omitted };
+}
+
+/** The output ports a step wrote (on RISC-V and the 6502, a store to a device), one per port. */
+export function portEntries(
+  writes: readonly PortWrite[],
+  formatPort: (port: number) => string
+): DiffEntry[] {
+  return [...firstToLast(writes, (write) => write.port)].map(([port, change]) =>
+    byteEntry(formatPort(port), [change])
+  );
 }
 
 /** Flags as 0 or 1, for the flags whose bit the step changed. */
@@ -173,8 +203,13 @@ export function writtenByte(
 ): ValueChange | null {
   const byte = bytes.get(address);
   if (!byte) return null;
-  const hex = (value: number) => value.toString(16).toUpperCase().padStart(2, '0');
-  return valueChange(byte.before, byte.after, true, hex);
+  return valueChange(byte.before, byte.after, true, hexByte);
+}
+
+/** A written value in words, for a screen reader: `$0200, written: was 00, now 41`. */
+export function describeWrite(label: string, change: ValueChange): string {
+  if (change.unchanged) return `${label}, written with the value it held: ${change.after}`;
+  return `${label}, written: was ${change.before}, now ${change.after}`;
 }
 
 /** A value's hover text: its name, then what the last step did to it, if anything. */

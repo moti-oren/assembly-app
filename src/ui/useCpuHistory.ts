@@ -1,6 +1,7 @@
 import { computed, shallowRef, type ShallowRef } from 'vue';
 import { redo as redoRecord, undo, type ExecutionRecord } from '@/core/shared/executionRecord';
 import { snapshot, type CpuSnapshot, type CpuState } from '@/core/shared/state';
+import { byteChanges } from './stepDiff';
 
 /** How many instructions back a memory write still shows as warm. */
 export const HEAT_STEPS = 6;
@@ -18,6 +19,16 @@ export function useCpuHistory<Record extends ExecutionRecord>(state: CpuState) {
   const undone: ShallowRef<Undone<Record>[]> = shallowRef([]);
 
   const lastRecord = computed(() => history.value.at(-1) ?? null);
+  /**
+   * The CPU as each instruction left it, kept from the moment it ran. An edit to the program moves
+   * the instruction pointer afterwards, and undo and redo carry that move along, so what a step
+   * did is told against this, never against the live CPU.
+   */
+  const leftBy = new WeakMap<Record, Record['before']>();
+  /** The CPU as the last instruction left it. */
+  const lastAfter = computed(() => (lastRecord.value && leftBy.get(lastRecord.value)) ?? null);
+  /** The bytes the last instruction wrote, each from its first value to its last. */
+  const lastWrites = computed(() => byteChanges(lastRecord.value?.memoryWrites ?? []));
 
   /** The undone instructions in the order they would run again. */
   const future = computed(() => undone.value.map((entry) => entry.record).reverse());
@@ -36,10 +47,12 @@ export function useCpuHistory<Record extends ExecutionRecord>(state: CpuState) {
 
   /** Adds newly executed instructions; anything undone can no longer be redone. */
   function record(records: Record[]): void {
-    if (records.length > 0) {
-      history.value = [...history.value, ...records];
-      undone.value = [];
-    }
+    if (records.length === 0) return;
+    // Nothing runs between the records of one batch: each left the CPU as the next one found it.
+    const now = snapshot(state) as Record['before'];
+    records.forEach((entry, i) => leftBy.set(entry, records[i + 1]?.before ?? now));
+    history.value = [...history.value, ...records];
+    undone.value = [];
   }
 
   /** Moves through time: undoes or redoes until exactly `position` instructions have run. */
@@ -70,5 +83,16 @@ export function useCpuHistory<Record extends ExecutionRecord>(state: CpuState) {
     undone.value = [];
   }
 
-  return { history, lastRecord, future, memoryHeat, record, seek, forgetFuture, clear };
+  return {
+    history,
+    lastRecord,
+    lastAfter,
+    lastWrites,
+    future,
+    memoryHeat,
+    record,
+    seek,
+    forgetFuture,
+    clear
+  };
 }

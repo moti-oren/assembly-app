@@ -21,6 +21,8 @@ const props = defineProps<{
   program: Instruction[];
   /** The last executed instruction: it decides which stages and registers light up. */
   record: ExecutionRecord | null;
+  /** The CPU as the last instruction left it: what that instruction did is told against it. */
+  after: ExecutionRecord['before'] | null;
   /** A program line being stepped by phase: until it executes, the stages show its plan. */
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes. */
@@ -65,9 +67,9 @@ function changed(key: (typeof REGISTER_KEYS)[number]): boolean {
 
 /** What the last instruction did to register `index`; none while a line is being stepped by phase. */
 function change(index: number): ValueChange | null {
-  return props.pending || !props.record
+  return props.pending || !props.record || !props.after
     ? null
-    : rv32RegisterChange(props.record, props.state, index);
+    : rv32RegisterChange(props.record, props.after, index);
 }
 </script>
 
