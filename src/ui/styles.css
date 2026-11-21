@@ -271,7 +271,8 @@
   --pointer-foreground: #090a0d;
   --pointer-soft: rgb(59 130 246 / 14%);
   --wire: #626d80;
-  --tertiary-foreground: #64748b;
+  /* At least 4.5:1 on --muted, the darkest surface it sits on. */
+  --tertiary-foreground: #7a8aa0;
   --page: #090a0d;
   --recessed: #111318;
   --inset: #161920;
