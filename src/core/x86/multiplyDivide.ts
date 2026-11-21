@@ -80,7 +80,8 @@ export const signedDivide: Handler = (ctx, [src]) => {
   const quotient = Math.trunc(dividend / divisor);
   const remainder = dividend % divisor; // takes the sign of the dividend, like the 8086
   const limit = signBit(ctx.size);
-  if (quotient < -limit || quotient > limit - 1) {
+  // The 8086 also rejects the most negative quotient (-80h, -8000h); only the 80286 accepts it.
+  if (quotient <= -limit || quotient > limit - 1) {
     quotientTooBig(quotient, ctx.size);
   }
   if (ctx.size === 8) {

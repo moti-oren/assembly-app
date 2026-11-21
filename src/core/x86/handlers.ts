@@ -66,7 +66,11 @@ export const HANDLERS: Record<Mnemonic, Handler> = {
     ctx.write(a, valueB);
     ctx.write(b, valueA);
   },
-  push: (ctx, [src]) => ctx.push(ctx.read(src)),
+  // The 8086 decrements SP before it stores the source, so `push sp` stores the new SP.
+  push: (ctx, [src]) => {
+    const pushesSp = src.type === 'reg' && src.name === 'sp';
+    ctx.push(pushesSp ? truncate(readRegister(ctx.state, 'sp') - 2, 16) : ctx.read(src));
+  },
   pop: (ctx, [dst]) => ctx.write(dst, ctx.pop()),
 
   add: binary((ctx, a, b) => ctx.add(a, b, 0)),

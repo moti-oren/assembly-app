@@ -211,6 +211,23 @@ describe('mul / div', () => {
     expect(readRegister(cpu, 'ah')).toBe(0xff); // -1
   });
 
+  it('idiv rejects the most negative quotient, as the 8086 does', () => {
+    run('mov', reg('ax'), imm(-128));
+    run('mov', reg('bl'), imm(1));
+    expect(() => run('idiv', reg('bl'))).toThrow(/quotient -128 is too big for AL/);
+    expect(readRegister(cpu, 'ax')).toBe(0xff80);
+
+    run('mov', reg('ax'), imm(-127));
+    run('idiv', reg('bl'));
+    expect(readRegister(cpu, 'al')).toBe(0x81);
+
+    run('mov', reg('dx'), imm(0xffff));
+    run('mov', reg('ax'), imm(0x8000));
+    run('mov', reg('bx'), imm(1));
+    expect(() => run('idiv', reg('bx'))).toThrow(/quotient -32768 is too big for AX/);
+    expect(readRegister(cpu, 'ax')).toBe(0x8000);
+  });
+
   it('divide errors leave the state untouched', () => {
     run('mov', reg('ax'), imm(1234));
     expect(() => run('div', reg('bl'))).toThrow(/divisor is 0/);
@@ -314,6 +331,13 @@ describe('memory and stack', () => {
     run('pop', reg('cx'));
     expect(readRegister(cpu, 'cx')).toBe(0xbeef);
     expect(readRegister(cpu, 'sp')).toBe(sp);
+  });
+
+  it('push sp stores the SP after the decrement, as the 8086 does', () => {
+    const sp = readRegister(cpu, 'sp');
+    run('push', reg('sp'));
+    expect(readRegister(cpu, 'sp')).toBe(sp - 2);
+    expect(readMemory(cpu, physicalAddress(readRegister(cpu, 'ss'), sp - 2), 16)).toBe(sp - 2);
   });
 
   it('xchg swaps', () => {
