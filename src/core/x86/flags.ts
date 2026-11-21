@@ -25,8 +25,8 @@ export function isFlagSet(flags: number, flag: FlagName): boolean {
   return (flags & flagBit(flag)) !== 0;
 }
 
-/** Bit 1 of FLAGS is reserved and always reads as 1 on the 8086. */
-export const FLAGS_RESERVED = 0x0002;
+/** Bit 1 and bits 12-15 of FLAGS are reserved and always read as 1 on the 8086. */
+export const FLAGS_RESERVED = 0xf002;
 
 /** The bits of FLAGS that are real flags; POPF and IRET can load no others. */
 export const FLAGS_MASK = FLAG_NAMES.reduce((bits, name) => bits | flagBit(name), 0);

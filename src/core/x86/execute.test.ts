@@ -691,7 +691,18 @@ describe('interrupts', () => {
     writeRegister(cpu, 'ax', 0xffff);
     run('push', reg('ax'));
     run('popf');
-    expect(cpu.flags).toBe(0x0fd7);
+    expect(cpu.flags).toBe(0xffd7);
+  });
+
+  it('FLAGS bits 12-15 always read as 1, as on the 8086', () => {
+    const sp = readRegister(cpu, 'sp');
+    run('pushf');
+    expect(readMemory(cpu, physicalAddress(readRegister(cpu, 'ss'), sp - 2), 16)).toBe(0xf002);
+
+    run('mov', reg('ax'), imm(0));
+    run('push', reg('ax'));
+    run('popf');
+    expect(cpu.flags).toBe(0xf002);
   });
 
   it('mov stores the number of a program line, which is how a vector is filled', () => {
