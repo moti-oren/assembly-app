@@ -1,4 +1,5 @@
 import { computed, type ComputedRef, type Ref } from 'vue';
+import { formatLabel } from '@/core/shared/program';
 import { ARCHITECTURE_CHOICES } from './architectures';
 import { PHONE_VIEW_LABELS, PHONE_VIEWS } from './layoutMode';
 import type { PaletteCommand } from './paletteCommand';
@@ -51,7 +52,7 @@ export function useCommands(
   const comparison = useComparison();
   const mode = useLayoutMode();
   const { view, drawerOpen } = useWorkbenchView();
-  const { history, program, insertAt, future, finished, speed, running } = cpu;
+  const { history, program, insertAt, future, finished, speed, running, nextLine } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
   const hasCircuit = computed(page.hasCircuit);
@@ -81,6 +82,29 @@ export function useCommands(
             disabled: finished.value,
             run: cpu.runProgram
           },
+    // A line has no name the palette could ask for, so these act on the one that runs next.
+    ...(finished.value
+      ? []
+      : [
+          {
+            group: 'Program',
+            label: `Edit the next line (${formatLabel(nextLine.value)})`,
+            moves: 'focus' as const,
+            run: () => cpu.editLine(nextLine.value)
+          },
+          {
+            group: 'Program',
+            label: 'Move the next line up',
+            disabled: nextLine.value === 0,
+            run: () => cpu.moveProgramLine(nextLine.value, nextLine.value - 1)
+          },
+          {
+            group: 'Program',
+            label: 'Move the next line down',
+            disabled: nextLine.value >= program.value.length - 1,
+            run: () => cpu.moveProgramLine(nextLine.value, nextLine.value + 1)
+          }
+        ]),
     // Only while new lines go above a chosen line; at the end is where they go otherwise.
     ...(insertAt.value === null
       ? []

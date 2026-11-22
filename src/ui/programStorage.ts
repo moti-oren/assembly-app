@@ -65,3 +65,31 @@ export function parseProgram<Instruction extends ProgramInstruction>(
     return [];
   }
 }
+
+/**
+ * The program saved for an architecture on the last visit. Storage that cannot be read, or holds
+ * something else, gives an empty program.
+ */
+export function readStoredProgram<Instruction extends ProgramInstruction>(
+  architectureId: string,
+  isValid: (instruction: Instruction) => boolean
+): Instruction[] {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(programKey(architectureId));
+  } catch {
+    // No storage here (a private window that blocks it, a test): nothing to restore.
+  }
+  return parseProgram(raw, isValid);
+}
+
+export function writeStoredProgram(
+  architectureId: string,
+  program: readonly ProgramInstruction[]
+): void {
+  try {
+    localStorage.setItem(programKey(architectureId), serializeProgram(program));
+  } catch {
+    // Storage is full or blocked: the program still works, it is only not remembered.
+  }
+}

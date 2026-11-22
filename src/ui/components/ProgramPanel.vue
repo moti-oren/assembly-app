@@ -37,6 +37,10 @@ const props = defineProps<{
   source?: ProgramSource | null;
   /** The line being edited in the builder, if one is. */
   editingLine?: number | null;
+  /** True when lines were moved under a program that has already run. */
+  stale?: boolean;
+  /** The last move of a line, from here or from the command palette, to be announced. */
+  lastMove?: { from: number; to: number } | null;
 }>();
 
 const emit = defineEmits<{
@@ -46,6 +50,8 @@ const emit = defineEmits<{
   edit: [index: number];
   /** Asks for the line at `from` to be moved to `to`. */
   move: [from: number, to: number];
+  /** Asks for the CPU to be reset, from the notice of a program edited while running. */
+  reset: [];
   /** Asks for the machine code of a line to be taken apart. */
   inspect: [index: number];
   /** Asks for the examples menu, from the empty program's prompt. */
@@ -94,6 +100,13 @@ watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMark
   flush: 'post'
 });
 
+/** The last move in words, for a screen reader: the focus alone does not say a line moved. */
+const moved = computed(() =>
+  props.lastMove
+    ? `${formatLabel(props.lastMove.from)} moved to ${formatLabel(props.lastMove.to)}`
+    : ''
+);
+
 /**
  * Moves a line and takes the focus along. The rows are redrawn in place, so the control that
  * was focused now belongs to another line: the same control of the moved line is focused.
@@ -114,11 +127,13 @@ function move(from: number, to: number, action: string): void {
 function onListKeydown(event: KeyboardEvent): void {
   if (!(event.target instanceof HTMLElement)) return;
   const row = Number(event.target.closest<HTMLElement>('li[data-row]')?.dataset.row);
-  const moved = lineMoveOf(event, row, props.program.length);
-  if (!moved) return;
+  const change = lineMoveOf(event, row, props.program.length);
+  if (!change) return;
   event.preventDefault();
+  // Caught on the way down and stopped: on the menu button, Arrow Down would open the menu too.
+  event.stopPropagation();
   const control = event.target.closest<HTMLElement>('[data-action]');
-  move(moved.from, moved.to, control?.dataset.action ?? 'more');
+  move(change.from, change.to, control?.dataset.action ?? 'more');
 }
 
 const ROW =
@@ -163,6 +178,23 @@ function machineCode(index: number): string {
         <span class="font-medium text-foreground">{{ source.name }}</span>
         · {{ source.description }}
       </p>
+      <!-- The stack and the registers still hold places from before the edit: say so once. -->
+      <!-- The region is there before its text: a status that arrives whole is often not read. -->
+      <div role="status">
+        <p v-if="stale" class="mb-2 px-3.5 text-xs leading-4 text-muted-foreground">
+          Edited after it started running: a return address the CPU already holds may now point at
+          another line.
+          <Button
+            variant="link"
+            size="sm"
+            class="relative h-auto p-0 text-xs pointer-coarse:after:absolute pointer-coarse:after:-inset-3.5 pointer-coarse:after:content-['']"
+            @click="emit('reset')"
+            >Reset</Button
+          >
+          to run it from the start.
+        </p>
+      </div>
+      <p class="sr-only" aria-live="polite">{{ moved }}</p>
       <!--
         The instruction's column takes the width of the longest line before the machine code gets
         any: a narrow panel cuts the bytes, which have a panel of their own, not the line.
@@ -172,7 +204,7 @@ function machineCode(index: number): string {
         data-fill
         class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_auto_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
-        @keydown="onListKeydown"
+        @keydown.capture="onListKeydown"
       >
         <li
           v-if="marker"
@@ -280,7 +312,11 @@ function machineCode(index: number): string {
           tap <span class="font-medium text-foreground">Add at {{ formatLabel(0) }}</span>
         </span>
         to add it as a line, or
-        <Button variant="link" size="sm" class="h-auto p-0" @click="emit('examples')"
+        <Button
+          variant="link"
+          size="sm"
+          class="relative h-auto p-0 pointer-coarse:after:absolute pointer-coarse:after:-inset-3.5 pointer-coarse:after:content-['']"
+          @click="emit('examples')"
           >start from an example</Button
         >.
       </p>

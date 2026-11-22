@@ -13,7 +13,7 @@ import {
   type ProgramInstruction
 } from '@/core/shared/program';
 import type { CpuState } from '@/core/shared/state';
-import { parseProgram, programKey, serializeProgram } from './programStorage';
+import { readStoredProgram, writeStoredProgram } from './programStorage';
 
 /** Where a loaded program came from: an example, or a task of the comparison. */
 export interface ProgramSource {
@@ -24,21 +24,41 @@ export interface ProgramSource {
 /**
  * The program's lines and where new ones go. Editing keeps the instruction pointer on the line
  * it pointed at, and calls `onEdit`, since an edited program can no longer redo what was undone.
+ * `hasRun` says whether lines of the program have run and are still in the history.
  */
 export function useProgramLines<
   Instruction extends ProgramInstruction,
   State extends CpuState,
   Record extends ExecutionRecord<Instruction>
->(architecture: Architecture<Instruction, State, Record>, state: State, onEdit: () => void) {
+>(
+  architecture: Architecture<Instruction, State, Record>,
+  state: State,
+  onEdit: () => void,
+  hasRun: () => boolean
+) {
   const program: ShallowRef<Instruction[]> = shallowRef([]);
   /** The line being edited in the builder, which replaces it; null when none is. */
   const editingLine = ref<number | null>(null);
   /** What the program was loaded from, for as long as it is still that program. */
   const source = ref<ProgramSource | null>(null);
+  /**
+   * True once lines were moved under a program that has already run. What the CPU holds from
+   * that run, a return address on the stack or in a register, still names the old place.
+   */
+  const stale = ref(false);
 
-  /** Swaps in an edited program, moving the instruction pointer as `moveLine` says. */
-  function edit(lines: Instruction[], moveLine: (next: number) => number): void {
+  /** The last move of a line, for the panel to say: a move changes no text a reader would hear. */
+  const lastMove = ref<{ from: number; to: number } | null>(null);
+
+  /**
+   * Swaps in an edited program, moving the instruction pointer as `moveLine` says. `shifts` is
+   * false for an edit that leaves every existing line where it was.
+   */
+  function edit(lines: Instruction[], moveLine: (next: number) => number, shifts = true): void {
     const next = moveLine(architecture.nextLine(state, program.value));
+    if (shifts && hasRun()) stale.value = true;
+    // Any other edit ends the last move's turn, so the same move made again is said again.
+    lastMove.value = null;
     onEdit();
     source.value = null;
     // The line being edited may have moved or gone: the edit is dropped, the line is kept.
@@ -46,29 +66,12 @@ export function useProgramLines<
     program.value = lines;
     architecture.setNextLine(state, next, lines);
   }
-  /**
-   * The program as it was saved on the last visit, started afresh: no history comes back with it.
-   * Storage that cannot be read, or holds something else, leaves the program empty.
-   */
+  /** The program of the last visit, started afresh: no history comes back with it. */
   function restore(): void {
-    let raw: string | null = null;
-    try {
-      raw = localStorage.getItem(programKey(architecture.id));
-    } catch {
-      // No storage here (a private window that blocks it, a test): nothing to restore.
-    }
-    const lines = parseProgram(raw, architecture.isValid);
+    const lines = readStoredProgram(architecture.id, architecture.isValid);
     if (lines.length === 0) return;
     program.value = lines;
     architecture.setNextLine(state, 0, lines);
-  }
-
-  function save(lines: readonly Instruction[]): void {
-    try {
-      localStorage.setItem(programKey(architecture.id), serializeProgram(lines));
-    } catch {
-      // Storage is full or blocked: the program still works, it is only not remembered.
-    }
   }
 
   /** Line that new program lines are inserted before; null means "append at the end". */
@@ -78,7 +81,13 @@ export function useProgramLines<
   function addToProgram(instructions: readonly Instruction[]): void {
     for (const instruction of instructions) {
       const index = insertAt.value ?? program.value.length;
-      edit(insertLine(program.value, index, instruction), (next) => lineAfterInsert(next, index));
+      // A line added at the end moves no other line.
+      const shifts = index < program.value.length;
+      edit(
+        insertLine(program.value, index, instruction),
+        (next) => lineAfterInsert(next, index),
+        shifts
+      );
       if (insertAt.value !== null) {
         insertAt.value++;
       }
@@ -108,6 +117,7 @@ export function useProgramLines<
     const last = program.value.length - 1;
     if (from === to || from < 0 || to < 0 || from > last || to > last) return;
     edit(moveLine(program.value, from, to), (next) => lineAfterMove(next, from, to));
+    lastMove.value = { from, to };
     if (insertAt.value !== null) insertAt.value = lineAfterMove(insertAt.value, from, to);
   }
 
@@ -132,17 +142,20 @@ export function useProgramLines<
    * again at L0.
    */
   function replaceProgram(lines: readonly Instruction[], from: ProgramSource | null = null): void {
-    edit([...lines], () => 0);
+    edit([...lines], () => 0, false);
+    stale.value = false;
     source.value = from;
     insertAt.value = null;
   }
 
   restore();
-  watch(program, save);
+  watch(program, (lines) => writeStoredProgram(architecture.id, lines));
 
   return {
     program,
     source,
+    stale,
+    lastMove,
     insertAt,
     editing,
     editLine,

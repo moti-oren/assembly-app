@@ -100,6 +100,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   place, and **Esc** or **Cancel** leaves the line as it was. The **⋯** menu also moves a line up
   or down, as do Alt+Up and Alt+Down while one of the line's buttons has the focus; jumps keep
   pointing at the instructions they pointed at.
+- Moving, replacing or deleting a line of a program that has already run leaves what the CPU
+  holds from that run, such as a return address on the stack, naming the old place. The program
+  panel says so, with a **Reset** to run it from the start. The command palette can edit the line
+  that runs next, or move it up or down.
 - The program of each CPU is remembered in the browser. After a reload it is back, started
   afresh: registers, memory and the history are not kept.
 - With every panel of the left column open, the program keeps about six of its lines in sight,
@@ -408,6 +412,9 @@ npm run verify:6502 # check the 6502 core against py65
   **Enter** או **Replace** שמים את ההוראה המתוקנת במקומה, ו-**Esc** או **Cancel** משאירים את
   השורה כמו שהייתה. תפריט **⋯** גם מזיז שורה למעלה או למטה, וכך גם Alt+Up ו-Alt+Down כשהמיקוד על
   אחד מכפתורי השורה; קפיצות ממשיכות להצביע על ההוראות שעליהן הצביעו.
+- הזזה, החלפה או מחיקה של שורה בתוכנית שכבר רצה משאירה את מה שה-CPU מחזיק מהריצה, כמו כתובת
+  חזרה במחסנית, מצביע על המקום הישן. חלונית התוכנית אומרת זאת, עם **Reset** להרצה מההתחלה.
+  פלטת הפקודות יכולה לערוך את השורה שתרוץ הבאה, או להזיז אותה למעלה או למטה.
 - התוכנית של כל מעבד נשמרת בדפדפן. אחרי רענון היא חוזרת, במצב התחלתי: הרגיסטרים, הזיכרון
   וההיסטוריה לא נשמרים.
 - כשכל החלוניות בעמודה השמאלית פתוחות, התוכנית שומרת כשש משורותיה גלויות, ופתיחת **History**
