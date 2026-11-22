@@ -57,11 +57,17 @@ def check_encodings(encodings):
         if insn.insn_name() != case['mnemonic']:
             failures.append(f"{case['text']}: {case['word']:08x} is {insn.insn_name()} to Capstone")
             continue
-        if insn.mnemonic != case['mnemonic']:
-            aliased += 1  # printed as an alias (li, mv, ret, beqz, ...): the instruction itself matched
-            continue
         ours = tokens(case['text'].split(' ', 1)[1] if ' ' in case['text'] else '')
         theirs = tokens(insn.op_str)
+        if case['mnemonic'] == 'jalr' and insn.mnemonic in ('jr', 'ret'):
+            # `jr rs` and `ret` are jalr with rd = zero and no offset: their operands are known
+            rs = theirs[0] if insn.mnemonic == 'jr' else 'ra'
+            if [ours[0], ours[2], ours[1]] != ['zero', rs, 0]:
+                failures.append(f"{case['text']}: {case['word']:08x} is '{insn.mnemonic} {insn.op_str}' to Capstone")
+            continue
+        if insn.mnemonic != case['mnemonic']:
+            aliased += 1  # printed as an alias (li, mv, beqz, ...): the instruction itself matched
+            continue
         if case['mnemonic'] == 'jalr':
             ours = [ours[0], ours[2], ours[1]]  # Capstone writes `jalr rd, rs1, imm`, not `imm(rs1)`
             if len(theirs) == 1:
