@@ -345,8 +345,17 @@
     /* Every number keeps its width, so nothing shifts while a program runs. */
     font-variant-numeric: tabular-nums;
   }
+  /* The shell fills the window and only its panes scroll: the page itself never bounces. */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-background text-foreground;
+  }
+  /* A quick second tap on a control is a second press, never a zoom of the page. */
+  :is(button, [role='button'], a, label, select, summary, input) {
+    touch-action: manipulation;
   }
   .font-mono {
     font-variant-ligatures: none;

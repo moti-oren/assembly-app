@@ -28,7 +28,7 @@ function carryEnd(value: Bit, label = 'the carry: the last bit pushed out') {
   bit takes drawn between the rows. The bit that falls off the end goes to the carry beside it.
 -->
 <template>
-  <div v-if="view" ref="rows" class="logic-rows">
+  <div v-if="view" ref="rows" class="logic-rows" data-tailed>
     <LogicBitNumbers :width="view.width" tailed />
     <LogicRow
       label="In"
@@ -58,7 +58,7 @@ function carryEnd(value: Bit, label = 'the carry: the last bit pushed out') {
             <button
               v-if="view.switched"
               type="button"
-              class="rounded-sm border px-1.5 py-0.5 text-2xs font-semibold pointer-coarse:min-h-11"
+              class="rounded-sm border px-1.5 py-0.5 text-2xs font-semibold whitespace-nowrap max-md:px-1 pointer-coarse:min-h-11"
               :class="
                 view.stages[index].on
                   ? 'border-foreground bg-foreground text-background'

@@ -10,6 +10,8 @@ const props = defineProps<{
   bytesShown: boolean;
   /** Whether each switch is always named, or only where the bar has room for it. */
   named?: boolean;
+  /** In a phone's sheet: three equal columns, each name under its icon. */
+  stacked?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -42,7 +44,12 @@ const toggles = computed(() => [
 
 <!-- What the page shows, apart from the controls that drive the program. -->
 <template>
-  <div class="toggle-group" :class="{ 'flex w-full': named }" role="group" aria-label="Panels">
+  <div
+    class="toggle-group"
+    :class="stacked ? 'grid w-full grid-cols-3' : { 'flex w-full': named }"
+    role="group"
+    aria-label="Panels"
+  >
     <!-- Icons only where there is no room, so the name moves into the label and a tooltip. -->
     <Tooltip v-for="toggle in toggles" :key="toggle.label">
       <TooltipTrigger as-child>
@@ -50,7 +57,11 @@ const toggles = computed(() => [
           variant="ghost"
           size="sm"
           class="px-2.5 pointer-coarse:h-11"
-          :class="{ 'flex-1': named }"
+          :class="
+            stacked
+              ? 'h-14 min-w-0 flex-col gap-1 px-1 text-xs pointer-coarse:h-14'
+              : { 'flex-1': named }
+          "
           :aria-label="toggle.label"
           :aria-pressed="toggle.shown"
           @click="toggle.flip"

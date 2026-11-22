@@ -29,7 +29,7 @@ function setSpeed(value: unknown): void {
     <SelectTrigger
       size="sm"
       class="pointer-coarse:data-[size=sm]:h-11"
-      :class="named ? 'min-w-28' : 'xl:min-w-24'"
+      :class="named ? 'w-full' : 'xl:min-w-24'"
       :aria-label="`Run speed: ${SPEED_LABELS[speed]}`"
     >
       <!-- The value alone ("Fast") does not say what it is the value of, so an icon says it. -->

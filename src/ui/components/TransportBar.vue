@@ -52,7 +52,7 @@ const emit = defineEmits<{
 const mode = useLayoutMode();
 const moreOpen = ref(false);
 
-/** From the More popover: it closes first, since a reset may open a dialog to confirm. */
+/** From the More controls: they close first, since a reset may open a dialog to confirm. */
 function resetFromMore(): void {
   moreOpen.value = false;
   emit('reset');
@@ -150,7 +150,7 @@ function resetFromMore(): void {
         @update:devices-shown="emit('update:devicesShown', $event)"
         @update:bytes-shown="emit('update:bytesShown', $event)"
       />
-      <TransportMore v-else v-model:open="moreOpen" :framed="mode === 'phone'">
+      <TransportMore v-else v-model:open="moreOpen" :sheet="mode === 'phone'">
         <div
           v-if="mode === 'phone'"
           class="flex items-center gap-1"
@@ -165,25 +165,22 @@ function resetFromMore(): void {
             @seek="emit('seek', $event)"
           />
         </div>
-        <div class="flex items-center justify-between gap-2">
+        <!-- A phone's sheet gives the two an equal half; a tablet has no speed here. -->
+        <div :class="mode === 'phone' ? 'grid grid-cols-2 gap-2' : 'flex justify-end'">
           <TransportSpeed
             v-if="mode === 'phone'"
             :speed="speed"
             named
             @update:speed="emit('update:speed', $event)"
           />
-          <Button
-            variant="outline"
-            size="sm"
-            class="ml-auto pointer-coarse:h-11"
-            @click="resetFromMore"
-          >
+          <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="resetFromMore">
             <RotateCcw />
             Reset the CPU
           </Button>
         </div>
         <TransportPanels
           named
+          :stacked="mode === 'phone'"
           :history-shown="historyShown"
           :devices-shown="devicesShown"
           :bytes-shown="bytesShown"

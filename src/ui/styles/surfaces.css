@@ -62,6 +62,26 @@
     padding-bottom: 1.5rem;
     mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
   }
+  /*
+   * A row of choices wider than a phone (a flex row that scrolls sideways): no bar under it, and
+   * its right edge fades so a name cut by the screen reads as "more". The room at its end lets
+   * the last name scroll clear of the fade.
+   */
+  @media (width < 40rem) {
+    .scroll-fade-x {
+      scrollbar-width: none;
+      overscroll-behavior-x: contain;
+      mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+    }
+    .scroll-fade-x::-webkit-scrollbar {
+      display: none;
+    }
+    .scroll-fade-x::after {
+      content: '';
+      flex: none;
+      width: 1.5rem;
+    }
+  }
 }
 
 /*

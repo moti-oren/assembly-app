@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw } from '@lucide/vue';
 import { hasCircuit } from '@/core/aluLink';
 import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
+import { useLayoutMode } from '@/ui/useLayoutMode';
 import { equationText } from '@/ui/logicView';
 import type { LogicLens } from '@/ui/useLogicLens';
 
@@ -13,6 +14,8 @@ const props = defineProps<{
   moment: CpuMoment;
 }>();
 defineEmits<{ seek: [position: number]; back: [] }>();
+
+const mode = useLayoutMode();
 
 const equation = computed(() =>
   equationText(props.lens.request.value, props.lens.solution.value.result)
@@ -26,7 +29,10 @@ const unavailable = computed(() => {
 
 <!-- Where the circuit on show came from: a moment of the CPU, or the learner's own values. -->
 <template>
-  <section class="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Where this came from">
+  <section
+    class="flex flex-wrap items-center gap-x-4 gap-y-2 max-md:gap-y-1.5"
+    aria-label="Where this came from"
+  >
     <div class="min-w-0 flex-1 basis-64">
       <p class="flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground">
         <template v-if="moment.instruction">
@@ -54,7 +60,12 @@ const unavailable = computed(() => {
       </p>
     </div>
 
-    <div class="flex flex-wrap items-center gap-1.5">
+    <!--
+      On a phone the buttons are one quiet row above the text: the way back first, at the left
+      edge, and the steps at the right. The way back is the page's main button only where there
+      is room for it beside the text.
+    -->
+    <div class="flex flex-wrap items-center gap-1.5 max-md:order-first max-md:w-full">
       <Button
         v-if="lens.isEdited.value"
         variant="outline"
@@ -65,7 +76,7 @@ const unavailable = computed(() => {
         <RotateCcw />
         {{ lens.fromCpu.value ? 'The CPU’s values' : 'Starting values' }}
       </Button>
-      <div class="toggle-group">
+      <div class="toggle-group max-md:ml-auto">
         <Button
           variant="ghost"
           size="icon-sm"
@@ -89,9 +100,15 @@ const unavailable = computed(() => {
           <ChevronRight />
         </Button>
       </div>
-      <Button size="sm" class="pointer-coarse:h-11" @click="$emit('back')">
+      <Button
+        :variant="mode === 'phone' ? 'ghost' : 'default'"
+        size="sm"
+        class="max-md:order-first max-md:-ml-2 max-md:px-2 max-md:text-muted-foreground pointer-coarse:h-11"
+        :aria-label="`Back to the ${moment.cpu}`"
+        @click="$emit('back')"
+      >
         <ArrowLeft />
-        Back to the {{ moment.cpu }}
+        <span class="max-md:hidden">Back to the</span> {{ moment.cpu }}
       </Button>
     </div>
   </section>

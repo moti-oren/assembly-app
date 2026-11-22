@@ -75,6 +75,8 @@ export function useCpu<
 
   function stepProgram(): void {
     pause();
+    // The end of the program is where it stops, not a fault: the panel already says Finished.
+    if (finished.value) return;
     attempt('program', () => record([step(architecture, state, program.value)]));
   }
 

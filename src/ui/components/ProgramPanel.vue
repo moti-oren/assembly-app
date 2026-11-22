@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="Instruction extends ProgramInstruction">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useResizeObserver } from '@vueuse/core';
 import { ChevronRight, Trash2 } from '@lucide/vue';
 import { formatBytes } from '@/core/shared/numbers';
 import { formatLabel, isLabel, type ProgramInstruction } from '@/core/shared/program';
@@ -81,7 +82,8 @@ function placeMarker(): void {
   const row = lines?.querySelector<HTMLElement>(
     `[data-row="${props.finished ? 'end' : props.ip}"]`
   );
-  if (!lines || !row) {
+  // A row with no height is a panel out of sight (another view of a phone): no marker to draw.
+  if (!lines || !row || row.offsetHeight === 0) {
     marker.value = null;
     return;
   }
@@ -96,6 +98,8 @@ function placeMarker(): void {
 }
 
 onMounted(placeMarker);
+// A phone's view coming back into sight gives the rows their height again.
+useResizeObserver(list, placeMarker);
 watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMarker, {
   flush: 'post'
 });
