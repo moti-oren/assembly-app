@@ -122,7 +122,7 @@ function reveal(jump: () => void): void {
         </InfoTip>
         <!-- On a phone the places are a row of their own, which scrolls sideways if it must. -->
         <div
-          class="flex gap-1 max-sm:order-last max-sm:w-full max-sm:overflow-x-auto"
+          class="scroll-fade-x flex gap-1 max-sm:order-last max-sm:w-full max-sm:overflow-x-auto"
           role="group"
           aria-label="Go to"
         >

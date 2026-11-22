@@ -44,10 +44,10 @@ const listed = ref<ComparedId>(COMPARED[0]);
       >
         <!--
           On a phone the tasks are one row that scrolls sideways, not three rows of the screen. Its
-          right edge fades, and the scrollbar keeps clear of the buttons.
+          right edge fades (scroll-fade-x).
         -->
         <div
-          class="flex shrink-0 flex-wrap gap-1.5 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pr-6 max-sm:pb-2 max-sm:[mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)]"
+          class="scroll-fade-x flex shrink-0 flex-wrap gap-1.5 max-sm:flex-nowrap max-sm:overflow-x-auto"
           role="group"
           aria-label="Task"
         >

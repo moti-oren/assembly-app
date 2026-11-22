@@ -11,25 +11,6 @@
   }
 
   /*
-   * The choice of operation is wider than a phone: there it scrolls sideways, and fades out at
-   * its right edge so a name cut by the screen reads as "more". The room at its end lets the
-   * last name scroll clear of the fade.
-   */
-  @media (width < 48rem) {
-    .logic-operations {
-      scrollbar-width: none;
-      overscroll-behavior-x: contain;
-      mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
-    }
-    .logic-operations::-webkit-scrollbar {
-      display: none;
-    }
-    .logic-operations > * {
-      padding-right: 1.75rem;
-    }
-  }
-
-  /*
    * Rows of bits that share their columns, the top bit on the left. --cell is one column; a
    * finger gets a wider one. A wide circuit scrolls sideways under its row labels. --cell-height
    * is how tall a column's row is, which stays a finger's even where the column is narrower.
