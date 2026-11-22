@@ -64,6 +64,19 @@ describe('keyHints', () => {
     expect(text(base)).toEqual(['←↑↓→ move', 'Enter pick']);
   });
 
+  it('offers to replace or cancel while a program line is edited', () => {
+    expect(text({ ...base, boxBusy: true, enterRuns: true, editing: true })).toEqual([
+      'Alt+←↑↓→ move',
+      'Enter replace',
+      'Esc cancel'
+    ]);
+    expect(text({ ...base, boxBusy: true, editing: true })).toEqual([
+      'Alt+←↑↓→ move',
+      'Enter pick',
+      'Esc cancel'
+    ]);
+  });
+
   it('asks for Alt once the box holds words or text', () => {
     expect(text({ ...base, boxBusy: true, altKey: '⌥' })).toEqual([
       '⌥+←↑↓→ move',

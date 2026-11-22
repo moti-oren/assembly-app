@@ -95,6 +95,18 @@ export function useWorkbench<
     if (fromProgram) hooks.page.foldBuilder();
   });
 
+  // So does opening the history: its list needs the room the choices take.
+  watch(panels.historyShown, (shown) => {
+    if (shown) hooks.page.foldBuilder();
+  });
+
+  // Editing a line happens in the builder, which may be collapsed or, on a phone, out of sight.
+  watch(cpu.editing, (editing) => {
+    if (!editing) return;
+    show('code');
+    sidebar.expand('builder');
+  });
+
   return {
     panels,
     commands,

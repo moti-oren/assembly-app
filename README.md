@@ -95,6 +95,15 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   program run to its end, which running it again brings back.
 - When the program has ended, **Step** becomes **Run again**: it resets the CPU and runs the
   program from its first line. The buttons that are off say why when you point at them.
+- Each program line has **Edit** (the pencil, or the **⋯** menu on a touch screen): the line goes
+  back into the instruction box, **Enter** or **Replace** puts the changed instruction in its
+  place, and **Esc** or **Cancel** leaves the line as it was. The **⋯** menu also moves a line up
+  or down, as do Alt+Up and Alt+Down while one of the line's buttons has the focus; jumps keep
+  pointing at the instructions they pointed at.
+- The program of each CPU is remembered in the browser. After a reload it is back, started
+  afresh: registers, memory and the history are not kept.
+- With every panel of the left column open, the program keeps about six of its lines in sight,
+  and opening **History** folds the builder's choices away to make room.
 - Loading an example shows its name and what it demonstrates above the program lines, until you
   edit the program. An example that uses no device closes the I/O panel again, if a program had
   opened it.
@@ -395,6 +404,14 @@ npm run verify:6502 # check the 6502 core against py65
   כשכל ההיסטוריה היא התוכנית שרצה עד סופה, כי הרצה חוזרת מחזירה אותה.
 - כשהתוכנית הסתיימה, **Step** הופך ל-**Run again**: הוא מאפס את ה-CPU ומריץ את התוכנית מהשורה
   הראשונה. הכפתורים הכבויים אומרים למה כשמצביעים עליהם.
+- לכל שורת תוכנית יש **Edit** (העיפרון, או תפריט **⋯** במסך מגע): השורה חוזרת לתיבת ההוראה,
+  **Enter** או **Replace** שמים את ההוראה המתוקנת במקומה, ו-**Esc** או **Cancel** משאירים את
+  השורה כמו שהייתה. תפריט **⋯** גם מזיז שורה למעלה או למטה, וכך גם Alt+Up ו-Alt+Down כשהמיקוד על
+  אחד מכפתורי השורה; קפיצות ממשיכות להצביע על ההוראות שעליהן הצביעו.
+- התוכנית של כל מעבד נשמרת בדפדפן. אחרי רענון היא חוזרת, במצב התחלתי: הרגיסטרים, הזיכרון
+  וההיסטוריה לא נשמרים.
+- כשכל החלוניות בעמודה השמאלית פתוחות, התוכנית שומרת כשש משורותיה גלויות, ופתיחת **History**
+  מקפלת את האפשרויות של הבנאי כדי לפנות מקום.
 - טעינת דוגמה מציגה את שמה ומה היא מדגימה מעל שורות התוכנית, עד שעורכים את התוכנית. דוגמה שלא
   משתמשת בהתקנים סוגרת שוב את חלונית ה-I/O, אם תוכנית היא שפתחה אותה.
 - אחרי קפיצה מותנית, כרטיסיית **Cycle** אומרת למה היא נלקחה או לא, עם הערכים שנבדקו:

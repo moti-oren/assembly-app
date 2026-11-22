@@ -32,6 +32,19 @@ const MIN_HEIGHTS: Record<SidebarKey, number> = {
   encoding: 96
 };
 
+/** A program line's height, and how many of them stay in sight whatever else is open. */
+const PROGRAM_ROW = 28;
+const PROGRAM_ROWS_KEPT = 6;
+
+/**
+ * The least an open panel is given. The program keeps a few of its lines in sight, as many as
+ * it has up to a handful, so opening every panel does not leave it a couple of rows.
+ */
+export function leastHeight(key: SidebarKey, programRows = 0): number {
+  if (key !== 'program') return MIN_HEIGHTS[key];
+  return MIN_HEIGHTS.program + Math.min(programRows, PROGRAM_ROWS_KEPT) * PROGRAM_ROW;
+}
+
 export function isSidebarKey(key: string): key is SidebarKey {
   return (SIDEBAR_PANELS as readonly string[]).includes(key);
 }
@@ -83,12 +96,13 @@ export function isDefaultLayout(layout: SidebarLayout): boolean {
 export function sectionStyle(
   key: SidebarKey,
   collapsed: boolean,
-  size: number
+  size: number,
+  programRows = 0
 ): Record<string, string> {
   if (collapsed) return { '--section-flex': '0 0 auto', '--section-min': 'auto' };
   return {
     '--section-flex': `${size} 1 0px`,
-    '--section-min': `${MIN_HEIGHTS[key]}px`,
+    '--section-min': `${leastHeight(key, programRows)}px`,
     '--section-max': 'max-content'
   };
 }

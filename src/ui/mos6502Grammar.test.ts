@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { MOS6502 } from '@/core/mos6502/architecture';
 import { formatInstruction } from '@/core/mos6502/instructions';
 import type { DraftContext } from './builderGrammar';
 import { MOS6502_GRAMMAR, type Mos6502Action } from './mos6502Grammar';
@@ -73,5 +74,17 @@ describe('MOS6502_GRAMMAR', () => {
     expect(MOS6502_GRAMMAR.describe([mnemonic('asl')])?.text).toBe(
       'Shift left; bit 7 goes to C. Modes: accumulator, zero page, zero page,X, absolute, absolute,X'
     );
+  });
+});
+
+describe('parse', () => {
+  it('gives back the words of every line of the examples', () => {
+    for (const example of MOS6502.examples) {
+      for (const instruction of example.program) {
+        const words = MOS6502_GRAMMAR.parse(instruction);
+        expect(MOS6502_GRAMMAR.build(words)).toEqual([instruction]);
+        expect(MOS6502_GRAMMAR.hasMore(words)).toBe(false);
+      }
+    }
   });
 });

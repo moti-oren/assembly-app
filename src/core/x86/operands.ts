@@ -82,6 +82,8 @@ export function matchesKind(kind: OperandKind, operand: Operand): boolean {
           return false;
       }
     case 'mem':
+      // The 8086 addresses memory through BX, SI, DI or BP, or by a plain offset: no other base.
+      if (operand.base !== null && !MEMORY_BASES.includes(operand.base)) return false;
       return (kind === 'm8' && operand.size === 8) || (kind === 'm16' && operand.size === 16);
     case 'label':
       return kind === 'label';

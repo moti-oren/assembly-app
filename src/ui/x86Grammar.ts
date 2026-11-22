@@ -278,11 +278,20 @@ function build(chosen: readonly OptionAction[]): Instruction[] | null {
   return [instruction];
 }
 
+function parse({ prefix, mnemonic, operands }: Instruction): OptionAction[] {
+  return [
+    ...(prefix ? [{ kind: 'prefix', prefix } as const] : []),
+    { kind: 'mnemonic', mnemonic },
+    ...operands.map((operand) => ({ kind: 'operand', operand }) as const)
+  ];
+}
+
 /** How the builder builds 8086 instructions. */
 export const X86_GRAMMAR: InstructionGrammar<OptionAction, Instruction> = {
   options: (chosen, context) => builderOptions(wordsOf(chosen, context)),
   tokens: tokensOf,
   build,
+  parse,
   hasMore(chosen) {
     const { mnemonic, operands, pendingMemory } = wordsOf(chosen, NO_CONTEXT);
     return mnemonic === null || pendingMemory !== null || hasMoreOperands(mnemonic, operands);

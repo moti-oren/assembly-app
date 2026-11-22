@@ -55,6 +55,8 @@ export interface BuilderKeyState {
   canMove: boolean;
   /** What the Alt key is called on this keyboard. */
   altKey: string;
+  /** The box holds a program line being edited: Enter replaces it and Esc leaves it as it was. */
+  editing?: boolean;
 }
 
 /** The keys that do something right now, in the order the row shows them. */
@@ -63,11 +65,14 @@ export function keyHints(state: BuilderKeyState): KeyHint[] {
   if (state.canMove) {
     hints.push({ keys: state.boxBusy ? [state.altKey, '←↑↓→'] : ['←↑↓→'], label: 'move' });
   }
-  if (state.enterRuns) {
+  if (state.enterRuns && state.editing) {
+    hints.push({ keys: ['Enter'], label: 'replace' });
+  } else if (state.enterRuns) {
     hints.push({ keys: ['Enter'], label: 'run now' }, { keys: ['⇧', 'Enter'], label: 'add' });
   } else if (state.canPick) {
     hints.push({ keys: ['Enter'], label: 'pick' });
   }
-  if (state.boxBusy) hints.push({ keys: ['Esc'], label: 'clear' });
+  if (state.editing) hints.push({ keys: ['Esc'], label: 'cancel' });
+  else if (state.boxBusy) hints.push({ keys: ['Esc'], label: 'clear' });
   return hints;
 }

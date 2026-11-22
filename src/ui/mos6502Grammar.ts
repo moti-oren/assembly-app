@@ -196,6 +196,13 @@ function build(chosen: readonly Mos6502Action[]): Instruction[] | null {
   return isValid(instruction) ? [instruction] : null;
 }
 
+function parse({ mnemonic, operands }: Instruction): Mos6502Action[] {
+  return [
+    { kind: 'mnemonic', mnemonic },
+    ...operands.map((operand) => ({ kind: 'operand', operand }) as const)
+  ];
+}
+
 /** Whether the mnemonic can take a number, and the typed one fits none of its modes. */
 function overflows(chosen: readonly Mos6502Action[], context: DraftContext): boolean {
   const { mnemonic, operand } = wordsOf(chosen);
@@ -211,6 +218,7 @@ export const MOS6502_GRAMMAR: InstructionGrammar<Mos6502Action, Instruction> = {
   options,
   tokens,
   build,
+  parse,
   hasMore(chosen) {
     const { mnemonic, operand } = wordsOf(chosen);
     if (mnemonic === null) return true;

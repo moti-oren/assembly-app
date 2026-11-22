@@ -222,6 +222,13 @@ function build(chosen: readonly Rv32Action[]): Instruction[] | null {
   return null;
 }
 
+function parse({ mnemonic, operands }: Instruction): Rv32Action[] {
+  return [
+    { kind: 'mnemonic', mnemonic },
+    ...operands.map((operand) => ({ kind: 'operand', operand }) as const)
+  ];
+}
+
 function overflows(chosen: readonly Rv32Action[], context: DraftContext): boolean {
   const words = wordsOf(chosen);
   const kind = nextKind(words);
@@ -234,6 +241,7 @@ export const RV32_GRAMMAR: InstructionGrammar<Rv32Action, Instruction> = {
   options,
   tokens,
   build,
+  parse,
   hasMore(chosen) {
     const words = wordsOf(chosen);
     const form = formOf(words);

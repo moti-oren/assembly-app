@@ -5,7 +5,8 @@ import {
   isSidebarKey,
   readLayout,
   resizePair,
-  sectionStyle
+  sectionStyle,
+  leastHeight
 } from './sidebarLayout';
 
 describe('readLayout', () => {
@@ -66,6 +67,21 @@ describe('sectionStyle', () => {
   it('keeps the builder tall enough for its input and buttons', () => {
     expect(sectionStyle('builder', false, 100)['--section-min']).toBe('208px');
     expect(sectionStyle('history', false, 100)['--section-min']).toBe('96px');
+  });
+});
+
+describe('leastHeight', () => {
+  it('keeps as many program lines in sight as there are, up to a handful', () => {
+    expect(leastHeight('program')).toBe(96);
+    expect(leastHeight('program', 2)).toBe(152);
+    expect(leastHeight('program', 6)).toBe(264);
+    expect(leastHeight('program', 40)).toBe(264);
+    expect(sectionStyle('program', false, 100, 40)['--section-min']).toBe('264px');
+  });
+
+  it('gives the other panels their fixed least height', () => {
+    expect(leastHeight('history', 40)).toBe(96);
+    expect(leastHeight('builder', 40)).toBe(208);
   });
 });
 

@@ -1,11 +1,9 @@
 <script setup lang="ts" generic="Action, Instruction">
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { formatLabel } from '@/core/shared/program';
-import { ChevronDown, CircleAlert, Play, Plus } from '@lucide/vue';
+import { ChevronDown, CircleAlert } from '@lucide/vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Kbd, KbdGroup } from '@/components/ui/kbd';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { BuilderOption, InstructionGrammar } from '@/ui/builderGrammar';
 import { keyHints } from '@/ui/builderKeys';
 import { sound } from '@/ui/soundEngine';
@@ -13,6 +11,7 @@ import { isApple } from '@/ui/platform';
 import { useOptionArrows } from '@/ui/useBuilderArrows';
 import { useBuilderOptions } from '@/ui/useBuilderOptions';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
+import BuilderActions from './BuilderActions.vue';
 import BuilderOptions from './BuilderOptions.vue';
 import BuilderTokenBox from './BuilderTokenBox.vue';
 
@@ -27,11 +26,17 @@ const props = defineProps<{
   /** The program, formatted, so jumps can offer its lines as targets. */
   programLines: string[];
   insertLine: number;
+  /** The program line being edited, which the builder holds and Enter replaces; null if none. */
+  editing?: { line: number; instruction: Instruction } | null;
+  /** Puts the instructions in place of the line being edited. */
+  replace?: (instructions: Instruction[]) => void;
 }>();
 
 const emit = defineEmits<{
   /** The instructions as built so far, once they are complete; null while they are not. */
   draft: [instructions: Instruction[] | null];
+  /** Leaves the line being edited as it was. */
+  cancelEdit: [];
 }>();
 
 // The grammar is fixed for the life of the builder: a new architecture gets a new builder.
@@ -80,16 +85,30 @@ const hints = computed(() =>
     enterRuns: complete.value && filter.value.trim() === '',
     canPick: enterOption.value !== null,
     canMove: enterOption.value !== null && orderedOptions.value.length > 1,
-    altKey: isApple ? '⌥' : 'Alt'
+    altKey: isApple ? '⌥' : 'Alt',
+    editing: !!props.editing
   })
 );
 
 const focusInput = (): void => box.value?.focus();
 
-// Not on a touch screen: focusing there opens the on-screen keyboard over half the page.
-onMounted(() => {
-  if (!window.matchMedia('(pointer: coarse)').matches) focusInput();
-});
+const onTouchScreen = (): boolean => window.matchMedia('(pointer: coarse)').matches;
+
+/** Not on a touch screen: focusing there opens the on-screen keyboard over half the page. */
+function focusInputWithKeys(): void {
+  if (!onTouchScreen()) focusInput();
+}
+
+/**
+ * Brings the focus to the builder when an edit starts or ends. On a touch screen that is the
+ * card itself, not its input: a screen reader lands on the builder and no keyboard opens.
+ */
+function focusBuilder(): void {
+  if (onTouchScreen()) card.value?.$el.focus();
+  else focusInput();
+}
+
+onMounted(focusInputWithKeys);
 
 defineExpose({
   focus: () => {
@@ -124,12 +143,43 @@ function clear(): void {
   focusInput();
 }
 
+/** Esc and the clear button: they empty the box, which gives up the edit of a line too. */
+function clearOrCancel(): void {
+  if (props.editing) emit('cancelEdit');
+  clear();
+}
+
+// A line to edit fills the box with its words. When the edit ends, replaced or given up from
+// anywhere (the program changed under it), the box empties again.
+watch(
+  () => props.editing,
+  (editing, before) => {
+    if (editing) {
+      draft.load(editing.instruction);
+      filter.value = '';
+      unfold();
+      focusBuilder();
+      // On a phone the builder is above the line that was tapped, often out of sight.
+      card.value?.$el.scrollIntoView({ block: 'nearest' });
+    } else if (before) {
+      draft.clear();
+      filter.value = '';
+      // Cancel and Replace are taken away with the edit: focus that was on them goes to the box.
+      if (card.value?.$el.contains(document.activeElement)) focusBuilder();
+    }
+  }
+);
+
 watch(built, (instructions) => emit('draft', instructions));
 
 /** Runs the instructions now, or adds them to the program. */
 function submit(toProgram: boolean): void {
   const instructions = built.value;
   if (!instructions) return;
+  if (props.editing) {
+    props.replace?.(instructions);
+    return;
+  }
   if (toProgram) {
     props.add(instructions);
     clear();
@@ -148,12 +198,19 @@ function onEnter(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <Card ref="card" @pointerdown="unfold" @keydown="onKeydown">
+  <Card ref="card" tabindex="-1" class="outline-none" @pointerdown="unfold" @keydown="onKeydown">
     <CardHeader>
       <CardTitle>Instruction</CardTitle>
     </CardHeader>
 
     <CardContent class="flex flex-col gap-3">
+      <!-- What Enter will do is not what it usually does: say so before the box, not after. -->
+      <p v-if="editing" class="flex items-baseline gap-2 text-sm" role="status">
+        <span class="font-medium">Editing {{ formatLabel(editing.line) }}</span>
+        <span class="min-w-0 truncate font-mono text-xs text-muted-foreground">{{
+          programLines[editing.line]
+        }}</span>
+      </p>
       <BuilderTokenBox
         ref="box"
         v-model:filter="filter"
@@ -161,7 +218,7 @@ function onEnter(event: KeyboardEvent): void {
         :placeholder="moreToChoose ? hint : 'Ready to run'"
         :invalid="doesNotFit"
         @truncate="truncateTo"
-        @clear="clear"
+        @clear="clearOrCancel"
         @enter="onEnter"
         @back="tokens.length > 0 && truncateTo(tokens.length - 1)"
         @option-arrow="onOptionArrow"
@@ -205,46 +262,27 @@ function onEnter(event: KeyboardEvent): void {
         @hover="hovered = $event"
       />
       <div v-else-if="!moreToChoose" class="text-sm text-muted-foreground">
-        <p>
+        <p v-if="editing">
+          Complete. Replace line
+          <span class="font-mono text-foreground">{{ formatLabel(editing.line) }}</span> with it, or
+          cancel to leave the line as it was.
+        </p>
+        <p v-else>
           Complete. Run it now, or add it to the program at line
           <span class="font-mono text-foreground">{{ formatLabel(insertLine) }}</span>.
         </p>
       </div>
     </CardContent>
 
-    <!-- In a narrow pane the buttons take a row of their own rather than being cut off. -->
-    <CardFooter class="builder-actions flex-wrap justify-between gap-x-3 gap-y-2">
-      <!-- The keys that do something right now; see builderKeys.ts. -->
-      <div class="hidden items-center gap-3 text-xs text-muted-foreground sm:flex touch:hidden">
-        <span v-for="keyHint in hints" :key="keyHint.label" class="flex items-center gap-1.5">
-          <KbdGroup
-            ><Kbd v-for="key in keyHint.keys" :key="key">{{ key }}</Kbd></KbdGroup
-          >
-          {{ keyHint.label }}
-        </span>
-      </div>
-      <div class="ml-auto flex gap-2">
-        <!-- Not yet usable is said by colour, not by fading: a faded button reads as broken. -->
-        <Button
-          variant="outline"
-          size="sm"
-          class="quiet-disabled pointer-coarse:h-11 disabled:opacity-100"
-          :disabled="!complete"
-          @click="submit(true)"
-        >
-          <Plus />
-          Add at {{ formatLabel(insertLine) }}
-        </Button>
-        <Button
-          size="sm"
-          class="quiet-disabled px-3 pointer-coarse:h-11 hover:bg-primary/85 disabled:opacity-100"
-          :disabled="!complete"
-          @click="submit(false)"
-        >
-          <Play />
-          Run now
-        </Button>
-      </div>
-    </CardFooter>
+    <BuilderActions
+      :hints="hints"
+      :complete="complete"
+      :insert-label="formatLabel(insertLine)"
+      :editing-label="editing ? formatLabel(editing.line) : null"
+      @add="submit(true)"
+      @run="submit(false)"
+      @replace="submit(false)"
+      @cancel="clearOrCancel"
+    />
   </Card>
 </template>

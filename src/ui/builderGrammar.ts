@@ -41,6 +41,10 @@ export interface InstructionGrammar<Action, Instruction> {
    * stands for more than one.
    */
   build(chosen: readonly Action[]): Instruction[] | null;
+  /**
+   * The words a real instruction is made of, for editing a program line: the reverse of `build`.
+   */
+  parse(instruction: Instruction): Action[];
   /** Whether another word can still be chosen. */
   hasMore(chosen: readonly Action[]): boolean;
   /** Whether the typed number is too big for the immediate asked for. */

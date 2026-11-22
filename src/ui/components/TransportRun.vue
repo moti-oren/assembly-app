@@ -91,30 +91,20 @@ watch(
       >
     </Button>
   </DisabledReason>
-  <Button
-    v-if="running"
-    variant="outline"
-    size="sm"
-    class="pointer-coarse:h-11"
-    :class="{ 'size-11': compact }"
-    aria-label="Pause"
-    @click="emit('pause')"
-  >
-    <Pause />
-    <span :class="{ 'sr-only': compact }">Pause</span>
-  </Button>
-  <DisabledReason v-else :reason="blocked" label="Run">
+  <!-- One button for Run and Pause: it changes its face, so the focus on it is never lost. -->
+  <DisabledReason :reason="running ? null : blocked" label="Run">
     <Button
       variant="outline"
       size="sm"
       class="pointer-coarse:h-11"
       :class="{ 'size-11': compact }"
-      aria-label="Run"
-      :disabled="finished"
-      @click="emit('run')"
+      :aria-label="running ? 'Pause' : 'Run'"
+      :disabled="!running && finished"
+      @click="running ? emit('pause') : emit('run')"
     >
-      <FastForward />
-      <span :class="{ 'sr-only': compact }">Run</span>
+      <Pause v-if="running" />
+      <FastForward v-else />
+      <span :class="{ 'sr-only': compact }">{{ running ? 'Pause' : 'Run' }}</span>
     </Button>
   </DisabledReason>
 </template>

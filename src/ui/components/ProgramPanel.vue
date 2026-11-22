@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="Instruction extends ProgramInstruction">
-import { computed, onMounted, ref, watch } from 'vue';
-import { ArrowUpToLine, ChevronRight, Trash2, X } from '@lucide/vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { ChevronRight, Trash2 } from '@lucide/vue';
 import { formatBytes } from '@/core/shared/numbers';
 import { formatLabel, isLabel, type ProgramInstruction } from '@/core/shared/program';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,9 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CodePlace, LineCode } from '@/ui/programCode';
+import { lineMoveOf } from '@/ui/programKeys';
 import type { ProgramSource } from '@/ui/useProgramLines';
+import ProgramLineActions from './ProgramLineActions.vue';
 
 const props = defineProps<{
   program: Instruction[];
@@ -33,11 +35,17 @@ const props = defineProps<{
   finished: boolean;
   /** The example the program was loaded from, while it is still that program. */
   source?: ProgramSource | null;
+  /** The line being edited in the builder, if one is. */
+  editingLine?: number | null;
 }>();
 
 const emit = defineEmits<{
   clear: [];
   remove: [index: number];
+  /** Asks for a line to be loaded into the builder, which will replace it. */
+  edit: [index: number];
+  /** Asks for the line at `from` to be moved to `to`. */
+  move: [from: number, to: number];
   /** Asks for the machine code of a line to be taken apart. */
   inspect: [index: number];
   /** Asks for the examples menu, from the empty program's prompt. */
@@ -85,6 +93,33 @@ onMounted(placeMarker);
 watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMarker, {
   flush: 'post'
 });
+
+/**
+ * Moves a line and takes the focus along. The rows are redrawn in place, so the control that
+ * was focused now belongs to another line: the same control of the moved line is focused.
+ */
+function move(from: number, to: number, action: string): void {
+  emit('move', from, to);
+  void nextTick(() => {
+    const row = list.value?.querySelector<HTMLElement>(`[data-row="${to}"]`);
+    // The menu button is in every row at every width; the others are not.
+    const control =
+      row?.querySelector<HTMLElement>(`[data-action="${action}"]`) ??
+      row?.querySelector<HTMLElement>('[data-action="more"]');
+    control?.focus();
+  });
+}
+
+/** Alt with Up or Down moves the line whose control has the focus. */
+function onListKeydown(event: KeyboardEvent): void {
+  if (!(event.target instanceof HTMLElement)) return;
+  const row = Number(event.target.closest<HTMLElement>('li[data-row]')?.dataset.row);
+  const moved = lineMoveOf(event, row, props.program.length);
+  if (!moved) return;
+  event.preventDefault();
+  const control = event.target.closest<HTMLElement>('[data-action]');
+  move(moved.from, moved.to, control?.dataset.action ?? 'more');
+}
 
 const ROW =
   'group col-span-full grid h-7 pointer-coarse:h-11 grid-cols-subgrid items-center pr-1 pl-2';
@@ -137,6 +172,7 @@ function machineCode(index: number): string {
         data-fill
         class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_auto_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
+        @keydown="onListKeydown"
       >
         <li
           v-if="marker"
@@ -159,7 +195,11 @@ function machineCode(index: number): string {
             </button>
           </li>
           <li
-            :class="[ROW, ip === index ? '' : 'hover:bg-muted/60']"
+            :class="[
+              ROW,
+              ip === index ? '' : 'hover:bg-muted/60',
+              { 'inset-ring inset-ring-foreground/40': editingLine === index }
+            ]"
             :data-row="index"
             :aria-current="ip === index ? 'step' : undefined"
           >
@@ -188,7 +228,8 @@ function machineCode(index: number): string {
               <TooltipTrigger as-child>
                 <button
                   type="button"
-                  class="ml-2 hidden max-w-36 min-w-0 justify-self-start truncate rounded-sm px-1 text-left text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
+                  data-action="code"
+                  class="hidden max-w-[min(9rem,100%)] min-w-0 justify-self-start truncate rounded-sm pr-1 pl-3 text-left text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
                   :class="{ 'text-destructive': code[index].problem }"
                   @click="emit('inspect', index)"
                 >
@@ -200,38 +241,18 @@ function machineCode(index: number): string {
               </TooltipContent>
             </Tooltip>
             <span v-else />
-            <span
-              class="flex opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100"
-            >
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    class="pointer-coarse:size-11"
-                    aria-label="Insert new lines above this one"
-                    @click="emit('update:insertAt', index)"
-                  >
-                    <ArrowUpToLine />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Insert new lines above this one</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    class="hover:text-destructive pointer-coarse:size-11"
-                    aria-label="Delete this line"
-                    @click="emit('remove', index)"
-                  >
-                    <X />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete this line</TooltipContent>
-              </Tooltip>
-            </span>
+            <!-- Placed by name: on a phone the machine code is not drawn, and takes no column. -->
+            <ProgramLineActions
+              class="col-start-5 justify-self-end"
+              :label="formatLabel(index)"
+              :can-move-up="index > 0"
+              :can-move-down="index < program.length - 1"
+              @edit="emit('edit', index)"
+              @move-up="move(index, index - 1, 'more')"
+              @move-down="move(index, index + 1, 'more')"
+              @insert-above="emit('update:insertAt', index)"
+              @remove="emit('remove', index)"
+            />
           </li>
         </template>
         <li :class="ROW" data-row="end" :aria-current="finished ? 'step' : undefined">
