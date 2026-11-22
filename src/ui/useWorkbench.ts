@@ -10,6 +10,7 @@ import { usePanelColumns } from './usePanelOrder';
 import { usePanels, type UsesDevices } from './usePanels';
 import { useSidebarLayout } from './useSidebarLayout';
 import { useSoundEffects, type SoundOf } from './useSoundEffects';
+import { useTransportKeys } from './useTransportKeys';
 import { useWorkbenchView } from './useWorkbenchView';
 
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
@@ -50,6 +51,7 @@ export function useWorkbench<
   /** True while the user is asked to confirm clearing the program. */
   const clearAsked = ref(false);
   const { resetAsked, historyLength, askReset, runAgain, confirmReset } = useCpuReset(cpu);
+  useTransportKeys(cpu, runAgain);
 
   /** Where the last instruction leads in the logic topic; null before anything has run. */
   const aluLink = computed(() => {

@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { FastForward, Footprints, Pause, RotateCcw, StepForward } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
+import { TRANSPORT_ARIA_KEYS } from '@/ui/transportKeys';
 import { blockedReason, nextPhaseLabel } from '@/ui/transportLabels';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import DisabledReason from './DisabledReason.vue';
@@ -51,6 +52,7 @@ watch(
     size="sm"
     class="px-3 pointer-coarse:h-11 hover:bg-primary/85"
     :class="{ 'h-11 min-w-0 flex-1': compact }"
+    :aria-keyshortcuts="TRANSPORT_ARIA_KEYS.run"
     @click="emit('again')"
   >
     <RotateCcw />
@@ -65,6 +67,7 @@ watch(
       class="quiet-disabled w-full px-3 pointer-coarse:h-11 disabled:opacity-100"
       :class="[running ? 'text-muted-foreground' : 'hover:bg-primary/85', { 'h-11': compact }]"
       :disabled="finished"
+      :aria-keyshortcuts="TRANSPORT_ARIA_KEYS.step"
       @click="emit('step')"
     >
       <StepForward />
@@ -101,6 +104,7 @@ watch(
       class="quiet-disabled pointer-coarse:h-11 disabled:opacity-100"
       :class="{ 'size-11': compact, 'hover:bg-primary/85': running }"
       :aria-label="running ? 'Pause' : 'Run'"
+      :aria-keyshortcuts="TRANSPORT_ARIA_KEYS.run"
       :disabled="!running && finished"
       @click="running ? emit('pause') : emit('run')"
     >
