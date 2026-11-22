@@ -146,7 +146,11 @@ function reveal(jump: () => void): void {
           <Input
             v-model="addressText"
             class="h-7 w-28 font-mono text-sm pointer-coarse:h-11"
-            :class="format.prefix.length > 1 ? 'pl-7' : 'pl-5'"
+            :class="[
+              format.prefix.length > 1 ? 'pl-7' : 'pl-5',
+              // A touch screen's field is set in 16px (controls.css): eight digits need more room.
+              { 'pointer-coarse:w-36': format.digits > 4 }
+            ]"
             :aria-invalid="invalid || undefined"
             :aria-describedby="invalid ? errorId : undefined"
             :maxlength="format.digits + format.prefix.length"
