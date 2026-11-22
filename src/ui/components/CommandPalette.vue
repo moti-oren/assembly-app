@@ -7,7 +7,8 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
+  CommandShortcut
 } from '@/components/ui/command';
 import {
   Dialog,
@@ -16,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { Kbd } from '@/components/ui/kbd';
+import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { groupBy } from '@/ui/groupBy';
 import type { PaletteCommand } from '@/ui/paletteCommand';
 
@@ -87,6 +88,12 @@ function onCloseAutoFocus(event: Event): void {
               @select="choose(command)"
             >
               {{ command.label }}
+              <!-- Its shortcut, at the right edge; no use on a screen worked by touch. -->
+              <CommandShortcut v-if="command.keys" class="shrink-0 tracking-normal touch:hidden">
+                <KbdGroup
+                  ><Kbd v-for="key in command.keys" :key="key">{{ key }}</Kbd></KbdGroup
+                >
+              </CommandShortcut>
             </CommandItem>
           </CommandGroup>
         </CommandList>
