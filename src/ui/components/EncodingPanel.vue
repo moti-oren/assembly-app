@@ -28,7 +28,7 @@ const KIND_TINTS: Record<FieldKind, string> = {
   modrm: 'bg-chart-3/25',
   displacement: 'bg-chart-2/25',
   immediate: 'bg-chart-4/25',
-  relative: 'bg-chart-5/25'
+  relative: 'bg-chart-6/25'
 };
 
 type ModRm = NonNullable<AssembledLine['encoding']['fields'][number]['modrm']>;
@@ -84,7 +84,7 @@ const summary = computed(() => {
         <li
           v-for="(field, index) in shown.assembled.encoding.fields"
           :key="index"
-          class="well max-w-full min-w-0 rounded-md px-2.5 py-2 sm:max-w-72"
+          class="well max-w-full min-w-0 rounded-md px-2.5 py-2 max-md:w-full md:max-w-72"
         >
           <div class="flex items-center gap-2">
             <span class="font-mono text-sm font-semibold">{{ formatBytes(field.bytes) }}</span>
