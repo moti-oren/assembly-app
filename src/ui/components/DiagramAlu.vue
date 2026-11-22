@@ -12,7 +12,7 @@ const link = computed(() => props.model.shown && x86AluLink(props.model.shown));
 </script>
 
 <template>
-  <div class="mt-3 flex items-stretch">
+  <div class="mt-6 flex items-stretch short:mt-4">
     <!--
       The sum on one line, where the unit is wide enough for it. With nothing to compute the line
       holds its outline in dashes, and the reason beside it, so the unit keeps its size.

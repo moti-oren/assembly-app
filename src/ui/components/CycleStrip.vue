@@ -109,7 +109,8 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
     </div>
     <!--
       Three lines (two on a low window or a phone), whatever the text, so the panels below never
-      move until it is opened. A phone gives the idle line no more room than it takes.
+      move from one step to the next. The idle line takes a little less, and on a phone no more
+      room than it needs.
     -->
     <details
       class="group mt-2.5 text-code leading-5 text-muted-foreground max-sm:mt-1.5"
@@ -117,9 +118,9 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
     >
       <summary
         ref="summary"
-        class="line-clamp-3 h-15 list-none short:line-clamp-2 short:h-10 rounded-sm outline-none max-sm:line-clamp-2 group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 max-sm:group-open:line-clamp-none max-sm:group-open:h-auto [&::-webkit-details-marker]:hidden"
+        class="line-clamp-3 list-none short:line-clamp-2 rounded-sm outline-none max-sm:line-clamp-2 group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 max-sm:group-open:line-clamp-none max-sm:group-open:h-auto [&::-webkit-details-marker]:hidden"
         :class="[
-          detail === null ? 'max-sm:h-5' : 'max-sm:h-10',
+          detail === null ? 'h-12 short:h-7 max-sm:h-5' : 'h-15 short:h-10 max-sm:h-10',
           { 'cursor-pointer': truncated || open }
         ]"
         @click="onSummaryClick"

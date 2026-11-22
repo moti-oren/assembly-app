@@ -58,7 +58,9 @@ const { registerBits } = usePreferences();
       "
     >
       <!-- The package: the two units of an 8086 and the internal bus that joins them. -->
-      <div class="chip-package grid gap-y-5 rounded-lg p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+      <div
+        class="chip-package grid gap-y-5 rounded-lg p-3 pt-4 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
+      >
         <DiagramExecutionUnit :model="model" :tick="tick" />
 
         <DiagramWire

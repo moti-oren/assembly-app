@@ -209,7 +209,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
         />
       </template>
       <template #cycle>
-        <Card size="sm">
+        <Card size="sm" class="md:data-[size=sm]:pb-5 short:data-[size=sm]:pb-3">
           <CardContent>
             <Mos6502Cycle
               :state="state"

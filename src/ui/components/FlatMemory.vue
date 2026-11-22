@@ -108,7 +108,7 @@ function reveal(jump: () => void): void {
 </script>
 
 <template>
-  <Card ref="card" size="sm">
+  <Card ref="card" size="sm" class="md:data-[size=sm]:pt-5 short:data-[size=sm]:pt-3">
     <CardContent class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
         <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>

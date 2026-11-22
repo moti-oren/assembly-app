@@ -81,7 +81,7 @@ const flagChanged = (bit: number) =>
         internal bus between the two. A register's wire lights when the instruction uses it.
       -->
       <div
-        class="chip-package grid gap-y-4 rounded-lg p-3 @min-[37rem]:grid-cols-[auto_auto_minmax(0,1fr)]"
+        class="chip-package grid gap-y-4 rounded-lg p-3 pt-4 @min-[37rem]:grid-cols-[auto_auto_minmax(0,1fr)]"
       >
         <!-- Three 8-bit registers do all the work; SP and PC point at the stack and the code. -->
         <section class="min-w-0" aria-label="Registers">
@@ -220,12 +220,12 @@ const flagChanged = (bit: number) =>
       </div>
 
       <!-- Outside the chip: the one bus to the memory, where the devices are wired in too. -->
-      <div class="mt-3 flex items-end justify-between gap-3 @min-[37rem]:mt-0">
+      <div class="mt-4 flex items-end justify-between gap-3 @min-[37rem]:mt-0">
         <p class="truncate pb-1 text-xs"><span class="unit-title">Address / data bus</span></p>
         <!-- Starts inside the chip's edge, so it crosses the edge like a pin. -->
         <DiagramWire
           vertical
-          class="-mt-3.25 mr-16 hidden h-9 shrink-0 @min-[37rem]:block"
+          class="-mt-3.25 mr-16 hidden h-12 shrink-0 @min-[37rem]:block"
           :kind="view.bus.use"
           :tick="pulse"
         />

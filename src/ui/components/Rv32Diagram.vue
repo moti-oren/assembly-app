@@ -76,7 +76,7 @@ function change(index: number): ValueChange | null {
 <template>
   <CpuCanvas>
     <div class="@container">
-      <div class="chip-package rounded-lg p-3">
+      <div class="chip-package rounded-lg p-3 pt-4">
         <!--
           The register file: 32 registers with two read ports (rs1, rs2) and one write port (rd),
           set out by what the calling convention uses each for rather than by number.
@@ -86,13 +86,13 @@ function change(index: number): ValueChange | null {
           <div class="grid gap-x-6 gap-y-2 font-mono text-xs @min-[44rem]:grid-cols-2">
             <div v-for="group in REGISTER_GROUPS" :key="group.role">
               <h4
-                class="mb-0.5 px-1 font-sans text-2xs text-muted-foreground"
+                class="mb-1 px-1 font-sans text-2xs text-muted-foreground"
                 :title="ROLE_DESCRIPTIONS[group.role]"
               >
                 {{ ROLE_LABELS[group.role] }}
               </h4>
               <!-- As many columns as fit a whole register: a value never wraps under its name. -->
-              <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-x-1">
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-x-1 gap-y-0.5">
                 <div
                   v-for="row in group.rows"
                   :key="row.key"
