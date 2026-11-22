@@ -412,6 +412,8 @@ export function instructionSize({ mnemonic, operands }: Instruction): Size | nul
 /** True when the operands form a legal instruction and the prefix, if any, fits the mnemonic. */
 export function isValid(instruction: Instruction): boolean {
   const { prefix, mnemonic, operands } = instruction;
+  // Own keys only: `in` would take `constructor` and the like for prefixes.
+  if (prefix !== undefined && !Object.hasOwn(REPEAT_PREFIXES, prefix)) return false;
   return isComplete(mnemonic, operands) && (!prefix || prefixAllows(prefix, mnemonic));
 }
 

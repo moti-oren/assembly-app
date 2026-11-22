@@ -12,5 +12,7 @@ export const STORAGE_KEYS = {
   architecture: '8086-architecture',
   topic: '8086-topic',
   rv32Pipeline: '8086-rv32-pipeline',
-  rv32Forwarding: '8086-rv32-forwarding'
+  rv32Forwarding: '8086-rv32-forwarding',
+  /** One program per architecture; the architecture's id is added to it (see programStorage). */
+  program: '8086-program'
 } as const;

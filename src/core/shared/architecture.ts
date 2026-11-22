@@ -22,6 +22,8 @@ export interface Architecture<
   /** The name the app shows: `8086`. */
   readonly name: string;
   createState(): State;
+  /** Whether an instruction is one this CPU has, with operands it accepts. */
+  isValid(instruction: Instruction): boolean;
   /** Points the instruction pointer at a program line, e.g. after the program was edited. */
   setNextLine(state: State, line: number, program: Program<Instruction>): void;
   readonly examples: readonly Example<Instruction>[];

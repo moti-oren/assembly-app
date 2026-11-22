@@ -37,8 +37,12 @@ export function useCpu<
     program,
     source: programSource,
     insertAt,
+    editing,
+    editLine,
+    replaceEditedLine,
     addToProgram,
     removeProgramLine,
+    moveProgramLine,
     replaceProgram
   } = useProgramLines(architecture, state, timeline.forgetFuture);
   const { error, errorFrom, attempt, report, clearError } = useCpuError();
@@ -172,6 +176,10 @@ export function useCpu<
     runProgram,
     addToProgram,
     removeProgramLine,
+    moveProgramLine,
+    editing,
+    editLine,
+    replaceEditedLine,
     clearProgram,
     loadProgram,
     loadExample,
@@ -214,6 +222,8 @@ export interface CpuControls<
   /** The bytes the last instruction wrote. */
   lastWrites: Readonly<Ref<ReadonlyMap<number, ByteChange>>>;
   insertAt: Ref<number | null>;
+  /** The program line being edited in the builder, if one is. */
+  editing: Readonly<Ref<{ line: number } | null>>;
   error: Readonly<Ref<string | null>>;
   errorFrom: Readonly<Ref<ErrorSource>>;
   finished: Readonly<Ref<boolean>>;
