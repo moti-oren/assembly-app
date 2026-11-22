@@ -1,13 +1,15 @@
 import { computed, type ComputedRef } from 'vue';
 import type { PaletteCommand } from './paletteCommand';
 import { TOPIC_CHOICES } from './topics';
+import { useFeedback } from './useFeedback';
 import { usePreferences } from './usePreferences';
 import { useTopic } from './useTopic';
 
-/** The palette commands every topic offers: going to another topic, and the preferences. */
+/** The palette commands every topic offers: another topic, the preferences, and feedback. */
 export function useAppCommands(): ComputedRef<PaletteCommand[]> {
   const { isDark, soundOn, reduceMotion, systemReducesMotion, toggleTheme } = usePreferences();
   const { topic } = useTopic();
+  const feedback = useFeedback();
 
   return computed<PaletteCommand[]>(() => [
     ...TOPIC_CHOICES.filter((choice) => choice.id !== topic.value).map((choice) => ({
@@ -45,6 +47,19 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
           run: () => {
             reduceMotion.value = !reduceMotion.value;
           }
-        }
+        },
+    ...(feedback.available
+      ? [
+          {
+            group: 'Feedback',
+            label: 'Send feedback…',
+            // The dialog takes focus; the palette must not take it back as it closes.
+            moves: 'focus' as const,
+            run: () => {
+              feedback.open.value = true;
+            }
+          }
+        ]
+      : [])
   ]);
 }

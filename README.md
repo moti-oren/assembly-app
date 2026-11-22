@@ -314,6 +314,17 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - Multiplication, division and the 6502's decimal mode have no circuit yet: there **Gates** is
   greyed and says why.
 
+## Feedback
+
+- The speech bubble at the top of the page (**Send feedback** in the **⋯** menu on a phone and in
+  the command palette) opens a short form: an idea, a problem or anything else, with an email
+  address only if you want an answer.
+- Sent with the message: the topic and CPU on show, the size of the screen, the theme and the
+  app's version. Your program is not sent.
+- Where it goes is set at build time by `VITE_FEEDBACK_ENDPOINT` (a form service that takes a
+  JSON `POST`, in `.env.production`). A build without it offers no feedback; `npm run dev` shows
+  the form and prints the message to the console instead of sending it.
+
 ---
 
 <div dir="rtl">
@@ -612,5 +623,15 @@ npm run verify:6502 # check the 6502 core against py65
 - החצים עוברים לפעולה שלפני זו או אחריה בהיסטוריה של המעבד, ו-**Back to the …** חוזר למעבד
   בהוראה המוצגת.
 - לכפל, לחילוק ולמצב העשרוני של ה-6502 אין עדיין מעגל: שם **Gates** אפור ומסביר למה.
+
+## משוב
+
+- בועת הדיבור בראש העמוד (**Send feedback** בתפריט **⋯** בטלפון ובלוח הפקודות) פותחת טופס קצר:
+  רעיון, בעיה או כל דבר אחר, עם כתובת מייל רק אם רוצים תשובה.
+- עם ההודעה נשלחים: הנושא והמעבד המוצגים, גודל המסך, ערכת הצבע וגרסת האפליקציה. התוכנית שלך
+  אינה נשלחת.
+- היעד נקבע בזמן הבנייה במשתנה `VITE_FEEDBACK_ENDPOINT` (שירות טפסים שמקבל `POST` של JSON,
+  ב-`.env.production`). בנייה בלעדיו אינה מציעה משוב; `npm run dev` מציג את הטופס ומדפיס את
+  ההודעה ל-console במקום לשלוח אותה.
 
 </div>
