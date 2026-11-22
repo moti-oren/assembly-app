@@ -56,12 +56,14 @@ watch(
     <RotateCcw />
     Run again
   </Button>
+  <!-- While the program runs, the filled button is the one that stops it: Step steps back. -->
   <DisabledReason v-else :reason="blocked" label="Step" :fill="compact">
     <Button
       ref="step"
+      :variant="running ? 'outline' : 'default'"
       size="sm"
-      class="quiet-disabled w-full px-3 pointer-coarse:h-11 hover:bg-primary/85 disabled:opacity-100"
-      :class="{ 'h-11': compact }"
+      class="quiet-disabled w-full px-3 pointer-coarse:h-11 disabled:opacity-100"
+      :class="[running ? 'text-muted-foreground' : 'hover:bg-primary/85', { 'h-11': compact }]"
       :disabled="finished"
       @click="emit('step')"
     >
@@ -77,7 +79,7 @@ watch(
     <Button
       variant="outline"
       size="sm"
-      class="justify-start pointer-coarse:h-11"
+      class="quiet-disabled justify-start pointer-coarse:h-11 disabled:opacity-100"
       :class="compact ? 'h-11 w-25 gap-1.5 px-2.5' : 'w-34'"
       :aria-label="nextPhase.spoken"
       :disabled="finished"
@@ -94,10 +96,10 @@ watch(
   <!-- One button for Run and Pause: it changes its face, so the focus on it is never lost. -->
   <DisabledReason :reason="running ? null : blocked" label="Run">
     <Button
-      variant="outline"
+      :variant="running ? 'default' : 'outline'"
       size="sm"
-      class="pointer-coarse:h-11"
-      :class="{ 'size-11': compact }"
+      class="quiet-disabled pointer-coarse:h-11 disabled:opacity-100"
+      :class="{ 'size-11': compact, 'hover:bg-primary/85': running }"
       :aria-label="running ? 'Pause' : 'Run'"
       :disabled="!running && finished"
       @click="running ? emit('pause') : emit('run')"
