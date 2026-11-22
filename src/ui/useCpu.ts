@@ -12,6 +12,7 @@ import {
   type ProgramInstruction
 } from '@/core/shared/program';
 import { setInputPort, type CpuState } from '@/core/shared/state';
+import { analytics } from './analyticsClient';
 import { useCpuError, type ErrorSource } from './useCpuError';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
@@ -121,6 +122,7 @@ export function useCpu<
   function loadExample(index: number): void {
     const { program: lines, name, description } = architecture.examples[index];
     loadProgram(lines, { name, description });
+    analytics.track({ name: 'example-loaded', architecture: architecture.id, example: name });
   }
 
   /** Moves through time: undoes or redoes until exactly `position` instructions have run. */

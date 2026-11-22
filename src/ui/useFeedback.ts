@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue';
 import { createGlobalState } from '@vueuse/core';
+import { analytics } from './analyticsClient';
 import { emailProblem, emptyDraft, feedbackPayload, isSendable } from './feedback';
 import { modeForWidth } from './layoutMode';
 import { usePreferences } from './usePreferences';
@@ -77,7 +78,9 @@ export const useFeedback = createGlobalState(() => {
       version: __APP_VERSION__
     });
     // A filled trap is a script: it is told what a person would be, and nothing is sent.
-    const sent = draft.value.trap !== '' || (await post(payload));
+    const trapped = draft.value.trap !== '';
+    const sent = trapped || (await post(payload));
+    if (sent && !trapped) analytics.track({ name: 'feedback-sent', kind: draft.value.kind });
     status.value = sent ? 'sent' : 'failed';
   }
 

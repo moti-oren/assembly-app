@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Moon, Sparkles, Volume2 } from '@lucide/vue';
+import { ChartNoAxesColumn, Moon, Sparkles, Volume2 } from '@lucide/vue';
 import { usePreferences } from '@/ui/usePreferences';
 
-const { isDark, soundOn, reduceMotion, systemReducesMotion, toggleTheme } = usePreferences();
+const { isDark, soundOn, analyticsOn, reduceMotion, systemReducesMotion, toggleTheme } =
+  usePreferences();
 </script>
 
 <!-- The settings as the switches of a phone's sheet, each a tap away. -->
@@ -46,6 +47,17 @@ const { isDark, soundOn, reduceMotion, systemReducesMotion, toggleTheme } = useP
           Set by your device
         </span>
       </span>
+      <span class="sheet-switch" aria-hidden="true" />
+    </button>
+    <button
+      type="button"
+      class="sheet-row"
+      role="switch"
+      :aria-checked="analyticsOn"
+      @click="analyticsOn = !analyticsOn"
+    >
+      <ChartNoAxesColumn aria-hidden="true" />
+      Share anonymous usage
       <span class="sheet-switch" aria-hidden="true" />
     </button>
   </div>

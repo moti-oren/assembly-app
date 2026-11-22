@@ -1,5 +1,6 @@
 import { computed, nextTick, watch, watchEffect } from 'vue';
 import { createGlobalState, useDark, useLocalStorage, useMediaQuery } from '@vueuse/core';
+import { analytics } from './analyticsClient';
 import { isArchitectureId, type ArchitectureId } from './architectures';
 import { modeForWidth } from './layoutMode';
 import { STORAGE_KEYS } from './storageKeys';
@@ -13,12 +14,15 @@ export const CPU_VIEW_LABELS: Record<CpuView, string> = {
   table: 'Show the CPU as tables'
 };
 
-/** Theme, sound, view and motion, shared by the header and the command palette. All are remembered. */
+/** Theme, sound, usage sharing, view and motion, shared by the header and the command palette. All are remembered. */
 export const usePreferences = createGlobalState(() => {
   /** Light until the user picks a theme. */
   const isDark = useDark({ initialValue: 'light' });
   const soundOn = useLocalStorage(STORAGE_KEYS.sound, false);
   watch(soundOn, sound.setEnabled, { immediate: true });
+  /** Whether anonymous usage is counted; on until the user turns it off. */
+  const analyticsOn = useLocalStorage(STORAGE_KEYS.analytics, true);
+  watch(analyticsOn, analytics.setEnabled, { immediate: true });
   /**
    * The CPU's state as one wired diagram, or as the separate register and flag tables. A phone
    * starts on the tables, where the diagram would be a long column with its wires gone; the
@@ -64,6 +68,7 @@ export const usePreferences = createGlobalState(() => {
   return {
     isDark,
     soundOn,
+    analyticsOn,
     cpuView,
     registerBits,
     architecture,

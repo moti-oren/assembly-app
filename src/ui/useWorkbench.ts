@@ -4,6 +4,7 @@ import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
 import type { PaletteCommand } from './paletteCommand';
 import { useCommands, type PageActions } from './useCommands';
+import { useCpuAnalytics } from './useCpuAnalytics';
 import type { CpuControls } from './useCpu';
 import { useCpuReset } from './useCpuReset';
 import { usePanelColumns } from './usePanelOrder';
@@ -35,13 +36,15 @@ export interface WorkbenchHooks<Instruction, Record> {
 
 /**
  * Everything around the panels that works the same for every architecture: which panels are
- * shown and in what order, the command palette, the confirmations, and the sounds.
+ * shown and in what order, the command palette, the confirmations, the sounds, and what is
+ * counted.
  */
 export function useWorkbench<
   Instruction extends ProgramInstruction,
   Record extends ExecutionRecord
 >(cpu: CpuControls<Instruction, Record>, hooks: WorkbenchHooks<Instruction, Record>) {
   useSoundEffects(cpu, hooks.soundOf);
+  useCpuAnalytics(cpu);
   const panels = usePanels(cpu, hooks.usesDevices);
   const columns = usePanelColumns(panels);
   const sidebar = useSidebarLayout();

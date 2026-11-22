@@ -12,6 +12,8 @@ import { x86AluLink } from '@/core/x86AluLink';
 import type { ComparedId } from '@/core/comparison';
 import type { ComparisonTask } from '@/core/comparisonTasks';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { analytics } from '@/ui/analyticsClient';
+import { useAppAnalytics } from '@/ui/useAppAnalytics';
 import { useComparison } from '@/ui/useComparison';
 import { sound } from '@/ui/soundEngine';
 import { useCpu } from '@/ui/useCpu';
@@ -39,6 +41,7 @@ const mos6502 = useCpu(MOS6502);
 const { architecture } = usePreferences();
 const { topic } = useTopic();
 useKeyboardInset();
+useAppAnalytics();
 const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
 const { wanted: feedbackWanted } = useFeedback();
 
@@ -50,6 +53,7 @@ function loadSolution(task: ComparisonTask, id: ComparedId): void {
   else mos6502.loadProgram(task.mos6502.program, from);
   architecture.value = id;
   comparisonOpen.value = false;
+  analytics.track({ name: 'solution-loaded', architecture: id, task: task.id });
 }
 
 // The logic topic shows the gates behind the last instruction of the CPU chosen here.

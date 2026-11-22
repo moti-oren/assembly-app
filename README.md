@@ -325,6 +325,25 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   JSON `POST`, in `.env.production`). A build without it offers no feedback; `npm run dev` shows
   the form and prints the message to the console instead of sending it.
 
+## Privacy
+
+- The live site counts how it is used, through [Umami](https://umami.is): the visit's page view
+  (with what Umami derives from the request, such as the country and the browser), and a short
+  list of events: the topic and CPU on show, a CPU's first instruction of the visit, a program
+  run, an example or a comparison task loaded (by name), the comparison opened, the gates of an
+  operation opened, a CPU error (that it happened, never its text) and feedback sent (its kind).
+  The list is `src/ui/analyticsEvents.ts`.
+- No event carries what you wrote: not your program, not a value, not a message. Umami sets no
+  cookie, and the app adds no identifier of its own.
+- **Share anonymous usage** in the settings (and in the command palette) turns it off; the
+  browser's Do Not Track setting does too. Turned off before the page loads, the script is never
+  fetched.
+- It is on only in a production build that names a site (`VITE_UMAMI_WEBSITE_ID` in
+  `.env.production`, with `VITE_UMAMI_DOMAINS` for the host names that count). `npm run dev` and
+  a build without it load nothing.
+- Your programs and settings stay in the browser's local storage. The fonts are loaded from
+  Google Fonts.
+
 ---
 
 <div dir="rtl">
@@ -633,5 +652,20 @@ npm run verify:6502 # check the 6502 core against py65
 - היעד נקבע בזמן הבנייה במשתנה `VITE_FEEDBACK_ENDPOINT` (שירות טפסים שמקבל `POST` של JSON,
   ב-`.env.production`). בנייה בלעדיו אינה מציעה משוב; `npm run dev` מציג את הטופס ומדפיס את
   ההודעה ל-console במקום לשלוח אותה.
+
+## פרטיות
+
+- האתר החי סופר איך משתמשים בו, דרך [Umami](https://umami.is): צפיית העמוד של הביקור (עם מה
+  ש-Umami גוזר מהבקשה, כמו המדינה והדפדפן), ורשימה קצרה של אירועים: הנושא והמעבד המוצגים, ההוראה
+  הראשונה שמעבד מריץ בביקור, הרצת תוכנית, טעינת דוגמה או משימת השוואה (לפי שם), פתיחת ההשוואה,
+  פתיחת השערים של פעולה, שגיאת מעבד (שהיא קרתה, לעולם לא הטקסט שלה) ושליחת משוב (הסוג שלו).
+  הרשימה נמצאת ב-`src/ui/analyticsEvents.ts`.
+- שום אירוע אינו נושא את מה שכתבת: לא התוכנית, לא ערך ולא הודעה. Umami אינו שומר עוגייה,
+  והאפליקציה אינה מוסיפה מזהה משלה.
+- **Share anonymous usage** בהגדרות (ובלוח הפקודות) מכבה את הספירה; כך גם הגדרת Do Not Track של
+  הדפדפן. אם היא כבויה לפני טעינת העמוד, הסקריפט אינו נטען כלל.
+- הספירה פועלת רק בבניית production שמציינת אתר (`VITE_UMAMI_WEBSITE_ID` ב-`.env.production`,
+  עם `VITE_UMAMI_DOMAINS` לשמות המארחים שנספרים). `npm run dev` ובנייה בלעדיו אינם טוענים דבר.
+- התוכניות וההגדרות שלך נשארות באחסון המקומי של הדפדפן. הגופנים נטענים מ-Google Fonts.
 
 </div>
