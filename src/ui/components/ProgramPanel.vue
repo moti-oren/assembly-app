@@ -291,10 +291,12 @@ function machineCode(index: number): string {
               :label="formatLabel(index)"
               :can-move-up="index > 0"
               :can-move-down="index < program.length - 1"
+              :can-inspect="!!code[index]"
               @edit="emit('edit', index)"
               @move-up="move(index, index - 1, 'more')"
               @move-down="move(index, index + 1, 'more')"
               @insert-above="emit('update:insertAt', index)"
+              @inspect="emit('inspect', index)"
               @remove="emit('remove', index)"
             />
           </li>

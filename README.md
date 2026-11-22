@@ -99,7 +99,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   back into the instruction box, **Enter** or **Replace** puts the changed instruction in its
   place, and **Esc** or **Cancel** leaves the line as it was. The **⋯** menu also moves a line up
   or down, as do Alt+Up and Alt+Down while one of the line's buttons has the focus; jumps keep
-  pointing at the instructions they pointed at.
+  pointing at the instructions they pointed at. Its **Inspect machine code** takes the line's
+  bytes apart in the Machine code panel, also where the panel is too narrow to show them.
 - Moving, replacing or deleting a line of a program that has already run leaves what the CPU
   holds from that run, such as a return address on the stack, naming the old place. The program
   panel says so, with a **Reset** to run it from the start. The command palette can edit the line
@@ -411,7 +412,8 @@ npm run verify:6502 # check the 6502 core against py65
 - לכל שורת תוכנית יש **Edit** (העיפרון, או תפריט **⋯** במסך מגע): השורה חוזרת לתיבת ההוראה,
   **Enter** או **Replace** שמים את ההוראה המתוקנת במקומה, ו-**Esc** או **Cancel** משאירים את
   השורה כמו שהייתה. תפריט **⋯** גם מזיז שורה למעלה או למטה, וכך גם Alt+Up ו-Alt+Down כשהמיקוד על
-  אחד מכפתורי השורה; קפיצות ממשיכות להצביע על ההוראות שעליהן הצביעו.
+  אחד מכפתורי השורה; קפיצות ממשיכות להצביע על ההוראות שעליהן הצביעו. **Inspect machine code**
+  באותו תפריט מפרק את בתי השורה בחלונית Machine code, גם כשהחלונית צרה מכדי להציג אותם.
 - הזזה, החלפה או מחיקה של שורה בתוכנית שכבר רצה משאירה את מה שה-CPU מחזיק מהריצה, כמו כתובת
   חזרה במחסנית, מצביע על המקום הישן. חלונית התוכנית אומרת זאת, עם **Reset** להרצה מההתחלה.
   פלטת הפקודות יכולה לערוך את השורה שתרוץ הבאה, או להזיז אותה למעלה או למטה.
