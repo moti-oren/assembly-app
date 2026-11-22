@@ -1,7 +1,7 @@
 ---
 name: design-responsive
 description: Reviews changed components and style sheets for CPU Playground's visual discipline - colour only for reads and writes, theme tokens, tabular numbers, light and dark parity - and for the layout at every width, in the browser when a dev server URL is given. Run by /verify.
-tools: Read, Grep, Glob, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__tabs_close_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__resize_window, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__javascript_tool, mcp__claude-in-chrome__read_console_messages
+tools: Read, Grep, Glob, mcp__Claude_Browser__tabs_context, mcp__Claude_Browser__tabs_create, mcp__Claude_Browser__tabs_close, mcp__Claude_Browser__navigate, mcp__Claude_Browser__resize_window, mcp__Claude_Browser__computer, mcp__Claude_Browser__read_page, mcp__Claude_Browser__javascript_tool, mcp__Claude_Browser__read_console_messages, mcp__Claude_Browser__browser_batch, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__tabs_close_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__resize_window, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__javascript_tool, mcp__claude-in-chrome__read_console_messages
 model: sonnet
 ---
 
@@ -64,6 +64,15 @@ browser, and first of all below 768px, where most of them show.
 ## What to check in the browser
 
 Only when you were given a URL. Open your own new tab, never reuse one, and close it when done.
+
+Use the built-in browser (`mcp__Claude_Browser__*`) first: its `resize_window` emulates a viewport,
+so 390px really is 390px (pass `width` and `height`, 390 by 844 for the phone). Wait a second after
+a resize before the screenshot, which is blank while the page settles, and end with
+`resize_window` `preset: "desktop"`. Its `colorScheme` does not switch this app's theme: use the
+header's settings. Chrome (`mcp__claude-in-chrome__*`) is the fallback, and only for widths its
+window can truly take: there `resize_window` answers "resized" while a maximised window keeps its
+width, which is how the phone layout went unseen before.
+
 For each affected screen look at 390, 768, 1280 and 1920 pixels wide, in light and in dark (the
 theme is in the header's settings): nothing clipped or overlapping, no horizontal scroll of the
 page, hairlines aligned, the same density at every width. Run a step so that a read and a write

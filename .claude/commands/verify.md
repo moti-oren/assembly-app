@@ -41,7 +41,9 @@ list: give it all the changed source files.
 
 `design-responsive` also takes the URL of a dev server, but only when the change is visible in
 the page. Start `npm run dev` in the background first, pass the URL it prints, and stop the
-server when the agent is done. It is the only agent that uses the browser.
+server when the agent is done. It is the only agent that uses the browser. It looks through the
+built-in browser, which can emulate a phone's width; if its answer says a width or a theme was not
+seen, pass that on in the report as it is.
 
 Each agent answers in a fixed form: a `VERDICT` line and `FINDINGS`, each with a severity, a
 `path:line`, evidence, a fix, `autofix` and `confidence`. An answer in any other form is not a
