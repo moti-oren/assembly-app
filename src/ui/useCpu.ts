@@ -36,6 +36,8 @@ export function useCpu<
   const {
     program,
     source: programSource,
+    stale: programStale,
+    lastMove: lastLineMove,
     insertAt,
     editing,
     editLine,
@@ -44,7 +46,9 @@ export function useCpu<
     removeProgramLine,
     moveProgramLine,
     replaceProgram
-  } = useProgramLines(architecture, state, timeline.forgetFuture);
+  } = useProgramLines(architecture, state, timeline.forgetFuture, () =>
+    [...history.value, ...future.value].some((entry) => entry.line !== null)
+  );
   const { error, errorFrom, attempt, report, clearError } = useCpuError();
   /** The program line the instruction pointer points at: the one that runs next. */
   const nextLine = computed(() => architecture.nextLine(state, program.value));
@@ -146,6 +150,7 @@ export function useCpu<
     const inputs = state.io.in;
     Object.assign(state, architecture.createState());
     state.io.in = inputs;
+    programStale.value = false;
     timeline.clear();
     clearError();
   }
@@ -158,6 +163,8 @@ export function useCpu<
     errorFrom,
     program,
     programSource,
+    programStale,
+    lastLineMove,
     insertAt,
     lastRecord,
     lastAfter,
@@ -224,6 +231,8 @@ export interface CpuControls<
   insertAt: Ref<number | null>;
   /** The program line being edited in the builder, if one is. */
   editing: Readonly<Ref<{ line: number } | null>>;
+  /** The program line that runs next. */
+  nextLine: Readonly<Ref<number>>;
   error: Readonly<Ref<string | null>>;
   errorFrom: Readonly<Ref<ErrorSource>>;
   finished: Readonly<Ref<boolean>>;
@@ -238,6 +247,9 @@ export interface CpuControls<
   redo(): void;
   seek(position: number): void;
   clearProgram(): void;
+  /** Starts editing a program line in the builder, or stops with null. */
+  editLine(index: number | null): void;
+  moveProgramLine(from: number, to: number): void;
   loadExample(index: number): void;
   reset(): void;
 }

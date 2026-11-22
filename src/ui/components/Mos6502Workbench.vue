@@ -51,6 +51,8 @@ const {
   errorFrom,
   program,
   programSource,
+  programStale,
+  lastLineMove,
   editing,
   insertAt,
   lastRecord,
@@ -171,6 +173,9 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :finished="finished"
           :source="programSource"
           :editing-line="editing?.line ?? null"
+          :stale="programStale"
+          :last-move="lastLineMove"
+          @reset="askReset"
           @edit="cpu.editLine"
           @move="cpu.moveProgramLine"
           @clear="clearAsked = true"
