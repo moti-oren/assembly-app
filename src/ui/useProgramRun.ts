@@ -1,6 +1,7 @@
 import { onScopeDispose, ref, type Ref } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
-import { RUN_SPEEDS, type RunSpeed } from './runSpeeds';
+import { RUN_SPEEDS } from './runSpeeds';
+import { usePreferences } from './usePreferences';
 
 /** What a timed run has done so far. */
 export interface RunProgress {
@@ -21,7 +22,8 @@ export interface ProgramLines {
 
 /** Runs the program line by line on a timer, at the chosen speed, until it ends or is paused. */
 export function useProgramRun(finished: Readonly<Ref<boolean>>, lines: ProgramLines) {
-  const speed = ref<RunSpeed>('normal');
+  /** One speed for every CPU, remembered between visits. */
+  const { runSpeed: speed } = usePreferences();
   /** True while the program is running line by line on a timer. */
   const running = ref(false);
   let timer: number | undefined;

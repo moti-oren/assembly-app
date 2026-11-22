@@ -1,5 +1,7 @@
 /** Every localStorage key the app uses, in one place so a new one cannot collide with another. */
 export const STORAGE_KEYS = {
+  /** VueUse's own key for the colour mode, kept so a theme chosen earlier is still read. */
+  theme: 'vueuse-color-scheme',
   sound: '8086-sound',
   cpuView: '8086-cpu-view',
   registerBits: '8086-register-bits',
@@ -12,6 +14,9 @@ export const STORAGE_KEYS = {
   architecture: '8086-architecture',
   topic: '8086-topic',
   analytics: '8086-analytics',
+  runSpeed: '8086-run-speed',
+  autoOpenDevices: '8086-auto-open-devices',
+  confirmReset: '8086-confirm-reset',
   rv32Pipeline: '8086-rv32-pipeline',
   rv32Forwarding: '8086-rv32-forwarding',
   /** One program per architecture; the architecture's id is added to it (see programStorage). */
