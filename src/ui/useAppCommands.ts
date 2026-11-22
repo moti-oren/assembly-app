@@ -3,12 +3,24 @@ import type { PaletteCommand } from './paletteCommand';
 import { TOPIC_CHOICES } from './topics';
 import { useFeedback } from './useFeedback';
 import { usePreferences } from './usePreferences';
+import { useSettings } from './useSettings';
 import { useTopic } from './useTopic';
 
-/** The palette commands every topic offers: another topic, the preferences, and feedback. */
+/** The palette commands every topic offers: another topic, the preferences, the settings and feedback. */
 export function useAppCommands(): ComputedRef<PaletteCommand[]> {
-  const { isDark, soundOn, analyticsOn, reduceMotion, systemReducesMotion, toggleTheme } =
-    usePreferences();
+  const {
+    theme,
+    isDark,
+    soundOn,
+    analyticsOn,
+    autoOpenDevices,
+    confirmReset,
+    reduceMotion,
+    systemReducesMotion,
+    setTheme,
+    toggleTheme
+  } = usePreferences();
+  const settings = useSettings();
   const { topic } = useTopic();
   const feedback = useFeedback();
 
@@ -26,6 +38,12 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
       group: 'Preferences',
       label: isDark.value ? 'Switch to light theme' : 'Switch to dark theme',
       run: toggleTheme
+    },
+    {
+      group: 'Preferences',
+      label: 'Follow the system theme',
+      disabled: theme.value === 'auto',
+      run: () => setTheme('auto')
     },
     {
       group: 'Preferences',
@@ -54,6 +72,31 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
       label: analyticsOn.value ? 'Stop sharing anonymous usage' : 'Share anonymous usage',
       run: () => {
         analyticsOn.value = !analyticsOn.value;
+      }
+    },
+    {
+      group: 'Preferences',
+      label: autoOpenDevices.value
+        ? 'Stop opening the I/O panel by itself'
+        : 'Open the I/O panel by itself',
+      run: () => {
+        autoOpenDevices.value = !autoOpenDevices.value;
+      }
+    },
+    {
+      group: 'Preferences',
+      label: confirmReset.value ? 'Stop asking before a reset' : 'Ask before a reset',
+      run: () => {
+        confirmReset.value = !confirmReset.value;
+      }
+    },
+    {
+      group: 'Preferences',
+      label: 'Open the settings…',
+      // The dialog takes focus; the palette must not take it back as it closes.
+      moves: 'focus' as const,
+      run: () => {
+        settings.open.value = true;
       }
     },
     ...(feedback.available
