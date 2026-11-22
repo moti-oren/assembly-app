@@ -60,10 +60,11 @@ function goTo(id: TopicId): void {
       <slot name="context" />
 
       <div class="ml-auto flex items-center gap-1">
+        <!-- On a phone it is an icon like the menu beside it: two buttons of one kind. -->
         <Button
-          variant="outline"
-          size="sm"
-          class="mr-1 text-muted-foreground max-sm:mr-0 pointer-coarse:h-11 pointer-coarse:min-w-11"
+          :variant="mode === 'phone' ? 'ghost' : 'outline'"
+          :size="mode === 'phone' ? 'icon-sm' : 'sm'"
+          class="mr-1 max-sm:mr-0 md:text-muted-foreground pointer-coarse:h-11 pointer-coarse:min-w-11"
           aria-label="Commands"
           aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"
