@@ -64,6 +64,8 @@ def check_encodings(encodings):
         theirs = tokens(insn.op_str)
         if case['mnemonic'] == 'jalr':
             ours = [ours[0], ours[2], ours[1]]  # Capstone writes `jalr rd, rs1, imm`, not `imm(rs1)`
+            if len(theirs) == 1:
+                theirs = ['ra', theirs[0], 0]  # `jalr rs`: Capstone leaves out ra and a zero offset
         if case['mnemonic'] == 'jal' and len(theirs) == 1:
             theirs = ['ra'] + theirs  # Capstone leaves out ra, the usual link register
         if case['distance'] is not None:
