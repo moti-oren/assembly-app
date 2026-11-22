@@ -94,9 +94,12 @@ const focusInput = (): void => box.value?.focus();
 
 const onTouchScreen = (): boolean => window.matchMedia('(pointer: coarse)').matches;
 
-/** Not on a touch screen: focusing there opens the on-screen keyboard over half the page. */
-function focusInputWithKeys(): void {
-  if (!onTouchScreen()) focusInput();
+/**
+ * The page opens ready to type, without the focus ring: nobody put the focus there yet. Not on
+ * a touch screen: focusing there opens the on-screen keyboard over half the page.
+ */
+function focusInputOnLoad(): void {
+  if (!onTouchScreen()) box.value?.focus({ quiet: true });
 }
 
 /**
@@ -108,7 +111,7 @@ function focusBuilder(): void {
   else focusInput();
 }
 
-onMounted(focusInputWithKeys);
+onMounted(focusInputOnLoad);
 
 defineExpose({
   focus: () => {
