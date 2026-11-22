@@ -3,6 +3,7 @@ import { createGlobalState } from '@vueuse/core';
 import { analytics } from './analyticsClient';
 import { emailProblem, emptyDraft, feedbackPayload, isSendable } from './feedback';
 import { modeForWidth } from './layoutMode';
+import { useLazyOpen } from './useLazyOpen';
 import { usePreferences } from './usePreferences';
 import { useTopic } from './useTopic';
 
@@ -39,16 +40,13 @@ export const useFeedback = createGlobalState(() => {
 
   /** A production build with nowhere to send feedback offers none. */
   const available = import.meta.env.DEV || ENDPOINT !== undefined;
-  const open = ref(false);
-  /** Turns true the first time it opens, so the dialog's code loads only when it is wanted. */
-  const wanted = ref(false);
+  const { open, wanted } = useLazyOpen();
   const draft = ref(emptyDraft());
   const status = ref<FeedbackStatus>('idle');
   const emailError = computed(() => emailProblem(draft.value));
 
   watch(open, (isOpen) => {
     if (!isOpen) return;
-    wanted.value = true;
     // What was sent is done with; what was not is still there to finish.
     if (status.value === 'sent') draft.value = emptyDraft();
     if (status.value !== 'sending') status.value = 'idle';

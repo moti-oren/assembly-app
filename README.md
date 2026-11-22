@@ -179,7 +179,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   strip above them always shows the last instruction and what it changed, as `CX 0000 → 000A`,
   with the line that runs next, and a tap on it goes to the CPU. When more changed than fits, a
   `+N` at its end lists every change. The bottom bar keeps Step, the phase button, Run and Undo,
-  and its **⋯** holds the rest; Compare, the examples and the settings are in the **⋯** menu of
+  and its **⋯** holds the rest; Share, Compare, the examples and the settings are in the **⋯** menu of
   the header. A phone starts with the CPU as tables, and a row of its memory holds eight bytes.
   On a touch screen the panels are not dragged, and a tap on a register's name or on a flag shows
   what hovering shows with a mouse.
@@ -314,6 +314,18 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - Multiplication, division and the 6502's decimal mode have no circuit yet: there **Gates** is
   greyed and says why.
 
+## Sharing a program
+
+- **Share** at the top of the page (**Share this program** in the **⋯** menu on a phone, or
+  **Share this program…** in the command palette) opens a link to the program on show. Whoever
+  opens it gets the same program on the same CPU, ready to run.
+- The link carries the CPU and the program, nothing else: no registers, memory, history or device
+  switches. The program is in the link itself (the part after `#`, which a browser never sends to
+  the server), so nothing is uploaded and no account is needed.
+- Opening a link replaces the program that CPU holds and resets it. If you have another program
+  there, the app asks first; **Keep my program** leaves everything as it was.
+- A link that was cut short, or made by a newer version of the app, opens nothing and says so.
+
 ## Feedback
 
 - The speech bubble at the top of the page (**Send feedback** in the **⋯** menu on a phone and in
@@ -331,7 +343,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   (with what Umami derives from the request, such as the country and the browser), and a short
   list of events: the topic and CPU on show, a CPU's first instruction of the visit, a program
   run, an example or a comparison task loaded (by name), the comparison opened, the gates of an
-  operation opened, a CPU error (that it happened, never its text) and feedback sent (its kind).
+  operation opened, a share link copied or opened (for which CPU, never the program), a CPU error
+  (that it happened, never its text) and feedback sent (its kind).
   The list is `src/ui/analyticsEvents.ts`.
 - No event carries what you wrote: not your program, not a value, not a message. Umami sets no
   cookie, and the app adds no identifier of its own.
@@ -341,7 +354,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - It is on only in a production build that names a site (`VITE_UMAMI_WEBSITE_ID` in
   `.env.production`, with `VITE_UMAMI_DOMAINS` for the host names that count). `npm run dev` and
   a build without it load nothing.
-- Your programs and settings stay in the browser's local storage. The fonts are loaded from
+- Your programs and settings stay in the browser's local storage. A share link holds its program
+  in the address's fragment, which is not sent to the server or to Umami. The fonts are loaded from
   Google Fonts.
 
 ---
@@ -523,7 +537,7 @@ npm run verify:6502 # check the 6502 core against py65
   (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
   שהיא שינתה, בצורה `CX 0000 → 000A`, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. כשהשתנה
   יותר ממה שנכנס, `+N` בסופו מציג את כל השינויים. בסרגל התחתון נשארים Step, כפתור
-  השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; Compare, הדוגמאות וההגדרות נמצאים בתפריט **⋯** של
+  השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; Share, Compare, הדוגמאות וההגדרות נמצאים בתפריט **⋯** של
   הכותרת. טלפון מתחיל עם ה-CPU כטבלאות, ושורה בזיכרון שלו מחזיקה שמונה בתים. במסך מגע לא גוררים
   חלוניות, והקשה על שם של רגיסטר או על דגל מציגה את מה שריחוף מציג עם עכבר.
 - העמודה השמאלית עובדת כמו סרגל הצד של עורך קוד. לחיצה על הכותרת של חלונית (או על החץ שלה) מקפלת
@@ -643,6 +657,18 @@ npm run verify:6502 # check the 6502 core against py65
   בהוראה המוצגת.
 - לכפל, לחילוק ולמצב העשרוני של ה-6502 אין עדיין מעגל: שם **Gates** אפור ומסביר למה.
 
+## שיתוף תוכנית
+
+- **Share** בראש העמוד (**Share this program** בתפריט **⋯** בטלפון, או **Share this program…**
+  בלוח הפקודות) פותח קישור לתוכנית המוצגת. מי שפותח אותו מקבל את אותה תוכנית על אותו מעבד,
+  מוכנה להרצה.
+- הקישור נושא את המעבד ואת התוכנית בלבד: בלי אוגרים, זיכרון, היסטוריה או מתגי ההתקנים. התוכנית
+  נמצאת בקישור עצמו (החלק שאחרי `#`, שהדפדפן לעולם אינו שולח לשרת), כך ששום דבר אינו מועלה ואין
+  צורך בחשבון.
+- פתיחת קישור מחליפה את התוכנית של אותו מעבד ומאפסת אותו. אם יש לך שם תוכנית אחרת, האפליקציה
+  שואלת קודם; **Keep my program** משאיר הכול כפי שהיה.
+- קישור שנקטע בדרך, או שנוצר בגרסה חדשה יותר של האפליקציה, אינו פותח דבר ואומר זאת.
+
 ## משוב
 
 - בועת הדיבור בראש העמוד (**Send feedback** בתפריט **⋯** בטלפון ובלוח הפקודות) פותחת טופס קצר:
@@ -658,7 +684,8 @@ npm run verify:6502 # check the 6502 core against py65
 - האתר החי סופר איך משתמשים בו, דרך [Umami](https://umami.is): צפיית העמוד של הביקור (עם מה
   ש-Umami גוזר מהבקשה, כמו המדינה והדפדפן), ורשימה קצרה של אירועים: הנושא והמעבד המוצגים, ההוראה
   הראשונה שמעבד מריץ בביקור, הרצת תוכנית, טעינת דוגמה או משימת השוואה (לפי שם), פתיחת ההשוואה,
-  פתיחת השערים של פעולה, שגיאת מעבד (שהיא קרתה, לעולם לא הטקסט שלה) ושליחת משוב (הסוג שלו).
+  פתיחת השערים של פעולה, העתקה או פתיחה של קישור שיתוף (לאיזה מעבד, לעולם לא התוכנית), שגיאת
+  מעבד (שהיא קרתה, לעולם לא הטקסט שלה) ושליחת משוב (הסוג שלו).
   הרשימה נמצאת ב-`src/ui/analyticsEvents.ts`.
 - שום אירוע אינו נושא את מה שכתבת: לא התוכנית, לא ערך ולא הודעה. Umami אינו שומר עוגייה,
   והאפליקציה אינה מוסיפה מזהה משלה.
@@ -666,6 +693,7 @@ npm run verify:6502 # check the 6502 core against py65
   הדפדפן. אם היא כבויה לפני טעינת העמוד, הסקריפט אינו נטען כלל.
 - הספירה פועלת רק בבניית production שמציינת אתר (`VITE_UMAMI_WEBSITE_ID` ב-`.env.production`,
   עם `VITE_UMAMI_DOMAINS` לשמות המארחים שנספרים). `npm run dev` ובנייה בלעדיו אינם טוענים דבר.
-- התוכניות וההגדרות שלך נשארות באחסון המקומי של הדפדפן. הגופנים נטענים מ-Google Fonts.
+- התוכניות וההגדרות שלך נשארות באחסון המקומי של הדפדפן. קישור שיתוף מחזיק את התוכנית שלו בחלק
+  ה-`#` של הכתובת, שאינו נשלח לשרת או ל-Umami. הגופנים נטענים מ-Google Fonts.
 
 </div>

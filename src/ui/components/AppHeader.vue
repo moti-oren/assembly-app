@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Columns3, PanelLeft } from '@lucide/vue';
+import { BookOpen, Columns3, PanelLeft, Share2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,8 +11,10 @@ import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
 import { useComparison } from '@/ui/useComparison';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { usePreferences } from '@/ui/usePreferences';
+import { useShare } from '@/ui/useShare';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
 import ArchitectureSwitch from './ArchitectureSwitch.vue';
+import DisabledReason from './DisabledReason.vue';
 import HeaderExampleItems from './HeaderExampleItems.vue';
 import HeaderShell from './HeaderShell.vue';
 import SheetExamples from './SheetExamples.vue';
@@ -20,6 +22,8 @@ import SheetExamples from './SheetExamples.vue';
 defineProps<{
   /** The example programs of the architecture on show, by name. */
   examples: readonly { name: string; description: string }[];
+  /** Lines of the program on show; an empty one has nothing to share. */
+  programLength: number;
 }>();
 const emit = defineEmits<{ loadExample: [index: number]; commands: [] }>();
 /** The examples menu, which the empty program panel can also open. */
@@ -27,6 +31,7 @@ const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
 const { architecture } = usePreferences();
 const { open: comparisonOpen } = useComparison();
+const { open: shareOpen } = useShare();
 const mode = useLayoutMode();
 const { drawerOpen } = useWorkbenchView();
 
@@ -36,18 +41,23 @@ function compareFromMenu(): void {
   comparisonOpen.value = true;
 }
 
+function shareFromMenu(): void {
+  examplesOpen.value = false;
+  shareOpen.value = true;
+}
+
 function loadFromMenu(index: number): void {
   examplesOpen.value = false;
   emit('loadExample', index);
 }
 </script>
 
-<!-- The header of the CPU topic: which CPU, the comparison and the examples. -->
+<!-- The header of the CPU topic: which CPU, sharing, the comparison and the examples. -->
 <template>
   <HeaderShell
     v-model:menu-open="examplesOpen"
     :badge="ARCHITECTURE_CHOICES.find((choice) => choice.id === architecture)?.badge ?? ''"
-    menu-label="Topics, compare, examples and settings"
+    menu-label="Topics, share, compare, examples and settings"
     @commands="$emit('commands')"
   >
     <template #lead>
@@ -70,6 +80,25 @@ function loadFromMenu(index: number): void {
       <ArchitectureSwitch />
     </template>
     <template #actions>
+      <DisabledReason
+        :reason="programLength === 0 ? 'The program is empty: there is nothing to share yet' : null"
+        label="Share this program"
+        hint="A link that opens this program"
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          class="pointer-coarse:h-11 pointer-coarse:min-w-11"
+          aria-label="Share this program"
+          aria-haspopup="dialog"
+          data-share-opener
+          :disabled="programLength === 0"
+          @click="shareOpen = true"
+        >
+          <Share2 />
+          <span class="hidden xl:inline">Share</span>
+        </Button>
+      </DisabledReason>
       <Tooltip>
         <TooltipTrigger as-child>
           <Button
@@ -103,6 +132,16 @@ function loadFromMenu(index: number): void {
       </DropdownMenu>
     </template>
     <template #menu-actions>
+      <button
+        type="button"
+        class="sheet-row"
+        :disabled="programLength === 0"
+        @click="shareFromMenu"
+      >
+        <Share2 aria-hidden="true" />
+        Share this program
+        <span v-if="programLength === 0" class="ml-auto text-xs">The program is empty</span>
+      </button>
       <button type="button" class="sheet-row" @click="compareFromMenu">
         <Columns3 aria-hidden="true" />
         Compare the CPUs

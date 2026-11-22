@@ -15,5 +15,9 @@ export type AnalyticsEvent =
   | { name: 'example-loaded'; architecture: string; example: string }
   | { name: 'compare-opened' }
   | { name: 'solution-loaded'; architecture: ArchitectureId; task: string }
+  /** The link to a program was copied; the program itself is never part of an event. */
+  | { name: 'link-copied'; architecture: ArchitectureId }
+  /** A program arrived through a link and was opened. */
+  | { name: 'link-opened'; architecture: ArchitectureId }
   | { name: 'cpu-error'; architecture: string }
   | { name: 'feedback-sent'; kind: string };

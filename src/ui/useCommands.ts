@@ -11,6 +11,7 @@ import type { CpuControls } from './useCpu';
 import { PANEL_LABELS, usePanelOrder } from './usePanelOrder';
 import { useComparison } from './useComparison';
 import type { Panels } from './usePanels';
+import { useShare } from './useShare';
 import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
 import type { SidebarKey } from './sidebarLayout';
 import { useLayoutMode } from './useLayoutMode';
@@ -52,6 +53,7 @@ export function useCommands(
   const panelOrder = usePanelOrder();
   const sidebar = useSidebarLayout();
   const comparison = useComparison();
+  const share = useShare();
   const mode = useLayoutMode();
   const { view, drawerOpen } = useWorkbenchView();
   const { history, program, insertAt, future, finished, speed, running, nextLine } = cpu;
@@ -135,6 +137,15 @@ export function useCommands(
       // The dialog takes focus; the palette must not take it back as it closes.
       moves: 'focus',
       run: page.askClearProgram
+    },
+    {
+      group: 'Program',
+      label: 'Share this program…',
+      disabled: program.value.length === 0,
+      moves: 'focus',
+      run: () => {
+        share.open.value = true;
+      }
     },
     {
       group: 'Program',

@@ -126,6 +126,7 @@ function feedbackFromMenu(): void {
             aria-haspopup="dialog"
             :aria-expanded="menuOpen"
             data-feedback-opener
+            data-share-opener
             @click="menuOpen = true"
           >
             <Ellipsis />
