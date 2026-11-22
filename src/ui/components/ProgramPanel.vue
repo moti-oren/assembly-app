@@ -196,7 +196,7 @@ function machineCode(index: number): string {
           <Button
             variant="link"
             size="sm"
-            class="relative h-auto p-0 text-xs pointer-coarse:after:absolute pointer-coarse:after:-inset-3.5 pointer-coarse:after:content-['']"
+            class="relative h-auto border-0 p-0 text-xs pointer-coarse:after:absolute pointer-coarse:after:-inset-3.5 pointer-coarse:after:content-['']"
             @click="emit('reset')"
             >Reset</Button
           >
@@ -206,7 +206,7 @@ function machineCode(index: number): string {
       <p class="sr-only" aria-live="polite">{{ moved }}</p>
       <!--
         The instruction's column takes the width of the longest line before the machine code gets
-        any: a narrow panel cuts the bytes, which have a panel of their own, not the line.
+        any: a narrow panel drops the bytes, which have a panel of their own, not the line.
       -->
       <ol
         ref="list"
@@ -265,22 +265,25 @@ function machineCode(index: number): string {
               :title="format(instruction)"
               ><span :data-loc="`line:${index}`">{{ format(instruction) }}</span></span
             >
-            <Tooltip v-if="code[index]">
-              <TooltipTrigger as-child>
-                <button
-                  type="button"
-                  data-action="code"
-                  class="hidden max-w-[min(9rem,100%)] min-w-0 justify-self-start truncate rounded-sm pr-1 pl-3 text-left text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
-                  :class="{ 'text-destructive': code[index].problem }"
-                  @click="emit('inspect', index)"
-                >
-                  {{ machineCode(index) }}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Machine code at {{ codePlace(code[index].address) }}. Click to take it apart.
-              </TooltipContent>
-            </Tooltip>
+            <!-- Whole or not at all: the cell is measured, and bytes it cannot fit are not drawn. -->
+            <span v-if="code[index]" class="line-code" :data-bytes="code[index].bytes.length">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <button
+                    type="button"
+                    data-action="code"
+                    class="rounded-sm pr-1 pl-3 text-left text-xs whitespace-nowrap pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                    :class="{ 'text-destructive': code[index].problem }"
+                    @click="emit('inspect', index)"
+                  >
+                    {{ machineCode(index) }}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Machine code at {{ codePlace(code[index].address) }}. Click to take it apart.
+                </TooltipContent>
+              </Tooltip>
+            </span>
             <span v-else />
             <!-- Placed by name: on a phone the machine code is not drawn, and takes no column. -->
             <ProgramLineActions
@@ -324,7 +327,7 @@ function machineCode(index: number): string {
         <Button
           variant="link"
           size="sm"
-          class="relative h-auto p-0 pointer-coarse:after:absolute pointer-coarse:after:-inset-3.5 pointer-coarse:after:content-['']"
+          class="relative h-auto border-0 p-0 pointer-coarse:after:absolute pointer-coarse:after:-inset-3.5 pointer-coarse:after:content-['']"
           @click="emit('examples')"
           >start from an example</Button
         >.
