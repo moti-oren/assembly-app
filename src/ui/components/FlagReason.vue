@@ -29,7 +29,7 @@ const outcome = computed(() => {
       <span class="font-semibold">{{ FLAG_INFO[flag].label }}.</span>
       {{ FLAG_INFO[flag].description }}
     </p>
-    <p v-if="record && reason" class="border-t border-background/25 pt-1.5">
+    <p v-if="record && reason" class="border-t border-current/25 pt-1.5">
       <span class="font-mono font-semibold">
         {{ formatInstruction(record.instruction) }}: {{ outcome }}
       </span>

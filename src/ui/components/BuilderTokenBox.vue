@@ -52,7 +52,14 @@ function onBackspace(event: KeyboardEvent): void {
   emit('back');
 }
 
-function focus(): void {
+/**
+ * True from a focus nobody asked for (the page just loaded) until the learner does something:
+ * the caret is in the box, but the ring waits, so a fresh page does not open on a blue outline.
+ */
+const quiet = ref(false);
+
+function focus(options: { quiet?: boolean } = {}): void {
+  quiet.value = options.quiet === true;
   void nextTick(() => input.value?.focus());
 }
 
@@ -63,9 +70,16 @@ defineExpose({ focus });
   <div
     ref="box"
     data-loc="builder"
-    class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 font-mono text-sm transition-[border-color,outline-color] well outline-3 outline-transparent focus-within:border-ring focus-within:outline-ring/20"
-    @click="focus"
+    class="flex min-h-11 shrink-0 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 font-mono text-sm transition-[border-color,outline-color] well outline-3 outline-transparent"
+    :class="
+      quiet
+        ? 'focus-within:border-foreground/50'
+        : 'focus-within:border-ring focus-within:outline-ring/20'
+    "
+    @click="focus()"
+    @keydown.capture="quiet = false"
     @keydown="onKeydown"
+    @focusout="quiet = false"
   >
     <template v-for="(token, index) in tokens" :key="index">
       <!-- Between two operands, the comma the instruction is written with everywhere else. -->

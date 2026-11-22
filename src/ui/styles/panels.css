@@ -23,6 +23,52 @@
     opacity: 0.6;
   }
 
+  /*
+   * A line's machine code is drawn whole or not at all, never cut to "93…": its cell is
+   * measured against the room its bytes need, two digits and a space each, and its padding.
+   * A phone never draws it.
+   */
+  .line-code {
+    container-type: inline-size;
+    min-width: 0;
+    font-size: var(--text-xs);
+  }
+  .line-code > button {
+    display: none;
+  }
+  @media (width >= 48rem) {
+    @container (min-width: calc(2ch + 1rem)) {
+      .line-code[data-bytes='1'] > button {
+        display: block;
+      }
+    }
+    @container (min-width: calc(5ch + 1rem)) {
+      .line-code[data-bytes='2'] > button {
+        display: block;
+      }
+    }
+    @container (min-width: calc(8ch + 1rem)) {
+      .line-code[data-bytes='3'] > button {
+        display: block;
+      }
+    }
+    @container (min-width: calc(11ch + 1rem)) {
+      .line-code[data-bytes='4'] > button {
+        display: block;
+      }
+    }
+    @container (min-width: calc(14ch + 1rem)) {
+      .line-code[data-bytes='5'] > button {
+        display: block;
+      }
+    }
+    @container (min-width: calc(17ch + 1rem)) {
+      .line-code > button {
+        display: block;
+      }
+    }
+  }
+
   /* The byte under the pointer, in the hex columns and in the text beside them. */
   .byte-pointed {
     border-radius: var(--radius-sm);

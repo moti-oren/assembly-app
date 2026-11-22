@@ -56,6 +56,7 @@
     border: 1px solid var(--screen-border);
     border-radius: var(--radius-lg);
     background: var(--screen);
+    box-shadow: var(--screen-shadow);
     color: var(--screen-foreground);
   }
   .device-segments {

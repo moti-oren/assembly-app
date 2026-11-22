@@ -78,6 +78,11 @@ function onKeydown(event: KeyboardEvent): void {
   if (!event.ctrlKey && !event.metaKey) unfold();
 }
 
+/** What the box says once the instruction is whole: what Enter will do with it. */
+const readyHint = computed(() =>
+  props.editing ? `Ready to replace ${formatLabel(props.editing.line)}` : 'Ready to run'
+);
+
 /** The keys that do something right now, for the row under the builder. */
 const hints = computed(() =>
   keyHints({
@@ -94,9 +99,12 @@ const focusInput = (): void => box.value?.focus();
 
 const onTouchScreen = (): boolean => window.matchMedia('(pointer: coarse)').matches;
 
-/** Not on a touch screen: focusing there opens the on-screen keyboard over half the page. */
-function focusInputWithKeys(): void {
-  if (!onTouchScreen()) focusInput();
+/**
+ * The page opens ready to type, without the focus ring: nobody put the focus there yet. Not on
+ * a touch screen: focusing there opens the on-screen keyboard over half the page.
+ */
+function focusInputOnLoad(): void {
+  if (!onTouchScreen()) box.value?.focus({ quiet: true });
 }
 
 /**
@@ -108,7 +116,7 @@ function focusBuilder(): void {
   else focusInput();
 }
 
-onMounted(focusInputWithKeys);
+onMounted(focusInputOnLoad);
 
 defineExpose({
   focus: () => {
@@ -215,7 +223,7 @@ function onEnter(event: KeyboardEvent): void {
         ref="box"
         v-model:filter="filter"
         :tokens="tokens"
-        :placeholder="moreToChoose ? hint : 'Ready to run'"
+        :placeholder="moreToChoose ? hint : readyHint"
         :invalid="doesNotFit"
         @truncate="truncateTo"
         @clear="clearOrCancel"

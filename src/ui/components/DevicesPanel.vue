@@ -218,7 +218,7 @@ function flip(bit: number): void {
           text at the top, where a terminal starts printing.
         -->
         <div
-          class="device-screen flex h-24 flex-col-reverse overflow-y-auto px-3 py-2.5 max-sm:h-[4.375rem] [scrollbar-color:var(--screen-scrollbar)_transparent]"
+          class="device-screen flex h-24 flex-col-reverse overflow-y-auto px-3 py-2.5 max-sm:h-[4.375rem] [--scrollbar-thumb-hover:var(--screen-scrollbar)] [--scrollbar-thumb:var(--screen-scrollbar)]"
         >
           <pre
             v-if="terminal"
@@ -226,10 +226,11 @@ function flip(bit: number): void {
             aria-live="polite">{{ terminal }}<span class="device-caret" aria-hidden="true" /></pre>
           <p
             v-else
-            class="mb-auto text-xs leading-5 text-(--screen-foreground)/70 max-sm:leading-4"
+            class="mb-auto flex gap-2 text-xs leading-5 text-(--screen-foreground)/70 max-sm:leading-4"
           >
-            <span class="device-caret mr-2" aria-hidden="true" />Each byte written here is printed
-            as a character.
+            <!-- Beside the text, not in it: a second line starts under the first, not the cursor. -->
+            <span class="device-caret mt-0.5 shrink-0" aria-hidden="true" />
+            <span>Each byte written here is printed as a character.</span>
           </p>
         </div>
       </section>

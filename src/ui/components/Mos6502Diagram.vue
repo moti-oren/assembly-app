@@ -135,7 +135,7 @@ const flagChanged = (bit: number) =>
                 :tick="pulse"
               />
             </div>
-            <!-- P, the status register: a flag that is set is filled. -->
+            <!-- P, the status register: a flag that is set is filled, quietly, as on the 8086. -->
             <div class="mt-1 flex h-6 items-center gap-2 px-1" aria-label="Flags">
               <span class="w-6 font-semibold">P</span>
               <span class="flex gap-1">
@@ -145,7 +145,7 @@ const flagChanged = (bit: number) =>
                   class="w-6 rounded-sm text-center"
                   :class="[
                     state.flags & flagBit(flag)
-                      ? 'bg-foreground font-semibold text-background'
+                      ? 'bg-secondary font-semibold text-foreground inset-ring inset-ring-foreground/40'
                       : 'text-muted-foreground inset-ring inset-ring-border',
                     flagChanged(flagBit(flag)) ? 'ring-2 ring-changed-glow' : ''
                   ]"

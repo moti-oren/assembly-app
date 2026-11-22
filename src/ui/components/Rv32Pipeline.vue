@@ -5,7 +5,6 @@ import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
 import { PIPELINE_STAGES, pipelineTiming } from '@/core/rv32/pipeline';
 import type { CpuState } from '@/core/rv32/state';
-import { Button } from '@/components/ui/button';
 import {
   pipelineGrid,
   pipelineNotes,
@@ -79,26 +78,33 @@ const detail = computed(() => {
           </dl>
         </InfoTip>
       </span>
-      <Button
-        variant="outline"
-        size="xs"
-        class="h-5 gap-1.5 rounded-full px-2 text-2xs pointer-coarse:h-11"
-        :class="
-          forwarding
-            ? 'border-foreground/60 bg-muted text-foreground hover:bg-accent'
-            : 'border-dashed text-muted-foreground'
-        "
-        :aria-pressed="forwarding"
+      <!-- A switch drawn as one: a track and a thumb, so it reads as something to flip. -->
+      <button
+        type="button"
+        role="switch"
+        class="group/switch inline-flex h-5 items-center gap-1.5 rounded-full pr-1 text-2xs font-medium outline-none pointer-coarse:h-11 focus-visible:ring-3 focus-visible:ring-ring/50"
+        :class="forwarding ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
+        :aria-checked="forwarding"
+        aria-describedby="forwarding-hint"
         title="Hand a result straight to the next instruction, before it is written back"
         @click="forwarding = !forwarding"
       >
         <span
-          class="size-1.5 rounded-full"
-          :class="forwarding ? 'bg-foreground' : 'bg-foreground/30'"
+          class="relative h-3.5 w-6 shrink-0 rounded-full transition-colors calm:transition-none"
+          :class="forwarding ? 'bg-foreground' : 'bg-wire group-hover/switch:bg-muted-foreground'"
           aria-hidden="true"
-        />
-        Forwarding {{ forwarding ? 'on' : 'off' }}
-      </Button>
+        >
+          <span
+            class="absolute top-0.5 left-0.5 size-2.5 rounded-full bg-background shadow-(--shadow-thumb) transition-transform calm:transition-none"
+            :class="{ 'translate-x-2.5': forwarding }"
+          />
+        </span>
+        Forwarding
+        <!-- The title is a pointer's alone: this says the same to a screen reader. -->
+        <span id="forwarding-hint" class="sr-only">
+          Hand a result straight to the next instruction, before it is written back
+        </span>
+      </button>
       <Rv32CycleToggle class="ml-auto" />
     </div>
 

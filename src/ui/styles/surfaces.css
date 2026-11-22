@@ -65,6 +65,39 @@
 }
 
 /*
+ * A pane, or a sidebar panel that scrolls inside itself, fades out at its foot while there is
+ * more below, so the bar under it never cuts a row in half; at the end of the scroll the fade
+ * is gone. Driven by the scroll position alone, where the browser can do that; elsewhere the
+ * edge stays as it was. Registered, so the length can be animated.
+ */
+@property --foot-fade {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@keyframes foot-fade {
+  from {
+    --foot-fade: 1.75rem;
+  }
+  to {
+    --foot-fade: 0px;
+  }
+}
+@supports (animation-timeline: scroll()) {
+  .workbench-pane,
+  .sidebar-section[data-state='open'] [data-slot='card-content'] {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - var(--foot-fade)), transparent);
+    animation: foot-fade linear both;
+    animation-timeline: scroll(self);
+    animation-range: calc(100% - 1.75rem) 100%;
+  }
+  /* The buttons held above an on-screen keyboard stay whole (panels.css). */
+  :root[data-keyboard] .workbench-pane {
+    mask-image: none;
+  }
+}
+
+/*
  * A phone shows one view at a time (ViewTabs.vue): the code, the CPU, or what is on its bus.
  * The other panels stay mounted, so each keeps its place and what was typed into it. Unlayered,
  * like the drawer below, so they win over the panes' own display and position utilities.
@@ -90,6 +123,8 @@
     width: min(22rem, 85%);
     border-right: 1px solid var(--border);
     box-shadow: var(--shadow-overlay);
+    /* A mask would cut the drawer's shadow off with it. */
+    mask-image: none;
     transition:
       translate 220ms cubic-bezier(0.3, 0.75, 0.2, 1),
       visibility 0s;
@@ -152,6 +187,27 @@
   color: var(--foreground);
 }
 
+/*
+ * A tooltip is ink on the light page. On the dark one ink is white, which glares: there it is a
+ * raised dark surface with a hairline, and its arrow carries the same two edges.
+ */
+[data-slot='tooltip-content'] {
+  background: var(--tooltip);
+  box-shadow: 0 0 0 1px var(--tooltip-border);
+  color: var(--tooltip-foreground);
+}
+/* A key named in a tooltip: a wash of the tooltip's own ink, in either theme. */
+[data-slot='tooltip-content'] [data-slot='kbd'] {
+  background: color-mix(in oklch, var(--tooltip-foreground) 20%, transparent);
+  color: var(--tooltip-foreground);
+}
+[data-slot='tooltip-content'] > span > svg {
+  border-right: 1px solid var(--tooltip-border);
+  border-bottom: 1px solid var(--tooltip-border);
+  background: var(--tooltip);
+  fill: var(--tooltip);
+}
+
 [data-slot='dialog-overlay'],
 [data-slot='alert-dialog-overlay'] {
   background: var(--overlay);
@@ -176,11 +232,24 @@
   padding: 0.75rem;
   background: transparent;
 }
+/*
+ * The search field is the top of the palette itself, over a hairline that runs edge to edge:
+ * a box of its own inside the palette's edge would be a second frame around the same thing.
+ */
 .command-palette [data-slot='command-input-wrapper'] {
-  padding: 0 0 0.5rem;
+  margin: -0.75rem -0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0.25rem 0.75rem;
 }
 .command-palette [data-slot='input-group'] {
   height: 2.75rem !important;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+/* The last command stops short of the line over the key hints. */
+.command-palette [data-slot='command-list'] {
+  padding-bottom: 0.5rem;
 }
 .command-palette [data-slot='command-input'] {
   font-size: 0.9375rem;

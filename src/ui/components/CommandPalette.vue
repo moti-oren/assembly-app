@@ -90,9 +90,9 @@ function onCloseAutoFocus(event: Event): void {
             </CommandItem>
           </CommandGroup>
         </CommandList>
-        <!-- Keys to press: of no use on a screen worked by touch. -->
+        <!-- Keys to press: of no use on a screen worked by touch. Its line runs edge to edge. -->
         <div
-          class="flex items-center gap-4 border-t px-3 pt-3 pb-1 text-xs text-muted-foreground touch:hidden"
+          class="-mx-3 flex items-center gap-4 border-t px-6 pt-3 pb-1 text-xs text-muted-foreground touch:hidden"
         >
           <span class="flex items-center gap-1.5"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
           <span class="flex items-center gap-1.5"><Kbd>Enter</Kbd> run</span>

@@ -22,9 +22,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- Squeezed, it still shows a heading and a row of choices (--fill-min, sidebar.css). -->
   <div
     data-fill
-    class="scroll-fade -mx-1 max-h-[min(21rem,40svh)] scroll-pb-7 overflow-y-auto px-1"
+    class="scroll-fade -mx-1 max-h-[min(21rem,40svh)] scroll-pb-7 overflow-y-auto px-1 [--fill-min:5.5rem]"
   >
     <!-- Families are told apart by their headings and the space between them, not by colour. -->
     <div v-for="[group, options] in groups" :key="group" class="mb-4 last:mb-0">

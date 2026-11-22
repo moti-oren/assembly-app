@@ -47,7 +47,7 @@ const listed = ref<ComparedId>(COMPARED[0]);
           right edge fades, and the scrollbar keeps clear of the buttons.
         -->
         <div
-          class="flex shrink-0 flex-wrap gap-1.5 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pr-6 max-sm:pb-2 max-sm:[mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)] max-sm:[scrollbar-width:thin]"
+          class="flex shrink-0 flex-wrap gap-1.5 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pr-6 max-sm:pb-2 max-sm:[mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)]"
           role="group"
           aria-label="Task"
         >

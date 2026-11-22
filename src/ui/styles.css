@@ -143,7 +143,9 @@
  */
 :root {
   --radius: 0.375rem;
-  scrollbar-color: #d0d5dd transparent;
+  /* The bar of a scrolling area, and the same bar under the pointer. */
+  --scrollbar-thumb: #d0d5dd;
+  --scrollbar-thumb-hover: #98a2b3;
   /* The two semantic accents: what just changed, and where execution is. */
   --changed: #fff7ed;
   /* Orange text: deeper than the #ea580c accent, which is under 4.5:1 on white. */
@@ -196,9 +198,13 @@
   --die-pin: #98a2b3;
   --die-lid: #0a0b0d;
   --die-lid-foreground: #ffffff;
-  /* The glass of the 7-segment display and the terminal. */
-  --screen: #111318;
-  --screen-border: #232730;
+  /*
+   * The glass of the 7-segment display and the terminal: dark slate on the white page, not
+   * black, set into it by a hairline and a soft shadow inside its top edge.
+   */
+  --screen: #1b2130;
+  --screen-border: #2c3444;
+  --screen-shadow: inset 0 1px 3px rgb(0 0 0 / 40%);
   --screen-foreground: #f8fafc;
   --screen-unlit: rgb(255 255 255 / 12%);
   --screen-scrollbar: rgb(255 255 255 / 30%);
@@ -207,6 +213,10 @@
   /* The hot spot of a lit LED. */
   --led-highlight: #fff7ed;
   /* A button that cannot be used yet: flat and quiet, but still a button. */
+  /* A tooltip: ink on the white page, a raised dark surface with a hairline on the dark one. */
+  --tooltip: #0a0b0d;
+  --tooltip-foreground: #ffffff;
+  --tooltip-border: transparent;
   --disabled: #f2f4f7;
   --disabled-foreground: #98a2b3;
   --disabled-border: #e4e7ec;
@@ -253,7 +263,8 @@
 
 .dark {
   color-scheme: dark;
-  scrollbar-color: #343a46 transparent;
+  --scrollbar-thumb: #343a46;
+  --scrollbar-thumb-hover: #475467;
   --changed: #362218;
   --changed-foreground: #f97316;
   --changed-glow: #fb923c;
@@ -279,11 +290,17 @@
   --inset: #161920;
   --sidebar-inset: #161920;
   --background: #090a0d;
+  --screen: #111318;
   --screen-border: #343a46;
+  --screen-shadow: inset 0 1px 3px rgb(0 0 0 / 55%);
   --screen-unlit: rgb(255 255 255 / 13%);
+  --tooltip: #1d222b;
+  --tooltip-foreground: #f8fafc;
+  --tooltip-border: #343a46;
   --disabled: #161920;
-  --disabled-foreground: #475467;
-  --disabled-border: #232730;
+  /* Quiet, but a label to read: about 4:1 on the fill, as the light theme's is not far from. */
+  --disabled-foreground: #7a8aa0;
+  --disabled-border: #2a303b;
   --stage-chip: #1d222b;
   --stage-chip-foreground: #cbd5e1;
   --foreground: #f8fafc;
@@ -335,9 +352,40 @@
     font-variant-ligatures: none;
     font-feature-settings: 'zero';
   }
-  /* Scroll areas inside the page: a thin bar, without the arrow buttons Windows adds to it. */
-  body * {
-    scrollbar-width: thin;
+  /*
+   * Scroll areas: a thin quiet bar with no arrow buttons. Chromium and Safari draw it from the
+   * ::-webkit-scrollbar parts, which they ignore once scrollbar-color or scrollbar-width is set
+   * (and Windows then adds its arrows back), so those two go to Firefox alone.
+   */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
+  }
+  /* Drawn for a mouse. A touch screen keeps its own bar, which floats over the page. */
+  @media (pointer: fine) {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    ::-webkit-scrollbar-button {
+      display: none;
+    }
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+    /* The transparent border insets the bar: 6px of thumb in a 10px gutter. */
+    ::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 9999px;
+      background-color: var(--scrollbar-thumb);
+      background-clip: content-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--scrollbar-thumb-hover);
+    }
   }
 }
 

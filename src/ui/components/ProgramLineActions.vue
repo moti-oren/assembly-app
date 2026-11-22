@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, ArrowUpToLine, Ellipsis, Pencil, X } from '@lucide/vue';
+import { ArrowDown, ArrowUp, ArrowUpToLine, Binary, Ellipsis, Pencil, X } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,6 +18,8 @@ defineProps<{
   /** Whether there is a line above, and one below, to move past. */
   canMoveUp: boolean;
   canMoveDown: boolean;
+  /** Whether the line has machine code to take apart. */
+  canInspect: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -25,6 +27,7 @@ const emit = defineEmits<{
   moveUp: [];
   moveDown: [];
   insertAbove: [];
+  inspect: [];
   remove: [];
 }>();
 
@@ -84,7 +87,7 @@ function onCloseAutoFocus(event: Event): void {
           size="icon-xs"
           class="pointer-coarse:size-11"
           data-action="more"
-          :aria-label="`More for ${label}: move, insert, delete`"
+          :aria-label="`More for ${label}: move, insert, inspect, delete`"
         >
           <Ellipsis />
         </Button>
@@ -115,6 +118,15 @@ function onCloseAutoFocus(event: Event): void {
         <DropdownMenuItem class="pointer-coarse:py-2.5" @select="emit('insertAbove')">
           <ArrowUpToLine />
           Insert new lines above
+        </DropdownMenuItem>
+        <!-- Always here: the bytes beside the line are not drawn where they do not fit. -->
+        <DropdownMenuItem
+          class="pointer-coarse:py-2.5"
+          :disabled="!canInspect"
+          @select="emit('inspect')"
+        >
+          <Binary />
+          Inspect machine code
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

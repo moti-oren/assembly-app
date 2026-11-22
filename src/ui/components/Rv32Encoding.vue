@@ -52,9 +52,10 @@ function bitOf(bit: number): number {
       </CardDescription>
     </CardHeader>
 
-    <CardContent v-if="shown && encoding" class="flex flex-col gap-3">
+    <CardContent v-if="shown && encoding" class="@container flex flex-col gap-3">
       <!-- The word bit by bit, 31 on the left as it is written, with each field over its bits. -->
-      <div class="overflow-x-auto">
+      <!-- Never squeezed: in a short panel the body scrolls, and the strip keeps its height. -->
+      <div class="shrink-0 overflow-x-auto">
         <div
           class="grid min-w-[30rem] grid-cols-[repeat(32,minmax(0,1fr))] gap-y-1 font-mono text-2xs"
           aria-label="The 32 bits of the instruction"
@@ -101,14 +102,15 @@ function bitOf(bit: number): number {
         </span>
       </p>
 
-      <ol class="grid gap-1.5 text-xs sm:grid-cols-2" aria-label="The fields of the instruction">
+      <!-- Two columns only where the panel itself is wide: in the sidebar a field has the row. -->
+      <ol class="grid gap-1.5 text-xs @md:grid-cols-2" aria-label="The fields of the instruction">
         <li
           v-for="field in encoding.fields"
           :key="`${field.label}-${field.high}`"
-          class="rounded-md border px-2.5 py-1.5"
+          class="rounded-md border px-3 py-2"
           :class="FIELD_COLOURS[field.name]"
         >
-          <div class="flex items-baseline gap-2">
+          <div class="flex flex-wrap items-baseline gap-x-2">
             <span class="font-mono font-semibold">{{ field.label }}</span>
             <span class="font-mono text-muted-foreground">
               bits {{ field.high === field.low ? field.high : `${field.high}–${field.low}` }} =
