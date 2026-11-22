@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -17,12 +15,13 @@ import { useWorkbenchView } from '@/ui/useWorkbenchView';
 import ArchitectureSwitch from './ArchitectureSwitch.vue';
 import HeaderExampleItems from './HeaderExampleItems.vue';
 import HeaderShell from './HeaderShell.vue';
+import SheetExamples from './SheetExamples.vue';
 
 defineProps<{
   /** The example programs of the architecture on show, by name. */
   examples: readonly { name: string; description: string }[];
 }>();
-defineEmits<{ loadExample: [index: number]; commands: [] }>();
+const emit = defineEmits<{ loadExample: [index: number]; commands: [] }>();
 /** The examples menu, which the empty program panel can also open. */
 const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
@@ -30,6 +29,17 @@ const { architecture } = usePreferences();
 const { open: comparisonOpen } = useComparison();
 const mode = useLayoutMode();
 const { drawerOpen } = useWorkbenchView();
+
+/** From a phone's sheet, which closes first: the comparison is a dialog of its own. */
+function compareFromMenu(): void {
+  examplesOpen.value = false;
+  comparisonOpen.value = true;
+}
+
+function loadFromMenu(index: number): void {
+  examplesOpen.value = false;
+  emit('loadExample', index);
+}
 </script>
 
 <!-- The header of the CPU topic: which CPU, the comparison and the examples. -->
@@ -92,14 +102,16 @@ const { drawerOpen } = useWorkbenchView();
         </DropdownMenuContent>
       </DropdownMenu>
     </template>
-    <template #menu>
-      <DropdownMenuItem class="pointer-coarse:py-2.5" @select="comparisonOpen = true">
-        <Columns3 />
+    <template #menu-actions>
+      <button type="button" class="sheet-row" @click="compareFromMenu">
+        <Columns3 aria-hidden="true" />
         Compare the CPUs
-      </DropdownMenuItem>
-      <DropdownMenuSeparator />
-      <HeaderExampleItems :examples="examples" @load="$emit('loadExample', $event)" />
-      <DropdownMenuSeparator />
+      </button>
+    </template>
+    <template #menu>
+      <div class="flex min-h-0 flex-1 flex-col gap-1 border-t pt-2">
+        <SheetExamples :examples="examples" @load="loadFromMenu" />
+      </div>
     </template>
   </HeaderShell>
 </template>

@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { Ellipsis, Search, Settings2 } from '@lucide/vue';
+import { ArrowRightLeft, Ellipsis, Search, Settings2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { isApple } from '@/ui/platform';
-import { TOPIC_CHOICES } from '@/ui/topics';
+import { TOPIC_CHOICES, type TopicId } from '@/ui/topics';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useTopic } from '@/ui/useTopic';
+import BottomSheet from './BottomSheet.vue';
 import HeaderSettingsItems from './HeaderSettingsItems.vue';
+import SheetSettings from './SheetSettings.vue';
 import TopicSwitch from './TopicSwitch.vue';
 
 defineProps<{
@@ -31,11 +31,17 @@ const { topic } = useTopic();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
 const shortcut = isApple ? '⌘K' : 'Ctrl K';
+
+function goTo(id: TopicId): void {
+  menuOpen.value = false;
+  topic.value = id;
+}
 </script>
 
 <!--
   The bar every topic has: the name, the topics, the commands and the settings. A topic puts its
-  own switch in `context`, its buttons in `actions`, and on a phone its menu items in `menu`.
+  own switch in `context`, its buttons in `actions`, and on a phone the rows of its sheet: what it
+  does in `menu-actions`, and what it lists under the settings in `menu`.
 -->
 <template>
   <!-- Part of the shell, where only the panes scroll. -->
@@ -89,32 +95,39 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
           </DropdownMenu>
         </template>
 
-        <!-- A phone has room for one menu: the topics, the topic's own items and the settings. -->
-        <DropdownMenu v-else v-model:open="menuOpen" :modal="false">
-          <DropdownMenuTrigger as-child>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              class="pointer-coarse:size-11"
-              :aria-label="menuLabel"
-            >
-              <Ellipsis />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-72 max-w-[calc(100vw-1.5rem)]">
-            <DropdownMenuItem
-              v-for="choice in TOPIC_CHOICES.filter((each) => each.id !== topic)"
-              :key="choice.id"
-              class="pointer-coarse:py-2.5"
-              @select="topic = choice.id"
-            >
-              Go to {{ choice.name }}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+        <!-- A phone has room for one menu: a sheet with the topics, the settings and the topic's own. -->
+        <template v-else>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            class="pointer-coarse:size-11"
+            :aria-label="menuLabel"
+            aria-haspopup="dialog"
+            :aria-expanded="menuOpen"
+            @click="menuOpen = true"
+          >
+            <Ellipsis />
+          </Button>
+          <BottomSheet v-model:open="menuOpen" title="Menu" :description="menuLabel">
+            <div>
+              <button
+                v-for="choice in TOPIC_CHOICES.filter((each) => each.id !== topic)"
+                :key="choice.id"
+                type="button"
+                class="sheet-row"
+                @click="goTo(choice.id)"
+              >
+                <ArrowRightLeft aria-hidden="true" />
+                Go to {{ choice.name }}
+              </button>
+              <slot name="menu-actions" />
+            </div>
+            <div class="border-t pt-2">
+              <SheetSettings />
+            </div>
             <slot name="menu" />
-            <HeaderSettingsItems />
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </BottomSheet>
+        </template>
       </div>
     </div>
   </header>
