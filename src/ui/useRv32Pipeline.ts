@@ -1,6 +1,6 @@
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import { STORAGE_KEYS } from './storageKeys';
-import type { PaletteCommand } from './useCommands';
+import type { PaletteCommand } from './paletteCommand';
 
 /**
  * How RISC-V's cycle card shows the instructions: one at a time, or overlapped in the five-stage

@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Kbd } from '@/components/ui/kbd';
 import { groupBy } from '@/ui/groupBy';
-import type { PaletteCommand } from '@/ui/useCommands';
+import type { PaletteCommand } from '@/ui/paletteCommand';
 
 const props = defineProps<{ commands: PaletteCommand[] }>();
 const open = defineModel<boolean>('open', { required: true });

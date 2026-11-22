@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PaletteCommand } from '@/ui/useCommands';
+import type { PaletteCommand } from '@/ui/paletteCommand';
 import AppErrorNotice from './AppErrorNotice.vue';
 import AppHeader from './AppHeader.vue';
 import ClearProgramDialog from './ClearProgramDialog.vue';

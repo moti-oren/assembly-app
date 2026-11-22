@@ -1,7 +1,9 @@
 import { computed, nextTick, ref, watch } from 'vue';
+import { hasCircuit, type AluLink } from '@/core/aluLink';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
-import { useCommands, type PageActions, type PaletteCommand } from './useCommands';
+import type { PaletteCommand } from './paletteCommand';
+import { useCommands, type PageActions } from './useCommands';
 import type { CpuControls } from './useCpu';
 import { usePanelColumns } from './usePanelOrder';
 import { usePanels, type UsesDevices } from './usePanels';
@@ -10,7 +12,7 @@ import { useSoundEffects, type SoundOf } from './useSoundEffects';
 import { useWorkbenchView } from './useWorkbenchView';
 
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
-export type WorkbenchPage = Omit<PageActions, 'askClearProgram' | 'askReset'> & {
+export type WorkbenchPage = Omit<PageActions, 'askClearProgram' | 'askReset' | 'hasCircuit'> & {
   /** Folds the builder's choices away, so the program below it stays in view. */
   foldBuilder: () => void;
 };
@@ -20,6 +22,8 @@ export interface WorkbenchHooks<Instruction, Record> {
   usesDevices: UsesDevices<Instruction, Record>;
   soundOf: SoundOf<Record>;
   page: WorkbenchPage;
+  /** The circuit of gates behind an executed instruction, for the link into the logic topic. */
+  aluLink: (record: Record) => AluLink;
   /** Palette commands for the architecture's own panels, labelled for the current state. */
   commands?: () => PaletteCommand[];
 }
@@ -46,6 +50,12 @@ export function useWorkbench<
   /** Instructions a reset would lose, undone ones included. */
   const historyLength = computed(() => cpu.history.value.length + cpu.future.value.length);
 
+  /** Where the last instruction leads in the logic topic; null before anything has run. */
+  const aluLink = computed(() => {
+    const record = cpu.lastRecord.value;
+    return record && hooks.aluLink(record);
+  });
+
   /** With nothing in the history there is nothing to lose, so the reset happens at once. */
   function askReset(): void {
     if (historyLength.value === 0) cpu.reset();
@@ -57,6 +67,7 @@ export function useWorkbench<
     panels,
     {
       ...hooks.page,
+      hasCircuit: () => aluLink.value !== null && hasCircuit(aluLink.value),
       // A builder out of sight or collapsed is brought back first; its input can only take
       // focus once it is drawn.
       focusBuilder: () => {
@@ -91,6 +102,7 @@ export function useWorkbench<
   return {
     panels,
     commands,
+    aluLink,
     columns,
     paletteOpen,
     examplesOpen,

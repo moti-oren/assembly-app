@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   bytesShown: '8086-bytes-shown',
   devicesShown: '8086-devices-shown',
   architecture: '8086-architecture',
+  topic: '8086-topic',
   rv32Pipeline: '8086-rv32-pipeline',
   rv32Forwarding: '8086-rv32-forwarding'
 } as const;
