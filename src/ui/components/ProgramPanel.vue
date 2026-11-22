@@ -101,10 +101,19 @@ watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMark
 });
 
 /** The last move in words, for a screen reader: the focus alone does not say a line moved. */
-const moved = computed(() =>
-  props.lastMove
-    ? `${formatLabel(props.lastMove.from)} moved to ${formatLabel(props.lastMove.to)}`
-    : ''
+const moved = ref('');
+
+// Emptied first and filled a tick later: a live region stays silent when its text is set to
+// what it already says, as it would be for the same move made twice.
+watch(
+  () => props.lastMove,
+  (lastMove) => {
+    moved.value = '';
+    if (!lastMove) return;
+    void nextTick(() => {
+      moved.value = `${formatLabel(lastMove.from)} moved to ${formatLabel(lastMove.to)}`;
+    });
+  }
 );
 
 /**
