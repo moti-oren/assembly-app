@@ -193,15 +193,23 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   of them. The left column is the same for all three CPUs: its order, what is collapsed, and which
   of History, Machine code and the I/O devices are on show carry over when you switch CPU, and
   are remembered between visits.
-- The settings menu at the top right holds the sound, the dark theme and **Reduce animations**;
-  the command palette has them too. The app starts in the light theme until you pick one.
+- The gear at the top right opens **Settings**, a window over the app (on a phone it is in the
+  **⋯** menu and takes the whole screen). Its sections: **General** (sound, anonymous usage),
+  **Appearance** (the theme: Light, Dark or System, which follows your device; **Reduce
+  animations**), **CPU** (diagram or tables, the 8086's register bits, RISC-V's pipeline chart and
+  forwarding; the same switches stay on their panels), **Running** (the run speed, which is
+  remembered and shared by the three CPUs; whether the I/O panel opens by itself when a program
+  uses a port; whether a reset asks first), **Keyboard** (the shortcuts, to read) and **Data**
+  (reset the panel layout, or clear everything this browser saved: the programs, the settings and
+  the layout). The command palette has the switches too, and **Open the settings…**. The app
+  starts in the light theme until you pick one.
 - With the sound on, the app plays short, quiet cues, all synthesized in the browser. Fetch,
   decode and execute climb three notes, and each instruction sounds like what it did: a register
   or memory write, the stack, a jump taken or not, a call or a return. The devices, undo and redo,
   the builder and edits to the program have lighter cues of their own. A fast run plays one soft
   pulse per line instead, and RISC-V's pipeline a tick per instruction, with a cue for a forward
   or a stall. Nothing plays while the tab is hidden.
-- **Reduce animations** in the settings menu or the command palette turns off the values that fly between panels, the
+- **Reduce animations** in the settings or the command palette turns off the values that fly between panels, the
   flashes and the glowing wires; the changed values stay marked. It is remembered, and it is on by
   itself when the system asks for reduced motion.
 - A panel's explanation is behind the ⓘ button next to its name, so it is there when you want it
@@ -548,14 +556,21 @@ npm run verify:6502 # check the 6502 core against py65
   מקופל ומה הגובה של כל חלונית נשמרים, ופלטת הפקודות יכולה לקפל או לפתוח כל אחת מהן. העמודה
   השמאלית זהה בשלושת המעבדים: הסדר שלה, מה מקופל, ואילו מבין History, Machine code והתקני ה-I/O
   מוצגים עוברים איתך כשמחליפים מעבד, ונשמרים בין ביקורים.
-- תפריט ההגדרות בפינה העליונה מחזיק את הצליל, ערכת הנושא הכהה ו-**Reduce animations**; גם פלטת
-  הפקודות מציעה אותם. האפליקציה נפתחת בערכת הנושא הבהירה עד שבוחרים אחרת.
+- גלגל השיניים בפינה העליונה פותח את **Settings**, חלון מעל האפליקציה (בטלפון הוא בתפריט **⋯**
+  ותופס את כל המסך). המקטעים שלו: **General** (צליל, שימוש אנונימי), **Appearance** (ערכת הנושא:
+  Light, Dark או System, שעוקבת אחרי המכשיר; **Reduce animations**), **CPU** (דיאגרמה או טבלאות,
+  הביטים של הרגיסטרים ב-8086, תרשים ה-pipeline וה-forwarding של RISC-V; אותם מתגים נשארים גם
+  בלוחות שלהם), **Running** (מהירות הריצה, שנשמרת ומשותפת לשלושת המעבדים; האם לוח ה-I/O נפתח
+  מעצמו כשתוכנית משתמשת בפורט; האם Reset שואל קודם), **Keyboard** (הקיצורים, לקריאה) ו-**Data**
+  (איפוס סידור הלוחות, או מחיקת כל מה שהדפדפן הזה שמר: התוכניות, ההגדרות והסידור). גם פלטת
+  הפקודות מציעה את המתגים, ואת **Open the settings…**. האפליקציה נפתחת בערכת הנושא הבהירה עד
+  שבוחרים אחרת.
 - כשהצליל פועל, האפליקציה משמיעה רמזים קצרים ושקטים, שכולם נוצרים בדפדפן. Fetch, decode ו-execute
   עולים בשלושה צלילים, וכל הוראה נשמעת כמו מה שעשתה: כתיבה לרגיסטר או לזיכרון, המחסנית, קפיצה
   שבוצעה או לא, קריאה או חזרה. להתקנים, ל-undo ול-redo, לבונה ולעריכות בתוכנית יש רמזים קלים יותר
   משלהם. בריצה מהירה נשמעת במקומם פעימה רכה אחת לכל שורה, וב-pipeline של RISC-V תקתוק לכל הוראה,
   עם רמז ל-forward או ל-stall. שום דבר לא מתנגן כשהלשונית מוסתרת.
-- **Reduce animations** בתפריט ההגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
+- **Reduce animations** בהגדרות או בפלטת הפקודות מכבה את הערכים שעפים בין הלוחות, את ההבזקים ואת החוטים
   הזוהרים; הערכים שהשתנו נשארים מסומנים. ההגדרה נשמרת, והיא פועלת מעצמה כשהמערכת מבקשת להפחית
   תנועה.
 - ההסבר של כל חלונית נמצא מאחורי כפתור ה-ⓘ שליד שמה, כך שהוא זמין כשרוצים אותו ולא מפריע בשאר
