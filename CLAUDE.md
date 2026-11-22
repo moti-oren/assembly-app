@@ -18,7 +18,7 @@ npm run typecheck    # vue-tsc --noEmit
 npm run lint         # eslint . (flat config)
 npm run format       # prettier --write src
 npm run check        # typecheck, lint, format:check and test: the gate before every commit
-npm run check:design # no raw colour outside src/ui/styles.css (scripts/claude/check-design-tokens.mjs)
+npm run check:design # no raw colour outside src/ui/styles.css, no hue outside the palette (scripts/claude/check-design-tokens.mjs)
 npm run verify:rv32  # RISC-V core vs Capstone and Unicorn (Python: pip install capstone unicorn)
 npm run verify:6502  # 6502 core vs py65's assembler and simulator (Python: pip install py65)
 ```
@@ -110,7 +110,7 @@ A change is checked in two tiers: deterministic gates first, review agents only 
 - **While editing (hooks, `.claude/settings.json`):** after every Edit or Write, ESLint and Prettier check that one file (`scripts/claude/post-edit.mjs`). When a turn ends with uncommitted changes under `src` or `scripts`, the Stop hook runs the typecheck and `vitest --changed` (`stop-check.mjs`); it blocks the stop once at most. `git-guard.mjs` denies `--no-verify`, a force-push and deleting a remote branch, and asks before a commit on `main`; `pre-edit.mjs` asks before a hand edit in `src/components/ui`.
 - **`/verify` (`.claude/commands/verify.md`) is the one entry point before a commit.** `scripts/claude/route.mjs` reads the diff against `main` and decides what runs. Tier 1 always runs: `npm run check`, plus `check:design` for components and style sheets, `verify:rv32` / `verify:6502` with one fresh seed when that core or `shared/` changed, and `build` when a dependency or the build configuration changed. Tier 2 runs when simulator code changed or more than 30 lines of UI did, and only the agents whose files changed: `isa-correctness`, `vue-architecture`, `design-responsive`, `a11y-interaction`, `perf-runtime` (`.claude/agents/`). `/verify --full` runs all five on any code change. A change to documentation, tests or generated components alone runs no agent.
 - **Agents report, they never edit.** Each answers `PASS | WARN | BLOCK` with findings as `path:line`, a severity (Blocker, Warning, Nit), evidence and a fix. `/verify` merges them, confirms every Blocker in the code, fixes what is mechanical, and stops after two fix rounds. A fix to what an instruction does, to the undo record or to an encoding is never automatic.
-- **Changing the rules:** the routing lives in `route.mjs` and is tested in `route.test.mjs`; change both together. A colour that was in the code before `check:design` existed is listed under `KNOWN` in the script: delete its entry when it moves to a token.
+- **Changing the rules:** the routing lives in `route.mjs` and is tested in `route.test.mjs`; change both together. A colour that was in the code before a rule of `check:design` existed is listed under `KNOWN` in the script: delete its entry when it moves to a token of the palette. The palette itself (which hues a token may hold) is in `designPalette.mjs`, tested in `designPalette.test.mjs`; the `chart-*` tokens are the one exception, allowed in the encoding panels only.
 
 ## Execution model (non-obvious)
 
