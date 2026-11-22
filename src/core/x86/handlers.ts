@@ -87,10 +87,10 @@ export const HANDLERS: Record<Mnemonic, Handler> = {
   div: divide,
   idiv: signedDivide,
 
-  and: binary((ctx, a, b) => ctx.logic(a & b)),
-  or: binary((ctx, a, b) => ctx.logic(a | b)),
-  xor: binary((ctx, a, b) => ctx.logic(a ^ b)),
-  test: binary((ctx, a, b) => ctx.logic(a & b), false),
+  and: binary((ctx, a, b) => ctx.logic('and', a, b)),
+  or: binary((ctx, a, b) => ctx.logic('or', a, b)),
+  xor: binary((ctx, a, b) => ctx.logic('xor', a, b)),
+  test: binary((ctx, a, b) => ctx.logic('and', a, b), false),
   not: unary((ctx, value) => truncate(~value, ctx.size)),
 
   shl: shift('shl'),
