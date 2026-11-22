@@ -101,6 +101,52 @@ export function removeLine<I extends ProgramInstruction>(program: Program<I>, in
     .map((line) => mapTargets(line, (target) => (target > index ? target - 1 : target)));
 }
 
+/**
+ * Puts `lines` in place of line `index`: one line for an edit, more when the new instruction
+ * stands for several. Jumps that pointed at the old line point at the first new one, and the new
+ * lines' own labels refer to the program as it was before.
+ */
+export function replaceLine<I extends ProgramInstruction>(
+  program: Program<I>,
+  index: number,
+  lines: readonly I[]
+): I[] {
+  const shift = (target: number) => (target > index ? target + lines.length - 1 : target);
+  const shifted = program.map((line) => mapTargets(line, shift));
+  return [
+    ...shifted.slice(0, index),
+    ...lines.map((line) => mapTargets(line, shift)),
+    ...shifted.slice(index + 1)
+  ];
+}
+
+/** Where line `line` ends up when the line at `from` is moved to `to`. */
+export function lineAfterMove(line: number, from: number, to: number): number {
+  if (line === from) return to;
+  if (from < to && line > from && line <= to) return line - 1;
+  if (to < from && line >= to && line < from) return line + 1;
+  return line;
+}
+
+/**
+ * Moves the line at `from` to `to`. Every jump keeps pointing at the instruction it pointed at,
+ * wherever that went.
+ */
+export function moveLine<I extends ProgramInstruction>(
+  program: Program<I>,
+  from: number,
+  to: number
+): I[] {
+  const moved = [...program];
+  moved.splice(to, 0, ...moved.splice(from, 1));
+  return moved.map((line) => mapTargets(line, (target) => lineAfterMove(target, from, to)));
+}
+
+/** The line to run next after replacing line `index` with `count` lines. */
+export function lineAfterReplace(next: number, index: number, count: number): number {
+  return next > index ? next + count - 1 : next;
+}
+
 /** The line to run next after inserting a line, so the same instruction still runs next. */
 export function lineAfterInsert(next: number, index: number): number {
   return next > index ? next + 1 : next;
