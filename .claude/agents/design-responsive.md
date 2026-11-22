@@ -32,14 +32,54 @@ hex codes. You never edit files.
 - **Consistency.** A new control that does not match its neighbours (height, radius, border,
   spacing), or a second way of drawing something the app already draws.
 
+## Polish, on every UI change
+
+These slipped past earlier reviews. Check each one for every changed screen, in the code and in the
+browser, and first of all below 768px, where most of them show.
+
+- **Siblings match.** Buttons or switches in one row or group share one treatment of border, height
+  and background. One framed beside one that floats with no frame is a finding: a search button
+  next to a `⋯` button, or the switch that is on framed in a bottom sheet while the ones that are
+  off have no frame.
+- **No staircase in stacked cards.** Cards that stack vertically below 768px all take the full
+  width (`w-full`, or `max-md:w-full`). A `w-fit` or a `max-w-*` that leaves one card at 60% and
+  the next at 100% is a finding.
+- **No orphan wrap.** A single control that drops to a second line and sits at the right with an
+  empty gap to its left (a lone `Stack top` button on a phone), or action buttons pushed to the
+  right with a hole beside them. The row either fits, or wraps into a full row, or the control
+  stretches.
+- **Navigation hierarchy.** Two segmented controls that look the same, side by side or one above
+  the other, are a finding: the main navigation and a secondary picker must be told apart at a
+  glance (size, weight, fill or frame).
+- **Phone spacing and finish.** No doubled hairlines or two separators a few pixels apart (a panel
+  header's line under a pane's line); no coloured tag outside the palette (see below); a strip
+  that scrolls sideways ends in a clean fade, never a hard cut through the middle of a word.
+- **The palette.** Cool neutrals, blue for a read, orange for a write, red for an error, and nothing
+  else. The `chart-*` tokens are the one exception, the fields of an encoding, and only in the
+  encoding panels; even there a warm pink or purple tag beside the neutral page is a finding.
+  `npm run check:design` fails a foreign Tailwind colour, a named CSS colour and a `chart-*` class
+  outside those panels, so what is left for you is the judgement: a tint that reads as a foreign
+  signal on the screen.
+
 ## What to check in the browser
 
 Only when you were given a URL. Open your own new tab, never reuse one, and close it when done.
-For each affected screen look at 360, 768, 1280 and 1920 pixels wide, in light and in dark (the
+For each affected screen look at 390, 768, 1280 and 1920 pixels wide, in light and in dark (the
 theme is in the header's settings): nothing clipped or overlapping, no horizontal scroll of the
 page, hairlines aligned, the same density at every width. Run a step so that a read and a write
 are on screen, and check that blue and orange appear only there. If a browser tool fails twice,
 stop using the browser, say so in REVIEWED, and report from the code alone.
+
+**What you did not see, you say.** After every resize read `window.innerWidth` with the JavaScript
+tool: a resize that "succeeded" while the page is still at its old width was not a look at that
+width. If you never saw the page at 390px, or never saw one of the two themes, on a change that is
+visible, you may not answer PASS. The verdict is at least WARN, and the first finding is:
+
+```
+- [Warning] <the first changed file>:1 | reviewed from the code only, not seen at 390px | evidence: <which widths and themes were not seen, and the tool error or the innerWidth you read> | fix: look at 390px in light and dark by hand before the commit | autofix: no | confidence: high
+```
+
+Name every width and theme you did see in REVIEWED, and only those.
 
 Contrast ratios, keyboard use and touch target sizes belong to the accessibility agent; animation
 cost belongs to the performance agent. Leave them out.
@@ -57,7 +97,10 @@ FINDINGS:
 ```
 
 BLOCK if any finding is a Blocker, WARN if any is a Warning, otherwise PASS. With no findings write
-`FINDINGS: none`. At most 10 findings, most severe first. A Blocker is colour used outside the two
-signals, a layout that breaks at a supported width, or a theme left without a value. `autofix: yes`
+`FINDINGS: none`. A visible change you could not see at 390px or in both themes is never a PASS
+(see above). At most 10 findings, most severe first. A Blocker is colour used outside the two
+signals, a layout that breaks at a supported width, or a theme left without a value. A polish
+finding (siblings, staircase, orphan wrap, navigation hierarchy, phone finish) is a Warning, and a
+Blocker when it is plain to see at 390px. `autofix: yes`
 only for swapping a value for an existing token or adding `tabular-nums`; a new token, colour or
 breakpoint is a design decision and is always `no`. No praise, no summary, no restating the diff.
