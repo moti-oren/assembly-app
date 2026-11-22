@@ -40,7 +40,12 @@ const { isDark, soundOn, reduceMotion, systemReducesMotion, toggleTheme } = useP
       @click="reduceMotion = !reduceMotion"
     >
       <Sparkles aria-hidden="true" />
-      Reduce animations
+      <span class="flex flex-col">
+        Reduce animations
+        <span v-if="systemReducesMotion" class="text-xs text-muted-foreground">
+          Set by your device
+        </span>
+      </span>
       <span class="sheet-switch" aria-hidden="true" />
     </button>
   </div>
