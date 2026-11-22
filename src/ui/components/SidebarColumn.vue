@@ -14,6 +14,8 @@ const props = defineProps<{
   keys: SidebarKey[];
   labels: Record<SidebarKey, string>;
   closable: readonly SidebarKey[];
+  /** How many lines the program has: its panel keeps a few of them in sight. */
+  programRows?: number;
 }>();
 
 const emit = defineEmits<{
@@ -48,7 +50,9 @@ function above(index: number): SidebarKey | null {
     ref="column"
     :keys="keys"
     :labels="labels"
-    :item-style="(key) => sectionStyle(key, layout.isCollapsed(key), layout.sizeOf(key))"
+    :item-style="
+      (key) => sectionStyle(key, layout.isCollapsed(key), layout.sizeOf(key), programRows)
+    "
     @move="(key, to) => emit('move', key, to)"
   >
     <template v-for="(key, index) in keys" :key="key" #[key]>
