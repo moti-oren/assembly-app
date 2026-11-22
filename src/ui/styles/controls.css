@@ -2,27 +2,43 @@
 
 @layer components {
   /*
-   * The app's mark: a chip seen from above, an ink lid with its pin-1 dot and a row of pins on
-   * each side. The pins sit behind the lid, so only their ends show.
+   * The app's mark: a chip seen from above, an ink lid with its pin-1 dot and four pins on each
+   * side. The pins sit behind the lid, so only their ends show. Its shape is measured in --die-u,
+   * one 26th of the lid, so the header's mark and the opening animation (splash.css), drawn at
+   * 2.75 times the size, are the same chip.
    */
+  :is(.die-mark, .splash-chip) {
+    --die-size: calc(26 * var(--die-u));
+    --die-radius: calc(4 * var(--die-u));
+    /* Where the pins start along a side, how far past it they reach, and their width. */
+    --die-pin-inset: calc(5 * var(--die-u));
+    --die-pin-out: calc(3 * var(--die-u));
+    --die-pin-width: calc(2 * var(--die-u));
+    /* Four whole pins over the 16u between the insets: the last ends where the strip does. */
+    --die-pin-period: calc(14 / 3 * var(--die-u));
+    --die-dot-at: calc(5 * var(--die-u));
+    --die-dot-radius: calc(1.4 * var(--die-u));
+    --die-dot-fill: color-mix(in oklch, var(--die-lid-foreground) 45%, transparent);
+  }
   .die-mark {
+    --die-u: 0.0625rem;
     position: relative;
     display: grid;
     place-items: center;
-    width: 1.625rem;
-    height: 1.625rem;
-    margin: 0.1875rem;
-    border-radius: 0.25rem;
+    width: var(--die-size);
+    height: var(--die-size);
+    margin: var(--die-pin-out);
+    border-radius: var(--die-radius);
     background:
       radial-gradient(
-        circle at 5px 5px,
-        color-mix(in oklch, var(--die-lid-foreground) 45%, transparent) 1.1px,
-        transparent 1.7px
+        circle at var(--die-dot-at) var(--die-dot-at),
+        var(--die-dot-fill) calc(var(--die-dot-radius) - 0.3 * var(--die-u)),
+        transparent calc(var(--die-dot-radius) + 0.3 * var(--die-u))
       ),
       var(--die-lid);
     color: var(--die-lid-foreground);
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
+    font-size: calc(11 * var(--die-u));
     font-weight: 700;
     letter-spacing: -0.02em;
   }
@@ -33,12 +49,20 @@
     z-index: -1;
   }
   .die-mark::before {
-    inset: 0.3125rem -0.1875rem;
-    background: repeating-linear-gradient(to bottom, var(--die-pin) 0 2px, transparent 2px 5px);
+    inset: var(--die-pin-inset) calc(-1 * var(--die-pin-out));
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--die-pin) 0 var(--die-pin-width),
+      transparent var(--die-pin-width) var(--die-pin-period)
+    );
   }
   .die-mark::after {
-    inset: -0.1875rem 0.3125rem;
-    background: repeating-linear-gradient(to right, var(--die-pin) 0 2px, transparent 2px 5px);
+    inset: calc(-1 * var(--die-pin-out)) var(--die-pin-inset);
+    background: repeating-linear-gradient(
+      to right,
+      var(--die-pin) 0 var(--die-pin-width),
+      transparent var(--die-pin-width) var(--die-pin-period)
+    );
   }
 
   /*
