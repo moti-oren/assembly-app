@@ -18,6 +18,9 @@ defineProps<{
   description: string;
 }>();
 
+/** As the sheet closes, before the focus goes back: prevent it to send the focus elsewhere. */
+const emit = defineEmits<{ closeAutoFocus: [event: Event] }>();
+
 const open = defineModel<boolean>('open', { default: false });
 </script>
 
@@ -31,6 +34,7 @@ const open = defineModel<boolean>('open', { default: false });
       <DialogOverlay />
       <DialogContent
         class="bottom-sheet data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom"
+        @close-auto-focus="emit('closeAutoFocus', $event)"
       >
         <div class="bottom-sheet-handle" aria-hidden="true" />
         <div class="flex items-center justify-between gap-2 pl-1">
