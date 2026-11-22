@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { RV32 } from '@/core/rv32/architecture';
 import { formatInstruction } from '@/core/rv32/instructions';
 import { filterOptions, type DraftContext } from './builderGrammar';
 import { RV32_GRAMMAR, type Rv32Action } from './rv32Grammar';
@@ -76,5 +77,17 @@ describe('RV32_GRAMMAR', () => {
       label: 'addi',
       text: 'rd = rs1 + imm (I-type)'
     });
+  });
+});
+
+describe('parse', () => {
+  it('gives back the words of every line of the examples', () => {
+    for (const example of RV32.examples) {
+      for (const instruction of example.program) {
+        const words = RV32_GRAMMAR.parse(instruction);
+        expect(RV32_GRAMMAR.build(words)).toEqual([instruction]);
+        expect(RV32_GRAMMAR.hasMore(words)).toBe(false);
+      }
+    }
   });
 });

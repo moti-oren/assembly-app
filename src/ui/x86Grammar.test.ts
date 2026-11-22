@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { X86 } from '@/core/x86/architecture';
 import {
   builderOptions,
   overflowingSize,
@@ -146,5 +147,17 @@ describe('X86_GRAMMAR', () => {
   it('describes the chosen mnemonic', () => {
     expect(X86_GRAMMAR.describe([])).toBeNull();
     expect(X86_GRAMMAR.describe([mov])).toEqual({ label: 'mov', text: 'dst = src' });
+  });
+});
+
+describe('parse', () => {
+  it('gives back the words of every line of the examples', () => {
+    for (const example of X86.examples) {
+      for (const instruction of example.program) {
+        const words = X86_GRAMMAR.parse(instruction);
+        expect(X86_GRAMMAR.build(words)).toEqual([instruction]);
+        expect(X86_GRAMMAR.hasMore(words)).toBe(false);
+      }
+    }
   });
 });

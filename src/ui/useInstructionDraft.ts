@@ -19,6 +19,11 @@ export function useInstructionDraft<Action, Instruction>(
     chosen.value = [...chosen.value, action];
   }
 
+  /** Puts a whole instruction in the draft, as if its words had been chosen one by one. */
+  function load(instruction: Instruction): void {
+    chosen.value = grammar.parse(instruction);
+  }
+
   function clear(): void {
     chosen.value = [];
   }
@@ -29,5 +34,5 @@ export function useInstructionDraft<Action, Instruction>(
     if (token) chosen.value = chosen.value.slice(0, token.keep);
   }
 
-  return { chosen, complete, built, tokens, apply, clear, truncateTo };
+  return { chosen, complete, built, tokens, apply, load, clear, truncateTo };
 }

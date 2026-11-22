@@ -51,6 +51,7 @@ const {
   errorFrom,
   program,
   programSource,
+  editing,
   insertAt,
   lastRecord,
   lastAfter,
@@ -139,6 +140,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
       :keys="leftKeys"
       :labels="LABELS"
       :closable="closable"
+      :program-rows="program.length"
       @move="move"
       @close="close"
     >
@@ -151,6 +153,9 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :error="errorFrom === 'builder' ? error : null"
           :program-lines="programLines"
           :insert-line="insertAt ?? program.length"
+          :editing="editing"
+          :replace="cpu.replaceEditedLine"
+          @cancel-edit="cpu.editLine(null)"
           @draft="draft = $event?.[0] ?? null"
         />
       </template>
@@ -165,6 +170,9 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :last-line="lastRecord?.line ?? null"
           :finished="finished"
           :source="programSource"
+          :editing-line="editing?.line ?? null"
+          @edit="cpu.editLine"
+          @move="cpu.moveProgramLine"
           @clear="clearAsked = true"
           @remove="cpu.removeProgramLine"
           @inspect="inspect"
