@@ -44,6 +44,40 @@ describe('the cycle in words', () => {
       'It changed A. 2 cycles. PC is at $0602 (L1), the next line.'
     );
   });
+
+  it('says why a branch was taken or not', () => {
+    const loop = [line('lda', imm(0)), line('bne', { type: 'label', target: 0 })];
+    const state = createCpuState();
+    execute(state, loop[0], 0, loop);
+    expect(describeExecute(execute(state, loop[1], 1, loop), state, loop)).toBe(
+      'Not taken: BNE branches when Z = 0, but Z is 1. 2 cycles. PC is at $0604 (L2), the next line.'
+    );
+    const back = [line('lda', imm(0)), line('beq', { type: 'label', target: 0 })];
+    const again = createCpuState();
+    execute(again, back[0], 0, back);
+    expect(describeExecute(execute(again, back[1], 1, back), again, back)).toBe(
+      'Taken: BEQ branches when Z = 1, and Z is 1. 3 cycles: 2, plus 1 for taking the branch. PC is now $0600 (L0).'
+    );
+  });
+
+  it('says a flag was already as the instruction leaves it', () => {
+    const state = createCpuState();
+    const clear = [line('clc'), line('sec')];
+    expect(describeExecute(execute(state, clear[0], 0, clear), state, clear)).toBe(
+      'C was already 0. 2 cycles. PC is at $0601 (L1), the next line.'
+    );
+    expect(describeExecute(execute(state, clear[1], 1, clear), state, clear)).toBe(
+      'It changed the flags. 2 cycles. PC is at $0602 (L2), the next line.'
+    );
+  });
+
+  it('says an instruction from the builder ran directly', () => {
+    const state = createCpuState();
+    const record = execute(state, line('lda', imm(1)), null, []);
+    expect(describeExecute(record, state, [])).toBe(
+      'Ran directly (not from the program). It changed A. 2 cycles.'
+    );
+  });
 });
 
 describe('addressSteps', () => {

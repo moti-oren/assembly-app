@@ -14,6 +14,8 @@ import TransportSpeed from './TransportSpeed.vue';
 
 defineProps<{
   finished: boolean;
+  /** True when the program has no lines, so there is nothing to step or run. */
+  empty: boolean;
   /** True while the program is running line by line. */
   running: boolean;
   /** The phase the line at IP has reached when stepping by phase; null between instructions. */
@@ -34,6 +36,8 @@ const emit = defineEmits<{
   phase: [];
   run: [];
   pause: [];
+  /** Asks for the finished program to be run again, which resets the CPU first. */
+  again: [];
   undo: [];
   redo: [];
   /** Asks for a reset of the CPU, which may need confirming. */
@@ -76,14 +80,17 @@ function resetFromMore(): void {
       role="toolbar"
       aria-label="Program and history controls"
     >
+      <!-- TransportRun finds this group by `data-transport-run`, to keep the focus inside it. -->
       <div
         class="flex items-center gap-1.5"
         :class="{ 'min-w-0 flex-1': mode === 'phone' }"
         role="group"
         aria-label="Run"
+        data-transport-run
       >
         <TransportRun
           :finished="finished"
+          :empty="empty"
           :running="running"
           :phase="phase"
           :compact="mode === 'phone'"
@@ -91,6 +98,7 @@ function resetFromMore(): void {
           @phase="emit('phase')"
           @run="emit('run')"
           @pause="emit('pause')"
+          @again="emit('again')"
         />
         <TransportSpeed
           v-if="mode !== 'phone'"

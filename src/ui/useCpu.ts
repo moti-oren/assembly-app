@@ -15,7 +15,7 @@ import { setInputPort, type CpuState } from '@/core/shared/state';
 import { useCpuError, type ErrorSource } from './useCpuError';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
-import { useProgramLines } from './useProgramLines';
+import { useProgramLines, type ProgramSource } from './useProgramLines';
 import { useProgramRun } from './useProgramRun';
 import type { RunSpeed } from './runSpeeds';
 import type { ByteChange } from './stepDiff';
@@ -33,11 +33,14 @@ export function useCpu<
   const state = reactive(architecture.createState()) as State;
   const { history, lastRecord, lastAfter, lastWrites, future, memoryHeat, record, ...timeline } =
     useCpuHistory<Record>(state);
-  const { program, insertAt, addToProgram, removeProgramLine, replaceProgram } = useProgramLines(
-    architecture,
-    state,
-    timeline.forgetFuture
-  );
+  const {
+    program,
+    source: programSource,
+    insertAt,
+    addToProgram,
+    removeProgramLine,
+    replaceProgram
+  } = useProgramLines(architecture, state, timeline.forgetFuture);
   const { error, errorFrom, attempt, report, clearError } = useCpuError();
   /** The program line the instruction pointer points at: the one that runs next. */
   const nextLine = computed(() => architecture.nextLine(state, program.value));
@@ -100,13 +103,14 @@ export function useCpu<
   }
 
   /** Replaces the program and starts the CPU afresh, without its history. */
-  function loadProgram(lines: readonly Instruction[]): void {
+  function loadProgram(lines: readonly Instruction[], from: ProgramSource | null = null): void {
     reset();
-    replaceProgram(lines);
+    replaceProgram(lines, from);
   }
 
   function loadExample(index: number): void {
-    loadProgram(architecture.examples[index].program);
+    const { program: lines, name, description } = architecture.examples[index];
+    loadProgram(lines, { name, description });
   }
 
   /** Moves through time: undoes or redoes until exactly `position` instructions have run. */
@@ -149,6 +153,7 @@ export function useCpu<
     error,
     errorFrom,
     program,
+    programSource,
     insertAt,
     lastRecord,
     lastAfter,
@@ -199,6 +204,8 @@ export interface CpuControls<
     examples: readonly { name: string; description: string }[];
   };
   program: Readonly<Ref<readonly Instruction[]>>;
+  /** The example the program was loaded from, until it is edited. */
+  programSource: Readonly<Ref<ProgramSource | null>>;
   history: Readonly<Ref<readonly Record[]>>;
   future: Readonly<Ref<readonly Record[]>>;
   lastRecord: Readonly<Ref<Record | null>>;

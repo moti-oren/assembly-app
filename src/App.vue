@@ -41,9 +41,10 @@ const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
 
 /** Opens a task's program on its CPU, from the comparison. */
 function loadSolution(task: ComparisonTask, id: ComparedId): void {
-  if (id === 'x86') x86.loadProgram(task.x86.program);
-  else if (id === 'rv32') rv32.loadProgram(task.rv32.program);
-  else mos6502.loadProgram(task.mos6502.program);
+  const from = { name: task.name, description: task.lesson };
+  if (id === 'x86') x86.loadProgram(task.x86.program, from);
+  else if (id === 'rv32') rv32.loadProgram(task.rv32.program, from);
+  else mos6502.loadProgram(task.mos6502.program, from);
   architecture.value = id;
   comparisonOpen.value = false;
 }

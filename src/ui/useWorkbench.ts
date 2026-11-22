@@ -5,6 +5,7 @@ import type { ProgramInstruction } from '@/core/shared/program';
 import type { PaletteCommand } from './paletteCommand';
 import { useCommands, type PageActions } from './useCommands';
 import type { CpuControls } from './useCpu';
+import { useCpuReset } from './useCpuReset';
 import { usePanelColumns } from './usePanelOrder';
 import { usePanels, type UsesDevices } from './usePanels';
 import { useSidebarLayout } from './useSidebarLayout';
@@ -12,7 +13,10 @@ import { useSoundEffects, type SoundOf } from './useSoundEffects';
 import { useWorkbenchView } from './useWorkbenchView';
 
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
-export type WorkbenchPage = Omit<PageActions, 'askClearProgram' | 'askReset' | 'hasCircuit'> & {
+export type WorkbenchPage = Omit<
+  PageActions,
+  'askClearProgram' | 'askReset' | 'runAgain' | 'hasCircuit'
+> & {
   /** Folds the builder's choices away, so the program below it stays in view. */
   foldBuilder: () => void;
 };
@@ -45,22 +49,13 @@ export function useWorkbench<
   const examplesOpen = ref(false);
   /** True while the user is asked to confirm clearing the program. */
   const clearAsked = ref(false);
-  /** True while the user is asked to confirm a reset, which would lose the history. */
-  const resetAsked = ref(false);
-  /** Instructions a reset would lose, undone ones included. */
-  const historyLength = computed(() => cpu.history.value.length + cpu.future.value.length);
+  const { resetAsked, historyLength, askReset, runAgain, confirmReset } = useCpuReset(cpu);
 
   /** Where the last instruction leads in the logic topic; null before anything has run. */
   const aluLink = computed(() => {
     const record = cpu.lastRecord.value;
     return record && hooks.aluLink(record);
   });
-
-  /** With nothing in the history there is nothing to lose, so the reset happens at once. */
-  function askReset(): void {
-    if (historyLength.value === 0) cpu.reset();
-    else resetAsked.value = true;
-  }
 
   const commands = useCommands(
     cpu,
@@ -87,7 +82,8 @@ export function useWorkbench<
       askClearProgram: () => {
         clearAsked.value = true;
       },
-      askReset
+      askReset,
+      runAgain
     },
     hooks.commands,
     columns.leftKeys
@@ -109,6 +105,8 @@ export function useWorkbench<
     clearAsked,
     resetAsked,
     historyLength,
-    askReset
+    askReset,
+    runAgain,
+    confirmReset
   };
 }

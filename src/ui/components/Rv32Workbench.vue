@@ -52,6 +52,7 @@ const {
   error,
   errorFrom,
   program,
+  programSource,
   insertAt,
   lastRecord,
   lastAfter,
@@ -82,7 +83,9 @@ const {
   clearAsked,
   resetAsked,
   historyLength,
-  askReset
+  askReset,
+  runAgain,
+  confirmReset
 } = useWorkbench(cpu, {
   aluLink: rv32AluLink,
   usesDevices: rv32UsesDevices,
@@ -128,7 +131,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     :history-length="historyLength"
     @load-example="cpu.loadExample"
     @clear-program="cpu.clearProgram"
-    @reset-cpu="cpu.reset"
+    @reset-cpu="confirmReset"
   />
   <Rv32ChangeStrip
     v-if="layout !== 'desktop'"
@@ -137,6 +140,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     :record="lastRecord"
     :phase="pending?.phase ?? null"
     :next="finished ? null : formatLabel(nextLine)"
+    :empty="program.length === 0"
   />
 
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
@@ -173,6 +177,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :ip="nextLine"
           :last-line="lastRecord?.line ?? null"
           :finished="finished"
+          :source="programSource"
           @clear="clearAsked = true"
           @remove="cpu.removeProgramLine"
           @inspect="inspect"
@@ -206,7 +211,14 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
       <template #cycle>
         <Card size="sm">
           <CardContent>
-            <Rv32Pipeline v-if="pipelineShown" :history="history" :program="program" />
+            <Rv32Pipeline
+              v-if="pipelineShown"
+              :history="history"
+              :program="program"
+              :state="state"
+              :pending="pending"
+              :running="running"
+            />
             <Rv32Cycle
               v-else
               :state="state"
@@ -259,6 +271,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     v-model:devices-shown="devicesShown"
     v-model:bytes-shown="bytesShown"
     :finished="finished"
+    :empty="program.length === 0"
     :running="running"
     :error="errorFrom === 'program' ? error : null"
     :phase="pending?.phase ?? null"
@@ -271,6 +284,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     @undo="cpu.undoLast"
     @redo="cpu.redo"
     @reset="askReset"
+    @again="runAgain"
     @seek="cpu.seek"
   />
 </template>

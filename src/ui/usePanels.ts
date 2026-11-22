@@ -30,15 +30,17 @@ export type UsesDevices<Instruction, Record> = (
 const useShown = createGlobalState(() => ({
   historyShown: useLocalStorage(STORAGE_KEYS.historyShown, false),
   bytesShown: useLocalStorage(STORAGE_KEYS.bytesShown, false),
-  devicesShown: useLocalStorage(STORAGE_KEYS.devicesShown, false)
+  devicesShown: useLocalStorage(STORAGE_KEYS.devicesShown, false),
+  /** True while the devices are open because a program opened them, not the user. */
+  devicesOpenedByProgram: ref(false)
 }));
 
 export function usePanels<Instruction, Record extends ExecutionRecord>(
   cpu: CpuControls<Instruction, Record>,
   usesDevices: UsesDevices<Instruction, Record>
 ): Panels {
-  const { history, program, lastRecord } = cpu;
-  const { historyShown, bytesShown, devicesShown } = useShown();
+  const { history, program, programSource, lastRecord } = cpu;
+  const { historyShown, bytesShown, devicesShown, devicesOpenedByProgram } = useShown();
   const inspectedLine = ref<number | null>(null);
   const sidebar = useSidebarLayout();
 
@@ -47,7 +49,20 @@ export function usePanels<Instruction, Record extends ExecutionRecord>(
   });
 
   watch([program, lastRecord], ([lines, record]) => {
-    if (usesDevices(lines, record)) devicesShown.value = true;
+    if (!usesDevices(lines, record) || devicesShown.value) return;
+    devicesShown.value = true;
+    devicesOpenedByProgram.value = true;
+  });
+
+  // Closed by hand, or opened again by hand after that: the panel is the user's from then on.
+  watch(devicesShown, (shown) => {
+    if (!shown) devicesOpenedByProgram.value = false;
+  });
+
+  // An example without devices closes the panel an earlier program opened, and no other.
+  watch(programSource, (source) => {
+    if (!source || !devicesOpenedByProgram.value || usesDevices(program.value, null)) return;
+    devicesShown.value = false;
   });
 
   function inspect(line: number): void {

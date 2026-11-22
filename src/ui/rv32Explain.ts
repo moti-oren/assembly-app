@@ -9,6 +9,7 @@ import { CATEGORY_LABELS, type Instruction, type Mnemonic } from '@/core/rv32/in
 import { formatRegister } from '@/core/rv32/operands';
 import { REGISTER_KEYS } from '@/core/rv32/registers';
 import { addressOfLine, DEVICE_BASE, lineAt, type CpuState } from '@/core/rv32/state';
+import { describeBranch, list } from './explainText';
 
 /** A 32-bit value as RISC-V tools write it. */
 export function hex(value: number): string {
@@ -19,11 +20,6 @@ export function hex(value: number): string {
 function codeAddress(address: number, lineCount: number): string {
   const line = lineAt(address, lineCount);
   return line === null ? hex(address) : `${hex(address)} (${formatLabel(line)})`;
-}
-
-function list(items: string[]): string {
-  if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
 }
 
 export function describeFetch(line: number, program: Program<Instruction>): string {
@@ -64,6 +60,43 @@ function changedRegisters(record: ExecutionRecord, state: CpuState): string[] {
   );
 }
 
+const BRANCHES: Partial<Record<Mnemonic, { symbol: string; signed: boolean | null }>> = {
+  beq: { symbol: '=', signed: null },
+  bne: { symbol: '≠', signed: null },
+  blt: { symbol: '<', signed: true },
+  bge: { symbol: '≥', signed: true },
+  bltu: { symbol: '<', signed: false },
+  bgeu: { symbol: '≥', signed: false }
+};
+
+/** A compared value as the branch read it: unsigned for BLTU and BGEU, else signed. */
+function compared(value: number, signed: boolean | null): string {
+  return signed === false ? String(value >>> 0) : String(s32(value));
+}
+
+/** Why a branch was taken or not; null for any other instruction. */
+function branchOutcome(record: ExecutionRecord): string | null {
+  const branch = BRANCHES[record.instruction.mnemonic];
+  const { comparison } = record;
+  if (!branch || !comparison) return null;
+  const [a, b] = (record.instruction.operands as { index: number }[]).map((operand) =>
+    formatRegister(operand.index)
+  );
+  const how = branch.signed === null ? '' : branch.signed ? ', signed' : ', unsigned';
+  const values = [
+    `${a} is ${compared(comparison.a, branch.signed)}`,
+    `${b} is ${compared(comparison.b, branch.signed)}`
+  ];
+  return describeBranch({
+    name: record.instruction.mnemonic.toUpperCase(),
+    verb: 'branches',
+    when: `${a} ${branch.symbol} ${b}${how}`,
+    // A register compared with itself is one value, not two.
+    values: a === b ? values.slice(0, 1) : values,
+    taken: comparison.taken
+  });
+}
+
 export function describeExecute(
   record: ExecutionRecord,
   state: CpuState,
@@ -74,16 +107,21 @@ export function describeExecute(
     ...(record.memoryWrites.length > 0 ? ['memory'] : []),
     ...(record.portWrites.length > 0 ? ['a device'] : [])
   ];
-  const effect = changed.length
-    ? `It changed ${list(changed)}.`
-    : 'It changed no register or memory.';
+  const outcome = branchOutcome(record);
+  // A branch changes nothing: its outcome is what there is to say.
+  const nothing = outcome ? [] : ['It changed no register or memory.'];
+  const effect = [...(changed.length ? [`It changed ${list(changed)}.`] : nothing), outcome]
+    .filter(Boolean)
+    .join(' ');
   const { pc } = state.registers;
+  const at = codeAddress(pc, program.length);
+  const moved = outcome ? `PC is now ${at}.` : `It jumped: PC is now ${at}.`;
   if (record.line === null) {
     const jumped = pc !== record.before.registers.pc;
-    return `Run directly, so nothing was fetched from the program. ${effect}${jumped ? ` It jumped: PC is now ${codeAddress(pc, program.length)}.` : ''}`;
+    return `Ran directly (not from the program). ${effect}${jumped ? ` ${moved}` : ''}`;
   }
   const jumped = pc !== addressOfLine(record.line + 1);
-  return `${effect} ${jumped ? `It jumped: PC is now ${codeAddress(pc, program.length)}.` : `PC is at ${codeAddress(pc, program.length)}, the next line.`}`;
+  return `${effect} ${jumped ? moved : `PC is at ${at}, the next line.`}`;
 }
 
 const OPERATORS: Record<AluMnemonic, { symbol: string; note?: string }> = {
@@ -136,15 +174,6 @@ export function aluEquation(record: ExecutionRecord): AluEquation | null {
   };
 }
 
-const BRANCHES: Partial<Record<Mnemonic, { symbol: string; signed: boolean | null }>> = {
-  beq: { symbol: '=', signed: null },
-  bne: { symbol: '≠', signed: null },
-  blt: { symbol: '<', signed: true },
-  bge: { symbol: '≥', signed: true },
-  bltu: { symbol: '<', signed: false },
-  bgeu: { symbol: '≥', signed: false }
-};
-
 /** What a branch compared, and what came of it. */
 export interface ComparisonView {
   left: string;
@@ -165,7 +194,7 @@ export function describeComparison(
   const { comparison } = record;
   if (!branch || !comparison) return null;
   const [a, b] = record.instruction.operands as { index: number }[];
-  const value = (v: number) => (branch.signed === false ? String(v >>> 0) : String(s32(v)));
+  const value = (v: number) => compared(v, branch.signed);
   const at = codeAddress(state.registers.pc, program.length);
   return {
     left: `${formatRegister(a.index)} = ${value(comparison.a)}`,

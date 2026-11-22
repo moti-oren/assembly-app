@@ -15,6 +15,7 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CodePlace, LineCode } from '@/ui/programCode';
+import type { ProgramSource } from '@/ui/useProgramLines';
 
 const props = defineProps<{
   program: Instruction[];
@@ -30,6 +31,8 @@ const props = defineProps<{
   /** The program line executed last, if the last instruction came from the program. */
   lastLine: number | null;
   finished: boolean;
+  /** The example the program was loaded from, while it is still that program. */
+  source?: ProgramSource | null;
 }>();
 
 const emit = defineEmits<{
@@ -120,10 +123,19 @@ function machineCode(index: number): string {
     </CardHeader>
 
     <CardContent>
+      <!-- What the lines below are for: without it a loaded example is only code. -->
+      <p v-if="source" class="mb-2 px-3.5 text-xs leading-4 text-muted-foreground">
+        <span class="font-medium text-foreground">{{ source.name }}</span>
+        · {{ source.description }}
+      </p>
+      <!--
+        The instruction's column takes the width of the longest line before the machine code gets
+        any: a narrow panel cuts the bytes, which have a panel of their own, not the line.
+      -->
       <ol
         ref="list"
         data-fill
-        class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_minmax(0,1fr)_auto_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
+        class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_auto_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
       >
         <li
@@ -166,14 +178,17 @@ function machineCode(index: number): string {
               "
               >{{ formatLabel(index) }}{{ targets.has(index) ? ':' : '' }}</span
             >
-            <span class="truncate" :class="{ 'font-semibold': lastLine === index }"
+            <span
+              class="truncate"
+              :class="{ 'font-semibold': lastLine === index }"
+              :title="format(instruction)"
               ><span :data-loc="`line:${index}`">{{ format(instruction) }}</span></span
             >
             <Tooltip v-if="code[index]">
               <TooltipTrigger as-child>
                 <button
                   type="button"
-                  class="hidden max-w-36 justify-self-start truncate rounded-sm px-1 text-left text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
+                  class="ml-2 hidden max-w-36 min-w-0 justify-self-start truncate rounded-sm px-1 text-left text-xs pointer-coarse:self-stretch pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 sm:block"
                   :class="{ 'text-destructive': code[index].problem }"
                   @click="emit('inspect', index)"
                 >
@@ -235,8 +250,14 @@ function machineCode(index: number): string {
       </ol>
 
       <p v-if="program.length === 0" class="mt-3 text-sm text-muted-foreground">
-        Build an instruction and press
-        <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup>
+        Build an instruction and
+        <span class="pointer-coarse:hidden">
+          press <KbdGroup><Kbd>⇧</Kbd><Kbd>Enter</Kbd></KbdGroup>
+        </span>
+        <!-- A touch screen has no Shift+Enter: the button under the builder adds the line. -->
+        <span class="hidden pointer-coarse:inline">
+          tap <span class="font-medium text-foreground">Add at {{ formatLabel(0) }}</span>
+        </span>
         to add it as a line, or
         <Button variant="link" size="sm" class="h-auto p-0" @click="emit('examples')"
           >start from an example</Button

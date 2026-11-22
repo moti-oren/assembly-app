@@ -91,15 +91,23 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   and where execution is, orange where it writes.
 - **Reset**, in the bottom bar next to Undo, sets registers, flags and memory back to their start
   values and clears the history; the program is kept. When the history holds instructions it
-  asks first, since Undo cannot bring them back.
+  asks first, since Undo cannot bring them back. It does not ask when all of the history is the
+  program run to its end, which running it again brings back.
+- When the program has ended, **Step** becomes **Run again**: it resets the CPU and runs the
+  program from its first line. The buttons that are off say why when you point at them.
+- Loading an example shows its name and what it demonstrates above the program lines, until you
+  edit the program. An example that uses no device closes the I/O panel again, if a program had
+  opened it.
+- After a conditional jump, the **Cycle** card says why it was taken or not, with the values it
+  tested: `Not taken: JGE jumps when SF = OF, but SF is 1 and OF is 0.`
 - A register the last instruction changed is filled in amber. One it wrote with the value it
   already held is outlined instead, e.g. `mov si, 0` while SI is 0, so a write is never invisible.
 - Hovering over a register's name or value (or tapping its name) shows what the last instruction
   did to it, `Previous 0000 → Now 000A`. The same goes for a memory byte it wrote, which is outlined
   instead of filled when the byte kept its value. When IP or PC went anywhere but the next
   instruction, it says `(jump)`, and on RISC-V and the 6502 the PC line says where it jumped from.
-- A program line can also be stepped one phase at a time with the phase button next to **Step**:
-  fetch, decode, then execute. Fetch and decode show what is about to happen in the **Cycle**
+- A program line can also be stepped one phase at a time with the phase button next to **Step**,
+  which names the phase it runs next and its place (`Fetch · 1/3`): fetch, decode, then execute. Fetch and decode show what is about to happen in the **Cycle**
   card above the CPU and on the wires; the registers, flags and memory change only at execute.
 - The CPU diagram is laid out like the 8086 itself. The **execution unit** (EU) holds the data,
   pointer and index registers, the ALU and the flags; the **bus interface unit** (BIU) holds the
@@ -217,7 +225,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   result back. With it on, a blue line down the chart joins an EX to the stage above it that handed
   it a result before that result was written back. The stages of the last instruction run are
   tinted blue. Under the chart, a sentence says why each stall and flush happened, and a line adds
-  up the cycles. The CPU itself still runs one instruction at a time; the chart is worked out from
+  up the cycles, and below them is what the last instruction did, in the same words the one-by-one
+  view uses. The CPU itself still runs one instruction at a time; the chart is worked out from
   the history.
 - The **Machine code** panel shows the 32 bits of an instruction with each field over its bits:
   opcode, rd, funct3, rs1, rs2, funct7 and the pieces of the immediate, which B-type and J-type
@@ -382,15 +391,22 @@ npm run verify:6502 # check the 6502 core against py65
   כתום במקום שבו הוא כותב.
 - **Reset**, בסרגל התחתון ליד Undo, מחזיר את האוגרים, הדגלים והזיכרון לערכי ההתחלה ומנקה את
   ההיסטוריה; התוכנית נשמרת.
-  כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן.
+  כשיש הוראות בהיסטוריה הוא מבקש אישור קודם, כי Undo לא יכול להחזיר אותן. הוא לא מבקש אישור
+  כשכל ההיסטוריה היא התוכנית שרצה עד סופה, כי הרצה חוזרת מחזירה אותה.
+- כשהתוכנית הסתיימה, **Step** הופך ל-**Run again**: הוא מאפס את ה-CPU ומריץ את התוכנית מהשורה
+  הראשונה. הכפתורים הכבויים אומרים למה כשמצביעים עליהם.
+- טעינת דוגמה מציגה את שמה ומה היא מדגימה מעל שורות התוכנית, עד שעורכים את התוכנית. דוגמה שלא
+  משתמשת בהתקנים סוגרת שוב את חלונית ה-I/O, אם תוכנית היא שפתחה אותה.
+- אחרי קפיצה מותנית, כרטיסיית **Cycle** אומרת למה היא נלקחה או לא, עם הערכים שנבדקו:
+  `Not taken: JGE jumps when SF = OF, but SF is 1 and OF is 0.`
 - רגיסטר שההוראה האחרונה שינתה ממולא בענבר. רגיסטר שהיא כתבה אליו את הערך שכבר היה בו מוקף
   במסגרת מקווקוות במקום, למשל `mov si, 0` כש-SI כבר 0, כך שכתיבה אף פעם לא נעלמת.
 - ריחוף מעל שם של רגיסטר או מעל הערך שלו (או הקשה על השם) מראה מה ההוראה האחרונה עשתה לו,
   `Previous 0000 → Now 000A`. כך גם בבית בזיכרון שהיא כתבה, שמסומן בקו במקום במילוי כשהבית שמר
   על ערכו. כש-IP או PC הלכו לכל מקום שאינו ההוראה הבאה כתוב `(jump)`, וב-RISC-V וב-6502 שורת
   ה-PC אומרת מאיפה הוא קפץ.
-- אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**:
-  fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בכרטיסיית **Cycle** שמעל
+- אפשר גם לצעוד בשורת תוכנית שלב אחר שלב בעזרת כפתור השלבים שליד **Step**,
+  שמציג את השלב שירוץ הבא ואת מקומו (`Fetch · 1/3`): fetch, decode ואז execute. השלבים fetch ו-decode מציגים מה עומד לקרות בכרטיסיית **Cycle** שמעל
   ה-CPU ועל החיווטים; הרגיסטרים, הדגלים והזיכרון משתנים רק ב-execute.
 - דיאגרמת ה-CPU בנויה כמו ה-8086 עצמו. **יחידת הביצוע** (EU) מחזיקה את רגיסטרי הנתונים,
   המצביעים והאינדקסים, את ה-ALU ואת הדגלים; **יחידת ממשק ה-bus** (BIU) מחזיקה את רגיסטרי
@@ -496,7 +512,8 @@ npm run verify:6502 # check the 6502 core against py65
   (flush). כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. כשהוא
   פועל, קו כחול לאורך התרשים מחבר EX לשלב שמעליו שמסר לו תוצאה לפני שנכתבה חזרה. השלבים של
   ההוראה האחרונה שרצה צבועים בכחול. מתחת
-  לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים. המעבד עצמו עדיין מריץ
+  לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים, ומתחתיהן כתוב מה ההוראה
+  האחרונה עשתה, באותן מילים שבתצוגת One by one. המעבד עצמו עדיין מריץ
   הוראה אחת בכל פעם; התרשים מחושב מתוך ההיסטוריה.
 - חלונית **Machine code** מציגה את 32 הסיביות של הוראה, וכל שדה מעל הסיביות שלו: opcode, rd,
   funct3, rs1, rs2, funct7 וחלקי ה-immediate, שהוראות B ו-J מפצלות לאורך המילה.

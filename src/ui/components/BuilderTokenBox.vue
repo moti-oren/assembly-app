@@ -67,27 +67,36 @@ defineExpose({ focus });
     @click="focus"
     @keydown="onKeydown"
   >
-    <Tooltip v-for="(token, index) in tokens" :key="index">
-      <TooltipTrigger as-child>
-        <button
-          type="button"
-          data-token
-          class="inline-flex h-7 items-center rounded-md px-2 transition-colors pointer-coarse:h-9 hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          :class="[
-            token.head
-              ? 'bg-foreground font-semibold text-background'
-              : 'bg-raised shadow-(--shadow-thumb)',
-            token.pending
-              ? 'border border-dashed border-foreground/40 bg-transparent shadow-none'
-              : ''
-          ]"
-          @click.stop="emit('truncate', index)"
-        >
-          {{ token.label }}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent>Remove this word and the ones after it</TooltipContent>
-    </Tooltip>
+    <template v-for="(token, index) in tokens" :key="index">
+      <!-- Between two operands, the comma the instruction is written with everywhere else. -->
+      <span
+        v-if="index > 0 && !token.head && !tokens[index - 1].head"
+        class="-mx-1 text-muted-foreground select-none"
+        aria-hidden="true"
+        >,</span
+      >
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+            type="button"
+            data-token
+            class="inline-flex h-7 items-center rounded-md px-2 transition-colors pointer-coarse:h-9 hover:bg-destructive/10 hover:text-destructive hover:line-through focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            :class="[
+              token.head
+                ? 'bg-foreground font-semibold text-background'
+                : 'bg-raised shadow-(--shadow-thumb)',
+              token.pending
+                ? 'border border-dashed border-foreground/40 bg-transparent shadow-none'
+                : ''
+            ]"
+            @click.stop="emit('truncate', index)"
+          >
+            {{ token.label }}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>Remove this word and the ones after it</TooltipContent>
+      </Tooltip>
+    </template>
     <input
       ref="input"
       v-model="filter"

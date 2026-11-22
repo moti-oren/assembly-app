@@ -113,6 +113,11 @@ function memoryAddressOptions(size: Size, typed: number | null): X86Option[] {
   return options;
 }
 
+/** The number in the base its label does not use: the label of 5 is `5`, of 65 it is `0x41`. */
+function otherBase(value: number, size: Size): string {
+  return formatImmediate(value).startsWith('0x') ? String(value) : `${formatHex(value, size)}h`;
+}
+
 /** A typed number that fits the immediate, and the count of 1 that shifts take. */
 function numberOptions(choices: OperandChoices, typed: number | null): X86Option[] {
   const options: X86Option[] = [];
@@ -122,7 +127,7 @@ function numberOptions(choices: OperandChoices, typed: number | null): X86Option
       key: 'imm',
       label: formatImmediate(typed),
       group: `Immediate (${size}-bit)`,
-      hint: typed < 0 ? `= 0x${formatHex(typed, size)}` : `= ${typed}`,
+      hint: `= ${otherBase(typed, size)}, ${size}-bit immediate`,
       matchesNumber: anyNumber,
       action: { kind: 'operand', operand: { type: 'imm', value: typed } }
     });

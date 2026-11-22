@@ -4,6 +4,7 @@ import type { Program } from '@/core/shared/program';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
 import { PIPELINE_STAGES, pipelineTiming } from '@/core/rv32/pipeline';
+import type { CpuState } from '@/core/rv32/state';
 import { Button } from '@/components/ui/button';
 import {
   pipelineGrid,
@@ -12,6 +13,8 @@ import {
   STAGE_INFO,
   type PipelineCell
 } from '@/ui/rv32Pipeline';
+import { describeDecode, describeExecute, describeFetch } from '@/ui/rv32Explain';
+import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import InfoTip from './InfoTip.vue';
 import Rv32CycleToggle from './Rv32CycleToggle.vue';
@@ -20,6 +23,11 @@ const props = defineProps<{
   /** The instructions that ran, oldest first. */
   history: readonly ExecutionRecord[];
   program: Program<Instruction>;
+  state: CpuState;
+  /** The program line being stepped by phase, if any. */
+  pending: PendingInstruction<Instruction> | null;
+  /** True while the program runs on a timer: the explanation is not announced line by line. */
+  running: boolean;
 }>();
 
 /** The rows on show: enough to see a few instructions overlap, few enough to fit the card. */
@@ -41,6 +49,15 @@ const notes = computed(() =>
   pipelineNotes(timing.value, grid.value.from, { forwarding: forwarding.value })
 );
 const summary = computed(() => pipelineSummary(timing.value));
+
+/** What the line on show is doing, in the words the one-by-one view gives it. */
+const detail = computed(() => {
+  const { pending, history, state, program } = props;
+  if (pending?.phase === 'fetch') return describeFetch(pending.line, program);
+  if (pending) return describeDecode(pending.instruction);
+  const last = history.at(-1);
+  return last ? describeExecute(last, state, program) : null;
+});
 </script>
 
 <template>
@@ -85,10 +102,13 @@ const summary = computed(() => pipelineSummary(timing.value));
       <Rv32CycleToggle class="ml-auto" />
     </div>
 
-    <p v-if="grid.rows.length === 0" class="mt-2 text-xs leading-4 text-muted-foreground">
+    <p
+      v-if="grid.rows.length === 0 && !detail"
+      class="mt-2 text-xs leading-4 text-muted-foreground"
+    >
       Nothing has run yet.
     </p>
-    <template v-else>
+    <template v-else-if="grid.rows.length > 0">
       <div class="mt-2 overflow-x-auto">
         <table class="border-separate border-spacing-0.5 font-mono text-2xs">
           <thead>
@@ -155,5 +175,14 @@ const summary = computed(() => pipelineSummary(timing.value));
       </ul>
       <p class="mt-2 text-xs text-foreground">{{ summary }}</p>
     </template>
+    <!-- The chart says when; this says what the last instruction did, as the other view does. -->
+    <p
+      v-if="detail"
+      class="mt-2 text-code leading-5 text-muted-foreground"
+      aria-live="polite"
+      :aria-busy="running"
+    >
+      {{ detail }}
+    </p>
   </div>
 </template>
