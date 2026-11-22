@@ -44,7 +44,8 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
     <div class="flex h-12 items-center gap-3 pr-5 pl-4 max-sm:gap-2 max-sm:px-3">
       <slot name="lead" />
       <!-- A phone needs the room for the buttons: the name goes first, then on the narrowest the mark. -->
-      <div class="flex min-w-0 items-center gap-2.5">
+      <!-- Below a desktop it is the mark alone, which keeps its width in a crowded bar. -->
+      <div class="flex min-w-0 items-center gap-2.5 max-lg:shrink-0">
         <div class="die-mark hidden shrink-0 min-[25rem]:grid" aria-hidden="true">{{ badge }}</div>
         <h1 class="truncate text-sm font-semibold tracking-tight max-lg:sr-only">CPU Playground</h1>
       </div>
