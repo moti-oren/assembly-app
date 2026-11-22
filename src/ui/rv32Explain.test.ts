@@ -62,7 +62,29 @@ describe('the cycle in words', () => {
     );
     const branch = execute(state, program[1], 1, program);
     expect(describeExecute(branch, state, program)).toBe(
-      'It changed no register or memory. PC is at 0x00000008 (L2), the next line.'
+      'Not taken: BEQ branches when a0 = zero, but a0 is 5 and zero is 0. PC is at 0x00000008 (L2), the next line.'
+    );
+  });
+
+  it('says why a branch was taken, with the values as it compared them', () => {
+    const loop = [program[0], line('bltu', r('a0'), r('a1'), label(0))];
+    const state = cpu({ a0: 1, a1: -1 });
+    const record = execute(state, loop[1], 1, loop);
+    expect(describeExecute(record, state, loop)).toBe(
+      'Taken: BLTU branches when a0 < a1, unsigned, and a0 is 1 and a1 is 4294967295. PC is now 0x00000000 (L0).'
+    );
+    const signed = [program[0], line('blt', r('a0'), r('a1'), label(0))];
+    const again = cpu({ a0: 1, a1: -1 });
+    expect(describeExecute(execute(again, signed[1], 1, signed), again, signed)).toBe(
+      'Not taken: BLT branches when a0 < a1, signed, but a0 is 1 and a1 is -1. PC is at 0x00000008 (L2), the next line.'
+    );
+  });
+
+  it('says an instruction from the builder ran directly', () => {
+    const state = cpu({ a1: 2, a2: 3 });
+    const record = execute(state, program[0], null, []);
+    expect(describeExecute(record, state, [])).toBe(
+      'Ran directly (not from the program). It changed a0.'
     );
   });
 });

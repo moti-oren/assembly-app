@@ -7,7 +7,8 @@ import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { CATEGORY_LABELS, opcodeOf, type Instruction } from '@/core/mos6502/instructions';
 import { addressOfLine, lineAt } from '@/core/mos6502/layout';
 import { hex, MODE_NAMES } from '@/core/mos6502/operands';
-import { DEVICE_BASE, type CpuState, type RegisterName } from '@/core/mos6502/state';
+import { DEVICE_BASE, getFlag, type CpuState, type RegisterName } from '@/core/mos6502/state';
+import { describeBranch, list } from './explainText';
 
 export const byteHex = (value: number) => `$${hex(value & 0xff, 2)}`;
 export const wordHex = (value: number) => `$${hex(value & 0xffff, 4)}`;
@@ -19,11 +20,6 @@ const REGISTER_LABELS: Record<RegisterName, string> = {
   sp: 'SP',
   pc: 'PC'
 };
-
-function list(items: string[]): string {
-  if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
-}
 
 /** An address in the code with the line it starts, if one does: `$0602 (L1)`. */
 function codeAddress(address: number, program: Program<Instruction>): string {
@@ -69,6 +65,29 @@ export function cyclesBreakdown(record: ExecutionRecord): string {
     : `${record.cycles} cycles`;
 }
 
+/** Why a branch was taken or not; null for any other instruction. */
+function branchOutcome(record: ExecutionRecord): string | null {
+  if (!record.branch) return null;
+  const { flag, taken } = record.branch;
+  // No branch writes a flag, so the one it tested is the one before it.
+  const value = getFlag(record.before, flag) ? 1 : 0;
+  return describeBranch({
+    name: record.instruction.mnemonic.toUpperCase(),
+    verb: 'branches',
+    when: `${flag} = ${taken ? value : 1 - value}`,
+    values: [`${flag} is ${value}`],
+    taken
+  });
+}
+
+/** For an instruction that sets or clears one flag and found it there already: `C was already 0.` */
+function flagAlreadySet(record: ExecutionRecord, state: CpuState): string | null {
+  const { category, flagsWritten } = decode(record.instruction);
+  if (category !== 'flags' || flagsWritten.length !== 1) return null;
+  const [flag] = flagsWritten;
+  return `${flag} was already ${getFlag(state, flag) ? 1 : 0}.`;
+}
+
 export function describeExecute(
   record: ExecutionRecord,
   state: CpuState,
@@ -80,15 +99,27 @@ export function describeExecute(
   if (record.before.flags !== state.flags) changed.push('the flags');
   if (record.memoryWrites.length > 0) changed.push('memory');
   if (record.portWrites.length > 0) changed.push('a device');
-  const effect = changed.length ? `It changed ${list(changed)}.` : 'It changed nothing.';
+  const outcome = branchOutcome(record);
+  // A branch changes nothing: its outcome is what there is to say.
+  const nothing = outcome ? null : (flagAlreadySet(record, state) ?? 'It changed nothing.');
   const { pc } = state.registers;
-  const cycles = `${cyclesBreakdown(record)}.`;
+  const at = codeAddress(pc, program);
+  const sentences = [
+    changed.length ? `It changed ${list(changed)}.` : nothing,
+    outcome,
+    `${cyclesBreakdown(record)}.`
+  ];
   if (record.line === null) {
     const jumped = pc !== record.before.registers.pc;
-    return `Run directly, so nothing was fetched. ${effect} ${cycles}${jumped ? ` It jumped to ${codeAddress(pc, program)}.` : ''}`;
+    return ['Ran directly (not from the program).', ...sentences, jumped && `It jumped to ${at}.`]
+      .filter(Boolean)
+      .join(' ');
   }
   const jumped = pc !== addressOfLine(program, record.line + 1);
-  return `${effect} ${cycles} ${jumped ? `It jumped: PC is now ${codeAddress(pc, program)}.` : `PC is at ${codeAddress(pc, program)}, the next line.`}`;
+  const moved = outcome ? `PC is now ${at}.` : `It jumped: PC is now ${at}.`;
+  return [...sentences, jumped ? moved : `PC is at ${at}, the next line.`]
+    .filter(Boolean)
+    .join(' ');
 }
 
 /** How an address was formed, step by step, in the words of its addressing mode. */
