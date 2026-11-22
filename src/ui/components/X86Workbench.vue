@@ -79,7 +79,9 @@ const {
   clearAsked,
   resetAsked,
   historyLength,
-  askReset
+  askReset,
+  runAgain,
+  confirmReset
 } = useWorkbench(cpu, {
   aluLink: x86AluLink,
   usesDevices: x86UsesDevices,
@@ -121,7 +123,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     :history-length="historyLength"
     @load-example="cpu.loadExample"
     @clear-program="cpu.clearProgram"
-    @reset-cpu="cpu.reset"
+    @reset-cpu="confirmReset"
   />
   <ChangeStrip
     v-if="layout !== 'desktop'"
@@ -244,6 +246,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     v-model:devices-shown="devicesShown"
     v-model:bytes-shown="bytesShown"
     :finished="finished"
+    :empty="program.length === 0"
     :running="running"
     :error="errorFrom === 'program' ? error : null"
     :phase="pending?.phase ?? null"
@@ -256,6 +259,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     @undo="cpu.undoLast"
     @redo="cpu.redo"
     @reset="askReset"
+    @again="runAgain"
     @seek="cpu.seek"
   />
 </template>

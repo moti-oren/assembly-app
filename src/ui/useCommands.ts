@@ -22,6 +22,8 @@ export interface PageActions {
   askClearProgram: () => void;
   /** Resets, asking first when the history would be lost. */
   askReset: () => void;
+  /** Resets and runs the program from its first line, asking first as a reset does. */
+  runAgain: () => void;
   showStackTop: () => void;
   showLastAccess: () => void;
   /** Whether the last instruction read or wrote memory, so there is an access to show. */
@@ -70,12 +72,15 @@ export function useCommands(
     },
     running.value
       ? { group: 'Program', label: 'Pause', run: cpu.pause }
-      : {
-          group: 'Program',
-          label: 'Run the program',
-          disabled: finished.value,
-          run: cpu.runProgram
-        },
+      : finished.value && program.value.length > 0
+        ? // A dialog may ask first; the palette must not take focus back from it.
+          { group: 'Program', label: 'Run the program again', moves: 'focus', run: page.runAgain }
+        : {
+            group: 'Program',
+            label: 'Run the program',
+            disabled: finished.value,
+            run: cpu.runProgram
+          },
     // Only while new lines go above a chosen line; at the end is where they go otherwise.
     ...(insertAt.value === null
       ? []
