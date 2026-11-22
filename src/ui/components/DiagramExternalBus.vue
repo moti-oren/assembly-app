@@ -7,7 +7,7 @@ defineProps<{ model: CpuDiagramModel }>();
 
 <template>
   <!-- Outside the package: one bus, shared by the memory and the I/O ports. -->
-  <div class="mt-3 flex items-end justify-between gap-3 sm:mt-0">
+  <div class="mt-6 flex items-end justify-between gap-3 sm:mt-0">
     <p class="truncate pb-1 text-xs text-muted-foreground">
       <span class="unit-title">Address / data bus</span>
       <span v-if="model.bus" class="ml-2 font-mono">{{ model.bus }}</span>
@@ -25,7 +25,8 @@ defineProps<{ model: CpuDiagramModel }>();
     />
   </div>
   <DiagramWire class="hidden sm:block" :kind="model.busKind" :tick="model.pulse" />
-  <div class="mt-2 grid gap-x-3 gap-y-2 sm:mt-0 sm:grid-cols-2">
+  <!-- Two equal columns at every width; on a phone each unit sets its note under its name. -->
+  <div class="mt-2 grid grid-cols-2 gap-x-2 gap-y-2 sm:mt-0 sm:gap-x-3">
     <div class="flex min-w-0 flex-col items-center">
       <DiagramWire
         vertical
@@ -34,11 +35,11 @@ defineProps<{ model: CpuDiagramModel }>();
         :tick="model.pulse"
       />
       <div
-        class="flex w-full min-w-0 items-baseline justify-between gap-3 chip-block rounded-lg border px-3 py-2.5"
+        class="flex w-full min-w-0 items-baseline justify-between gap-3 chip-block rounded-lg border px-3 py-2.5 max-sm:flex-col max-sm:items-start max-sm:gap-1 max-sm:px-2.5 max-sm:py-2"
         :class="{ 'unit-idle': !model.memoryKind }"
       >
         <h3 class="unit-title mb-0">Memory</h3>
-        <span v-if="model.memory" class="truncate font-mono text-code">
+        <span v-if="model.memory" class="max-w-full truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.memory.write ? 'wrote' : 'read' }}
           </span>
@@ -63,11 +64,11 @@ defineProps<{ model: CpuDiagramModel }>();
         :tick="model.pulse"
       />
       <div
-        class="flex w-full min-w-0 items-baseline justify-between gap-3 chip-block rounded-lg border px-3 py-2.5"
+        class="flex w-full min-w-0 items-baseline justify-between gap-3 chip-block rounded-lg border px-3 py-2.5 max-sm:flex-col max-sm:items-start max-sm:gap-1 max-sm:px-2.5 max-sm:py-2"
         :class="{ 'unit-idle': !model.portKind }"
       >
         <h3 class="unit-title mb-0">I/O ports</h3>
-        <span v-if="model.port" class="truncate font-mono text-code">
+        <span v-if="model.port" class="max-w-full truncate font-mono text-code">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.port.write ? 'wrote' : 'read' }}
           </span>

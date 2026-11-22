@@ -40,10 +40,12 @@ function reached(index: number): boolean {
     the last result there. It has a fixed height from the start, so nothing drops when the first
     result comes. A tap goes to the CPU; a tap on +N lists every change instead. While a program
     runs, a screen reader is not told every step: the region is busy, and it hears the result once
-    the run stops (switching aria-live itself off and on is not announced reliably).
+    the run stops (switching aria-live itself off and on is not announced reliably). On a phone it
+    is a tinted line with no hairline of its own, so the header, this and the view tabs under it
+    read as one top, not three bands.
   -->
   <div
-    class="z-(--z-strip) flex h-8.25 flex-none items-center gap-3 border-b bg-card px-4 font-mono text-xs leading-4 whitespace-nowrap"
+    class="z-(--z-strip) flex h-8.25 flex-none items-center gap-3 border-b bg-card px-4 font-mono text-xs leading-4 whitespace-nowrap max-md:h-7.5 max-md:border-b-0 max-md:bg-recessed"
     @click="show('cpu')"
   >
     <span class="flex shrink-0 items-center gap-1.5 text-muted-foreground">

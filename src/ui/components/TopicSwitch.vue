@@ -1,32 +1,27 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
 import { TOPIC_CHOICES } from '@/ui/topics';
 import { useTopic } from '@/ui/useTopic';
 
 const { topic } = useTopic();
 </script>
 
-<!-- Which topic is on show. Each keeps its state, so switching back finds it as it was left. -->
+<!--
+  Which topic is on show. Each keeps its state, so switching back finds it as it was left. Flat
+  tabs with a bar under the one on show, then a hairline: the topics are where you are, and the
+  header's one segmented control is left to the choice inside a topic.
+-->
 <template>
-  <div
-    class="segmented shrink-0"
-    :style="{
-      '--segments': TOPIC_CHOICES.length,
-      '--active': TOPIC_CHOICES.findIndex((choice) => choice.id === topic)
-    }"
-    role="group"
-    aria-label="Topic"
-  >
-    <Button
+  <nav class="flex shrink-0 items-stretch self-stretch" aria-label="Topic">
+    <button
       v-for="choice in TOPIC_CHOICES"
       :key="choice.id"
-      variant="ghost"
-      size="sm"
-      class="h-7 px-3 text-xs pointer-coarse:h-10"
+      type="button"
+      class="topic-tab"
       :aria-pressed="topic === choice.id"
       @click="topic = choice.id"
     >
       {{ choice.label }}
-    </Button>
-  </div>
+    </button>
+    <span class="ml-2 h-5 w-px self-center bg-border" aria-hidden="true" />
+  </nav>
 </template>

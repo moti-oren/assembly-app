@@ -10,7 +10,7 @@ const props = defineProps<{
   bytesShown: boolean;
   /** Whether each switch is always named, or only where the bar has room for it. */
   named?: boolean;
-  /** In a phone's sheet: three equal columns, each name under its icon. */
+  /** In a phone's sheet: three equal columns, each name under its icon, framed on or off. */
   stacked?: boolean;
 }>();
 
@@ -59,7 +59,7 @@ const toggles = computed(() => [
           class="px-2.5 pointer-coarse:h-11"
           :class="
             stacked
-              ? 'h-14 min-w-0 flex-col gap-1 px-1 text-xs pointer-coarse:h-14'
+              ? 'h-14 min-w-0 flex-col gap-1 border-input px-1 text-xs pointer-coarse:h-14'
               : { 'flex-1': named }
           "
           :aria-label="toggle.label"
