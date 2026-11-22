@@ -50,6 +50,7 @@ const {
   error,
   errorFrom,
   program,
+  programSource,
   insertAt,
   lastRecord,
   lastAfter,
@@ -126,6 +127,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     :record="lastRecord"
     :phase="pending?.phase ?? null"
     :next="finished ? null : formatLabel(nextLine)"
+    :empty="program.length === 0"
   />
 
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
@@ -162,6 +164,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :ip="nextLine"
           :last-line="lastRecord?.line ?? null"
           :finished="finished"
+          :source="programSource"
           @clear="clearAsked = true"
           @remove="cpu.removeProgramLine"
           @inspect="inspect"

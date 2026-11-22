@@ -20,6 +20,8 @@ const props = defineProps<{
   phase?: CyclePhase | null;
   /** The label of the line that runs next; null at the end of the program. */
   next?: string | null;
+  /** True when the program has no lines: then no line runs next, and none has ended either. */
+  empty?: boolean;
 }>();
 
 const { show } = useWorkbenchView();
@@ -54,7 +56,7 @@ function reached(index: number): boolean {
         />
       </span>
       <span v-if="phase" class="sr-only">{{ phase }} done</span>
-      <span :title="next ? `Line ${next} runs next` : 'The program has ended'">
+      <span v-if="!empty" :title="next ? `Line ${next} runs next` : 'The program has ended'">
         <span class="sr-only">Next: </span>{{ next ?? 'end' }}
       </span>
     </span>
