@@ -11,12 +11,36 @@
   }
 
   /*
+   * The choice of operation is wider than a phone: there it scrolls sideways, and fades out at
+   * its right edge so a name cut by the screen reads as "more". The room at its end lets the
+   * last name scroll clear of the fade.
+   */
+  @media (width < 48rem) {
+    .logic-operations {
+      scrollbar-width: none;
+      overscroll-behavior-x: contain;
+      mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+    }
+    .logic-operations::-webkit-scrollbar {
+      display: none;
+    }
+    .logic-operations > * {
+      padding-right: 1.75rem;
+    }
+  }
+
+  /*
    * Rows of bits that share their columns, the top bit on the left. --cell is one column; a
-   * finger gets a wider one. A wide circuit scrolls sideways under its row labels.
+   * finger gets a wider one. A wide circuit scrolls sideways under its row labels. --cell-height
+   * is how tall a column's row is, which stays a finger's even where the column is narrower.
+   * --columns is how many columns eight bits take: the carry's, the bits, and a digit's gap.
    */
   .logic-rows {
     --cell: 2.25rem;
+    --cell-height: var(--cell);
     --label: 4.75rem;
+    --columns: 9.25;
+    container-type: inline-size;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     padding-block: 0.25rem;
@@ -26,21 +50,31 @@
       --cell: 2.75rem;
     }
   }
+  /* A shifter has one more column, for the bit that falls off the right. */
+  .logic-rows[data-tailed] {
+    --columns: 10.25;
+  }
   .logic-row {
     display: flex;
     align-items: center;
     width: max-content;
-    min-height: calc(var(--cell) + 0.125rem);
+    min-height: calc(var(--cell-height) + 0.125rem);
   }
   .logic-row[data-compact] {
     min-height: 1.25rem;
   }
-  /* The name of a row stays in sight while the bits scroll under it. */
+  /*
+   * The name of a row stays in sight while the bits scroll under it. It is as tall as its row,
+   * so a bit under it is covered whole, not only behind the letters.
+   */
   .logic-label {
     position: sticky;
     left: 0;
     z-index: 1;
+    display: flex;
     flex: none;
+    align-items: center;
+    align-self: stretch;
     width: var(--label);
     padding-right: 0.5rem;
     background: var(--page);
@@ -48,10 +82,19 @@
     font-weight: 500;
     line-height: 1.1;
   }
-  /* A narrow screen keeps less of its width for the names. */
+  /*
+   * A phone keeps less of its width for the names, and sizes a column so that eight bits fit
+   * the screen exactly, none of them under the names. Sixteen and thirty-two scroll, eight at a
+   * time. The pixel taken off is for the rounding of nine columns.
+   */
   @media (width < 48rem) {
     .logic-rows {
-      --label: 3.5rem;
+      --label: 3.25rem;
+      --cell: clamp(1.625rem, (100cqw - var(--label) - 1px) / var(--columns), 2.75rem);
+      --cell-height: 2.75rem;
+    }
+    .logic-label {
+      padding-right: 0.25rem;
     }
   }
   .logic-cell {
@@ -135,7 +178,7 @@
     top: 50%;
     left: 50%;
     width: var(--cell);
-    height: var(--cell);
+    height: var(--cell-height);
     translate: -50% -50%;
   }
   .logic-bit[data-chosen] {

@@ -67,7 +67,7 @@ const commands = useLogicCommands(lens, () => props.moment, {
           </h2>
           <div class="flex max-w-full flex-wrap items-center gap-2">
             <!-- Seven choices are wider than a phone: there the row scrolls sideways. -->
-            <div class="max-w-full overflow-x-auto p-px">
+            <div class="logic-operations max-w-full overflow-x-auto p-px">
               <div class="toggle-group w-max" role="group" aria-label="Operation">
                 <Button
                   v-for="choice in FREE_OPERATIONS"
