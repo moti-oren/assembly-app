@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, Ellipsis, Search, Settings2 } from '@lucide/vue';
+import { ArrowRightLeft, Ellipsis, MessageSquare, Search, Settings2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,6 +9,7 @@ import {
 import { Kbd } from '@/components/ui/kbd';
 import { isApple } from '@/ui/platform';
 import { TOPIC_CHOICES, type TopicId } from '@/ui/topics';
+import { useFeedback } from '@/ui/useFeedback';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useTopic } from '@/ui/useTopic';
 import BottomSheet from './BottomSheet.vue';
@@ -28,6 +29,7 @@ const menuOpen = defineModel<boolean>('menuOpen', { default: false });
 
 const mode = useLayoutMode();
 const { topic } = useTopic();
+const feedback = useFeedback();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
 const shortcut = isApple ? '⌘K' : 'Ctrl K';
@@ -35,6 +37,11 @@ const shortcut = isApple ? '⌘K' : 'Ctrl K';
 function goTo(id: TopicId): void {
   menuOpen.value = false;
   topic.value = id;
+}
+
+function feedbackFromMenu(): void {
+  menuOpen.value = false;
+  feedback.open.value = true;
 }
 </script>
 
@@ -77,6 +84,19 @@ function goTo(id: TopicId): void {
 
         <template v-if="mode !== 'phone'">
           <slot name="actions" />
+          <Button
+            v-if="feedback.available"
+            variant="ghost"
+            size="icon-sm"
+            class="pointer-coarse:size-11"
+            aria-label="Send feedback"
+            title="Send feedback"
+            aria-haspopup="dialog"
+            data-feedback-opener
+            @click="feedback.open.value = true"
+          >
+            <MessageSquare aria-hidden="true" />
+          </Button>
           <DropdownMenu :modal="false">
             <!-- No tooltip: wrapped around the menu's trigger, it breaks where the menu opens. -->
             <DropdownMenuTrigger as-child>
@@ -105,6 +125,7 @@ function goTo(id: TopicId): void {
             :aria-label="menuLabel"
             aria-haspopup="dialog"
             :aria-expanded="menuOpen"
+            data-feedback-opener
             @click="menuOpen = true"
           >
             <Ellipsis />
@@ -122,6 +143,15 @@ function goTo(id: TopicId): void {
                 Go to {{ choice.name }}
               </button>
               <slot name="menu-actions" />
+              <button
+                v-if="feedback.available"
+                type="button"
+                class="sheet-row"
+                @click="feedbackFromMenu"
+              >
+                <MessageSquare aria-hidden="true" />
+                Send feedback
+              </button>
             </div>
             <div class="border-t pt-2">
               <SheetSettings />

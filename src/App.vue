@@ -16,6 +16,7 @@ import { useComparison } from '@/ui/useComparison';
 import { sound } from '@/ui/soundEngine';
 import { useCpu } from '@/ui/useCpu';
 import { followed, useCpuMoment } from '@/ui/useCpuMoment';
+import { useFeedback } from '@/ui/useFeedback';
 import { useKeyboardInset } from '@/ui/useKeyboardInset';
 import { usePreferences } from '@/ui/usePreferences';
 import { useTopic } from '@/ui/useTopic';
@@ -29,6 +30,7 @@ const Rv32Workbench = defineAsyncComponent(loadRv32);
 const Mos6502Workbench = defineAsyncComponent(loadMos6502);
 const LogicWorkbench = defineAsyncComponent(() => import('@/ui/components/LogicWorkbench.vue'));
 const CompareDialog = defineAsyncComponent(() => import('@/ui/components/CompareDialog.vue'));
+const FeedbackDialog = defineAsyncComponent(() => import('@/ui/components/FeedbackDialog.vue'));
 
 /** Every CPU lives for the whole visit: switching shows the other one as it was left. */
 const x86 = useCpu(X86);
@@ -38,6 +40,7 @@ const { architecture } = usePreferences();
 const { topic } = useTopic();
 useKeyboardInset();
 const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
+const { wanted: feedbackWanted } = useFeedback();
 
 /** Opens a task's program on its CPU, from the comparison. */
 function loadSolution(task: ComparisonTask, id: ComparedId): void {
@@ -91,5 +94,6 @@ watch([architecture, topic], () => {
       </KeepAlive>
     </div>
     <CompareDialog v-if="comparisonWanted" v-model:open="comparisonOpen" @load="loadSolution" />
+    <FeedbackDialog v-if="feedbackWanted" />
   </TooltipProvider>
 </template>
