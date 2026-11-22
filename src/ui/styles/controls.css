@@ -141,6 +141,123 @@
   :root[data-motion='reduced'] .segmented::before {
     transition: none;
   }
+
+  /*
+   * A phone's sheet (BottomSheet.vue): the width of the screen, never the whole height, so the
+   * page it belongs to stays in sight above it. Its foot clears the home indicator.
+   */
+  .bottom-sheet {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: min(85dvh, 100dvh - 3rem);
+    border-top: 1px solid var(--border);
+    border-radius: 1rem 1rem 0 0;
+    padding: 0.5rem max(0.75rem, env(safe-area-inset-right))
+      calc(0.75rem + env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+    background: var(--popover);
+    color: var(--popover-foreground);
+    box-shadow: var(--shadow-overlay);
+    font-size: var(--text-sm);
+    outline: none;
+    animation-duration: 220ms;
+    animation-timing-function: cubic-bezier(0.3, 0.75, 0.2, 1);
+  }
+  :root[data-motion='reduced'] .bottom-sheet {
+    animation: none;
+  }
+  .bottom-sheet-handle {
+    flex: none;
+    align-self: center;
+    width: 2.25rem;
+    height: 0.25rem;
+    border-radius: 0.25rem;
+    background: var(--wire);
+    opacity: 0.6;
+  }
+  .bottom-sheet [data-sheet-scroll] {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  /* A sheet's heading over a group of rows. */
+  .sheet-heading {
+    padding: 0.25rem 0.25rem 0;
+    color: var(--muted-foreground);
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  /* One row of a sheet: the whole width answers a finger. */
+  .sheet-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 2.75rem;
+    border-radius: var(--radius-md);
+    padding: 0.375rem 0.5rem;
+    text-align: left;
+    outline: none;
+  }
+  .sheet-row > svg {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: var(--muted-foreground);
+  }
+  .sheet-row:active {
+    background: var(--accent);
+  }
+  .sheet-row:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--ring);
+  }
+  .sheet-row:disabled {
+    color: var(--muted-foreground);
+  }
+  /* A row that is a switch draws it at its end: a track whose thumb sits right when it is on. */
+  .sheet-switch {
+    position: relative;
+    flex: none;
+    width: 2.25rem;
+    height: 1.25rem;
+    margin-left: auto;
+    border-radius: 1rem;
+    background: var(--muted);
+    box-shadow: inset 0 0 0 1px var(--wire);
+    transition: background-color 150ms;
+  }
+  .sheet-switch::after {
+    content: '';
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 50%;
+    background: var(--muted-foreground);
+    transition:
+      translate 150ms,
+      background-color 150ms;
+  }
+  [aria-checked='true'] > .sheet-switch {
+    background: var(--foreground);
+    box-shadow: none;
+  }
+  [aria-checked='true'] > .sheet-switch::after {
+    background: var(--background);
+    translate: 1rem 0;
+  }
+  :root[data-motion='reduced'] .sheet-switch,
+  :root[data-motion='reduced'] .sheet-switch::after {
+    transition: none;
+  }
 }
 
 /*
