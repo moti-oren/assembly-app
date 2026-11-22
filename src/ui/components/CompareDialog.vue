@@ -28,9 +28,9 @@ const listed = ref<ComparedId>(COMPARED[0]);
 
 <template>
   <Dialog v-model:open="open">
-    <!-- A phone gives it the whole screen. Only the body scrolls, with its scrollbar set in from the dialog's edge and corners; the title and the close button stay put. -->
+    <!-- Below a tablet it takes the whole screen, inside the safe area. Only the body scrolls, with its scrollbar set in from the dialog's edge and corners; the title and the close button stay put. -->
     <DialogContent
-      class="grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:max-h-[calc(100svh-2rem)] sm:max-w-5xl sm:p-0"
+      class="grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 max-md:top-0 max-md:left-0 max-md:h-dvh max-md:max-w-none sm:max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:pt-[env(safe-area-inset-top)] max-md:pr-[env(safe-area-inset-right)] max-md:pb-[env(safe-area-inset-bottom)] max-md:pl-[env(safe-area-inset-left)] max-md:[&>button]:top-[calc(0.5rem+env(safe-area-inset-top))] max-md:[&>button]:right-[calc(0.5rem+env(safe-area-inset-right))] md:max-h-[calc(100svh-2rem)] md:max-w-[min(64rem,calc(100%-2rem))] md:p-0"
     >
       <DialogHeader class="px-4 pt-4 pr-12 pb-4 sm:px-6 sm:pt-6">
         <DialogTitle>Compare the CPUs</DialogTitle>

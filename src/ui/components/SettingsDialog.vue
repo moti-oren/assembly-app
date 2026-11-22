@@ -54,15 +54,16 @@ function returnFocus(event: Event): void {
 
 <!--
   Every setting of the app in one place: the sections down the side, the rows of the one chosen
-  beside them. A phone gives it the whole screen, with the sections as a row that scrolls sideways.
+  beside them. Below a tablet it takes the whole screen, inside the safe area, with the sections
+  as a row that scrolls sideways.
 -->
 <template>
   <Dialog v-model:open="open">
     <DialogContent
-      class="grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:h-[min(34rem,calc(100svh-2rem))] sm:max-w-[min(48rem,calc(100%-2rem))] sm:p-0"
+      class="grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 max-md:top-0 max-md:left-0 max-md:h-dvh max-md:max-w-none sm:max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:pt-[env(safe-area-inset-top)] max-md:pr-[env(safe-area-inset-right)] max-md:pb-[env(safe-area-inset-bottom)] max-md:pl-[env(safe-area-inset-left)] max-md:[&>button]:top-[calc(0.5rem+env(safe-area-inset-top))] max-md:[&>button]:right-[calc(0.5rem+env(safe-area-inset-right))] md:h-[min(34rem,calc(100svh-2rem))] md:max-w-[min(48rem,calc(100%-2rem))] md:p-0"
       @close-auto-focus="returnFocus"
     >
-      <DialogHeader class="border-b px-4 pt-4 pr-12 pb-4 sm:px-6 sm:pt-5">
+      <DialogHeader class="border-b px-4 pt-4 pr-12 pb-4 md:px-6 md:pt-5">
         <DialogTitle>Settings</DialogTitle>
         <DialogDescription class="sr-only">
           Sound, theme, the CPU's views, running, the keyboard shortcuts and what is saved.
@@ -70,10 +71,10 @@ function returnFocus(event: Event): void {
       </DialogHeader>
 
       <div
-        class="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] sm:grid-cols-[11.5rem_minmax(0,1fr)] sm:grid-rows-1"
+        class="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[11.5rem_minmax(0,1fr)] md:grid-rows-1"
       >
         <nav
-          class="scroll-fade-x flex gap-1 max-sm:overflow-x-auto max-sm:border-b max-sm:px-4 max-sm:py-2 sm:flex-col sm:overflow-y-auto sm:border-r sm:p-3"
+          class="scroll-fade-x flex gap-1 max-md:overflow-x-auto max-md:[scrollbar-width:none] max-md:border-b max-md:px-4 max-md:py-2 md:flex-col md:overflow-y-auto md:border-r md:p-3"
           aria-label="Sections"
         >
           <button
@@ -90,11 +91,14 @@ function returnFocus(event: Event): void {
         </nav>
 
         <section
-          class="min-h-0 overflow-y-auto px-4 pt-1 pb-4 sm:px-6 sm:pt-2 sm:pb-6"
+          class="min-h-0 overflow-y-auto px-4 pt-1 pb-4 md:px-6 md:pt-2 md:pb-6"
           aria-labelledby="settings-section"
         >
           <h3 id="settings-section" class="sr-only">{{ shown.name }}</h3>
-          <component :is="PANES[shown.id].pane" />
+          <!-- A box of their own, so the first row is a first child and draws no line above it. -->
+          <div>
+            <component :is="PANES[shown.id].pane" />
+          </div>
         </section>
       </div>
     </DialogContent>
