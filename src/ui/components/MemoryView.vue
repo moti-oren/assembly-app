@@ -123,44 +123,51 @@ function reveal(jump: () => void): void {
         <InfoTip label="About memory">
           Point at a byte, or run an instruction that uses memory, to see how its address is formed.
         </InfoTip>
-        <Select v-model="segment">
-          <SelectTrigger
-            size="sm"
-            class="w-36 font-mono pointer-coarse:data-[size=sm]:h-11"
-            aria-label="Segment"
-          >
-            <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
-            <SelectValue>
-              {{ segment.toUpperCase() }}
-              <span class="text-muted-foreground">{{
-                formatHex(state.registers[segment], 16)
-              }}</span>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="name in SEGMENTS" :key="name" :value="name" class="font-mono">
-              {{ name.toUpperCase() }}
-              <span class="text-muted-foreground">{{ formatHex(state.registers[name], 16) }}</span>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <div class="relative">
-          <span
-            class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
-            >Offset</span
-          >
-          <Input
-            v-model="offsetText"
-            class="h-7 w-28 pl-13 font-mono text-sm pointer-coarse:h-11"
-            :aria-invalid="offsetInvalid || undefined"
-            :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
-            maxlength="6"
-            autocomplete="off"
-            autocapitalize="characters"
-            autocorrect="off"
-            spellcheck="false"
-            aria-label="Offset (hex)"
-          />
+        <!-- On a phone the two fields are a row of their own, half the width each. -->
+        <div
+          class="contents max-md:order-last max-md:grid max-md:w-full max-md:grid-cols-2 max-md:gap-2"
+        >
+          <Select v-model="segment">
+            <SelectTrigger
+              size="sm"
+              class="w-36 font-mono max-md:w-full pointer-coarse:data-[size=sm]:h-11"
+              aria-label="Segment"
+            >
+              <!-- Written out here: left to itself the trigger keeps the text the item had when it was picked. -->
+              <SelectValue>
+                {{ segment.toUpperCase() }}
+                <span class="text-muted-foreground">{{
+                  formatHex(state.registers[segment], 16)
+                }}</span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="name in SEGMENTS" :key="name" :value="name" class="font-mono">
+                {{ name.toUpperCase() }}
+                <span class="text-muted-foreground">{{
+                  formatHex(state.registers[name], 16)
+                }}</span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <div class="relative">
+            <span
+              class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground"
+              >Offset</span
+            >
+            <Input
+              v-model="offsetText"
+              class="h-7 w-28 pl-13 font-mono text-sm max-md:w-full pointer-coarse:h-11"
+              :aria-invalid="offsetInvalid || undefined"
+              :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
+              maxlength="6"
+              autocomplete="off"
+              autocapitalize="characters"
+              autocorrect="off"
+              spellcheck="false"
+              aria-label="Offset (hex)"
+            />
+          </div>
         </div>
         <Button
           variant="outline"
