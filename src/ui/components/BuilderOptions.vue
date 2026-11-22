@@ -53,9 +53,10 @@ const emit = defineEmits<{
           @blur="emit('hover', null)"
         >
           {{ option.label }}
+          <!-- A touch screen has no Enter to press, and the mark would widen the one button. -->
           <CornerDownLeft
             v-if="option === enterOption"
-            class="text-foreground"
+            class="text-foreground touch:hidden"
             aria-label="Enter picks this"
           />
         </Button>

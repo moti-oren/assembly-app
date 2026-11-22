@@ -31,7 +31,10 @@ const emit = defineEmits<{ add: []; run: []; replace: []; cancel: [] }>();
         {{ keyHint.label }}
       </span>
     </div>
-    <div v-if="editingLabel" class="ml-auto flex gap-2">
+    <div
+      v-if="editingLabel"
+      class="ml-auto flex gap-2 max-md:grid max-md:w-full max-md:grid-cols-2"
+    >
       <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="emit('cancel')">
         Cancel
       </Button>
@@ -45,7 +48,7 @@ const emit = defineEmits<{ add: []; run: []; replace: []; cancel: [] }>();
         Replace {{ editingLabel }}
       </Button>
     </div>
-    <div v-else class="ml-auto flex gap-2">
+    <div v-else class="ml-auto flex gap-2 max-md:grid max-md:w-full max-md:grid-cols-2">
       <!-- Not yet usable is said by colour, not by fading: a faded button reads as broken. -->
       <Button
         variant="outline"
