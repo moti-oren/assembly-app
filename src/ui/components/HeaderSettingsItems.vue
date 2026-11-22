@@ -2,7 +2,8 @@
 import { DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { usePreferences } from '@/ui/usePreferences';
 
-const { isDark, soundOn, reduceMotion, systemReducesMotion, toggleTheme } = usePreferences();
+const { isDark, soundOn, analyticsOn, reduceMotion, systemReducesMotion, toggleTheme } =
+  usePreferences();
 </script>
 
 <!-- Settings that are changed once in a while, as the items of a menu. -->
@@ -25,5 +26,8 @@ const { isDark, soundOn, reduceMotion, systemReducesMotion, toggleTheme } = useP
     @update:model-value="reduceMotion = !reduceMotion"
   >
     Reduce animations
+  </DropdownMenuCheckboxItem>
+  <DropdownMenuCheckboxItem v-model="analyticsOn" class="pointer-coarse:py-2.5">
+    Share anonymous usage
   </DropdownMenuCheckboxItem>
 </template>

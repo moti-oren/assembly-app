@@ -1,6 +1,8 @@
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
+import { analytics } from './analyticsClient';
 import { STORAGE_KEYS } from './storageKeys';
 import { isTopicId, type TopicId } from './topics';
+import { usePreferences } from './usePreferences';
 
 /** Which topic is on show. The header, the palette and the links between topics all change it. */
 export const useTopic = createGlobalState(() => {
@@ -10,6 +12,7 @@ export const useTopic = createGlobalState(() => {
 
   /** Opens the circuit behind the last instruction of the CPU on show. */
   function showCircuit(): void {
+    analytics.track({ name: 'circuit-opened', architecture: usePreferences().architecture.value });
     topic.value = 'logic';
   }
 

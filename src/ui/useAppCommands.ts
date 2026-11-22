@@ -7,7 +7,8 @@ import { useTopic } from './useTopic';
 
 /** The palette commands every topic offers: another topic, the preferences, and feedback. */
 export function useAppCommands(): ComputedRef<PaletteCommand[]> {
-  const { isDark, soundOn, reduceMotion, systemReducesMotion, toggleTheme } = usePreferences();
+  const { isDark, soundOn, analyticsOn, reduceMotion, systemReducesMotion, toggleTheme } =
+    usePreferences();
   const { topic } = useTopic();
   const feedback = useFeedback();
 
@@ -48,6 +49,13 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
             reduceMotion.value = !reduceMotion.value;
           }
         },
+    {
+      group: 'Preferences',
+      label: analyticsOn.value ? 'Stop sharing anonymous usage' : 'Share anonymous usage',
+      run: () => {
+        analyticsOn.value = !analyticsOn.value;
+      }
+    },
     ...(feedback.available
       ? [
           {
