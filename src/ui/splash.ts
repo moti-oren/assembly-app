@@ -16,7 +16,8 @@ export function dismissSplash(): void {
   }
   void Promise.allSettled(playing.map((animation) => animation.finished)).then(() => {
     const remove = (): void => splash.remove();
-    splash.addEventListener('transitionend', remove, { once: true });
+    // Only the splash's own fade: a transition of a part inside it bubbles here too.
+    splash.addEventListener('transitionend', (event) => event.target === splash && remove());
     setTimeout(remove, FADE_FALLBACK_MS);
     splash.classList.add('splash-out');
   });
