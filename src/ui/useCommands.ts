@@ -3,7 +3,9 @@ import { formatLabel } from '@/core/shared/program';
 import { ARCHITECTURE_CHOICES } from './architectures';
 import { PHONE_VIEW_LABELS, PHONE_VIEWS } from './layoutMode';
 import type { PaletteCommand } from './paletteCommand';
+import { isApple } from './platform';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
+import { transportKeys } from './transportKeys';
 import { useAppCommands } from './useAppCommands';
 import type { CpuControls } from './useCpu';
 import { PANEL_LABELS, usePanelOrder } from './usePanelOrder';
@@ -56,12 +58,14 @@ export function useCommands(
   const { historyShown, bytesShown, devicesShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
   const hasCircuit = computed(page.hasCircuit);
+  const keys = transportKeys(isApple);
 
   return computed<PaletteCommand[]>(() => [
     { group: 'Program', label: 'Write an instruction', moves: 'focus', run: page.focusBuilder },
     {
       group: 'Program',
       label: 'Step one line',
+      keys: keys.step,
       disabled: finished.value,
       run: cpu.stepProgram
     },
@@ -72,13 +76,20 @@ export function useCommands(
       run: cpu.stepPhase
     },
     running.value
-      ? { group: 'Program', label: 'Pause', run: cpu.pause }
+      ? { group: 'Program', label: 'Pause', keys: keys.run, run: cpu.pause }
       : finished.value && program.value.length > 0
         ? // A dialog may ask first; the palette must not take focus back from it.
-          { group: 'Program', label: 'Run the program again', moves: 'focus', run: page.runAgain }
+          {
+            group: 'Program',
+            label: 'Run the program again',
+            keys: keys.run,
+            moves: 'focus',
+            run: page.runAgain
+          }
         : {
             group: 'Program',
             label: 'Run the program',
+            keys: keys.run,
             disabled: finished.value,
             run: cpu.runProgram
           },
@@ -132,8 +143,20 @@ export function useCommands(
         bytesShown.value = !bytesShown.value;
       }
     },
-    { group: 'History', label: 'Undo', disabled: history.value.length === 0, run: cpu.undoLast },
-    { group: 'History', label: 'Redo', disabled: future.value.length === 0, run: cpu.redo },
+    {
+      group: 'History',
+      label: 'Undo',
+      keys: keys.undo,
+      disabled: history.value.length === 0,
+      run: cpu.undoLast
+    },
+    {
+      group: 'History',
+      label: 'Redo',
+      keys: keys.redo,
+      disabled: future.value.length === 0,
+      run: cpu.redo
+    },
     {
       group: 'History',
       label: 'Go back to the start',

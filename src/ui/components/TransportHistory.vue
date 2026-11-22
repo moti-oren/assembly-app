@@ -2,7 +2,10 @@
 import { computed } from 'vue';
 import { Redo2, Undo2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
+import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { isApple } from '@/ui/platform';
+import { TRANSPORT_ARIA_KEYS, transportKeys } from '@/ui/transportKeys';
 
 const props = defineProps<{
   /** How many instructions have run, and how many undone ones could run again. */
@@ -18,6 +21,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ undo: []; redo: []; seek: [position: number] }>();
+
+const keys = transportKeys(isApple);
 
 const total = computed(() => props.executed + props.undone);
 
@@ -39,13 +44,19 @@ const progress = computed(() =>
         class="pointer-coarse:size-11"
         :class="{ 'size-11': framed }"
         aria-label="Undo the last instruction"
+        :aria-keyshortcuts="TRANSPORT_ARIA_KEYS.undo"
         :disabled="executed === 0"
         @click="emit('undo')"
       >
         <Undo2 />
       </Button>
     </TooltipTrigger>
-    <TooltipContent>Undo the last instruction</TooltipContent>
+    <TooltipContent>
+      Undo the last instruction
+      <KbdGroup
+        ><Kbd v-for="key in keys.undo" :key="key">{{ key }}</Kbd></KbdGroup
+      >
+    </TooltipContent>
   </Tooltip>
   <template v-if="parts !== 'undo'">
     <Tooltip>
@@ -55,13 +66,19 @@ const progress = computed(() =>
           size="icon-sm"
           class="pointer-coarse:size-11"
           aria-label="Redo the undone instruction"
+          :aria-keyshortcuts="TRANSPORT_ARIA_KEYS.redo"
           :disabled="undone === 0"
           @click="emit('redo')"
         >
           <Redo2 />
         </Button>
       </TooltipTrigger>
-      <TooltipContent>Redo the undone instruction</TooltipContent>
+      <TooltipContent>
+        Redo the undone instruction
+        <KbdGroup
+          ><Kbd v-for="key in keys.redo" :key="key">{{ key }}</Kbd></KbdGroup
+        >
+      </TooltipContent>
     </Tooltip>
     <input
       type="range"
