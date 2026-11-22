@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, Ellipsis, MessageSquare, Search, Settings2 } from '@lucide/vue';
+import { ArrowRightLeft, Ellipsis, MessageSquare, Search, Settings } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
 import { isApple } from '@/ui/platform';
@@ -108,7 +108,7 @@ function settingsFromMenu(): void {
             data-settings-opener
             @click="settings.open.value = true"
           >
-            <Settings2 aria-hidden="true" />
+            <Settings aria-hidden="true" />
           </Button>
         </template>
 
@@ -151,7 +151,7 @@ function settingsFromMenu(): void {
                 Send feedback
               </button>
               <button type="button" class="sheet-row" @click="settingsFromMenu">
-                <Settings2 aria-hidden="true" />
+                <Settings aria-hidden="true" />
                 Settings
               </button>
             </div>
