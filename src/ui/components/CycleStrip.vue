@@ -51,7 +51,11 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
 
 <template>
   <div>
-    <div class="flex items-center gap-3 max-sm:gap-2">
+    <!-- A phone has no room for an architecture's controls beside the phases: they take a row. -->
+    <div
+      class="flex items-center gap-3 max-sm:gap-2"
+      :class="{ 'max-sm:flex-wrap max-sm:gap-y-1': $slots.actions }"
+    >
       <span class="-mr-2 text-sm font-medium max-sm:-mr-1">Cycle</span>
       <InfoTip label="About the instruction cycle">{{ intro }}</InfoTip>
       <ol class="flex shrink-0 items-center gap-1 text-xs" aria-label="Instruction cycle">
@@ -94,9 +98,12 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
           </span>
         </li>
       </ol>
-      <span class="ml-auto min-w-0 truncate font-mono text-xs text-muted-foreground">{{
-        instruction ?? 'idle'
-      }}</span>
+      <span v-if="$slots.actions" class="hidden basis-full max-sm:block" aria-hidden="true" />
+      <span
+        class="ml-auto min-w-0 truncate font-mono text-xs text-muted-foreground"
+        :class="{ 'max-sm:ml-0 max-sm:flex-1': $slots.actions }"
+        >{{ instruction ?? 'idle' }}</span
+      >
       <!-- Controls an architecture adds to its own cycle card. -->
       <slot name="actions" />
     </div>
