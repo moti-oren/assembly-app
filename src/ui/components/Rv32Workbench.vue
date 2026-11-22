@@ -211,7 +211,14 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
       <template #cycle>
         <Card size="sm">
           <CardContent>
-            <Rv32Pipeline v-if="pipelineShown" :history="history" :program="program" />
+            <Rv32Pipeline
+              v-if="pipelineShown"
+              :history="history"
+              :program="program"
+              :state="state"
+              :pending="pending"
+              :running="running"
+            />
             <Rv32Cycle
               v-else
               :state="state"
