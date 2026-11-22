@@ -232,11 +232,24 @@
   padding: 0.75rem;
   background: transparent;
 }
+/*
+ * The search field is the top of the palette itself, over a hairline that runs edge to edge:
+ * a box of its own inside the palette's edge would be a second frame around the same thing.
+ */
 .command-palette [data-slot='command-input-wrapper'] {
-  padding: 0 0 0.5rem;
+  margin: -0.75rem -0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0.25rem 0.75rem;
 }
 .command-palette [data-slot='input-group'] {
   height: 2.75rem !important;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+/* The last command stops short of the line over the key hints. */
+.command-palette [data-slot='command-list'] {
+  padding-bottom: 0.5rem;
 }
 .command-palette [data-slot='command-input'] {
   font-size: 0.9375rem;
