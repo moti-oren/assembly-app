@@ -198,9 +198,13 @@
   --die-pin: #98a2b3;
   --die-lid: #0a0b0d;
   --die-lid-foreground: #ffffff;
-  /* The glass of the 7-segment display and the terminal. */
-  --screen: #111318;
-  --screen-border: #232730;
+  /*
+   * The glass of the 7-segment display and the terminal: dark slate on the white page, not
+   * black, set into it by a hairline and a soft shadow inside its top edge.
+   */
+  --screen: #1b2130;
+  --screen-border: #2c3444;
+  --screen-shadow: inset 0 1px 3px rgb(0 0 0 / 40%);
   --screen-foreground: #f8fafc;
   --screen-unlit: rgb(255 255 255 / 12%);
   --screen-scrollbar: rgb(255 255 255 / 30%);
@@ -209,6 +213,10 @@
   /* The hot spot of a lit LED. */
   --led-highlight: #fff7ed;
   /* A button that cannot be used yet: flat and quiet, but still a button. */
+  /* A tooltip: ink on the white page, a raised dark surface with a hairline on the dark one. */
+  --tooltip: #0a0b0d;
+  --tooltip-foreground: #ffffff;
+  --tooltip-border: transparent;
   --disabled: #f2f4f7;
   --disabled-foreground: #98a2b3;
   --disabled-border: #e4e7ec;
@@ -282,11 +290,17 @@
   --inset: #161920;
   --sidebar-inset: #161920;
   --background: #090a0d;
+  --screen: #111318;
   --screen-border: #343a46;
+  --screen-shadow: inset 0 1px 3px rgb(0 0 0 / 55%);
   --screen-unlit: rgb(255 255 255 / 13%);
+  --tooltip: #1d222b;
+  --tooltip-foreground: #f8fafc;
+  --tooltip-border: #343a46;
   --disabled: #161920;
-  --disabled-foreground: #475467;
-  --disabled-border: #232730;
+  /* Quiet, but a label to read: about 4:1 on the fill, as the light theme's is not far from. */
+  --disabled-foreground: #7a8aa0;
+  --disabled-border: #2a303b;
   --stage-chip: #1d222b;
   --stage-chip-foreground: #cbd5e1;
   --foreground: #f8fafc;

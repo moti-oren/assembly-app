@@ -187,6 +187,27 @@
   color: var(--foreground);
 }
 
+/*
+ * A tooltip is ink on the light page. On the dark one ink is white, which glares: there it is a
+ * raised dark surface with a hairline, and its arrow carries the same two edges.
+ */
+[data-slot='tooltip-content'] {
+  background: var(--tooltip);
+  box-shadow: 0 0 0 1px var(--tooltip-border);
+  color: var(--tooltip-foreground);
+}
+/* A key named in a tooltip: a wash of the tooltip's own ink, in either theme. */
+[data-slot='tooltip-content'] [data-slot='kbd'] {
+  background: color-mix(in oklch, var(--tooltip-foreground) 20%, transparent);
+  color: var(--tooltip-foreground);
+}
+[data-slot='tooltip-content'] > span > svg {
+  border-right: 1px solid var(--tooltip-border);
+  border-bottom: 1px solid var(--tooltip-border);
+  background: var(--tooltip);
+  fill: var(--tooltip);
+}
+
 [data-slot='dialog-overlay'],
 [data-slot='alert-dialog-overlay'] {
   background: var(--overlay);

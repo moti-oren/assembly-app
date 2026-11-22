@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <p
     v-if="change"
-    class="flex w-full flex-wrap items-baseline gap-x-1 border-t border-background/25 pt-1.5 font-mono tabular-nums"
+    class="flex w-full flex-wrap items-baseline gap-x-1 border-t border-current/25 pt-1.5 font-mono tabular-nums"
   >
     <template v-if="change.unchanged">
       <span class="font-sans">Written with the same value:</span>
