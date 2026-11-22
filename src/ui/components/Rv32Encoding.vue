@@ -54,7 +54,8 @@ function bitOf(bit: number): number {
 
     <CardContent v-if="shown && encoding" class="@container flex flex-col gap-3">
       <!-- The word bit by bit, 31 on the left as it is written, with each field over its bits. -->
-      <div class="overflow-x-auto">
+      <!-- Never squeezed: in a short panel the body scrolls, and the strip keeps its height. -->
+      <div class="shrink-0 overflow-x-auto">
         <div
           class="grid min-w-[30rem] grid-cols-[repeat(32,minmax(0,1fr))] gap-y-1 font-mono text-2xs"
           aria-label="The 32 bits of the instruction"
