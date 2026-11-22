@@ -9,7 +9,7 @@ import ResetCpuDialog from './ResetCpuDialog.vue';
 defineProps<{
   examples: readonly { name: string; description: string }[];
   commands: PaletteCommand[];
-  /** Lines that clearing the program would lose. */
+  /** Lines of the program: what clearing it would lose, and whether there is one to share. */
   programLength: number;
   /** Instructions a reset would lose, undone ones included. */
   historyLength: number;
@@ -34,6 +34,7 @@ const resetAsked = defineModel<boolean>('resetAsked', { required: true });
   <AppHeader
     v-model:examples-open="examplesOpen"
     :examples="examples"
+    :program-length="programLength"
     @load-example="emit('loadExample', $event)"
     @commands="paletteOpen = true"
   />

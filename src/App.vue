@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, watch } from 'vue';
+import { computed, defineAsyncComponent, onMounted, watch } from 'vue';
 import { MOS6502 } from '@/core/mos6502/architecture';
 import { formatInstruction as formatMos6502 } from '@/core/mos6502/instructions';
 import { mos6502AluLink } from '@/core/mos6502AluLink';
@@ -11,8 +11,11 @@ import { formatInstruction as formatX86 } from '@/core/x86/instructions';
 import { x86AluLink } from '@/core/x86AluLink';
 import type { ComparedId } from '@/core/comparison';
 import type { ComparisonTask } from '@/core/comparisonTasks';
+import SharedProgramDialog from '@/ui/components/SharedProgramDialog.vue';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { analytics } from '@/ui/analyticsClient';
+import type { ArchitectureId } from '@/ui/architectures';
+import type { SharedProgram } from '@/ui/shareLink';
 import { useAppAnalytics } from '@/ui/useAppAnalytics';
 import { useComparison } from '@/ui/useComparison';
 import { sound } from '@/ui/soundEngine';
@@ -21,6 +24,8 @@ import { followed, useCpuMoment } from '@/ui/useCpuMoment';
 import { useFeedback } from '@/ui/useFeedback';
 import { useKeyboardInset } from '@/ui/useKeyboardInset';
 import { usePreferences } from '@/ui/usePreferences';
+import { useShare } from '@/ui/useShare';
+import { useSharedProgram } from '@/ui/useSharedProgram';
 import { useTopic } from '@/ui/useTopic';
 
 // Each workbench is its own chunk, so the first one shown does not wait for the others.
@@ -33,6 +38,7 @@ const Mos6502Workbench = defineAsyncComponent(loadMos6502);
 const LogicWorkbench = defineAsyncComponent(() => import('@/ui/components/LogicWorkbench.vue'));
 const CompareDialog = defineAsyncComponent(() => import('@/ui/components/CompareDialog.vue'));
 const FeedbackDialog = defineAsyncComponent(() => import('@/ui/components/FeedbackDialog.vue'));
+const ShareDialog = defineAsyncComponent(() => import('@/ui/components/ShareDialog.vue'));
 
 /** Every CPU lives for the whole visit: switching shows the other one as it was left. */
 const x86 = useCpu(X86);
@@ -44,6 +50,7 @@ useKeyboardInset();
 useAppAnalytics();
 const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
 const { wanted: feedbackWanted } = useFeedback();
+const { wanted: shareWanted } = useShare();
 
 /** Opens a task's program on its CPU, from the comparison. */
 function loadSolution(task: ComparisonTask, id: ComparedId): void {
@@ -55,6 +62,22 @@ function loadSolution(task: ComparisonTask, id: ComparedId): void {
   comparisonOpen.value = false;
   analytics.track({ name: 'solution-loaded', architecture: id, task: task.id });
 }
+
+const programs = { x86: x86.program, rv32: rv32.program, mos6502: mos6502.program };
+const programOf = (id: ArchitectureId) => programs[id].value;
+/** What a share link is made of: the program of the CPU on show. */
+const shownProgram = computed(() => programOf(architecture.value));
+
+/** Opens a program that came through a share link on its CPU. */
+function loadShared(shared: SharedProgram): void {
+  const from = { name: 'Shared program', description: 'Opened from a link.' };
+  if (shared.id === 'x86') x86.loadProgram(shared.program, from);
+  else if (shared.id === 'rv32') rv32.loadProgram(shared.program, from);
+  else mos6502.loadProgram(shared.program, from);
+  architecture.value = shared.id;
+  topic.value = 'cpu';
+}
+const shared = useSharedProgram({ current: programOf, load: loadShared });
 
 // The logic topic shows the gates behind the last instruction of the CPU chosen here.
 const { moment, seekShown } = useCpuMoment({
@@ -99,5 +122,12 @@ watch([architecture, topic], () => {
     </div>
     <CompareDialog v-if="comparisonWanted" v-model:open="comparisonOpen" @load="loadSolution" />
     <FeedbackDialog v-if="feedbackWanted" />
+    <ShareDialog v-if="shareWanted" :architecture="architecture" :program="shownProgram" />
+    <SharedProgramDialog
+      :pending="shared.pending.value"
+      :problem="shared.problem.value"
+      @accept="shared.accept"
+      @dismiss="shared.dismiss"
+    />
   </TooltipProvider>
 </template>
