@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { CpuControls } from './useCpu';
+import { usePreferences } from './usePreferences';
 
 /**
  * Resetting the CPU, which loses its history: when that needs confirming first, and running the
@@ -15,6 +16,7 @@ export function useCpuReset<Instruction, Record extends ExecutionRecord>(
   const historyLength = computed(() => cpu.history.value.length + cpu.future.value.length);
   /** Whether the reset being confirmed came from "Run again", which runs the program after it. */
   let runsAfter = false;
+  const { confirmReset: asksFirst } = usePreferences();
 
   /**
    * True when a reset loses nothing: there is no history, or all of it is the program run to its
@@ -31,11 +33,11 @@ export function useCpuReset<Instruction, Record extends ExecutionRecord>(
 
   function start(run: boolean): void {
     runsAfter = run;
-    if (nothingToLose()) confirmReset();
+    if (!asksFirst.value || nothingToLose()) confirmReset();
     else resetAsked.value = true;
   }
 
-  /** Resets, asking first when the history would be lost. */
+  /** Resets, asking first when the history would be lost, unless the user chose not to be asked. */
   function askReset(): void {
     start(false);
   }

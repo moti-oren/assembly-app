@@ -19,7 +19,9 @@
       // animation (and the app) start in them. usePreferences.ts owns both from then on.
       try {
         const root = document.documentElement;
-        if (localStorage.getItem('vueuse-color-scheme') === 'dark') root.classList.add('dark');
+        const theme = localStorage.getItem('vueuse-color-scheme');
+        const systemDark = matchMedia('(prefers-color-scheme: dark)').matches;
+        if (theme === 'dark' || (theme === 'auto' && systemDark)) root.classList.add('dark');
         if (localStorage.getItem('8086-reduce-motion') === 'true') root.dataset.motion = 'reduced';
       } catch {}
     </script>

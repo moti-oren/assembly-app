@@ -3,6 +3,7 @@ import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import { STORAGE_KEYS } from './storageKeys';
 import type { CpuControls } from './useCpu';
+import { usePreferences } from './usePreferences';
 import { useSidebarLayout } from './useSidebarLayout';
 
 /** The panels that can be shown or hidden, and the program line whose bytes are on show. */
@@ -43,13 +44,14 @@ export function usePanels<Instruction, Record extends ExecutionRecord>(
   const { historyShown, bytesShown, devicesShown, devicesOpenedByProgram } = useShown();
   const inspectedLine = ref<number | null>(null);
   const sidebar = useSidebarLayout();
+  const { autoOpenDevices } = usePreferences();
 
   watch([() => history.value.length, program], () => {
     inspectedLine.value = null;
   });
 
   watch([program, lastRecord], ([lines, record]) => {
-    if (!usesDevices(lines, record) || devicesShown.value) return;
+    if (!autoOpenDevices.value || !usesDevices(lines, record) || devicesShown.value) return;
     devicesShown.value = true;
     devicesOpenedByProgram.value = true;
   });

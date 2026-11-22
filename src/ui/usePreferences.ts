@@ -1,12 +1,15 @@
-import { computed, nextTick, watch, watchEffect } from 'vue';
-import { createGlobalState, useDark, useLocalStorage, useMediaQuery } from '@vueuse/core';
+import { computed, nextTick, watch, watchEffect, type Ref } from 'vue';
+import { createGlobalState, useColorMode, useLocalStorage, useMediaQuery } from '@vueuse/core';
 import { analytics } from './analyticsClient';
 import { isArchitectureId, type ArchitectureId } from './architectures';
 import { modeForWidth } from './layoutMode';
+import { isRunSpeed, type RunSpeed } from './runSpeeds';
 import { STORAGE_KEYS } from './storageKeys';
 import { sound } from './soundEngine';
 
 type CpuView = 'diagram' | 'table';
+/** The theme asked for; `auto` follows the device. */
+export type Theme = 'light' | 'dark' | 'auto';
 
 /** What switching to each CPU view is called, on its button and in the command palette. */
 export const CPU_VIEW_LABELS: Record<CpuView, string> = {
@@ -14,10 +17,17 @@ export const CPU_VIEW_LABELS: Record<CpuView, string> = {
   table: 'Show the CPU as tables'
 };
 
-/** Theme, sound, usage sharing, view and motion, shared by the header and the command palette. All are remembered. */
+/** Theme, sound, usage sharing, view, running and motion, shared by the settings and the command palette. All are remembered. */
 export const usePreferences = createGlobalState(() => {
-  /** Light until the user picks a theme. */
-  const isDark = useDark({ initialValue: 'light' });
+  /** Light until the user picks a theme. Light is the page without a class, dark the `dark` class. */
+  const colorMode = useColorMode({
+    storageKey: STORAGE_KEYS.theme,
+    initialValue: 'light',
+    modes: { light: '' }
+  });
+  /** The theme asked for, where `isDark` is the one on show. */
+  const theme = colorMode.store as Ref<Theme>;
+  const isDark = computed(() => colorMode.state.value === 'dark');
   const soundOn = useLocalStorage(STORAGE_KEYS.sound, false);
   watch(soundOn, sound.setEnabled, { immediate: true });
   /** Whether anonymous usage is counted; on until the user turns it off. */
@@ -42,6 +52,15 @@ export const usePreferences = createGlobalState(() => {
     serializer: { read: (raw) => (isArchitectureId(raw) ? raw : 'x86'), write: (id) => id }
   });
 
+  /** How fast Run steps through a program, on every CPU. */
+  const runSpeed = useLocalStorage<RunSpeed>(STORAGE_KEYS.runSpeed, 'normal', {
+    serializer: { read: (raw) => (isRunSpeed(raw) ? raw : 'normal'), write: (speed) => speed }
+  });
+  /** Whether a program that uses a port opens the devices panel by itself. */
+  const autoOpenDevices = useLocalStorage(STORAGE_KEYS.autoOpenDevices, true);
+  /** Whether a reset that would lose the history asks first. */
+  const confirmReset = useLocalStorage(STORAGE_KEYS.confirmReset, true);
+
   /** Asked for here; the system setting can ask for it too, and either one is enough. */
   const reduceMotion = useLocalStorage(STORAGE_KEYS.reduceMotion, false);
   const systemReducesMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -55,26 +74,36 @@ export const usePreferences = createGlobalState(() => {
   });
 
   /** Switches at once: transitions are held off for a frame, so no control fades through grey. */
-  async function toggleTheme(): Promise<void> {
+  async function setTheme(next: Theme): Promise<void> {
     const root = document.documentElement;
     root.dataset.themeSwitch = '';
-    isDark.value = !isDark.value;
+    theme.value = next;
     await nextTick();
     // Styles are worked out once with the new palette while transitions are still off.
     void document.body.offsetHeight;
     setTimeout(() => delete root.dataset.themeSwitch, 1);
   }
 
+  /** To the other of light and dark, whatever the device asks for. */
+  function toggleTheme(): Promise<void> {
+    return setTheme(isDark.value ? 'light' : 'dark');
+  }
+
   return {
+    theme,
     isDark,
     soundOn,
     analyticsOn,
     cpuView,
     registerBits,
     architecture,
+    runSpeed,
+    autoOpenDevices,
+    confirmReset,
     reduceMotion,
     systemReducesMotion,
     calm,
+    setTheme,
     toggleTheme
   };
 });
