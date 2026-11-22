@@ -4,7 +4,9 @@ import type { ExecutionRecord } from '@/core/x86/execute';
 import { formatInstruction } from '@/core/x86/instructions';
 import type { CpuState } from '@/core/x86/state';
 import { Card, CardContent } from '@/components/ui/card';
+import { x86AluLink } from '@/core/x86AluLink';
 import { describeEquation } from '@/ui/describe';
+import TopicLinkButton from './TopicLinkButton.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -12,6 +14,7 @@ const props = defineProps<{
 }>();
 
 const equation = computed(() => props.record && describeEquation(props.state, props.record));
+const link = computed(() => props.record && x86AluLink(props.record));
 </script>
 
 <template>
@@ -41,6 +44,7 @@ const equation = computed(() => props.record && describeEquation(props.state, pr
           <span class="font-sans text-xs text-muted-foreground">
             {{ equation.discarded ? 'only the flags are kept' : `into ${equation.destination}` }}
           </span>
+          <TopicLinkButton v-if="link" :link="link" />
         </span>
       </template>
       <span v-else class="font-sans text-sm text-muted-foreground">
