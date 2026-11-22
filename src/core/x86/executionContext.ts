@@ -14,6 +14,15 @@ import {
 } from './state';
 import { readMemory, type MemoryWrite, type PortWrite } from '../shared/state';
 
+/** What AND, OR, XOR and TEST do to each pair of bits. */
+export type LogicOperation = 'and' | 'or' | 'xor';
+
+const LOGIC: Record<LogicOperation, (a: number, b: number) => number> = {
+  and: (a, b) => a & b,
+  or: (a, b) => a | b,
+  xor: (a, b) => a ^ b
+};
+
 /** What the ALU computed, kept so the flags it produced can be explained afterwards. */
 export type AluTrace =
   | {
@@ -27,7 +36,7 @@ export type AluTrace =
       /** False for INC and DEC, which leave CF alone. */
       updatesCarry: boolean;
     }
-  | { kind: 'logic'; size: Size; result: number }
+  | { kind: 'logic'; size: Size; operation: LogicOperation; a: number; b: number; result: number }
   | { kind: 'shift'; size: Size; original: number; count: number; result: number; carry: boolean }
   | { kind: 'multiply'; size: Size; signed: boolean; product: number; overflow: boolean }
   /** POPF and IRET: nothing is computed, FLAGS is loaded whole from the stack. */
@@ -157,13 +166,14 @@ export class ExecutionContext {
     return result;
   }
 
-  logic(result: number): number {
+  logic(operation: LogicOperation, a: number, b: number): number {
+    const result = truncate(LOGIC[operation](a, b), this.size);
     this.setFlag('CF', false);
     this.setFlag('OF', false);
     this.setFlag('AF', false);
     this.setResultFlags(result);
-    this.alu = { kind: 'logic', size: this.size, result: truncate(result, this.size) };
-    return truncate(result, this.size);
+    this.alu = { kind: 'logic', size: this.size, operation, a, b, result };
+    return result;
   }
 
   /** MUL and IMUL: CF and OF both say whether the upper half of the product is significant. */

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rv32AluLink } from '@/core/rv32AluLink';
 import { computed } from 'vue';
 import { assemble, encode } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
@@ -83,6 +84,7 @@ const {
   historyLength,
   askReset
 } = useWorkbench(cpu, {
+  aluLink: rv32AluLink,
   usesDevices: rv32UsesDevices,
   soundOf: () =>
     rv32Sounds(history.value, state, program.value, {

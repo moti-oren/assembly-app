@@ -1,0 +1,281 @@
+/* The logic topic: rows of bits in columns, and one bit drawn gate by gate. */
+
+@layer components {
+  /* The page of the logic topic: one column that scrolls, as wide as reads well. */
+  .logic-page {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--page);
+  }
+
+  /*
+   * Rows of bits that share their columns, the top bit on the left. --cell is one column; a
+   * finger gets a wider one. A wide circuit scrolls sideways under its row labels.
+   */
+  .logic-rows {
+    --cell: 2.25rem;
+    --label: 4.75rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-block: 0.25rem;
+  }
+  @media (pointer: coarse) {
+    .logic-rows {
+      --cell: 2.75rem;
+    }
+  }
+  .logic-row {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    min-height: calc(var(--cell) + 0.125rem);
+  }
+  .logic-row[data-compact] {
+    min-height: 1.25rem;
+  }
+  /* The name of a row stays in sight while the bits scroll under it. */
+  .logic-label {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    flex: none;
+    width: var(--label);
+    padding-right: 0.5rem;
+    background: var(--page);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: 1.1;
+  }
+  /* A narrow screen keeps less of its width for the names. */
+  @media (width < 48rem) {
+    .logic-rows {
+      --label: 3.5rem;
+    }
+  }
+  .logic-cell {
+    position: relative;
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--cell);
+  }
+  /* The top bit of each hex digit stands a little apart from the digit before it. */
+  .logic-cell[data-digit-start] {
+    margin-left: calc(var(--cell) / 4);
+  }
+
+  /* One bit: an outline for 0, filled with ink for 1. Colour is kept for the result. */
+  .logic-bit {
+    display: grid;
+    place-items: center;
+    width: calc(var(--cell) - 0.375rem);
+    height: calc(var(--cell) - 0.375rem);
+    border: 1px solid var(--input);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--tertiary-foreground);
+    font-family: var(--font-mono);
+    font-size: var(--text-code);
+    font-feature-settings: 'zero';
+    line-height: 1;
+  }
+  .logic-bit[data-on] {
+    border-color: var(--foreground);
+    background: var(--foreground);
+    color: var(--background);
+    font-weight: 600;
+  }
+  .logic-bit[data-tone='result'] {
+    border-color: color-mix(in oklch, var(--changed-foreground) 45%, transparent);
+    color: var(--changed-foreground);
+  }
+  .logic-bit[data-tone='result'][data-on] {
+    border-color: var(--changed-foreground);
+    background: var(--changed-foreground);
+    color: var(--background);
+  }
+  /* A wire inside the circuit, not an input or the result: smaller, without a box. */
+  .logic-bit[data-tone='quiet'] {
+    width: 1.375rem;
+    height: 1.375rem;
+    border-color: transparent;
+    font-size: var(--text-xs);
+  }
+  .logic-bit[data-tone='quiet'][data-on] {
+    border-color: var(--border);
+    background: var(--muted);
+    color: var(--foreground);
+  }
+  button.logic-bit {
+    cursor: pointer;
+  }
+  button.logic-bit:hover {
+    border-color: var(--foreground);
+  }
+  button.logic-bit:focus-visible,
+  .logic-unit:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* A switch's outline is part of the control, so it is a line that can be seen, not a hairline. */
+  button.logic-bit:not([data-on]) {
+    border-color: var(--wire);
+  }
+  /* Each button answers a press anywhere in its column, which a finger gets 44px of. */
+  button.logic-bit,
+  .logic-unit {
+    position: relative;
+  }
+  button.logic-bit::after,
+  .logic-unit::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--cell);
+    height: var(--cell);
+    translate: -50% -50%;
+  }
+  .logic-bit[data-chosen] {
+    box-shadow:
+      0 0 0 2px var(--page),
+      0 0 0 3px var(--foreground);
+  }
+
+  /* One bit's worth of circuit in the row of adders or gates: pressed to see inside it. */
+  .logic-unit {
+    display: grid;
+    place-items: center;
+    width: calc(var(--cell) - 0.625rem);
+    height: calc(var(--cell) - 0.375rem);
+    border: 1px solid var(--input);
+    border-radius: var(--radius-sm);
+    background: var(--inset);
+    color: var(--muted-foreground);
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .logic-unit:hover {
+    border-color: var(--foreground);
+    color: var(--foreground);
+  }
+  .logic-unit[aria-pressed='true'] {
+    border-color: var(--foreground);
+    background: var(--foreground);
+    color: var(--background);
+  }
+  /* The carry handed from one adder to the next: a wire to the left, bright when it carries a 1. */
+  .logic-carry {
+    position: absolute;
+    top: 50%;
+    right: calc(100% - 0.3125rem);
+    width: 0.625rem;
+    height: 0;
+    border-top: 2px solid var(--wire);
+    opacity: 0.45;
+  }
+  .logic-cell[data-digit-start] > .logic-carry {
+    width: calc(0.625rem + var(--cell) / 4);
+  }
+  .logic-carry[data-on] {
+    border-top-color: var(--foreground);
+    opacity: 1;
+  }
+
+  /* A carry ripples: each bit settles a moment after the one to its right. */
+  .logic-ripple :is(.logic-bit, .logic-carry) {
+    transition:
+      background-color 140ms,
+      border-color 140ms,
+      color 140ms,
+      opacity 140ms;
+    transition-delay: calc(var(--bit, 0) * 28ms);
+  }
+  :root[data-motion='reduced'] .logic-ripple :is(.logic-bit, .logic-carry) {
+    transition: none;
+  }
+
+  /* The wires between two rows of a shifter. */
+  .logic-wires {
+    display: block;
+    flex: none;
+    overflow: visible;
+  }
+  .logic-wires line {
+    stroke: var(--wire);
+    stroke-width: 1.25;
+    vector-effect: non-scaling-stroke;
+  }
+  .logic-wires line[data-on] {
+    stroke: var(--foreground);
+    stroke-width: 2;
+  }
+
+  /* One bit gate by gate: wires of ink where a 1 runs, grey where a 0 does. */
+  .logic-diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .logic-diagram .logic-wire {
+    fill: none;
+    stroke: var(--wire);
+    stroke-width: 1.25;
+    stroke-linejoin: round;
+  }
+  .logic-diagram .logic-wire[data-on] {
+    stroke: var(--foreground);
+    stroke-width: 2;
+  }
+  .logic-diagram .logic-dot {
+    fill: var(--wire);
+  }
+  .logic-diagram .logic-dot[data-on] {
+    fill: var(--foreground);
+  }
+  .logic-gate {
+    cursor: pointer;
+  }
+  .logic-gate .logic-gate-body {
+    fill: var(--inset);
+    stroke: var(--muted-foreground);
+    stroke-width: 1.5;
+  }
+  /* Not every browser draws an outline round a group in an SVG: the ring is the gate's own line. */
+  .logic-gate:focus-visible {
+    outline: none;
+  }
+  .logic-gate:focus-visible .logic-gate-body {
+    stroke: var(--ring);
+    stroke-width: 3;
+  }
+  .logic-gate[aria-pressed='true'] .logic-gate-body {
+    fill: var(--muted);
+    stroke: var(--foreground);
+    stroke-width: 2.25;
+  }
+  /* The sizes of the drawing's text are in the units of its viewBox, which scales with it. */
+  .logic-gate text {
+    fill: var(--muted-foreground);
+    font-size: 9px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .logic-diagram .logic-terminal {
+    fill: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .logic-diagram .logic-value {
+    fill: var(--foreground);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .logic-diagram .logic-value[data-tone='result'] {
+    fill: var(--changed-foreground);
+  }
+}

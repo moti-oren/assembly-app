@@ -3,13 +3,16 @@ import { computed } from 'vue';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import { formatInstruction } from '@/core/rv32/instructions';
 import { Card, CardContent } from '@/components/ui/card';
+import { rv32AluLink } from '@/core/rv32AluLink';
 import { aluEquation } from '@/ui/rv32Explain';
+import TopicLinkButton from './TopicLinkButton.vue';
 
 const props = defineProps<{
   record: ExecutionRecord | null;
 }>();
 
 const equation = computed(() => props.record && aluEquation(props.record));
+const link = computed(() => props.record && rv32AluLink(props.record));
 </script>
 
 <template>
@@ -28,6 +31,7 @@ const equation = computed(() => props.record && aluEquation(props.record));
           <span class="font-sans text-xs text-muted-foreground">
             {{ equation.destination }}{{ equation.note ? ` (${equation.note})` : '' }}
           </span>
+          <TopicLinkButton v-if="link" :link="link" />
         </span>
         <span v-else class="ml-auto font-sans text-xs text-muted-foreground">
           The ALU was not used.

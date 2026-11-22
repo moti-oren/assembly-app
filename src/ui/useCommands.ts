@@ -1,7 +1,9 @@
 import { computed, type ComputedRef, type Ref } from 'vue';
 import { ARCHITECTURE_CHOICES } from './architectures';
 import { PHONE_VIEW_LABELS, PHONE_VIEWS } from './layoutMode';
+import type { PaletteCommand } from './paletteCommand';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
+import { useAppCommands } from './useAppCommands';
 import type { CpuControls } from './useCpu';
 import { PANEL_LABELS, usePanelOrder } from './usePanelOrder';
 import { useComparison } from './useComparison';
@@ -10,21 +12,8 @@ import { CPU_VIEW_LABELS, usePreferences } from './usePreferences';
 import type { SidebarKey } from './sidebarLayout';
 import { useLayoutMode } from './useLayoutMode';
 import { useSidebarLayout } from './useSidebarLayout';
+import { useTopic } from './useTopic';
 import { useWorkbenchView } from './useWorkbenchView';
-
-/** One entry in the command palette. */
-export interface PaletteCommand {
-  group: string;
-  label: string;
-  disabled?: boolean;
-  /**
-   * What the command does to the page beyond its own state. Either way it runs once the palette
-   * has closed, since an open palette locks page scrolling and then hands focus back. `focus`
-   * also stops that hand-back, which would undo the command's work.
-   */
-  moves?: 'focus' | 'scroll';
-  run: () => void;
-}
 
 /** What the palette asks of components on the page, which own the state these act on. */
 export interface PageActions {
@@ -37,6 +26,8 @@ export interface PageActions {
   showLastAccess: () => void;
   /** Whether the last instruction read or wrote memory, so there is an access to show. */
   hasLastAccess: () => boolean;
+  /** Whether the last instruction has a circuit of gates to show in the logic topic. */
+  hasCircuit: () => boolean;
 }
 
 /**
@@ -50,8 +41,9 @@ export function useCommands(
   extra: () => PaletteCommand[] = () => [],
   sidebarKeys?: Ref<readonly SidebarKey[]>
 ): ComputedRef<PaletteCommand[]> {
-  const { isDark, soundOn, cpuView, architecture, reduceMotion, systemReducesMotion, toggleTheme } =
-    usePreferences();
+  const { cpuView, architecture } = usePreferences();
+  const app = useAppCommands();
+  const { showCircuit } = useTopic();
   const panelOrder = usePanelOrder();
   const sidebar = useSidebarLayout();
   const comparison = useComparison();
@@ -60,6 +52,7 @@ export function useCommands(
   const { history, program, insertAt, future, finished, speed, running } = cpu;
   const { historyShown, bytesShown, devicesShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
+  const hasCircuit = computed(page.hasCircuit);
 
   return computed<PaletteCommand[]>(() => [
     { group: 'Program', label: 'Write an instruction', moves: 'focus', run: page.focusBuilder },
@@ -145,6 +138,14 @@ export function useCommands(
       moves: 'scroll',
       run: page.showLastAccess
     },
+    {
+      group: 'CPU',
+      label: 'Show the gates behind the last operation',
+      disabled: !hasCircuit.value,
+      // The logic topic's page takes focus; the palette must not take it back as it closes.
+      moves: 'focus',
+      run: () => showCircuit()
+    },
     ...extra(),
     {
       group: 'Devices',
@@ -184,38 +185,12 @@ export function useCommands(
     })),
     {
       group: 'Preferences',
-      label: isDark.value ? 'Switch to light theme' : 'Switch to dark theme',
-      run: toggleTheme
-    },
-    {
-      group: 'Preferences',
       label: cpuView.value === 'diagram' ? CPU_VIEW_LABELS.table : CPU_VIEW_LABELS.diagram,
       run: () => {
         cpuView.value = cpuView.value === 'diagram' ? 'table' : 'diagram';
       }
     },
-    {
-      group: 'Preferences',
-      label: soundOn.value ? 'Turn sound off' : 'Turn sound on',
-      run: () => {
-        soundOn.value = !soundOn.value;
-      }
-    },
-    // While the system asks for less motion, the app's own setting cannot bring it back.
-    systemReducesMotion.value
-      ? {
-          group: 'Preferences',
-          label: 'Animations are reduced by the system',
-          disabled: true,
-          run: () => {}
-        }
-      : {
-          group: 'Preferences',
-          label: reduceMotion.value ? 'Use full animations' : 'Reduce animations',
-          run: () => {
-            reduceMotion.value = !reduceMotion.value;
-          }
-        },
+    ...app.value,
     // What a narrow screen keeps out of sight: a phone's other views, a tablet's drawer.
     ...(mode.value === 'phone'
       ? PHONE_VIEWS.filter((each) => each !== view.value).map((each) => ({
