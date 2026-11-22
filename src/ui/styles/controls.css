@@ -72,13 +72,13 @@
   }
 
   /*
-   * Switches that are each on or off (the panels of the bottom bar), joined into one control.
-   * One that is on is filled, with a line of the pointer colour under it.
+   * Switches that are each on or off (the panels of the bottom bar), side by side with a gap:
+   * one that is on is a filled pill with a 3:1 hairline, one that is off is its name alone. Never
+   * joined by shared borders, which made an off switch between two on ones look sunken.
    */
   .toggle-group {
     display: inline-flex;
-    border-radius: var(--radius-lg);
-    box-shadow: inset 0 0 0 1px var(--input);
+    gap: 0.25rem;
   }
 
   /* The bar that drives the program: part of the shell, with nothing of the page behind it. */
@@ -157,17 +157,7 @@
 }
 
 .toggle-group > button {
-  border-radius: 0;
   color: var(--muted-foreground);
-}
-.toggle-group > button:first-child {
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
-}
-.toggle-group > button:last-child {
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-}
-.toggle-group > button + button {
-  border-left: 1px solid var(--input);
 }
 .toggle-group > button:hover {
   color: var(--foreground);
@@ -178,7 +168,7 @@
 }
 /* Not while focused: the focus ring is a box shadow too, and it matters more. */
 .toggle-group > button[aria-pressed='true']:not(:focus-visible) {
-  box-shadow: inset 0 -2px 0 var(--foreground);
+  box-shadow: inset 0 0 0 1px var(--wire);
 }
 
 /*
