@@ -95,6 +95,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   program run to its end, which running it again brings back.
 - When the program has ended, **Step** becomes **Run again**: it resets the CPU and runs the
   program from its first line. The buttons that are off say why when you point at them.
+- The bar has keys of its own: **F10** steps a line and **F8** runs or pauses, wherever the focus
+  is; **Ctrl+Z** undoes the last instruction and **Ctrl+Shift+Z** (or Ctrl+Y) redoes it (Cmd on
+  a Mac), except while a field holds text you typed, where they undo the typing. The command
+  palette shows each shortcut beside its command.
 - Each program line has **Edit** (the pencil, or the **⋯** menu on a touch screen): the line goes
   back into the instruction box, **Enter** or **Replace** puts the changed instruction in its
   place, and **Esc** or **Cancel** leaves the line as it was. The **⋯** menu also moves a line up
@@ -409,6 +413,10 @@ npm run verify:6502 # check the 6502 core against py65
   כשכל ההיסטוריה היא התוכנית שרצה עד סופה, כי הרצה חוזרת מחזירה אותה.
 - כשהתוכנית הסתיימה, **Step** הופך ל-**Run again**: הוא מאפס את ה-CPU ומריץ את התוכנית מהשורה
   הראשונה. הכפתורים הכבויים אומרים למה כשמצביעים עליהם.
+- לסרגל יש מקשים משלו: **F10** מריץ שורה אחת ו-**F8** מריץ או עוצר, בכל מקום שהמיקוד נמצא בו;
+  **Ctrl+Z** מבטל את ההוראה האחרונה ו-**Ctrl+Shift+Z** (או Ctrl+Y) מחזיר אותה (Cmd ב-Mac), חוץ
+  מאשר כששדה מחזיק טקסט שהקלדת, ושם הם מבטלים את ההקלדה. פלטת הפקודות מציגה כל קיצור ליד
+  הפקודה שלו.
 - לכל שורת תוכנית יש **Edit** (העיפרון, או תפריט **⋯** במסך מגע): השורה חוזרת לתיבת ההוראה,
   **Enter** או **Replace** שמים את ההוראה המתוקנת במקומה, ו-**Esc** או **Cancel** משאירים את
   השורה כמו שהייתה. תפריט **⋯** גם מזיז שורה למעלה או למטה, וכך גם Alt+Up ו-Alt+Down כשהמיקוד על
