@@ -14,8 +14,28 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     />
+    <script>
+      // The theme and motion chosen last time, set before the first paint so the opening
+      // animation (and the app) start in them. usePreferences.ts owns both from then on.
+      try {
+        const root = document.documentElement;
+        if (localStorage.getItem('vueuse-color-scheme') === 'dark') root.classList.add('dark');
+        if (localStorage.getItem('8086-reduce-motion') === 'true') root.dataset.motion = 'reduced';
+      } catch {}
+    </script>
   </head>
   <body>
+    <!-- The opening animation, drawn by src/ui/styles/splash.css and removed by src/ui/splash.ts. -->
+    <div id="splash" class="splash" aria-hidden="true">
+      <div class="splash-chip">
+        <span class="splash-pins splash-pins-side"></span>
+        <span class="splash-pins splash-pins-end"></span>
+        <span class="splash-lid">
+          <span class="splash-dot"></span>
+          <span class="splash-label" data-label="CPU"></span>
+        </span>
+      </div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

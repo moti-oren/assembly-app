@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
+import { dismissSplash } from './ui/splash';
 import { useAppError } from './ui/useAppError';
 import './ui/styles.css';
 
@@ -11,3 +12,4 @@ app.config.errorHandler = reportAppError;
 window.addEventListener('error', (event) => reportAppError(event.error ?? event.message));
 window.addEventListener('unhandledrejection', (event) => reportAppError(event.reason));
 app.mount('#app');
+dismissSplash();
