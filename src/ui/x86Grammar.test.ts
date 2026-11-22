@@ -129,6 +129,15 @@ describe('X86_GRAMMAR', () => {
     expect(X86_GRAMMAR.hasMore([mov, ax, five])).toBe(false);
   });
 
+  it('shows a typed immediate in its other base, with its size', () => {
+    const hintOf = (typed: number) =>
+      X86_GRAMMAR.options([mov, ax], { ...context, typed }).find((option) => option.key === 'imm')
+        ?.hint;
+    expect(hintOf(5)).toBe('= 0005h, 16-bit immediate');
+    expect(hintOf(-5)).toBe('= FFFBh, 16-bit immediate');
+    expect(hintOf(65)).toBe('= 65, 16-bit immediate');
+  });
+
   it('works out its options from the words chosen so far', () => {
     const offered = X86_GRAMMAR.options([mov, ax], { ...context, typed: 5 });
     expect(offered.map((option) => option.label)).toContain('5');
