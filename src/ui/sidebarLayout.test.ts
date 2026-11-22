@@ -64,8 +64,8 @@ describe('sectionStyle', () => {
     expect(open['--section-max']).toBe('max-content');
   });
 
-  it('keeps the builder tall enough for its input and buttons', () => {
-    expect(sectionStyle('builder', false, 100)['--section-min']).toBe('208px');
+  it('keeps the builder tall enough for its input, a row of choices and its buttons', () => {
+    expect(sectionStyle('builder', false, 100)['--section-min']).toBe('296px');
     expect(sectionStyle('history', false, 100)['--section-min']).toBe('96px');
   });
 });
@@ -81,7 +81,7 @@ describe('leastHeight', () => {
 
   it('gives the other panels their fixed least height', () => {
     expect(leastHeight('history', 40)).toBe(96);
-    expect(leastHeight('builder', 40)).toBe(208);
+    expect(leastHeight('builder', 40)).toBe(296);
   });
 });
 
@@ -97,7 +97,7 @@ describe('resizePair', () => {
   it('stops each panel at its own least height', () => {
     expect(resizePair(program(300), history(200), 500)).toEqual([404, 96]);
     expect(resizePair(program(300), history(200), -500)).toEqual([96, 404]);
-    expect(resizePair({ key: 'builder', height: 300 }, program(200), -500)).toEqual([208, 292]);
+    expect(resizePair({ key: 'builder', height: 300 }, program(200), -500)).toEqual([296, 204]);
   });
 
   it('leaves two panels that are already too small as they are', () => {

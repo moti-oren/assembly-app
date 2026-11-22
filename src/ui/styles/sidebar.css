@@ -141,10 +141,13 @@
     min-height: 0;
     overflow-y: auto;
   }
-  /* The list that takes what room the panel has; it scrolls, the panel around it does not. */
+  /*
+   * The list that takes what room the panel has; it scrolls, the panel around it does not. A
+   * list may name the least it is of use at (--fill-min): below that the panel scrolls instead.
+   */
   .sidebar-section [data-fill] {
     flex: 0 1 auto;
-    min-height: 0;
+    min-height: var(--fill-min, 0px);
     max-height: none;
   }
   .sidebar-sash {

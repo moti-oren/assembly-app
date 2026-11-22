@@ -70,7 +70,7 @@ defineExpose({ focus });
   <div
     ref="box"
     data-loc="builder"
-    class="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 font-mono text-sm transition-[border-color,outline-color] well outline-3 outline-transparent"
+    class="flex min-h-11 shrink-0 cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 font-mono text-sm transition-[border-color,outline-color] well outline-3 outline-transparent"
     :class="
       quiet
         ? 'focus-within:border-foreground/50'

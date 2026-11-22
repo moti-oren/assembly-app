@@ -23,10 +23,10 @@ const DEFAULT_SIZES: Record<SidebarKey, number> = {
 
 /**
  * The least an open panel can be dragged down to: its header and a few rows, and for the
- * builder its input and buttons, which are of no use cut off.
+ * builder its input, a row of its choices and its buttons, which are of no use cut off.
  */
 const MIN_HEIGHTS: Record<SidebarKey, number> = {
-  builder: 208,
+  builder: 296,
   program: 96,
   history: 96,
   encoding: 96
