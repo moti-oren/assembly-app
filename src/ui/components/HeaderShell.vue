@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import { ArrowRightLeft, Ellipsis, MessageSquare, Search, Settings2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { isApple } from '@/ui/platform';
 import { TOPIC_CHOICES, type TopicId } from '@/ui/topics';
 import { useFeedback } from '@/ui/useFeedback';
 import { useLayoutMode } from '@/ui/useLayoutMode';
+import { useSettings } from '@/ui/useSettings';
 import { useTopic } from '@/ui/useTopic';
 import BottomSheet from './BottomSheet.vue';
-import HeaderSettingsItems from './HeaderSettingsItems.vue';
-import SheetSettings from './SheetSettings.vue';
 import TopicSwitch from './TopicSwitch.vue';
 
 defineProps<{
@@ -30,6 +24,7 @@ const menuOpen = defineModel<boolean>('menuOpen', { default: false });
 const mode = useLayoutMode();
 const { topic } = useTopic();
 const feedback = useFeedback();
+const settings = useSettings();
 
 /** The palette opens with Cmd+K on Apple keyboards, Ctrl+K elsewhere. */
 const shortcut = isApple ? '⌘K' : 'Ctrl K';
@@ -43,12 +38,18 @@ function feedbackFromMenu(): void {
   menuOpen.value = false;
   feedback.open.value = true;
 }
+
+/** From a phone's sheet, which closes first: the settings are a dialog of their own. */
+function settingsFromMenu(): void {
+  menuOpen.value = false;
+  settings.open.value = true;
+}
 </script>
 
 <!--
-  The bar every topic has: the name, the topics, the commands and the settings. A topic puts its
-  own switch in `context`, its buttons in `actions`, and on a phone the rows of its sheet: what it
-  does in `menu-actions`, and what it lists under the settings in `menu`.
+  The bar every topic has: the name, the topics, the commands and the way into the settings. A
+  topic puts its own switch in `context`, its buttons in `actions`, and on a phone the rows of its
+  sheet: what it does in `menu-actions`, and what it lists under them in `menu`.
 -->
 <template>
   <!-- Part of the shell, where only the panes scroll. -->
@@ -97,26 +98,21 @@ function feedbackFromMenu(): void {
           >
             <MessageSquare aria-hidden="true" />
           </Button>
-          <DropdownMenu :modal="false">
-            <!-- No tooltip: wrapped around the menu's trigger, it breaks where the menu opens. -->
-            <DropdownMenuTrigger as-child>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                class="pointer-coarse:size-11"
-                aria-label="Settings"
-                title="Settings"
-              >
-                <Settings2 />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" class="w-56">
-              <HeaderSettingsItems />
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            class="pointer-coarse:size-11"
+            aria-label="Settings"
+            title="Settings"
+            aria-haspopup="dialog"
+            data-settings-opener
+            @click="settings.open.value = true"
+          >
+            <Settings2 aria-hidden="true" />
+          </Button>
         </template>
 
-        <!-- A phone has room for one menu: a sheet with the topics, the settings and the topic's own. -->
+        <!-- A phone has room for one menu: a sheet with the topics, the topic's own and the settings. -->
         <template v-else>
           <Button
             variant="ghost"
@@ -127,9 +123,10 @@ function feedbackFromMenu(): void {
             :aria-expanded="menuOpen"
             data-feedback-opener
             data-share-opener
+            data-settings-opener
             @click="menuOpen = true"
           >
-            <Ellipsis />
+            <Ellipsis aria-hidden="true" />
           </Button>
           <BottomSheet v-model:open="menuOpen" title="Menu" :description="menuLabel">
             <div>
@@ -153,9 +150,10 @@ function feedbackFromMenu(): void {
                 <MessageSquare aria-hidden="true" />
                 Send feedback
               </button>
-            </div>
-            <div class="border-t pt-2">
-              <SheetSettings />
+              <button type="button" class="sheet-row" @click="settingsFromMenu">
+                <Settings2 aria-hidden="true" />
+                Settings
+              </button>
             </div>
             <slot name="menu" />
           </BottomSheet>

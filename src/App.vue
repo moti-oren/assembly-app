@@ -24,6 +24,7 @@ import { followed, useCpuMoment } from '@/ui/useCpuMoment';
 import { useFeedback } from '@/ui/useFeedback';
 import { useKeyboardInset } from '@/ui/useKeyboardInset';
 import { usePreferences } from '@/ui/usePreferences';
+import { useSettings } from '@/ui/useSettings';
 import { useShare } from '@/ui/useShare';
 import { useSharedProgram } from '@/ui/useSharedProgram';
 import { useTopic } from '@/ui/useTopic';
@@ -38,6 +39,7 @@ const Mos6502Workbench = defineAsyncComponent(loadMos6502);
 const LogicWorkbench = defineAsyncComponent(() => import('@/ui/components/LogicWorkbench.vue'));
 const CompareDialog = defineAsyncComponent(() => import('@/ui/components/CompareDialog.vue'));
 const FeedbackDialog = defineAsyncComponent(() => import('@/ui/components/FeedbackDialog.vue'));
+const SettingsDialog = defineAsyncComponent(() => import('@/ui/components/SettingsDialog.vue'));
 const ShareDialog = defineAsyncComponent(() => import('@/ui/components/ShareDialog.vue'));
 
 /** Every CPU lives for the whole visit: switching shows the other one as it was left. */
@@ -50,6 +52,7 @@ useKeyboardInset();
 useAppAnalytics();
 const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
 const { wanted: feedbackWanted } = useFeedback();
+const { wanted: settingsWanted } = useSettings();
 const { wanted: shareWanted } = useShare();
 
 /** Opens a task's program on its CPU, from the comparison. */
@@ -122,6 +125,7 @@ watch([architecture, topic], () => {
     </div>
     <CompareDialog v-if="comparisonWanted" v-model:open="comparisonOpen" @load="loadSolution" />
     <FeedbackDialog v-if="feedbackWanted" />
+    <SettingsDialog v-if="settingsWanted" />
     <ShareDialog v-if="shareWanted" :architecture="architecture" :program="shownProgram" />
     <SharedProgramDialog
       :pending="shared.pending.value"
