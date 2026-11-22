@@ -218,7 +218,7 @@ function flip(bit: number): void {
           text at the top, where a terminal starts printing.
         -->
         <div
-          class="device-screen flex h-24 flex-col-reverse overflow-y-auto px-3 py-2.5 max-sm:h-[4.375rem] [scrollbar-color:var(--screen-scrollbar)_transparent]"
+          class="device-screen flex h-24 flex-col-reverse overflow-y-auto px-3 py-2.5 max-sm:h-[4.375rem] [--scrollbar-thumb-hover:var(--screen-scrollbar)] [--scrollbar-thumb:var(--screen-scrollbar)]"
         >
           <pre
             v-if="terminal"
