@@ -24,18 +24,62 @@
         if (theme === 'dark' || (theme === 'auto' && systemDark)) root.classList.add('dark');
         if (localStorage.getItem('8086-reduce-motion') === 'true') root.dataset.motion = 'reduced';
       } catch {}
+      // The opening animation plays once a session, never with reduced motion. ?splash=1 plays
+      // it again (and leaves the address); splash.css hides it when skipped.
+      try {
+        const root = document.documentElement;
+        const url = new URL(location.href);
+        const forced = url.searchParams.get('splash') === '1';
+        if (forced) {
+          url.searchParams.delete('splash');
+          history.replaceState(history.state, '', url);
+        }
+        const calm =
+          root.dataset.motion === 'reduced' ||
+          matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const seen = sessionStorage.getItem('cpu-playground-splash') === 'seen';
+        if (calm || (seen && !forced)) root.dataset.splash = 'skip';
+        else sessionStorage.setItem('cpu-playground-splash', 'seen');
+      } catch {}
     </script>
   </head>
   <body>
-    <!-- The opening animation, drawn by src/ui/styles/splash.css and removed by src/ui/splash.ts. -->
+    <!-- The opening animation, drawn by src/ui/styles/splash.css and moved into the header's mark
+         by src/ui/splash.ts. Its parts are empty until the style sheet arrives. -->
     <div id="splash" class="splash" aria-hidden="true">
+      <div class="splash-backdrop"></div>
       <div class="splash-chip">
-        <span class="splash-pins splash-pins-side"></span>
-        <span class="splash-pins splash-pins-end"></span>
+        <span class="splash-side">
+          <span class="splash-pin"></span>
+          <span class="splash-pin splash-pin-hot"></span>
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+        </span>
+        <span class="splash-side">
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+          <span class="splash-pin splash-pin-hot"></span>
+          <span class="splash-pin"></span>
+        </span>
+        <span class="splash-side">
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+        </span>
+        <span class="splash-side">
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+          <span class="splash-pin"></span>
+        </span>
         <span class="splash-lid">
           <span class="splash-dot"></span>
+          <span class="splash-dot splash-dot-signal"></span>
           <span class="splash-label" data-label="CPU"></span>
+          <span class="splash-sheen"></span>
         </span>
+        <span class="splash-caption" data-label="CPU Playground"></span>
       </div>
     </div>
     <div id="app"></div>
