@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Binary, Cable, CircleHelp, ListOrdered } from '@lucide/vue';
+import { Binary, Cable, CircleHelp, Layers, ListOrdered } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useStackShown } from '@/ui/usePanels';
 import { usePreferences } from '@/ui/usePreferences';
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 }>();
 
 const { prediction } = usePreferences();
+const stackShown = useStackShown();
 
 const toggles = computed(() => [
   {
@@ -41,6 +43,14 @@ const toggles = computed(() => [
     icon: Binary,
     shown: props.bytesShown,
     flip: () => emit('update:bytesShown', !props.bytesShown)
+  },
+  {
+    label: 'Stack',
+    icon: Layers,
+    shown: stackShown.value,
+    flip: () => {
+      stackShown.value = !stackShown.value;
+    }
   },
   {
     label: 'Guess',
@@ -70,7 +80,7 @@ const toggles = computed(() => [
           class="px-2.5 pointer-coarse:h-11 pointer-coarse:min-w-11"
           :class="
             stacked
-              ? 'h-14 min-w-0 flex-col gap-1 border-input px-1 text-xs pointer-coarse:h-14'
+              ? 'h-14 min-w-0 flex-col gap-1 border-input px-1 text-xs last:odd:col-span-2 pointer-coarse:h-14'
               : { 'flex-1': named }
           "
           :aria-label="toggle.label"

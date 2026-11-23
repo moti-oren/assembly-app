@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   historyShown: '8086-history-shown',
   bytesShown: '8086-bytes-shown',
   devicesShown: '8086-devices-shown',
+  stackShown: '8086-stack-shown',
   architecture: '8086-architecture',
   topic: '8086-topic',
   analytics: '8086-analytics',

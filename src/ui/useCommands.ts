@@ -63,7 +63,7 @@ export function useCommands(
   const mode = useLayoutMode();
   const { view, drawerOpen } = useWorkbenchView();
   const { history, program, insertAt, future, finished, speed, running, nextLine } = cpu;
-  const { historyShown, bytesShown, devicesShown } = panels;
+  const { historyShown, bytesShown, devicesShown, stackShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
   const hasCircuit = computed(page.hasCircuit);
   const hasNumbers = computed(page.hasNumbers);
@@ -238,6 +238,13 @@ export function useCommands(
       disabled: !hasControl.value,
       moves: 'focus',
       run: () => showControl()
+    },
+    {
+      group: 'CPU',
+      label: stackShown.value ? 'Hide the stack' : 'Show the stack',
+      run: () => {
+        stackShown.value = !stackShown.value;
+      }
     },
     ...extra(),
     {

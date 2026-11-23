@@ -22,7 +22,9 @@ import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
 import { usePrediction } from '@/ui/usePrediction';
 import { useProgramCode } from '@/ui/useProgramCode';
+import { useStack } from '@/ui/useStack';
 import { useWorkbench } from '@/ui/useWorkbench';
+import { mos6502Stack } from '@/ui/mos6502Stack';
 import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
 import { mos6502Predictor } from '@/ui/mos6502Prediction';
 import AppChrome from './AppChrome.vue';
@@ -40,6 +42,7 @@ import Mos6502Encoding from './Mos6502Encoding.vue';
 import Mos6502Flags from './Mos6502Flags.vue';
 import Mos6502Registers from './Mos6502Registers.vue';
 import SidebarColumn from './SidebarColumn.vue';
+import StackPanel from './StackPanel.vue';
 import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
 import WorkbenchPanes from './WorkbenchPanes.vue';
@@ -110,6 +113,7 @@ const {
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
+const stack = useStack(cpu, mos6502Stack);
 
 const memoryPlaces = mos6502MemoryPlaces(state);
 
@@ -255,6 +259,9 @@ followBuilder(draft);
       </template>
       <template #flags>
         <Mos6502Flags :state="state" :record="lastRecord" :tick="history.length" />
+      </template>
+      <template #stack>
+        <StackPanel :view="stack" @memory="page.showStackTop" />
       </template>
       <template #devices>
         <DevicesPanel :state="state" :access="MOS6502_DEVICE_ACCESS" @input="cpu.setInput" />
