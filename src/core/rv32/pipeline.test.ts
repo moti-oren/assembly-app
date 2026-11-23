@@ -4,6 +4,7 @@ import { RV32 } from './architecture';
 import { EXAMPLE_PROGRAMS } from './examples';
 import type { Instruction } from './instructions';
 import type { Operand } from './operands';
+import { PREDICTORS, type PredictorKind } from './branchPredictor';
 import { pipelineTiming, type PipelineOptions, type PipelineRow } from './pipeline';
 
 const ZERO = 0;
@@ -20,7 +21,8 @@ const line = (mnemonic: Instruction['mnemonic'], ...operands: Operand[]): Instru
 });
 const li = (rd: number, value: number) => line('addi', reg(rd), reg(ZERO), imm(value));
 
-const FORWARDING: PipelineOptions = { forwarding: true };
+const FORWARDING: PipelineOptions = { forwarding: true, predictor: 'not-taken' };
+const NO_FORWARDING: PipelineOptions = { forwarding: false, predictor: 'not-taken' };
 
 function timing(program: Program<Instruction>, options = FORWARDING) {
   const state = RV32.createState();
@@ -84,9 +86,7 @@ describe('pipelineTiming', () => {
   });
 
   it('without forwarding, waits in ID until the value is written back', () => {
-    const result = timing([li(T0, 1), line('add', reg(T1), reg(T0), reg(T0))], {
-      forwarding: false
-    });
+    const result = timing([li(T0, 1), line('add', reg(T1), reg(T0), reg(T0))], NO_FORWARDING);
     expect(shape(result.rows[1])).toBe('IF id id ID EX MEM WB');
     expect(result.rows[1].hazard).toEqual({ register: T0, producer: 0, load: false, cycles: 2 });
     expect(result.rows[1].forwards).toEqual([]);
@@ -107,7 +107,7 @@ describe('pipelineTiming', () => {
   });
 
   it('never waits for x0, which every instruction may name', () => {
-    const result = timing([li(ZERO, 1), li(T0, 2)], { forwarding: false });
+    const result = timing([li(ZERO, 1), li(T0, 2)], NO_FORWARDING);
     expect(result.stallCycles).toBe(0);
   });
 
@@ -120,7 +120,8 @@ describe('pipelineTiming', () => {
       [null, 2, 0],
       [1, 3, null]
     ]);
-    expect(result.rows[0].taken).toBe(true);
+    expect(result.rows[0].flushes).toBe(true);
+    expect(result.rows[0].prediction).toEqual({ guess: false, taken: true });
     expect(result.rows.map(shape)).toEqual(['IF ID EX MEM WB', 'IF ID', 'IF', 'IF ID EX MEM WB']);
     // The branch is in EX in cycle 3; the target is fetched in cycle 4.
     expect(result.rows[3].cycles[0].cycle).toBe(4);
@@ -160,10 +161,97 @@ describe('pipelineTiming', () => {
   it('accounts for every cycle: one per instruction, four to fill, and each stall and flush', () => {
     for (const { name, program } of EXAMPLE_PROGRAMS) {
       for (const forwarding of [true, false]) {
-        const result = timing(program, { forwarding });
-        const expected = result.instructions + 4 + result.stallCycles + result.flushCycles;
-        expect(result.cycles, `${name}, forwarding ${forwarding}`).toBe(expected);
+        for (const predictor of PREDICTORS) {
+          const result = timing(program, { forwarding, predictor });
+          const expected = result.instructions + 4 + result.stallCycles + result.flushCycles;
+          expect(result.cycles, `${name}, forwarding ${forwarding}, ${predictor}`).toBe(expected);
+        }
       }
     }
+  });
+});
+
+describe('pipelineTiming with a branch predictor', () => {
+  const predicting = (predictor: PredictorKind): PipelineOptions => ({
+    forwarding: true,
+    predictor
+  });
+  const taken = [line('beq', reg(ZERO), reg(ZERO), label(3)), li(T0, 1), li(T1, 2), li(T2, 3)];
+  const notTaken = [line('bne', reg(ZERO), reg(ZERO), label(3)), li(T0, 1), li(T1, 2), li(T2, 3)];
+
+  it('fetches the target at once behind a branch guessed taken, and flushes nothing', () => {
+    const result = timing(taken, predicting('taken'));
+    expect(result.rows.map((row) => [row.step, row.line])).toEqual([
+      [0, 0],
+      [1, 3]
+    ]);
+    expect(result.rows[0].flushes).toBe(false);
+    expect(result.rows[1].cycles[0].cycle).toBe(2);
+    expect(result.flushCycles).toBe(0);
+    expect(result.cycles).toBe(6);
+  });
+
+  it('flushes the target and the line after it when a branch guessed taken is not', () => {
+    const result = timing(notTaken, predicting('taken'));
+    expect(result.rows.map((row) => [row.step, row.line, row.flushedBy])).toEqual([
+      [0, 0, null],
+      [null, 3, 0],
+      [null, null, 0],
+      [1, 1, null],
+      [2, 2, null],
+      [3, 3, null]
+    ]);
+    expect(result.rows[0].prediction).toEqual({ guess: true, taken: false });
+    expect(result.flushCycles).toBe(2);
+  });
+
+  it('leaves a jump as it was: it is resolved in EX whatever the predictor', () => {
+    const program = [line('jal', reg(ZERO), label(2)), li(T0, 1), li(T1, 2)];
+    for (const predictor of PREDICTORS) {
+      const result = timing(program, predicting(predictor));
+      expect(result.rows[0].prediction, predictor).toBeNull();
+      expect(result.flushCycles, predictor).toBe(2);
+    }
+  });
+
+  it('counts the branches and the ones guessed wrong', () => {
+    const result = timing(taken, predicting('not-taken'));
+    expect([result.branches, result.mispredicted]).toEqual([1, 1]);
+    expect(timing(taken, predicting('taken')).mispredicted).toBe(0);
+  });
+
+  it('loses less of a loop the more it remembers', () => {
+    // T0 counts 5 down to 0: the branch back is taken four times, then falls through.
+    const loop = [
+      li(T0, 5),
+      li(T0 + 1, 0),
+      line('addi', reg(T0), reg(T0), imm(-1)),
+      line('bne', reg(T0), reg(ZERO), label(2)),
+      li(T2, 1)
+    ];
+    const missed = (predictor: PredictorKind) => timing(loop, predicting(predictor)).mispredicted;
+    expect(missed('not-taken')).toBe(4);
+    expect(missed('taken')).toBe(1);
+    // Both learn on the first pass, and both miss the exit.
+    expect(missed('one-bit')).toBe(2);
+    expect(missed('two-bit')).toBe(2);
+  });
+
+  it('with two bits, misses a loop run twice once less than with one', () => {
+    // The inner loop runs three times, twice over: one bit misses its way back in.
+    const nested = [
+      li(T1, 2),
+      li(T0, 3),
+      line('addi', reg(T0), reg(T0), imm(-1)),
+      line('bne', reg(T0), reg(ZERO), label(2)),
+      line('addi', reg(T1), reg(T1), imm(-1)),
+      line('bne', reg(T1), reg(ZERO), label(1))
+    ];
+    const inner = (predictor: PredictorKind) =>
+      timing(nested, predicting(predictor)).rows.filter(
+        (row) => row.line === 3 && row.prediction && row.prediction.guess !== row.prediction.taken
+      ).length;
+    expect(inner('one-bit')).toBe(4);
+    expect(inner('two-bit')).toBe(3);
   });
 });

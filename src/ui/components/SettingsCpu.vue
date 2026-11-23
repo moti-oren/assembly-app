@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePreferences } from '@/ui/usePreferences';
+import { PREDICTOR_OPTIONS } from '@/ui/rv32Pipeline';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import SettingsChoice from './SettingsChoice.vue';
 import SettingsRow from './SettingsRow.vue';
@@ -43,5 +44,16 @@ const VIEWS = [
     description="RISC-V: the pipeline forwards a result to the instruction behind it. Off, that instruction stalls until write back."
   >
     <SettingsSwitch v-model="pipeline.forwarding.value" v-bind="named" />
+  </SettingsRow>
+  <SettingsRow
+    v-slot="{ named }"
+    label="Branch predictor"
+    description="RISC-V: what the pipeline fetches behind a branch before it decides: always the next lines, always its target, or what the branch did before (1 bit: last time; 2 bits: mostly)."
+  >
+    <SettingsChoice
+      v-model="pipeline.predictor.value"
+      :options="PREDICTOR_OPTIONS"
+      v-bind="named"
+    />
   </SettingsRow>
 </template>

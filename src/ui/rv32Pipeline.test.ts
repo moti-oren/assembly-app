@@ -3,6 +3,7 @@ import { runToEnd, type Program } from '@/core/shared/program';
 import { RV32 } from '@/core/rv32/architecture';
 import type { Instruction } from '@/core/rv32/instructions';
 import type { Operand } from '@/core/rv32/operands';
+import type { PredictorKind } from '@/core/rv32/branchPredictor';
 import { pipelineTiming } from '@/core/rv32/pipeline';
 import { pipelineGrid, pipelineNotes, pipelineSummary } from './rv32Pipeline';
 
@@ -18,9 +19,13 @@ const load = line('lw', reg(T0), { type: 'mem', base: 0, offset: 0 });
 const use = line('add', reg(T1), reg(T0), reg(T0));
 const branchTo = (target: number) => line('beq', reg(0), reg(0), { type: 'label', target });
 
-function timing(program: Program<Instruction>, forwarding = true) {
+function timing(
+  program: Program<Instruction>,
+  forwarding = true,
+  predictor: PredictorKind = 'not-taken'
+) {
   const { records } = runToEnd(RV32, RV32.createState(), program);
-  return pipelineTiming(records, program, { forwarding });
+  return pipelineTiming(records, program, { forwarding, predictor });
 }
 
 describe('pipelineGrid', () => {
@@ -53,6 +58,13 @@ describe('pipelineGrid', () => {
       ['past the end', true]
     ]);
     expect(grid.rows[2].cells[2]).toEqual({ stage: 'IF', kind: 'flushed' });
+  });
+
+  it('marks where a branch decides with whether it was guessed right', () => {
+    const ex = (predictor: PredictorKind) =>
+      pipelineGrid(timing([branchTo(2), li(T0, 1)], true, predictor), 10).rows[0].cells[2];
+    expect(ex('not-taken')).toEqual({ stage: 'EX', kind: 'run', guess: 'wrong' });
+    expect(ex('taken')).toEqual({ stage: 'EX', kind: 'run', guess: 'right' });
   });
 
   it('joins an EX to the stage a result was forwarded from, in the same cycle', () => {
@@ -88,6 +100,8 @@ describe('pipelineGrid', () => {
   });
 });
 
+const FORWARDING = { forwarding: true };
+
 describe('pipelineNotes', () => {
   it('says why an instruction waited, and what a taken branch flushed', () => {
     expect(pipelineNotes(timing([load, use]), 0, { forwarding: true })).toEqual([
@@ -97,8 +111,23 @@ describe('pipelineNotes', () => {
       'L1 (add t1, t0, t0) waits 2 cycles in ID for t0: forwarding is off, so L0 (addi t0, zero, 1) must write it back first.'
     ]);
     expect(pipelineNotes(timing([branchTo(2), li(T0, 1)]), 0, { forwarding: true })).toEqual([
-      'L0 (beq zero, zero, L2) changes PC in EX: the two instructions fetched behind it are flushed.'
+      'L0 (beq zero, zero, L2) was guessed not taken and is taken: the two instructions fetched behind it are flushed.'
     ]);
+  });
+
+  it('says what a branch guessed taken saved, and keeps the old words for a jump', () => {
+    expect(pipelineNotes(timing([branchTo(2), li(T0, 1)], true, 'taken'), 0, FORWARDING)).toEqual([
+      'L0 (beq zero, zero, L2) was guessed taken, and is: its target was fetched behind it, and nothing is flushed.'
+    ]);
+    const jump = line('jal', reg(0), { type: 'label', target: 1 });
+    expect(pipelineNotes(timing([jump]), 0, FORWARDING)).toEqual([
+      'L0 (jal zero, L1) changes PC in EX: the two instructions fetched behind it are flushed.'
+    ]);
+  });
+
+  it('has nothing to say about a branch guessed not taken that is not', () => {
+    const never = line('bne', reg(0), reg(0), { type: 'label', target: 1 });
+    expect(pipelineNotes(timing([never]), 0, FORWARDING)).toEqual([]);
   });
 
   it('gives a load the write-back reason when forwarding is off, since it waits until WB', () => {
@@ -118,7 +147,7 @@ describe('pipelineSummary', () => {
       '6 cycles = 2 instructions + 4 to fill the pipeline · 3.00 cycles per instruction'
     );
     expect(pipelineSummary(timing([load, use, branchTo(4), li(T0, 1), li(T1, 2)]))).toBe(
-      '11 cycles = 4 instructions + 4 to fill the pipeline + 1 stalled + 2 lost to flushes · 2.75 cycles per instruction'
+      '11 cycles = 4 instructions + 4 to fill the pipeline + 1 stalled + 2 lost to flushes · 2.75 cycles per instruction · 0 of 1 branch guessed right'
     );
   });
 
