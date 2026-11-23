@@ -36,7 +36,7 @@ describe('parseAnswer', () => {
 });
 
 describe('grade', () => {
-  const value: Question = { kind: 'value', text: 'add ax, 1', register: 'AX', key: 'ax', bits: 16 };
+  const value: Question = { kind: 'value', text: 'add ax, 1', register: 'AX', bits: 16 };
   const flags: Question = { kind: 'flags', text: 'cmp ax, 1', flags: ['CF', 'ZF'] };
   const branch: Question = { kind: 'branch', text: 'je L3' };
 

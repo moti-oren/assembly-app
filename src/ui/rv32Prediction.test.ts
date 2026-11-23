@@ -114,7 +114,7 @@ describe('on every example program', () => {
         const truth = predictor.truth(question, record, state);
         expect(truth.kind).toBe(question.kind);
         if (truth.kind === 'value' && question.kind === 'value') {
-          expect(truth.value).toBe(readRegister(state, Number(question.key)));
+          expect(truth.value).toBe(readRegister(state, parseRegister(question.register)!));
         }
         if (truth.kind === 'branch') {
           expect(truth.taken).toBe(state.registers.pc !== addressOfLine(record.line! + 1));

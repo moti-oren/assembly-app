@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { nextTick, useId, useTemplateRef, watch } from 'vue';
+import { useId, useTemplateRef } from 'vue';
 import { Check, X } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { promptOf, tallyText, verdict, type Answer, type Tally } from '@/ui/prediction';
-import type { Answered, Asking } from '@/ui/usePrediction';
+import type { Asking } from '@/ui/usePrediction';
+import { usePredictionFocus } from '@/ui/usePredictionFocus';
+import type { Answered } from '@/ui/usePredictionScore';
 import PredictionAnswer from './PredictionAnswer.vue';
 
 const props = defineProps<{
@@ -22,31 +24,7 @@ const emit = defineEmits<{
 
 const bar = useTemplateRef<HTMLElement>('bar');
 const questionId = useId();
-/** What held the focus when the question opened: where it goes back to. */
-let opener: HTMLElement | null = null;
-
-const shown = (element: HTMLElement | null): element is HTMLElement =>
-  element !== null && element.isConnected && element.offsetParent !== null;
-
-// A question takes the focus, so it can be answered from the keyboard that asked for the step;
-// once answered its controls are gone, and the focus they held goes back to where it came from.
-watch(
-  () => props.asking,
-  async (asking) => {
-    const active = document.activeElement;
-    const held = bar.value?.contains(active) ?? false;
-    if (asking && !held) opener = active instanceof HTMLElement ? active : null;
-    await nextTick();
-    if (asking) {
-      bar.value?.querySelector<HTMLElement>('input, button')?.focus();
-    } else if (held && document.activeElement === document.body) {
-      // Nothing else took the focus, as the builder does once its instruction has run.
-      const run = document.querySelector<HTMLElement>('[data-transport-run] button:not(:disabled)');
-      (shown(opener) ? opener : run)?.focus();
-    }
-  },
-  { flush: 'pre' }
-);
+usePredictionFocus(bar, () => props.asking);
 </script>
 
 <!--
