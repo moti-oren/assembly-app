@@ -5,8 +5,9 @@ import { formatInstruction } from '@/core/mos6502/instructions';
 import { Card, CardContent } from '@/components/ui/card';
 import { mos6502AluLink } from '@/core/mos6502AluLink';
 import { aluEquation, equationText } from '@/ui/mos6502Alu';
+import { mos6502NumberLink } from '@/core/mos6502NumberLink';
 import { cyclesBreakdown } from '@/ui/mos6502Explain';
-import TopicLinkButton from './TopicLinkButton.vue';
+import OperationLinks from './OperationLinks.vue';
 
 const props = defineProps<{
   record: ExecutionRecord | null;
@@ -14,6 +15,7 @@ const props = defineProps<{
 
 const equation = computed(() => props.record && aluEquation(props.record));
 const link = computed(() => props.record && mos6502AluLink(props.record));
+const numbers = computed(() => props.record && mos6502NumberLink(props.record));
 const text = computed(() => equation.value && equationText(equation.value));
 </script>
 
@@ -29,7 +31,7 @@ const text = computed(() => equation.value && equationText(equation.value));
           <span class="font-sans text-xs text-muted-foreground">
             {{ equation.destination }}{{ equation.note ? ` (${equation.note})` : '' }}
           </span>
-          <TopicLinkButton v-if="link" :link="link" />
+          <OperationLinks v-if="link && numbers" :alu="link" :numbers="numbers" />
         </span>
         <span v-else class="ml-auto font-sans text-xs text-muted-foreground">
           The ALU was not used.

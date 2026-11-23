@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { onActivated, onMounted, ref, useTemplateRef } from 'vue';
+import { Binary } from '@lucide/vue';
+import type { AluLink } from '@/core/aluLink';
 import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
 import { circuitLesson, circuitTitle, FREE_OPERATIONS, WIDTHS } from '@/ui/logicView';
 import { useLogicCommands } from '@/ui/useLogicCommands';
 import { useLogicLens } from '@/ui/useLogicLens';
+import { useTopic } from '@/ui/useTopic';
 import AppErrorNotice from './AppErrorNotice.vue';
 import ArchitectureSwitch from './ArchitectureSwitch.vue';
 import CommandPalette from './CommandPalette.vue';
@@ -18,7 +21,7 @@ import LogicSlice from './LogicSlice.vue';
 
 const props = defineProps<{
   /** The CPU on show in the CPU topic, at the instruction it ran last. */
-  moment: CpuMoment;
+  moment: CpuMoment<AluLink>;
 }>();
 const emit = defineEmits<{
   /** Move the CPU through its history, to the instruction to show. */
@@ -27,6 +30,7 @@ const emit = defineEmits<{
 }>();
 
 const lens = useLogicLens(() => props.moment.link);
+const { topic } = useTopic();
 const paletteOpen = ref(false);
 
 // The control that opened this page is gone with the page it was on: focus starts here instead.
@@ -127,11 +131,17 @@ const commands = useLogicCommands(lens, () => props.moment, {
         <LogicFlags :lens="lens" />
       </div>
 
-      <p class="max-w-prose border-t pt-4 text-xs text-pretty text-muted-foreground">
-        These are the simplest circuits that work out the same bits. A real chip uses faster ones,
-        such as an adder that does not wait for its carry to ripple, but every wire you see here
-        carries the value the CPU computed.
-      </p>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-4">
+        <p class="max-w-prose min-w-0 flex-1 basis-64 text-xs text-pretty text-muted-foreground">
+          These are the simplest circuits that work out the same bits. A real chip uses faster ones,
+          such as an adder that does not wait for its carry to ripple, but every wire you see here
+          carries the value the CPU computed.
+        </p>
+        <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="topic = 'numbers'">
+          <Binary />
+          What it means as numbers
+        </Button>
+      </div>
     </div>
   </main>
 </template>

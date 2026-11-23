@@ -2,13 +2,15 @@
 import { computed } from 'vue';
 import { formatInstruction } from '@/core/x86/instructions';
 import { x86AluLink } from '@/core/x86AluLink';
+import { x86NumberLink } from '@/core/x86NumberLink';
 import type { CpuDiagramModel } from '@/ui/useCpuDiagram';
 import DiagramWire from './DiagramWire.vue';
-import TopicLinkButton from './TopicLinkButton.vue';
+import OperationLinks from './OperationLinks.vue';
 
 const props = defineProps<{ model: CpuDiagramModel }>();
 
 const link = computed(() => props.model.shown && x86AluLink(props.model.shown));
+const numbers = computed(() => props.model.shown && x86NumberLink(props.model.shown));
 </script>
 
 <template>
@@ -62,7 +64,7 @@ const link = computed(() => props.model.shown && x86AluLink(props.model.shown));
               : `into ${model.equation.destination}`
           }}
         </span>
-        <TopicLinkButton v-if="link" class="ml-auto" :link="link" />
+        <OperationLinks v-if="link && numbers" class="ml-auto" :alu="link" :numbers="numbers" />
       </div>
       <div v-else class="mt-1.5 flex items-baseline gap-x-3 font-mono text-code">
         <span class="standby shrink-0" aria-hidden="true">---- op ---- = ----</span>

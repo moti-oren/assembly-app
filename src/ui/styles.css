@@ -7,6 +7,7 @@
 @import './styles/diagram.css';
 @import './styles/devices.css';
 @import './styles/logic.css';
+@import './styles/numbers.css';
 @import './styles/splash.css';
 
 @custom-variant dark (&:is(.dark *));
