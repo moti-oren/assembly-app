@@ -1,0 +1,106 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { Button } from '@/components/ui/button';
+import { cellDiagram } from '@/ui/storageDiagram';
+import { CELL_INPUTS, CELL_LESSONS, cellLabel, CELLS, UNSETTLED } from '@/ui/storageView';
+import type { StorageLens } from '@/ui/useStorageLens';
+import LogicDiagram from './LogicDiagram.vue';
+
+const props = defineProps<{ lens: StorageLens }>();
+
+const cell = computed(() => props.lens.cell);
+const kind = computed(() => cell.value.cell.value);
+const free = computed(() => cell.value.free.value);
+const diagram = computed(() => cellDiagram(kind.value, props.lens.bit.value));
+/** The wires drawn: the hand-worked cell's own, or the register's at this moment of its cycle. */
+const signals = computed(() => (free.value ? cell.value.signals.value : props.lens.signals.value));
+/** Whether the cell worked by hand never came to rest. */
+const unsettled = computed(() => free.value !== null && !cell.value.settled.value);
+const heading = computed(() =>
+  free.value ? cellLabel(kind.value) : `Bit ${props.lens.bit.value} of the register`
+);
+</script>
+
+<!-- One memory cell gate by gate: the register's own bit, or a simpler cell to work by hand. -->
+<template>
+  <section aria-label="One memory cell">
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <h3 class="text-sm font-semibold">{{ heading }}, gate by gate</h3>
+      <!-- Four choices are wider than a phone: there the row scrolls sideways. -->
+      <div class="scroll-fade-x flex max-w-full overflow-x-auto p-px">
+        <div class="toggle-group w-max shrink-0" role="group" aria-label="Memory cell">
+          <Button
+            v-for="choice in CELLS"
+            :key="choice.id"
+            variant="ghost"
+            size="sm"
+            class="h-7 px-2.5 text-xs pointer-coarse:h-11"
+            :aria-pressed="kind === choice.id"
+            @click="cell.pick(choice.id)"
+          >
+            {{ choice.label }}
+          </Button>
+        </div>
+      </div>
+    </div>
+    <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+      {{ CELL_LESSONS[kind] }}
+    </p>
+
+    <div
+      v-if="free"
+      class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 [--cell-height:2.25rem] [--cell:2.25rem] pointer-coarse:[--cell-height:2.75rem] pointer-coarse:[--cell:2.75rem]"
+      role="group"
+      aria-label="The cell’s inputs"
+    >
+      <span
+        v-for="input in CELL_INPUTS[free]"
+        :key="input.signal"
+        class="flex items-center gap-2 text-xs font-medium"
+      >
+        {{ input.label }}
+        <button
+          type="button"
+          class="logic-bit"
+          :data-on="cell.inputs.value[input.signal] ? '' : undefined"
+          :aria-pressed="cell.inputs.value[input.signal] === 1"
+          :aria-label="`${input.label}: ${cell.inputs.value[input.signal]}`"
+          @click="cell.flipInput(input.signal)"
+        >
+          {{ cell.inputs.value[input.signal] }}
+        </button>
+      </span>
+      <Button
+        v-if="cell.bothHeld.value"
+        variant="outline"
+        size="sm"
+        class="pointer-coarse:h-11"
+        @click="cell.releaseAll()"
+      >
+        Let go of both at once
+      </Button>
+      <span v-else class="text-xs text-muted-foreground">Press an input to flip it.</span>
+    </div>
+    <p v-else class="mt-3 text-xs text-muted-foreground">
+      Its inputs are the rows above and the clock button. Pick another bit in the row of cells.
+    </p>
+    <!-- The region is always there, so a screen reader hears the message when it is filled. -->
+    <p
+      class="max-w-prose text-sm text-pretty"
+      :class="unsettled ? 'mt-3 rounded-md border border-foreground/40 px-3 py-2' : ''"
+      role="status"
+    >
+      {{ unsettled ? UNSETTLED : '' }}
+    </p>
+
+    <LogicDiagram
+      class="mt-3"
+      :diagram="diagram"
+      :signals="signals"
+      :chosen="cell.gate.value"
+      :label="heading"
+      :written="!free && lens.written.value"
+      @choose="cell.chooseGate"
+    />
+  </section>
+</template>

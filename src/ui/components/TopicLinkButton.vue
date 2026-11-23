@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Binary, CircuitBoard } from '@lucide/vue';
+import { Binary, CircuitBoard, MemoryStick } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { LinkedTopic } from '@/ui/topics';
@@ -13,7 +13,7 @@ defineProps<{
   unavailable: string | null;
 }>();
 
-const { showCircuit, showNumbers } = useTopic();
+const { showCircuit, showNumbers, showStorage } = useTopic();
 
 const LINKS = {
   logic: {
@@ -29,6 +29,13 @@ const LINKS = {
     open: showNumbers,
     title: 'show what this means as numbers',
     none: 'No numbers to show'
+  },
+  storage: {
+    label: 'Stored',
+    icon: MemoryStick,
+    open: showStorage,
+    title: 'show the flip-flops that keep what was written',
+    none: 'No register to show'
   }
 };
 </script>

@@ -22,5 +22,11 @@ export const useTopic = createGlobalState(() => {
     topic.value = 'numbers';
   }
 
-  return { topic, showCircuit, showNumbers };
+  /** Opens the registers the last instruction of the CPU on show wrote, as flip-flops. */
+  function showStorage(): void {
+    analytics.track({ name: 'storage-opened', architecture: usePreferences().architecture.value });
+    topic.value = 'storage';
+  }
+
+  return { topic, showCircuit, showNumbers, showStorage };
 });

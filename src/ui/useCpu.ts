@@ -32,8 +32,17 @@ export function useCpu<
 >(architecture: Architecture<Instruction, State, Record>) {
   // The state holds no refs, so the reactive proxy has the same shape as the state itself.
   const state = reactive(architecture.createState()) as State;
-  const { history, lastRecord, lastAfter, lastWrites, future, memoryHeat, record, ...timeline } =
-    useCpuHistory<Record>(state);
+  const {
+    history,
+    lastRecord,
+    afterOf,
+    lastAfter,
+    lastWrites,
+    future,
+    memoryHeat,
+    record,
+    ...timeline
+  } = useCpuHistory<Record>(state);
   const {
     program,
     source: programSource,
@@ -171,6 +180,7 @@ export function useCpu<
     lastLineMove,
     insertAt,
     lastRecord,
+    afterOf,
     lastAfter,
     lastWrites,
     future,
