@@ -8,9 +8,10 @@
     align-items: baseline;
     gap: 0 0.5rem;
     white-space: nowrap;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--sublabel-gap);
     font-size: 0.75rem;
     font-weight: 600;
+    line-height: 1rem;
   }
   .device-port {
     color: var(--muted-foreground);

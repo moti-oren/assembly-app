@@ -109,11 +109,11 @@ const GROUP_START: WordRegister = 'ip';
     <!-- The segment drops down into the adder; the offset comes in off the internal bus. -->
     <DiagramWire
       vertical
-      class="ml-[calc(50%+0.625rem)] hidden h-auto min-h-3 flex-1 sm:block"
+      class="ml-[calc(50%+0.625rem)] hidden h-auto min-h-6 flex-1 sm:block"
       :kind="model.adderKind"
       :tick="model.pulse"
     />
-    <div class="mt-3 flex items-center sm:mt-0">
+    <div class="mt-6 flex items-center sm:mt-0">
       <DiagramWire class="hidden w-5 sm:block" :kind="model.adderKind" :tick="model.pulse" />
       <!--
         The sum is laid out whether or not there is one to show: without an address its numbers

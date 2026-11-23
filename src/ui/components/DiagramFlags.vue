@@ -21,7 +21,7 @@ defineProps<{
   />
 
   <!-- Nine in a row only where the diagram is wide; on a phone they take two rows. -->
-  <div class="mt-3 grid grid-cols-5 gap-1 sm:mt-0 sm:mr-5 sm:grid-cols-9">
+  <div class="mt-3 grid grid-cols-5 gap-1.5 sm:mt-0 sm:mr-5 sm:grid-cols-9">
     <TapTooltip v-for="flag in FLAG_NAMES" :key="flag" v-slot="{ toggle }">
       <TooltipTrigger as-child>
         <div
