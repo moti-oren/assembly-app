@@ -24,17 +24,23 @@ export interface MomentSource<Record, Link> {
   link: (record: Record) => Link;
   /** Whether the topic has something to show for a link, or only a reason why not. */
   shows: (link: Link) => boolean;
+  /**
+   * The same question asked of a record, for a caller that remembers the answers: the steps are
+   * found by asking it of the whole history.
+   */
+  has?: (record: Record) => boolean;
 }
 
 export function momentOf<Record, Link>(source: MomentSource<Record, Link>): CpuMoment<Link> {
   const { history, future, link, shows } = source;
+  const has = source.has ?? ((record: Record) => shows(link(record)));
   const position = history.length;
   const last = history.at(-1);
   let previous: number | null = null;
   for (let at = position - 1; at >= 1 && previous === null; at--) {
-    if (shows(link(history[at - 1]))) previous = at;
+    if (has(history[at - 1])) previous = at;
   }
-  const ahead = future.findIndex((record) => shows(link(record)));
+  const ahead = future.findIndex(has);
   return {
     cpu: source.cpu,
     position,

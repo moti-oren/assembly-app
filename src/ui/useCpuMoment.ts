@@ -22,12 +22,25 @@ export interface FollowedCpu<Link> {
   seek: (position: number) => void;
 }
 
-/** Makes a CPU followable: how its instructions are written, and where each leads. */
-export function followed<Record, Link>(
+/**
+ * Makes a CPU followable: how its instructions are written, and where each leads. Whether a
+ * record has something to show never changes, so it is worked out once: finding the steps asks
+ * it of the whole history each time the CPU moves.
+ */
+export function followed<Record extends object, Link>(
   cpu: Timeline<Record>,
   format: (record: Record) => string,
   linker: TopicLinker<Record, Link>
 ): FollowedCpu<Link> {
+  const known = new WeakMap<Record, boolean>();
+  const has = (record: Record): boolean => {
+    let answer = known.get(record);
+    if (answer === undefined) {
+      answer = linker.shows(linker.link(record));
+      known.set(record, answer);
+    }
+    return answer;
+  };
   return {
     moment: (name) =>
       momentOf({
@@ -35,7 +48,8 @@ export function followed<Record, Link>(
         history: cpu.history.value,
         future: cpu.future.value,
         format,
-        ...linker
+        ...linker,
+        has
       }),
     seek: cpu.seek
   };
