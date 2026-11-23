@@ -1,7 +1,8 @@
 /*
  * The opening animation: the app's mark, drawn large on the bare page while the app loads. Its
- * markup is in index.html, so it paints before Vue; splash.ts fades it out once the app has
- * mounted. The parts are empty elements, so before this sheet arrives there is nothing to see.
+ * markup is in index.html, so it paints before Vue; once the app has mounted, splash.ts moves it
+ * into the header's mark. Everything here plays from the first paint and ends with the chip
+ * complete at 560ms; the move is splash.ts's. Only transform and opacity are animated.
  *
  * The chip is the header's .die-mark drawn large: its shape (the --die-* sizes) is set in
  * controls.css for both. Only the label is its own size, as it has three letters to fit.
@@ -9,30 +10,40 @@
 
 @layer components {
   .splash {
+    --splash-ease: cubic-bezier(0.22, 1, 0.36, 1);
     position: fixed;
     inset: 0;
     z-index: 100;
     display: grid;
     place-items: center;
-    background: var(--background);
     /* It is only a picture: clicks and keys reach the app beneath from the first frame. */
     pointer-events: none;
-    transition: opacity 180ms ease-out;
     /* Should the app never mount, the page does not stay hidden behind it. */
     animation: splash-expire 300ms 8s forwards;
   }
-  .splash.splash-out {
-    opacity: 0;
+  /* Its own layer, so the page shows through it while the chip is still moving. */
+  .splash-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--background);
+  }
+  /* Played once a session, and never with reduced motion: the script in index.html decides. */
+  :root[data-splash='skip'] .splash,
+  :root[data-motion='reduced'] .splash {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .splash {
+      display: none;
+    }
   }
 
   .splash-chip {
     /* About a third of a phone's width, and at most 9.75rem across on a large screen. */
     --die-u: clamp(0.1875rem, 1.2vmin, 0.375rem);
     position: relative;
-    isolation: isolate;
     width: var(--die-size);
     height: var(--die-size);
-    animation: splash-settle 360ms cubic-bezier(0.3, 0, 0.2, 1) 560ms both;
   }
 
   .splash-lid {
@@ -42,7 +53,54 @@
     place-items: center;
     border-radius: var(--die-radius);
     background: var(--die-lid);
-    animation: splash-lid-in 320ms cubic-bezier(0.2, 0, 0, 1) both;
+    animation: splash-lid-in 140ms var(--splash-ease) both;
+  }
+
+  /*
+   * The pins of one side, laid along the top edge and turned a quarter for each side after it,
+   * so all four draw out together. Each pin is twice as long as what shows: the rest is under
+   * the lid, which is drawn after them.
+   */
+  .splash-side {
+    position: absolute;
+    inset: 0;
+  }
+  .splash-side:nth-child(2) {
+    rotate: 90deg;
+  }
+  .splash-side:nth-child(3) {
+    rotate: 180deg;
+  }
+  .splash-side:nth-child(4) {
+    rotate: 270deg;
+  }
+  .splash-pin {
+    --i: 0;
+    position: absolute;
+    top: calc(-1 * var(--die-pin-out));
+    left: calc(var(--die-pin-inset) + var(--i) * var(--die-pin-period));
+    width: var(--die-pin-width);
+    height: calc(2 * var(--die-pin-out));
+    background: var(--die-pin);
+    animation: splash-pin-out 120ms var(--splash-ease) calc(140ms + var(--i) * 40ms) both;
+  }
+  .splash-pin:nth-child(2) {
+    --i: 1;
+  }
+  .splash-pin:nth-child(3) {
+    --i: 2;
+  }
+  .splash-pin:nth-child(4) {
+    --i: 3;
+  }
+  /* One clock tick once the chip is whole: a read lights the dot, then a write two pins. */
+  .splash-pin-hot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--written);
+    opacity: 0;
+    animation: splash-tick 160ms ease-out 400ms both;
   }
 
   .splash-dot {
@@ -53,7 +111,12 @@
     height: calc(2 * var(--die-dot-radius));
     border-radius: 9999px;
     background: var(--die-dot-fill);
-    animation: splash-pop 240ms cubic-bezier(0.3, 0, 0.2, 1.4) 640ms both;
+    animation: splash-appear 120ms var(--splash-ease) 380ms both;
+  }
+  .splash-dot-signal {
+    background: var(--pointer);
+    opacity: 0;
+    animation: splash-tick 160ms ease-out 380ms both;
   }
 
   .splash-label {
@@ -63,98 +126,62 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
-    animation: splash-label-in 300ms cubic-bezier(0.2, 0, 0, 1) 760ms both;
-  }
-  .splash-label::after {
-    content: attr(data-label);
+    animation: splash-rise 120ms var(--splash-ease) 380ms both;
   }
 
-  /* Each strip runs under the lid; only its pins' ends show past each side. */
-  .splash-pins {
+  /* The name under the chip: it comes with the label and leaves as the chip starts to move. */
+  .splash-caption {
     position: absolute;
-    z-index: -1;
+    top: calc(100% + 6 * var(--die-u));
+    left: 50%;
+    translate: -50% 0;
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    animation: splash-appear 120ms var(--splash-ease) 380ms both;
   }
-  .splash-pins-side {
-    inset: var(--die-pin-inset) calc(-1 * var(--die-pin-out));
-    background: repeating-linear-gradient(
-      to bottom,
-      var(--die-pin) 0 var(--die-pin-width),
-      transparent var(--die-pin-width) var(--die-pin-period)
-    );
-    animation: splash-pins-side 440ms cubic-bezier(0.2, 0, 0, 1) 180ms both;
-  }
-  .splash-pins-end {
-    inset: calc(-1 * var(--die-pin-out)) var(--die-pin-inset);
-    background: repeating-linear-gradient(
-      to right,
-      var(--die-pin) 0 var(--die-pin-width),
-      transparent var(--die-pin-width) var(--die-pin-period)
-    );
-    animation: splash-pins-end 440ms cubic-bezier(0.2, 0, 0, 1) 260ms both;
-  }
-
-  /* Reduced motion: the finished mark, still, until the app is there (splash.ts removes it). */
-  @media (prefers-reduced-motion: reduce) {
-    .splash-chip,
-    .splash-chip * {
-      animation: none;
-    }
-  }
-  :root[data-motion='reduced'] {
-    .splash-chip,
-    .splash-chip * {
-      animation: none;
-    }
+  .splash-label::after,
+  .splash-caption::after {
+    content: attr(data-label);
   }
 }
 
 @keyframes splash-lid-in {
   from {
     opacity: 0;
-    scale: 0.9;
+    scale: 0.94;
   }
 }
 
-/* Pin by pin, top to bottom, sliding out from under the lid. */
-@keyframes splash-pins-side {
-  from {
-    clip-path: inset(0 0 100% 0);
-    scale: 0.82 1;
-  }
-  to {
-    clip-path: inset(0);
-    scale: 1;
-  }
-}
-@keyframes splash-pins-end {
-  from {
-    clip-path: inset(0 100% 0 0);
-    scale: 1 0.82;
-  }
-  to {
-    clip-path: inset(0);
-    scale: 1;
-  }
-}
-
-@keyframes splash-settle {
-  45% {
-    scale: 1.045;
-  }
-}
-
-@keyframes splash-pop {
+/* From under the lid out past its edge. */
+@keyframes splash-pin-out {
   from {
     opacity: 0;
-    scale: 0;
+    transform: translateY(var(--die-pin-out));
   }
 }
 
-@keyframes splash-label-in {
+@keyframes splash-appear {
   from {
     opacity: 0;
-    translate: 0 calc(1.5 * var(--die-u));
-    letter-spacing: 0.2em;
+  }
+}
+
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(1.5 * var(--die-u)));
+  }
+}
+
+@keyframes splash-tick {
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 

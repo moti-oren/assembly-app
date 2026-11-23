@@ -60,7 +60,13 @@ function settingsFromMenu(): void {
       <!-- A phone needs the room for the buttons: the name goes first, then on the narrowest the mark. -->
       <!-- Below a desktop it is the mark alone, which keeps its width in a crowded bar. -->
       <div class="flex min-w-0 items-center gap-2.5 max-lg:shrink-0">
-        <div class="die-mark hidden shrink-0 min-[25rem]:grid" aria-hidden="true">{{ badge }}</div>
+        <div
+          class="die-mark hidden shrink-0 min-[25rem]:grid"
+          aria-hidden="true"
+          data-splash-target
+        >
+          {{ badge }}
+        </div>
         <h1 class="truncate text-sm font-semibold tracking-tight max-lg:sr-only">CPU Playground</h1>
       </div>
       <!-- A phone has no room for two switches: there the topics are in the menu. -->
