@@ -100,6 +100,18 @@ function sameLines(a: Program<unknown>, b: Program<unknown>): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/**
+ * How many lines at the top of `program` are the challenge's given ones, which an editor keeps as
+ * they are: all of them, or none once the program no longer starts with them.
+ */
+export function keptGiven(
+  challenge: { readonly cases: readonly { readonly given: Program<unknown> }[] },
+  program: Program<unknown>
+): number {
+  const given = challenge.cases[0].given;
+  return sameLines(program.slice(0, given.length), given) ? given.length : 0;
+}
+
 /** A count with its noun: `1 line`, `3 lines`. */
 export const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
@@ -161,7 +173,7 @@ export function checkChallenge<Instruction extends ChallengeInstruction, State>(
   program: Program<Instruction>
 ): ChallengeResult {
   const given = givenLines(challenge);
-  const givenKept = sameLines(program.slice(0, given.length), given);
+  const givenKept = keptGiven(challenge, program) === given.length;
   const own = givenKept ? program.slice(given.length) : program;
   const met = challenge.goals.map(() => givenKept);
   let error: string | null = null;

@@ -17,7 +17,7 @@ export function givenNote(given: number): string | null {
   if (given === 0) return null;
   const which =
     given === 1 ? `${formatLabel(0)} is` : `${formatLabel(0)} to ${formatLabel(given - 1)} are`;
-  return `${which} given: write under ${given === 1 ? 'it' : 'them'}, and leave ${given === 1 ? 'it' : 'them'} as ${given === 1 ? 'it is' : 'they are'}.`;
+  return `${which} given, and locked: write under ${given === 1 ? 'it' : 'them'}.`;
 }
 
 /**

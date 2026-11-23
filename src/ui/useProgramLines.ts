@@ -13,6 +13,7 @@ import {
   type ProgramInstruction
 } from '@/core/shared/program';
 import type { CpuState } from '@/core/shared/state';
+import { canChange, canMove, insertionAfterLock } from './programLock';
 import { readStoredProgram, writeStoredProgram } from './programStorage';
 
 /** Where a loaded program came from: an example, or a task of the comparison. */
@@ -24,7 +25,9 @@ export interface ProgramSource {
 /**
  * The program's lines and where new ones go. Editing keeps the instruction pointer on the line
  * it pointed at, and calls `onEdit`, since an edited program can no longer redo what was undone.
- * `hasRun` says whether lines of the program have run and are still in the history.
+ * `hasRun` says whether lines of the program have run and are still in the history. `lockedIn`
+ * says how many lines at the top of a program are not the user's to change (a challenge's given
+ * lines): they are not edited, moved or removed, and nothing is put above or between them.
  */
 export function useProgramLines<
   Instruction extends ProgramInstruction,
@@ -34,7 +37,8 @@ export function useProgramLines<
   architecture: Architecture<Instruction, State, Record>,
   state: State,
   onEdit: () => void,
-  hasRun: () => boolean
+  hasRun: () => boolean,
+  lockedIn: (program: readonly Instruction[]) => number = () => 0
 ) {
   const program: ShallowRef<Instruction[]> = shallowRef([]);
   /** The line being edited in the builder, which replaces it; null when none is. */
@@ -74,11 +78,15 @@ export function useProgramLines<
     architecture.setNextLine(state, 0, lines);
   }
 
+  /** How many lines at the top of the program are locked. */
+  const locked = computed(() => lockedIn(program.value));
+
   /** Line that new program lines are inserted before; null means "append at the end". */
   const insertAt = ref<number | null>(null);
 
   /** Adds lines one after another at the insertion point, e.g. the two lines of a RISC-V `li`. */
   function addToProgram(instructions: readonly Instruction[]): void {
+    insertAt.value = insertionAfterLock(insertAt.value, locked.value);
     for (const instruction of instructions) {
       const index = insertAt.value ?? program.value.length;
       // A line added at the end moves no other line.
@@ -95,6 +103,7 @@ export function useProgramLines<
   }
 
   function removeProgramLine(index: number): void {
+    if (!canChange(index, locked.value)) return;
     edit(removeLine(program.value, index), (next) => lineAfterRemove(next, index));
     if (insertAt.value !== null && insertAt.value > index) {
       insertAt.value--;
@@ -104,6 +113,7 @@ export function useProgramLines<
   /** Puts `instructions` in place of line `index`: what an edit of that line ends in. */
   function replaceProgramLine(index: number, instructions: readonly Instruction[]): void {
     if (index >= program.value.length || instructions.length === 0) return;
+    if (!canChange(index, locked.value)) return;
     edit(replaceLine(program.value, index, instructions), (next) =>
       lineAfterReplace(next, index, instructions.length)
     );
@@ -116,6 +126,7 @@ export function useProgramLines<
   function moveProgramLine(from: number, to: number): void {
     const last = program.value.length - 1;
     if (from === to || from < 0 || to < 0 || from > last || to > last) return;
+    if (!canMove(from, to, locked.value)) return;
     edit(moveLine(program.value, from, to), (next) => lineAfterMove(next, from, to));
     lastMove.value = { from, to };
     if (insertAt.value !== null) insertAt.value = lineAfterMove(insertAt.value, from, to);
@@ -134,7 +145,9 @@ export function useProgramLines<
 
   /** Starts editing a line in the builder, or stops with null; the line itself is untouched. */
   function editLine(index: number | null): void {
-    editingLine.value = index !== null && index < program.value.length ? index : null;
+    const editable =
+      index !== null && index < program.value.length && canChange(index, locked.value);
+    editingLine.value = editable ? index : null;
   }
 
   /**
@@ -153,6 +166,7 @@ export function useProgramLines<
 
   return {
     program,
+    locked,
     source,
     stale,
     lastMove,

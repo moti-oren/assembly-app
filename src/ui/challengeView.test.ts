@@ -18,8 +18,8 @@ const result = (over: Partial<ChallengeResult>): ChallengeResult => ({
 describe('givenNote', () => {
   it('names the lines a program starts with', () => {
     expect(givenNote(0)).toBeNull();
-    expect(givenNote(1)).toBe('L0 is given: write under it, and leave it as it is.');
-    expect(givenNote(2)).toBe('L0 to L1 are given: write under them, and leave them as they are.');
+    expect(givenNote(1)).toBe('L0 is given, and locked: write under it.');
+    expect(givenNote(2)).toBe('L0 to L1 are given, and locked: write under them.');
   });
 });
 

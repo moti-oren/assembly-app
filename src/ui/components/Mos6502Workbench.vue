@@ -65,6 +65,7 @@ const {
   programSource,
   programStale,
   lastLineMove,
+  lockedLines,
   editing,
   insertAt,
   lastRecord,
@@ -214,6 +215,7 @@ followBuilder(draft);
           :editing-line="editing?.line ?? null"
           :stale="programStale"
           :last-move="lastLineMove"
+          :locked="lockedLines"
           @reset="askReset"
           @edit="cpu.editLine"
           @move="cpu.moveProgramLine"

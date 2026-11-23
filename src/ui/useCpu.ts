@@ -1,5 +1,6 @@
 import { computed, reactive, type Ref } from 'vue';
 import type { Architecture } from '@/core/shared/architecture';
+import { keptGiven } from '@/core/shared/challenge';
 import { undo, type ExecutionRecord } from '@/core/shared/executionRecord';
 import {
   isFinished,
@@ -13,6 +14,7 @@ import {
 } from '@/core/shared/program';
 import { setInputPort, type CpuState } from '@/core/shared/state';
 import { analytics } from './analyticsClient';
+import { useChallenges } from './useChallenges';
 import { useCpuError, type ErrorSource } from './useCpuError';
 import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
@@ -43,8 +45,16 @@ export function useCpu<
     record,
     ...timeline
   } = useCpuHistory<Record>(state);
+  const challenges = useChallenges();
+  /** The given lines of the challenge the program is for, while it still starts with them. */
+  const givenIn = (lines: readonly Instruction[]): number => {
+    const id = challenges.active.value[architecture.id];
+    const challenge = architecture.challenges.find((each) => each.id === id);
+    return challenge ? keptGiven(challenge, lines) : 0;
+  };
   const {
     program,
+    locked: lockedLines,
     source: programSource,
     stale: programStale,
     lastMove: lastLineMove,
@@ -56,8 +66,12 @@ export function useCpu<
     removeProgramLine,
     moveProgramLine,
     replaceProgram
-  } = useProgramLines(architecture, state, timeline.forgetFuture, () =>
-    [...history.value, ...future.value].some((entry) => entry.line !== null)
+  } = useProgramLines(
+    architecture,
+    state,
+    timeline.forgetFuture,
+    () => [...history.value, ...future.value].some((entry) => entry.line !== null),
+    givenIn
   );
   const { error, errorFrom, attempt, report, clearError } = useCpuError();
   /** The program line the instruction pointer points at: the one that runs next. */
@@ -117,9 +131,10 @@ export function useCpu<
     stepProgram
   });
 
+  /** Empties the program; a challenge's given lines are not the user's to clear, and stay. */
   function clearProgram(): void {
     pause();
-    replaceProgram([]);
+    replaceProgram(program.value.slice(0, lockedLines.value));
   }
 
   /** Replaces the program and starts the CPU afresh, without its history. */
@@ -176,6 +191,7 @@ export function useCpu<
     errorFrom,
     program,
     programSource,
+    lockedLines,
     programStale,
     lastLineMove,
     insertAt,
