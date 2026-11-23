@@ -63,18 +63,21 @@
    * light lift on the dark lid and a soft shade on the light one. The lid clips it.
    */
   .splash-sheen {
+    --splash-sheen: color-mix(in oklch, var(--die-lid-foreground) 22%, transparent);
     position: absolute;
     inset-block: 0;
     left: 0;
-    width: 60%;
+    width: 90%;
+    /* A solid core with soft edges, so it reads as one beam rather than a wash. */
     background: linear-gradient(
       to right,
-      transparent,
-      color-mix(in oklch, var(--die-lid-foreground) 18%, transparent),
-      transparent
+      transparent 10%,
+      var(--splash-sheen) 38%,
+      var(--splash-sheen) 62%,
+      transparent 90%
     );
-    transform: translateX(-140%) skewX(-20deg);
-    animation: splash-sheen 500ms ease-in-out 1150ms both;
+    transform: translateX(-130%) skewX(-20deg);
+    animation: splash-sheen 750ms ease-in-out 1000ms both;
   }
 
   /*
@@ -207,10 +210,10 @@
 
 @keyframes splash-sheen {
   from {
-    transform: translateX(-140%) skewX(-20deg);
+    transform: translateX(-130%) skewX(-20deg);
   }
   to {
-    transform: translateX(240%) skewX(-20deg);
+    transform: translateX(160%) skewX(-20deg);
   }
 }
 
