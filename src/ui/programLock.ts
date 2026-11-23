@@ -23,6 +23,15 @@ export function moveRefusal(from: number, locked: number): string {
 }
 
 /**
+ * Why a command on line `from` that would take it to `to` (the same line, for an edit) is not on
+ * offer, as the end of its label; null when it is.
+ */
+export function lockNote(from: number, to: number, locked: number): string | null {
+  if (!canChange(from, locked)) return 'it is given by the challenge';
+  return canMove(from, to, locked) ? null : 'the lines above it are given by the challenge';
+}
+
+/**
  * Where new lines go when they were asked for before line `insertAt` (null: at the end): never
  * above a locked line, since that would push the locked lines down.
  */
