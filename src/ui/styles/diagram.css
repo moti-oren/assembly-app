@@ -18,6 +18,19 @@
   }
 
   /*
+   * Under the bus line is what the chip talks to, outside it: the same frame, on a quieter
+   * ground, with its units standing out of it instead of set into it. A wash of the ink rather
+   * than --recessed, which is the chip's own fill on the dark page.
+   */
+  .chip-outside {
+    background-color: color-mix(in srgb, var(--foreground) 4%, var(--card));
+  }
+  .chip-package .chip-outside .chip-block {
+    border-color: var(--input);
+    background-color: var(--card);
+  }
+
+  /*
    * The tag of a pipeline stage: neutral, until the stage is the one at work. Doubled up to win
    * over the colour of a unit's short name, which it also is.
    */
@@ -106,7 +119,7 @@
 
   /* The name of one of the units inside the CPU diagram. */
   .unit-title {
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--sublabel-gap);
     color: var(--foreground);
     font-size: 0.6875rem;
     font-weight: 600;

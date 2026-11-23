@@ -6,31 +6,35 @@ defineProps<{ model: CpuDiagramModel }>();
 </script>
 
 <template>
-  <!-- Outside the package: one bus, shared by the memory and the I/O ports. -->
-  <div class="mt-6 flex items-end justify-between gap-3 sm:mt-0">
-    <p class="truncate pb-1 text-xs text-muted-foreground">
+  <!-- The bus leaves the chip: its line runs the frame's width, and under it is what it reaches. -->
+  <div class="mt-4 flex items-end justify-between gap-3 px-4 max-sm:pb-3 sm:mt-0">
+    <p class="truncate pb-1.5 text-xs text-muted-foreground">
       <span class="unit-title">Address / data bus</span>
       <span v-if="model.bus" class="ml-2 font-mono">{{ model.bus }}</span>
     </p>
     <!--
-            Starts at the adder, so it crosses the edge of the package like a pin. The adder's
-            centre is half the BIU's width less its 1.25rem wire, plus the package's padding and
-            border (0.8125rem) on the right.
-          -->
+      Straight down from the adder to the bus line. The adder's centre is half the BIU's width
+      less its 1.25rem wire, from the same padding this row has; the wire is 2px wide.
+    -->
     <DiagramWire
       vertical
-      class="-mt-3.25 mr-[calc((var(--biu-width)_-_1.25rem)/2_+_0.8125rem)] hidden h-9 shrink-0 sm:block"
+      class="mr-[calc((var(--biu-width)_-_1.25rem)/2_-_2px)] hidden h-10 shrink-0 sm:block"
       :kind="model.busKind"
       :tick="model.pulse"
     />
   </div>
   <DiagramWire class="hidden sm:block" :kind="model.busKind" :tick="model.pulse" />
-  <!-- Two equal columns at every width; on a phone each unit sets its note under its name. -->
-  <div class="mt-2 grid grid-cols-2 gap-x-2 gap-y-2 sm:mt-0 sm:gap-x-3">
-    <div class="flex min-w-0 flex-col items-center">
+  <!--
+    Two equal columns at every width; on a phone each unit sets its note under its name. Each
+    hangs from the bus near its left edge, clear of the wire that comes down from the adder.
+  -->
+  <div
+    class="chip-outside grid grid-cols-2 gap-x-2 gap-y-2 rounded-b-lg px-4 pb-4 max-sm:border-t max-sm:pt-3 sm:gap-x-3"
+  >
+    <div class="flex min-w-0 flex-col items-start">
       <DiagramWire
         vertical
-        class="hidden h-3 sm:block"
+        class="ml-6 hidden h-3 sm:block"
         :kind="model.memoryKind"
         :tick="model.pulse"
       />
@@ -56,10 +60,10 @@ defineProps<{ model: CpuDiagramModel }>();
         <span v-else class="text-xs text-muted-foreground">{{ model.notes.memory }}</span>
       </div>
     </div>
-    <div class="flex min-w-0 flex-col items-center">
+    <div class="flex min-w-0 flex-col items-start">
       <DiagramWire
         vertical
-        class="hidden h-3 sm:block"
+        class="ml-6 hidden h-3 sm:block"
         :kind="model.portKind"
         :tick="model.pulse"
       />

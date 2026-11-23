@@ -76,7 +76,7 @@ function change(index: number): ValueChange | null {
 <template>
   <CpuCanvas>
     <div class="@container">
-      <div class="chip-package rounded-lg p-3 pt-4">
+      <div class="chip-package rounded-lg p-4">
         <!--
           The register file: 32 registers with two read ports (rs1, rs2) and one write port (rd),
           set out by what the calling convention uses each for rather than by number.
@@ -124,7 +124,7 @@ function change(index: number): ValueChange | null {
           Decode reads the register file above it and write back writes into it: those two wires.
         -->
         <div
-          class="mt-2 grid gap-y-2 @min-[37rem]:mt-0 @min-[37rem]:grid-cols-[repeat(5,minmax(0,1fr))] @min-[37rem]:gap-x-4 @min-[37rem]:gap-y-0"
+          class="mt-2 grid gap-y-2 @min-[37rem]:mt-0 @min-[37rem]:grid-cols-[repeat(5,minmax(0,1fr))] @min-[37rem]:gap-x-4 @min-[37rem]:gap-y-0 @min-[44rem]:gap-x-5"
         >
           <template v-for="stage in STAGES" :key="`port-${stage.key}`">
             <DiagramWire
@@ -148,7 +148,7 @@ function change(index: number): ValueChange | null {
           <div v-for="(stage, index) in STAGES" :key="stage.key" class="relative flex min-w-0">
             <DiagramWire
               v-if="index > 0"
-              class="absolute top-1/2 -left-4 hidden w-4 @min-[37rem]:block"
+              class="absolute top-1/2 -left-4 hidden w-4 @min-[37rem]:block @min-[44rem]:-left-5 @min-[44rem]:w-5"
               :kind="view[stage.key].use"
               :tick="pulse"
             />
@@ -177,16 +177,8 @@ function change(index: number): ValueChange | null {
           </div>
         </div>
 
-        <div class="mt-2 flex items-center">
-          <DiagramWire class="w-5 shrink-0" :kind="view.nextPc.use" :tick="pulse" />
-          <DatapathStage
-            class="flex-1"
-            title="Next PC"
-            tag="pc"
-            :stage="view.nextPc"
-            :tick="pulse"
-          />
-        </div>
+        <!-- Under the stages and as wide as them: where the PC goes once the line is done. -->
+        <DatapathStage class="mt-2" title="Next PC" tag="pc" :stage="view.nextPc" :tick="pulse" />
       </div>
     </div>
   </CpuCanvas>
