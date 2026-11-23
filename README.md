@@ -377,7 +377,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The register is shown as rows of bits: the value waiting at its inputs, a write line for every
   bit, a flip-flop under every column, and what the flip-flops hold. The page opens before the
   clock edge, with the old value still held. **Raise the clock** loads the new one; **Lower the
-  clock** finishes the cycle, and **Before the clock rose** starts it again.
+  clock** finishes the cycle, and **Start over** starts it again.
 - A bit whose write line is 0 keeps its value whatever waits at its input. On the 8086 a write to
   AL turns on only the low eight write lines of AX: AL and AH are halves of one register, not
   registers of their own. An instruction that wrote several registers (`xchg`, `mul`, `pop`)
@@ -793,8 +793,8 @@ npm run verify:6502 # check the 6502 core against py65
   גם **Show how the last register written is kept** בפלטת הפקודות.
 - האוגר מוצג כשורות של סיביות: הערך שמחכה על הכניסות, קו כתיבה לכל סיבית, פליפ-פלופ מתחת לכל
   עמודה, ומה שהפליפ-פלופים מחזיקים. העמוד נפתח לפני קצה השעון, כשהערך הישן עדיין מוחזק. **Raise
-  the clock** טוען את הערך החדש; **Lower the clock** מסיים את המחזור, ו-**Before the clock rose**
-  מתחיל אותו מחדש.
+  the clock** טוען את הערך החדש; **Lower the clock** מסיים את המחזור, ו-**Start over** מתחיל
+  אותו מחדש.
 - סיבית שקו הכתיבה שלה 0 שומרת את ערכה, לא משנה מה מחכה על הכניסה שלה. ב-8086, כתיבה ל-AL מדליקה
   רק את שמונת קווי הכתיבה הנמוכים של AX: AL ו-AH הם חצאים של אוגר אחד, לא אוגרים משל עצמם. הוראה
   שכתבה כמה אוגרים (`xchg`, `mul`, `pop`) מציגה אותם לבחירה.

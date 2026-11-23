@@ -22,7 +22,7 @@ export function useStorageCommands(
       { group: 'Register', label: CLOCK_ACTION[phase], run: lens.clock },
       {
         group: 'Register',
-        label: 'Go back to before the clock rose',
+        label: 'Start the clock cycle over',
         disabled: phase === 'before',
         run: lens.rewind
       },

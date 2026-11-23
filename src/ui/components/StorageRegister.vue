@@ -104,7 +104,7 @@ function wires(name: (bit: number) => string): Bit[] {
         @click="lens.rewind()"
       >
         <RotateCcw />
-        Before the clock rose
+        Start over
       </Button>
     </div>
     <p class="max-w-prose text-sm text-pretty" aria-live="polite">{{ PHASE_TEXT[phase] }}</p>
