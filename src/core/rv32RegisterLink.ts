@@ -1,4 +1,4 @@
-import { NOT_KEPT, nothingWritten, written, type RegisterLink } from './registerLink';
+import { NOT_KEPT, written, type RegisterLink } from './registerLink';
 import { decode } from './rv32/decode';
 import type { ExecutionRecord } from './rv32/execute';
 import { formatRegister } from './rv32/operands';
@@ -21,6 +21,6 @@ export function rv32RegisterLink(record: ExecutionRecord, after: Snapshot | null
     unavailable:
       decode(record.instruction).rd === ZERO
         ? `${name} wrote to zero (x0), which has no flip-flops: it is wired to 0, so what is written to it is lost.`
-        : nothingWritten(name, 'PC', null)
+        : `${name} wrote no register. PC, which every instruction from the program loads, is shown with the control unit.`
   };
 }

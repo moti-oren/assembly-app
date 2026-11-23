@@ -54,7 +54,7 @@ const OPCODE_NAMES = {
 
 type Opcode = keyof typeof OPCODE_NAMES;
 
-interface OpcodeSpec {
+export interface OpcodeSpec {
   opcode: Opcode;
   funct3?: number;
   funct7?: number;
@@ -68,8 +68,9 @@ const BRANCH = 0b1100011;
 const MULDIV = 0b0000001;
 const ALTERNATE = 0b0100000;
 
+/** The opcode of every instruction, with the funct3 and funct7 that pick it within the opcode. */
 // prettier-ignore
-const OPCODES: Record<Mnemonic, OpcodeSpec> = {
+export const OPCODES: Record<Mnemonic, OpcodeSpec> = {
   add: { opcode: OP, funct3: 0, funct7: 0 }, sub: { opcode: OP, funct3: 0, funct7: ALTERNATE },
   sll: { opcode: OP, funct3: 1, funct7: 0 }, slt: { opcode: OP, funct3: 2, funct7: 0 },
   sltu: { opcode: OP, funct3: 3, funct7: 0 }, xor: { opcode: OP, funct3: 4, funct7: 0 },
@@ -95,14 +96,14 @@ const OPCODES: Record<Mnemonic, OpcodeSpec> = {
 };
 
 /** Where the pieces of each format's immediate go: bits `high:low` of the word hold `imm[from:to]`. */
-interface ImmediatePiece {
+export interface ImmediatePiece {
   high: number;
   low: number;
   from: number;
   to: number;
 }
 
-const IMMEDIATE_PIECES: Record<Exclude<Format, 'R'>, ImmediatePiece[]> = {
+export const IMMEDIATE_PIECES: Record<Exclude<Format, 'R'>, ImmediatePiece[]> = {
   I: [{ high: 31, low: 20, from: 11, to: 0 }],
   S: [
     { high: 31, low: 25, from: 11, to: 5 },
@@ -244,10 +245,11 @@ function distanceProblem(format: Format, distance: number, target: number): stri
   return `Out of range: a ${format === 'B' ? 'branch' : 'JAL'} reaches only ${reach} either way, and ${formatLabel(target)} is ${distance} bytes away`;
 }
 
-function encodeLine(instruction: Instruction, line: number): Encoding {
+/** Encodes one instruction as it is at `address`, which a branch or a jump measures from. */
+export function encodeAt(instruction: Instruction, address: number): Encoding {
   const { format } = getSpec(instruction.mnemonic);
   const label = instruction.operands.find((operand) => operand.type === 'label');
-  const distance = label ? addressOfLine(label.target) - addressOfLine(line) : 0;
+  const distance = label ? addressOfLine(label.target) - address : 0;
   const fields = fieldsOf(instruction, distance);
   const word = u32(fields.reduce((bits, { low, value }) => bits | (value << low), 0));
   return {
@@ -257,6 +259,10 @@ function encodeLine(instruction: Instruction, line: number): Encoding {
     fields,
     problem: label ? distanceProblem(format, distance, label.target) : null
   };
+}
+
+function encodeLine(instruction: Instruction, line: number): Encoding {
+  return encodeAt(instruction, addressOfLine(line));
 }
 
 /** Encodes a whole program: line n is the word at address 4n. */

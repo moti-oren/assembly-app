@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Binary, CircuitBoard, MemoryStick } from '@lucide/vue';
+import { Binary, CircuitBoard, MemoryStick, Workflow } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { LinkedTopic } from '@/ui/topics';
@@ -13,7 +13,7 @@ defineProps<{
   unavailable: string | null;
 }>();
 
-const { showCircuit, showNumbers, showStorage } = useTopic();
+const { showCircuit, showNumbers, showStorage, showControl } = useTopic();
 
 const LINKS = {
   logic: {
@@ -36,6 +36,13 @@ const LINKS = {
     open: showStorage,
     title: 'show the flip-flops that keep what was written',
     none: 'No register to show'
+  },
+  control: {
+    label: 'Control',
+    icon: Workflow,
+    open: showControl,
+    title: 'show the control lines this instruction was decoded into',
+    none: 'No control unit to show'
   }
 };
 </script>

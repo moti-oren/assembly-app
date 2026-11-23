@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onActivated, onMounted, ref, useTemplateRef } from 'vue';
-import { CircuitBoard } from '@lucide/vue';
+import { CircuitBoard, Workflow } from '@lucide/vue';
 import type { RegisterLink } from '@/core/registerLink';
 import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
@@ -144,6 +144,10 @@ const written = computed(() => registerChoices(lens.fromCpu.value?.writes ?? [])
         <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="topic = 'logic'">
           <CircuitBoard />
           The gates that work a value out
+        </Button>
+        <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="topic = 'control'">
+          <Workflow />
+          What turns the write line on
         </Button>
       </div>
     </div>

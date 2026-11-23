@@ -77,7 +77,7 @@ describe('rv32RegisterLink', () => {
     const { link } = agrees(line('beq', r('a1'), r('a1'), label(0)), 0);
     expect(link).toEqual({
       unavailable:
-        'BEQ wrote no register. PC, which every instruction loads, is not shown here yet.'
+        'BEQ wrote no register. PC, which every instruction from the program loads, is shown with the control unit.'
     });
   });
 });

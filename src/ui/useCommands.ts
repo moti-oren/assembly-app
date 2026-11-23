@@ -38,6 +38,8 @@ export interface PageActions {
   hasNumbers: () => boolean;
   /** Whether the last instruction wrote a register to show in the storage topic. */
   hasRegisters: () => boolean;
+  /** Whether the last instruction has a control unit to show in the control topic. */
+  hasControl: () => boolean;
 }
 
 /**
@@ -53,7 +55,7 @@ export function useCommands(
 ): ComputedRef<PaletteCommand[]> {
   const { cpuView, architecture } = usePreferences();
   const app = useAppCommands();
-  const { showCircuit, showNumbers, showStorage } = useTopic();
+  const { showCircuit, showNumbers, showStorage, showControl } = useTopic();
   const panelOrder = usePanelOrder();
   const sidebar = useSidebarLayout();
   const comparison = useComparison();
@@ -66,6 +68,7 @@ export function useCommands(
   const hasCircuit = computed(page.hasCircuit);
   const hasNumbers = computed(page.hasNumbers);
   const hasRegisters = computed(page.hasRegisters);
+  const hasControl = computed(page.hasControl);
   const keys = transportKeys(isApple);
 
   return computed<PaletteCommand[]>(() => [
@@ -228,6 +231,13 @@ export function useCommands(
       disabled: !hasRegisters.value,
       moves: 'focus',
       run: () => showStorage()
+    },
+    {
+      group: 'CPU',
+      label: 'Show how the last instruction was decoded',
+      disabled: !hasControl.value,
+      moves: 'focus',
+      run: () => showControl()
     },
     ...extra(),
     {
