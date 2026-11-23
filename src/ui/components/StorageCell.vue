@@ -2,15 +2,19 @@
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { cellDiagram } from '@/ui/storageDiagram';
+import { PULSE_WIRE } from '@/ui/storageTiming';
 import { CELL_INPUTS, CELL_LESSONS, cellLabel, CELLS, UNSETTLED } from '@/ui/storageView';
 import type { StorageLens } from '@/ui/useStorageLens';
 import LogicDiagram from './LogicDiagram.vue';
+import StorageTiming from './StorageTiming.vue';
 
 const props = defineProps<{ lens: StorageLens }>();
 
 const cell = computed(() => props.lens.cell);
 const kind = computed(() => cell.value.cell.value);
 const free = computed(() => cell.value.free.value);
+/** The input a press of Pulse raises and lowers, in the cells that have a clock. */
+const pulsed = computed(() => (free.value ? (PULSE_WIRE[free.value] ?? null) : null));
 const diagram = computed(() => cellDiagram(kind.value, props.lens.bit.value));
 /** The wires drawn: the hand-worked cell's own, or the register's at this moment of its cycle. */
 const signals = computed(() => (free.value ? cell.value.signals.value : props.lens.signals.value));
@@ -80,6 +84,29 @@ const heading = computed(() =>
         Let go of both at once
       </Button>
       <span v-else class="text-xs text-muted-foreground">Press an input to flip it.</span>
+      <!-- On a phone the two take a row of their own, so neither is left alone on a line. -->
+      <div class="flex gap-2 max-md:w-full">
+        <Button
+          v-if="pulsed"
+          variant="outline"
+          size="sm"
+          class="pointer-coarse:h-11"
+          :aria-label="`Pulse ${pulsed.label}: flip it and flip it back`"
+          @click="cell.pulse(pulsed.signal)"
+        >
+          Pulse
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          class="aria-disabled:cursor-default aria-disabled:text-tertiary-foreground aria-disabled:hover:bg-transparent pointer-coarse:h-11"
+          aria-label="Clear the timing diagram"
+          :aria-disabled="cell.trace.value.length < 2"
+          @click="cell.clearTrace()"
+        >
+          Clear
+        </Button>
+      </div>
     </div>
     <p v-else class="mt-3 text-xs text-muted-foreground">
       Its inputs are the rows above and the clock button. Pick another bit in the row of cells.
@@ -92,6 +119,8 @@ const heading = computed(() =>
     >
       {{ unsettled ? UNSETTLED : '' }}
     </p>
+
+    <StorageTiming :cell="free" :trace="cell.trace.value" :steps="cell.pressSteps.value" />
 
     <LogicDiagram
       class="mt-3"

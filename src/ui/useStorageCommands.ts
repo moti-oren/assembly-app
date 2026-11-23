@@ -3,6 +3,7 @@ import type { CpuMoment } from './cpuMoment';
 import { WIDTHS } from './logicView';
 import { momentCommands, type TopicPageActions } from './momentCommands';
 import type { PaletteCommand } from './paletteCommand';
+import { PULSE_WIRE } from './storageTiming';
 import { CELLS, CLOCK_ACTION } from './storageView';
 import { useAppCommands } from './useAppCommands';
 import type { StorageLens } from './useStorageLens';
@@ -17,6 +18,8 @@ export function useStorageCommands(
 
   return computed<PaletteCommand[]>(() => {
     const phase = lens.phase.value;
+    const free = lens.cell.free.value;
+    const pulsed = free ? PULSE_WIRE[free] : undefined;
     return [
       ...momentCommands(moment(), page),
       { group: 'Register', label: CLOCK_ACTION[phase], run: lens.clock },
@@ -44,6 +47,21 @@ export function useStorageCommands(
         disabled: lens.cell.cell.value === choice.id,
         run: () => lens.cell.pick(choice.id)
       })),
+      ...(pulsed
+        ? [
+            {
+              group: 'Memory cell',
+              label: `Pulse ${pulsed.label}`,
+              run: () => lens.cell.pulse(pulsed.signal)
+            }
+          ]
+        : []),
+      {
+        group: 'Memory cell',
+        label: 'Clear the timing diagram',
+        disabled: lens.cell.trace.value.length < 2,
+        run: lens.cell.clearTrace
+      },
       ...app.value
     ];
   });
