@@ -36,7 +36,7 @@ const text = (value: number): string => String(value).replace('-', '−');
         :key="choice.id"
         variant="ghost"
         size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-10"
+        class="h-7 px-2.5 text-xs pointer-coarse:h-11"
         :aria-pressed="request.operation === choice.id"
         @click="lens.change({ ...request, operation: choice.id })"
       >

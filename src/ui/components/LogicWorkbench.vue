@@ -78,7 +78,7 @@ const commands = useLogicCommands(lens, () => props.moment, {
                   :key="choice.id"
                   variant="ghost"
                   size="sm"
-                  class="h-7 px-2.5 text-xs pointer-coarse:h-10"
+                  class="h-7 px-2.5 text-xs pointer-coarse:h-11"
                   :aria-pressed="lens.operation.value === choice.id"
                   @click="lens.pick(choice.id)"
                 >
@@ -100,7 +100,7 @@ const commands = useLogicCommands(lens, () => props.moment, {
                 :key="each"
                 variant="ghost"
                 size="sm"
-                class="h-7 px-3 text-xs pointer-coarse:h-10"
+                class="h-7 px-3 text-xs pointer-coarse:h-11"
                 :aria-pressed="lens.request.value.width === each"
                 @click="lens.setWidth(each)"
               >

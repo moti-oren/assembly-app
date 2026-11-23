@@ -102,7 +102,7 @@ const unavailable = computed(() => {
                   :key="choice.id"
                   variant="ghost"
                   size="sm"
-                  class="h-7 px-2.5 text-xs pointer-coarse:h-10"
+                  class="h-7 px-2.5 text-xs pointer-coarse:h-11"
                   :aria-pressed="request.kind === choice.id"
                   @click="lens.pick(choice.id)"
                 >
@@ -121,7 +121,7 @@ const unavailable = computed(() => {
                 :key="each"
                 variant="ghost"
                 size="sm"
-                class="h-7 px-3 text-xs pointer-coarse:h-10"
+                class="h-7 px-3 text-xs pointer-coarse:h-11"
                 :disabled="!widthAllowed(request, each)"
                 :aria-pressed="lens.width.value === each"
                 @click="lens.setWidth(each)"
