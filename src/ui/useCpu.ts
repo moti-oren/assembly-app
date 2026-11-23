@@ -252,6 +252,8 @@ export interface CpuControls<
   program: Readonly<Ref<readonly Instruction[]>>;
   /** The example the program was loaded from, until it is edited. */
   programSource: Readonly<Ref<ProgramSource | null>>;
+  /** Lines at the top of the program that a challenge gives, and that are not edited or moved. */
+  lockedLines: Readonly<Ref<number>>;
   history: Readonly<Ref<readonly Record[]>>;
   future: Readonly<Ref<readonly Record[]>>;
   lastRecord: Readonly<Ref<Record | null>>;

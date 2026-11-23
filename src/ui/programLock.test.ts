@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canChange, canMove, insertionAfterLock, moveRefusal } from './programLock';
+import { canChange, canMove, insertionAfterLock, lockNote, moveRefusal } from './programLock';
 
 describe('a program with locked lines', () => {
   it('lets only the lines under the locked ones be changed', () => {
@@ -18,6 +18,15 @@ describe('a program with locked lines', () => {
   it('says why a move was refused', () => {
     expect(moveRefusal(0, 2)).toBe('L0 is given by the challenge: it stays where it is');
     expect(moveRefusal(2, 2)).toBe('L2 cannot move in among the lines the challenge gives');
+  });
+
+  it('says why a command on a line is not on offer', () => {
+    expect(lockNote(0, 0, 2)).toBe('it is given by the challenge');
+    expect(lockNote(1, 2, 2)).toBe('it is given by the challenge');
+    expect(lockNote(2, 1, 2)).toBe('the lines above it are given by the challenge');
+    expect(lockNote(2, 2, 2)).toBeNull();
+    expect(lockNote(2, 3, 2)).toBeNull();
+    expect(lockNote(0, 0, 0)).toBeNull();
   });
 
   it('puts new lines under the locked ones at the highest', () => {
