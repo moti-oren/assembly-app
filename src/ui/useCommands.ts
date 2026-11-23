@@ -36,6 +36,8 @@ export interface PageActions {
   hasCircuit: () => boolean;
   /** Whether the last instruction can be shown as arithmetic in the number topic. */
   hasNumbers: () => boolean;
+  /** Whether the last instruction wrote a register to show in the storage topic. */
+  hasRegisters: () => boolean;
 }
 
 /**
@@ -51,7 +53,7 @@ export function useCommands(
 ): ComputedRef<PaletteCommand[]> {
   const { cpuView, architecture } = usePreferences();
   const app = useAppCommands();
-  const { showCircuit, showNumbers } = useTopic();
+  const { showCircuit, showNumbers, showStorage } = useTopic();
   const panelOrder = usePanelOrder();
   const sidebar = useSidebarLayout();
   const comparison = useComparison();
@@ -63,6 +65,7 @@ export function useCommands(
   const hasLastAccess = computed(page.hasLastAccess);
   const hasCircuit = computed(page.hasCircuit);
   const hasNumbers = computed(page.hasNumbers);
+  const hasRegisters = computed(page.hasRegisters);
   const keys = transportKeys(isApple);
 
   return computed<PaletteCommand[]>(() => [
@@ -218,6 +221,13 @@ export function useCommands(
       disabled: !hasNumbers.value,
       moves: 'focus',
       run: () => showNumbers()
+    },
+    {
+      group: 'CPU',
+      label: 'Show how the last register written is kept',
+      disabled: !hasRegisters.value,
+      moves: 'focus',
+      run: () => showStorage()
     },
     ...extra(),
     {

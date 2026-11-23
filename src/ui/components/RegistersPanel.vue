@@ -10,6 +10,7 @@ import {
 } from '@/core/x86/registers';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { CpuState } from '@/core/x86/state';
+import type { RegisterLink } from '@/core/registerLink';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -23,10 +24,12 @@ import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { x86RegisterChange } from '@/ui/architectureDiffs';
 import { wasWritten } from '@/ui/describe';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
+import { unavailableIn } from '@/ui/topicLinks';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import TopicLinkButton from './TopicLinkButton.vue';
 import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
@@ -37,6 +40,8 @@ const props = defineProps<{
   record: ExecutionRecord | null;
   /** The CPU as the last instruction left it: what that instruction did is told against it. */
   after: ExecutionRecord['before'] | null;
+  /** Where the last instruction leads in the storage topic; null before anything has run. */
+  stored: RegisterLink | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -71,6 +76,7 @@ function change(name: RegisterName): ValueChange | null {
           <span class="change-mark-written inline-block size-2.5 rounded-xs" aria-hidden="true" />
           written, same value
         </span>
+        <TopicLinkButton v-if="stored" topic="storage" :unavailable="unavailableIn(stored)" />
         <CpuViewToggle />
       </CardAction>
     </CardHeader>

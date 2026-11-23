@@ -11,6 +11,8 @@ export type AnalyticsEvent =
   | { name: 'circuit-opened'; architecture: ArchitectureId }
   /** The link from a CPU's operation to what it means as numbers was followed. */
   | { name: 'numbers-opened'; architecture: ArchitectureId }
+  /** The link from a register a CPU wrote to the flip-flops that keep it was followed. */
+  | { name: 'storage-opened'; architecture: ArchitectureId }
   /** The first instruction a CPU ran in this visit. */
   | { name: 'first-step'; architecture: string }
   | { name: 'program-run'; architecture: string }

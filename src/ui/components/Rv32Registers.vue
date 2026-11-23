@@ -4,6 +4,7 @@ import { formatHex32, s32 } from '@/core/rv32/bits';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { RegisterName } from '@/core/rv32/registers';
 import type { CpuState } from '@/core/rv32/state';
+import type { RegisterLink } from '@/core/registerLink';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { rv32Pointer, rv32RegisterChange } from '@/ui/architectureDiffs';
@@ -14,10 +15,12 @@ import {
   rv32RegisterWritten
 } from '@/ui/rv32View';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
+import { unavailableIn } from '@/ui/topicLinks';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import TopicLinkButton from './TopicLinkButton.vue';
 import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
@@ -28,6 +31,8 @@ const props = defineProps<{
   record: ExecutionRecord | null;
   /** The CPU as the last instruction left it: what that instruction did is told against it. */
   after: ExecutionRecord['before'] | null;
+  /** Where the last instruction leads in the storage topic; null before anything has run. */
+  stored: RegisterLink | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -56,6 +61,7 @@ const pcMove = computed(
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
           changed by the last instruction
         </span>
+        <TopicLinkButton v-if="stored" topic="storage" :unavailable="unavailableIn(stored)" />
         <CpuViewToggle />
       </CardAction>
     </CardHeader>

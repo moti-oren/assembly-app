@@ -188,7 +188,8 @@ function muxSlice(shape: ShifterShape, stage: number, bit: number): SliceDiagram
   };
 }
 
-function gate(
+/** A gate of a drawing, at its top left corner. */
+export function gate(
   id: string,
   kind: GateKind,
   name: string,
@@ -200,11 +201,11 @@ function gate(
   return { id, kind, name, x, y, inputs, inputNames };
 }
 
-function wire(signal: string, ...points: Point[]): DiagramWire {
+export function wire(signal: string, ...points: Point[]): DiagramWire {
   return { signal, points };
 }
 
-function terminal(
+export function terminal(
   signal: string,
   label: string,
   x: number,

@@ -16,6 +16,7 @@ defineEmits<{ choose: [] }>();
 const SHAPES: Record<GateKind, string> = {
   and: 'M0,2 H22 A18,18 0 0 1 22,38 H0 Z',
   or: 'M0,2 Q12,20 0,38 Q26,38 44,20 Q26,2 0,2 Z',
+  nor: 'M0,2 Q10,20 0,38 Q22,38 36,20 Q22,2 0,2 Z',
   xor: 'M6,2 Q18,20 6,38 Q30,38 44,20 Q30,2 6,2 Z',
   not: 'M0,4 L34,20 L0,36 Z',
   mux: 'M0,0 L44,10 L44,30 L0,40 Z'
@@ -35,13 +36,24 @@ const SHAPES: Record<GateKind, string> = {
     @keydown.enter.prevent="$emit('choose')"
     @keydown.space.prevent="$emit('choose')"
   >
-    <!-- Room for a finger around the gate. -->
-    <rect x="-4" y="-8" width="52" height="56" fill="transparent" />
+    <!-- Room for a finger around the gate: 44px even where the drawing is at its smallest. -->
+    <rect x="-8" y="-10" width="60" height="60" fill="transparent" />
     <!-- The inputs reach the curved back of an OR or XOR gate. -->
-    <path v-if="kind === 'or' || kind === 'xor'" class="logic-wire" d="M0,12 H10 M0,28 H10" />
+    <path
+      v-if="kind === 'or' || kind === 'nor' || kind === 'xor'"
+      class="logic-wire"
+      d="M0,12 H10 M0,28 H10"
+    />
     <path class="logic-gate-body" :d="SHAPES[kind]" />
     <path v-if="kind === 'xor'" class="logic-wire" d="M0,2 Q12,20 0,38" />
-    <circle v-if="kind === 'not'" class="logic-gate-body" cx="39" cy="20" r="4" />
+    <!-- The small circle that inverts the output. -->
+    <circle
+      v-if="kind === 'not' || kind === 'nor'"
+      class="logic-gate-body"
+      :cx="kind === 'not' ? 39 : 40"
+      cy="20"
+      r="4"
+    />
     <text
       :x="kind === 'xor' ? GATE_WIDTH / 2 + 3 : GATE_WIDTH / 2 - 2"
       :y="GATE_HEIGHT / 2 + 3"

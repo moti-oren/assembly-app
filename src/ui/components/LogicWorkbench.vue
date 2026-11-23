@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onActivated, onMounted, ref, useTemplateRef } from 'vue';
-import { Binary } from '@lucide/vue';
+import { Binary, MemoryStick } from '@lucide/vue';
 import type { AluLink } from '@/core/aluLink';
 import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
@@ -137,10 +137,27 @@ const commands = useLogicCommands(lens, () => props.moment, {
           such as an adder that does not wait for its carry to ripple, but every wire you see here
           carries the value the CPU computed.
         </p>
-        <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="topic = 'numbers'">
-          <Binary />
-          What it means as numbers
-        </Button>
+        <!-- On a phone the two ways on are one column, each as wide as the page. -->
+        <div class="flex flex-wrap gap-2 max-md:w-full max-md:flex-col">
+          <Button
+            variant="outline"
+            size="sm"
+            class="pointer-coarse:h-11"
+            @click="topic = 'numbers'"
+          >
+            <Binary />
+            What it means as numbers
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            class="pointer-coarse:h-11"
+            @click="topic = 'storage'"
+          >
+            <MemoryStick />
+            How the result is kept
+          </Button>
+        </div>
       </div>
     </div>
   </main>

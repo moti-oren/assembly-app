@@ -5,6 +5,7 @@ describe('gateOutput', () => {
   it('follows each gate’s truth table', () => {
     expect(truthTable('and', 2).map((row) => row.output)).toEqual([0, 0, 0, 1]);
     expect(truthTable('or', 2).map((row) => row.output)).toEqual([0, 1, 1, 1]);
+    expect(truthTable('nor', 2).map((row) => row.output)).toEqual([1, 0, 0, 0]);
     expect(truthTable('xor', 2).map((row) => row.output)).toEqual([0, 1, 1, 0]);
     expect(truthTable('not', 1).map((row) => row.output)).toEqual([1, 0]);
   });

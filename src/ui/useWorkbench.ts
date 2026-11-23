@@ -1,6 +1,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { hasCircuit, type AluLink } from '@/core/aluLink';
 import { hasNumbers, type NumberLink } from '@/core/numberLink';
+import { hasRegisters, type RegisterLink } from '@/core/registerLink';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
 import type { PaletteCommand } from './paletteCommand';
@@ -18,14 +19,14 @@ import { useWorkbenchView } from './useWorkbenchView';
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
 export type WorkbenchPage = Omit<
   PageActions,
-  'askClearProgram' | 'askReset' | 'runAgain' | 'hasCircuit' | 'hasNumbers'
+  'askClearProgram' | 'askReset' | 'runAgain' | 'hasCircuit' | 'hasNumbers' | 'hasRegisters'
 > & {
   /** Folds the builder's choices away, so the program below it stays in view. */
   foldBuilder: () => void;
 };
 
 /** What a workbench tells the shared logic about its architecture. */
-export interface WorkbenchHooks<Instruction, Record> {
+export interface WorkbenchHooks<Instruction, Record extends ExecutionRecord> {
   usesDevices: UsesDevices<Instruction, Record>;
   soundOf: SoundOf<Record>;
   page: WorkbenchPage;
@@ -33,6 +34,8 @@ export interface WorkbenchHooks<Instruction, Record> {
   aluLink: (record: Record) => AluLink;
   /** An executed instruction as arithmetic on numbers, for the link into the number topic. */
   numberLink: (record: Record) => NumberLink;
+  /** The registers an executed instruction wrote, for the link into the storage topic. */
+  registerLink: (record: Record, after: Record['before'] | null) => RegisterLink;
   /** Palette commands for the architecture's own panels, labelled for the current state. */
   commands?: () => PaletteCommand[];
 }
@@ -69,6 +72,11 @@ export function useWorkbench<
     const record = cpu.lastRecord.value;
     return record && hooks.numberLink(record);
   });
+  /** Where it leads in the storage topic. */
+  const registerLink = computed(() => {
+    const record = cpu.lastRecord.value;
+    return record && hooks.registerLink(record, cpu.lastAfter.value);
+  });
 
   const commands = useCommands(
     cpu,
@@ -77,6 +85,7 @@ export function useWorkbench<
       ...hooks.page,
       hasCircuit: () => aluLink.value !== null && hasCircuit(aluLink.value),
       hasNumbers: () => numberLink.value !== null && hasNumbers(numberLink.value),
+      hasRegisters: () => registerLink.value !== null && hasRegisters(registerLink.value),
       // A builder out of sight or collapsed is brought back first; its input can only take
       // focus once it is drawn.
       focusBuilder: () => {
@@ -125,6 +134,7 @@ export function useWorkbench<
     panels,
     commands,
     aluLink,
+    registerLink,
     columns,
     paletteOpen,
     examplesOpen,

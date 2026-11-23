@@ -25,6 +25,26 @@ const moment = (history: string[], future: string[] = []) =>
   });
 
 describe('momentOf', () => {
+  it('asks a caller that remembers which records have something to show', () => {
+    const asked: string[] = [];
+    const found = momentOf({
+      cpu: '8086',
+      history: ['add', 'mov', 'mov'],
+      future: ['mov', 'add'],
+      format: (record) => record,
+      link,
+      shows: () => {
+        throw new Error('The caller knows the answer.');
+      },
+      has: (record) => {
+        asked.push(record);
+        return record === 'add';
+      }
+    });
+    expect([found.previous, found.next]).toEqual([1, 5]);
+    expect(asked).toEqual(['mov', 'add', 'mov', 'add']);
+  });
+
   it('has no instruction before anything has run', () => {
     expect(moment([])).toEqual({
       cpu: '8086',

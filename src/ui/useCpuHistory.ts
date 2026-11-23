@@ -23,8 +23,10 @@ export function useCpuHistory<Record extends ExecutionRecord>(state: CpuState) {
    * did is told against this, never against the live CPU.
    */
   const leftBy = new WeakMap<Record, Record['before']>();
+  /** The CPU as an instruction of the history left it, undone or not. */
+  const afterOf = (entry: Record): Record['before'] | null => leftBy.get(entry) ?? null;
   /** The CPU as the last instruction left it. */
-  const lastAfter = computed(() => (lastRecord.value && leftBy.get(lastRecord.value)) ?? null);
+  const lastAfter = computed(() => (lastRecord.value && afterOf(lastRecord.value)) ?? null);
   /** The bytes the last instruction wrote, each from its first value to its last. */
   const lastWrites = computed(() => byteChanges(lastRecord.value?.memoryWrites ?? []));
 
@@ -84,6 +86,7 @@ export function useCpuHistory<Record extends ExecutionRecord>(state: CpuState) {
   return {
     history,
     lastRecord,
+    afterOf,
     lastAfter,
     lastWrites,
     future,

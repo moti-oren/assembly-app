@@ -3,14 +3,17 @@ import { computed } from 'vue';
 import { formatBinary, formatHex, toSigned } from '@/core/shared/numbers';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { STACK_PAGE, type CpuState, type RegisterName } from '@/core/mos6502/state';
+import type { RegisterLink } from '@/core/registerLink';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { mos6502RegisterChange } from '@/ui/architectureDiffs';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
+import { unavailableIn } from '@/ui/topicLinks';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
 import TapTooltip from './TapTooltip.vue';
+import TopicLinkButton from './TopicLinkButton.vue';
 import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
@@ -20,6 +23,8 @@ const props = defineProps<{
   record: ExecutionRecord | null;
   /** The CPU as the last instruction left it: what that instruction did is told against it. */
   after: ExecutionRecord['before'] | null;
+  /** Where the last instruction leads in the storage topic; null before anything has run. */
+  stored: RegisterLink | null;
   /** Number of instructions executed so far; replays the change flash. */
   tick: number;
 }>();
@@ -73,6 +78,7 @@ const pcMove = computed(() => change('pc'));
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
           changed by the last instruction
         </span>
+        <TopicLinkButton v-if="stored" topic="storage" :unavailable="unavailableIn(stored)" />
         <CpuViewToggle />
       </CardAction>
     </CardHeader>

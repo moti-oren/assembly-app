@@ -4,16 +4,20 @@ import { MOS6502 } from '@/core/mos6502/architecture';
 import { formatInstruction as formatMos6502 } from '@/core/mos6502/instructions';
 import { mos6502AluLink } from '@/core/mos6502AluLink';
 import { mos6502NumberLink } from '@/core/mos6502NumberLink';
+import { mos6502RegisterLink } from '@/core/mos6502RegisterLink';
 import { RV32 } from '@/core/rv32/architecture';
 import { formatInstruction as formatRv32 } from '@/core/rv32/instructions';
 import { rv32AluLink } from '@/core/rv32AluLink';
 import { rv32NumberLink } from '@/core/rv32NumberLink';
+import { rv32RegisterLink } from '@/core/rv32RegisterLink';
 import { X86 } from '@/core/x86/architecture';
 import { formatInstruction as formatX86 } from '@/core/x86/instructions';
 import { x86AluLink } from '@/core/x86AluLink';
 import { x86NumberLink } from '@/core/x86NumberLink';
+import { x86RegisterLink } from '@/core/x86RegisterLink';
 import { hasCircuit } from '@/core/aluLink';
 import { hasNumbers } from '@/core/numberLink';
+import { hasRegisters } from '@/core/registerLink';
 import type { ComparedId } from '@/core/comparison';
 import type { ComparisonTask } from '@/core/comparisonTasks';
 import SharedProgramDialog from '@/ui/components/SharedProgramDialog.vue';
@@ -43,6 +47,7 @@ const Rv32Workbench = defineAsyncComponent(loadRv32);
 const Mos6502Workbench = defineAsyncComponent(loadMos6502);
 const LogicWorkbench = defineAsyncComponent(() => import('@/ui/components/LogicWorkbench.vue'));
 const NumbersWorkbench = defineAsyncComponent(() => import('@/ui/components/NumbersWorkbench.vue'));
+const StorageWorkbench = defineAsyncComponent(() => import('@/ui/components/StorageWorkbench.vue'));
 const CompareDialog = defineAsyncComponent(() => import('@/ui/components/CompareDialog.vue'));
 const FeedbackDialog = defineAsyncComponent(() => import('@/ui/components/FeedbackDialog.vue'));
 const SettingsDialog = defineAsyncComponent(() => import('@/ui/components/SettingsDialog.vue'));
@@ -93,7 +98,8 @@ const rv32Text = (record: (typeof rv32.history.value)[number]) => formatRv32(rec
 const mos6502Text = (record: (typeof mos6502.history.value)[number]) =>
   formatMos6502(record.instruction);
 
-// The other topics show the last instruction of the CPU chosen here: its gates, and its numbers.
+// The other topics show the last instruction of the CPU chosen here: its gates, its numbers, and
+// the registers it wrote.
 const { moment: circuitMoment, seekShown } = useCpuMoment({
   x86: followed(x86, x86Text, { link: x86AluLink, shows: hasCircuit }),
   rv32: followed(rv32, rv32Text, { link: rv32AluLink, shows: hasCircuit }),
@@ -103,6 +109,20 @@ const { moment: numberMoment } = useCpuMoment({
   x86: followed(x86, x86Text, { link: x86NumberLink, shows: hasNumbers }),
   rv32: followed(rv32, rv32Text, { link: rv32NumberLink, shows: hasNumbers }),
   mos6502: followed(mos6502, mos6502Text, { link: mos6502NumberLink, shows: hasNumbers })
+});
+const { moment: registerMoment } = useCpuMoment({
+  x86: followed(x86, x86Text, {
+    link: (record) => x86RegisterLink(record, x86.afterOf(record)),
+    shows: hasRegisters
+  }),
+  rv32: followed(rv32, rv32Text, {
+    link: (record) => rv32RegisterLink(record, rv32.afterOf(record)),
+    shows: hasRegisters
+  }),
+  mos6502: followed(mos6502, mos6502Text, {
+    link: (record) => mos6502RegisterLink(record, mos6502.afterOf(record)),
+    shows: hasRegisters
+  })
 });
 
 // The others are fetched once the page is idle, so switching never shows an empty, half-loaded
@@ -137,6 +157,12 @@ watch([architecture, topic], () => {
         <NumbersWorkbench
           v-else-if="topic === 'numbers'"
           :moment="numberMoment"
+          @seek="seekShown"
+          @back="topic = 'cpu'"
+        />
+        <StorageWorkbench
+          v-else-if="topic === 'storage'"
+          :moment="registerMoment"
           @seek="seekShown"
           @back="topic = 'cpu'"
         />

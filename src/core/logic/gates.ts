@@ -1,7 +1,7 @@
 export type Bit = 0 | 1;
 
 /** A mux reads its select line first, then the input it passes when select is 0, then when 1. */
-export type GateKind = 'and' | 'or' | 'xor' | 'not' | 'mux';
+export type GateKind = 'and' | 'or' | 'nor' | 'xor' | 'not' | 'mux';
 
 /** One gate. Its output is the signal named `id`. */
 export interface Gate {
@@ -25,6 +25,7 @@ export type Signals = Readonly<Record<string, Bit>>;
 const OUTPUTS: Record<GateKind, (inputs: readonly Bit[]) => Bit> = {
   and: (inputs) => (inputs.every((bit) => bit === 1) ? 1 : 0),
   or: (inputs) => (inputs.some((bit) => bit === 1) ? 1 : 0),
+  nor: (inputs) => (inputs.some((bit) => bit === 1) ? 0 : 1),
   xor: (inputs) => (inputs.reduce<number>((parity, bit) => parity ^ bit, 0) ? 1 : 0),
   not: ([input]) => (input ? 0 : 1),
   mux: ([select, whenZero, whenOne]) => (select ? whenOne : whenZero)
