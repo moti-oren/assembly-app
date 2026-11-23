@@ -428,6 +428,11 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **SR latch**, **D latch** and **Flip-flop** show the cells a register bit is built up from,
   each to work by hand. With both inputs of the SR latch at 1, **Let go of both at once** shows
   the one case in which it cannot decide what it holds.
+- Under their inputs a timing diagram draws each wire as a wave, with a step for every change you
+  make (the last 16) and a line that says what the step did. It shows what the gates alone do
+  not: a D latch follows D for as long as E is 1, and a flip-flop takes D only where the clock
+  rises, which a dotted line marks. **Pulse** raises and lowers E or the clock in one press, and
+  **Clear** starts the diagram again.
 - Press a bit of the input or of the write line to flip it and see what the register would have
   held (**What if**). The CPU is not changed. The width can be changed too.
 - An instruction that wrote no register (a comparison, a store, a branch) has nothing to show:
@@ -904,6 +909,10 @@ npm run verify:6502 # check the 6502 core against py65
 - **SR latch**, **D latch** ו-**Flip-flop** מציגים את התאים שמהם נבנית סיבית של אוגר, וכל אחד
   מהם מופעל ביד. כששתי הכניסות של ה-SR latch הן 1, **Let go of both at once** מציג את המקרה
   היחיד שבו הוא אינו יכול להחליט מה הוא מחזיק.
+- מתחת לכניסות שלהם דיאגרמת תזמון מציירת כל חוט כגל, עם צעד לכל שינוי שעושים (16 האחרונים) ושורה
+  שאומרת מה הצעד עשה. היא מראה את מה שהשערים לבדם אינם מראים: D latch עוקב אחרי D כל עוד E הוא 1,
+  ופליפ-פלופ לוקח את D רק במקום שבו השעון עולה, שקו מנוקד מסמן. **Pulse** מעלה ומוריד את E או את
+  השעון בלחיצה אחת, ו-**Clear** מתחיל את הדיאגרמה מחדש.
 - לחיצה על סיבית של הכניסה או של קו הכתיבה הופכת אותה ומראה מה האוגר היה מחזיק (**What if**).
   המעבד אינו משתנה. אפשר לשנות גם את הרוחב.
 - להוראה שלא כתבה אוגר (השוואה, כתיבה לזיכרון, הסתעפות) אין מה להציג: שם **Stored** אפור ומסביר
