@@ -331,6 +331,25 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - Each CPU's program is listed with its machine code and what it leaves behind. **Load into …**
   replaces that CPU's program with it, as an example does, and switches to it.
 
+## Guessing before it runs
+
+- **Guess** in the bar at the bottom (in **⋯** on a phone and a tablet), **Guess before it runs** in the
+  settings under Running, or the same in the command palette, turns prediction mode on. It is off
+  until you turn it on.
+- Before an instruction runs you are asked one thing about it, above the bar: whether a conditional
+  jump or branch is taken, the value a register will hold (typed in hex; `-1` stands for its two's
+  complement), or which flags a comparison leaves at 1 (CMP and TEST on the 8086; CMP, CPX, CPY and
+  BIT on the 6502). An instruction with nothing to ask (a store, PUSH, an unconditional jump) runs as
+  it always does.
+- **Check** (Enter in the answer box) runs the instruction and checks the answer against the CPU:
+  right or not, what the CPU did, and why, in the words of the panels (the sum, the reason a flag
+  got its value, the condition of the jump). **Skip** (Esc, or Step again) runs it without an
+  answer. A count of the answers of this run stays beside the last one; Reset clears it.
+- The settings choose where it asks, each on its own and all on at first: on a program step, on an
+  instruction run from the builder, and during a run. A run waits at every line that has a
+  question, goes on after a right answer and pauses after a wrong one; at Instant speed it never
+  asks.
+
 ## From an operation to its gates
 
 - **CPU**, **Logic**, **Numbers**, **Storage** and **Control** at the top of the page (in the **⋯** menu on a
@@ -467,7 +486,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   list of events: the topic and CPU on show, a CPU's first instruction of the visit, a program
   run, an example or a comparison task loaded (by name), the comparison opened, the gates, the
   numbers or the register of an instruction opened, a share link copied or opened (for which CPU, never the program), a CPU error
-  (that it happened, never its text) and feedback sent (its kind).
+  (that it happened, never its text), a guess answered (right or not, never the answer) and
+  feedback sent (its kind).
   The list is `src/ui/analyticsEvents.ts`.
 - No event carries what you wrote: not your program, not a value, not a message. Umami sets no
   cookie, and the app adds no identifier of its own.
@@ -790,6 +810,22 @@ npm run verify:6502 # check the 6502 core against py65
 - התוכנית של כל מעבד מוצגת עם קוד המכונה שלה ועם מה שהיא משאירה אחריה. **Load into …** מחליף
   בה את התוכנית של אותו מעבד, כמו דוגמה, ועובר אליו.
 
+## ניחוש לפני ההרצה
+
+- **Guess** בסרגל שבתחתית (בטלפון ובטאבלט: בתוך **⋯**), **Guess before it runs** בהגדרות תחת Running,
+  או אותה פקודה בפלטת הפקודות, מדליקים את מצב הניחוש. הוא כבוי עד שמדליקים אותו.
+- לפני שהוראה רצה נשאלת עליה שאלה אחת, מעל הסרגל: האם קפיצה או הסתעפות מותנית תילקח, איזה ערך
+  יהיה באוגר (מקלידים בהקסדצימלי; `-1` פירושו המשלים לשתיים שלו), או אילו דגלים השוואה משאירה
+  על 1 (CMP ו-TEST ב-8086; CMP, CPX, CPY ו-BIT ב-6502). הוראה שאין מה לשאול עליה (כתיבה לזיכרון,
+  PUSH, קפיצה לא מותנית) רצה כרגיל.
+- **Check** (Enter בתיבת התשובה) מריץ את ההוראה ובודק את התשובה מול המעבד: נכון או לא, מה המעבד
+  עשה, ולמה, במילים של הלוחות (הסכום, הסיבה שדגל קיבל את ערכו, התנאי של הקפיצה). **Skip** (Esc, או
+  Step פעם נוספת) מריץ אותה בלי תשובה. מונה של התשובות בריצה הזאת נשאר ליד התשובה האחרונה; Reset
+  מאפס אותו.
+- בהגדרות בוחרים מתי הוא שואל, כל אחד לחוד, וכולם דלוקים בהתחלה: בצעד של התוכנית, בהוראה שמריצים
+  מהבונה, ובזמן ריצה. ריצה מחכה בכל שורה שיש עליה שאלה, ממשיכה אחרי תשובה נכונה ונעצרת אחרי
+  שגויה; במהירות Instant היא לא שואלת.
+
 ## מפעולה לשערים שלה
 
 - **CPU**, **Logic**, **Numbers**, **Storage** ו-**Control** בראש העמוד (בטלפון: בתפריט **⋯**) מחליפים בין
@@ -912,7 +948,8 @@ npm run verify:6502 # check the 6502 core against py65
   ש-Umami גוזר מהבקשה, כמו המדינה והדפדפן), ורשימה קצרה של אירועים: הנושא והמעבד המוצגים, ההוראה
   הראשונה שמעבד מריץ בביקור, הרצת תוכנית, טעינת דוגמה או משימת השוואה (לפי שם), פתיחת ההשוואה,
   פתיחת השערים, המספרים או האוגר של הוראה, העתקה או פתיחה של קישור שיתוף (לאיזה מעבד, לעולם לא התוכנית), שגיאת
-  מעבד (שהיא קרתה, לעולם לא הטקסט שלה) ושליחת משוב (הסוג שלו).
+  מעבד (שהיא קרתה, לעולם לא הטקסט שלה), תשובה לניחוש (נכונה או לא, לעולם לא התשובה עצמה) ושליחת
+  משוב (הסוג שלו).
   הרשימה נמצאת ב-`src/ui/analyticsEvents.ts`.
 - שום אירוע אינו נושא את מה שכתבת: לא התוכנית, לא ערך ולא הודעה. Umami אינו שומר עוגייה,
   והאפליקציה אינה מוסיפה מזהה משלה.
