@@ -3,16 +3,16 @@ import { isLandable, morphBetween, untilReady } from './splash';
 
 describe('untilReady', () => {
   it('waits out the rest of the build', () => {
-    expect(untilReady(1000, 1300)).toBe(760);
+    expect(untilReady(1000, 1300)).toBe(1600);
   });
 
   it('moves at once when the build is already over', () => {
-    expect(untilReady(1000, 2500)).toBe(0);
+    expect(untilReady(1000, 3000)).toBe(0);
   });
 
   it('waits for the whole build when the animation has not started yet', () => {
-    expect(untilReady(null, 1300)).toBe(1060);
-    expect(untilReady(1000, null)).toBe(1060);
+    expect(untilReady(null, 1300)).toBe(1900);
+    expect(untilReady(1000, null)).toBe(1900);
   });
 });
 

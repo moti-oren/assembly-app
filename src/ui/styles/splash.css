@@ -2,7 +2,7 @@
  * The opening animation: the app's mark, drawn large on the bare page while the app loads. Its
  * markup is in index.html, so it paints before Vue; once the app has mounted, splash.ts moves it
  * into the header's mark. Everything here plays from the first paint and ends with the chip
- * complete at 900ms and holding still until 1060ms; the move is splash.ts's. Only transform and
+ * complete at 900ms and holding still until 1900ms; the move is splash.ts's. Only transform and
  * opacity are animated.
  *
  * The chip is the header's .die-mark drawn large: its shape (the --die-* sizes) is set in
@@ -143,7 +143,7 @@
     white-space: nowrap;
     animation:
       splash-appear 160ms var(--splash-ease) 580ms both,
-      splash-vanish 160ms ease-out 1040ms forwards;
+      splash-vanish 160ms ease-out 1880ms forwards;
   }
   .splash-label::after,
   .splash-caption::after {

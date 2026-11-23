@@ -1,5 +1,5 @@
 /** When the chip is complete (splash.css) and may move into the header. */
-const CHIP_READY_MS = 1060;
+const CHIP_READY_MS = 1900;
 const MORPH_MS = 520;
 const FALLBACK_MS = 220;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
