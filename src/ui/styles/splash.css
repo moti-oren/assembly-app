@@ -2,7 +2,8 @@
  * The opening animation: the app's mark, drawn large on the bare page while the app loads. Its
  * markup is in index.html, so it paints before Vue; once the app has mounted, splash.ts moves it
  * into the header's mark. Everything here plays from the first paint and ends with the chip
- * complete at 560ms; the move is splash.ts's. Only transform and opacity are animated.
+ * complete at 900ms and holding still until 1060ms; the move is splash.ts's. Only transform and
+ * opacity are animated.
  *
  * The chip is the header's .die-mark drawn large: its shape (the --die-* sizes) is set in
  * controls.css for both. Only the label is its own size, as it has three letters to fit.
@@ -53,7 +54,7 @@
     place-items: center;
     border-radius: var(--die-radius);
     background: var(--die-lid);
-    animation: splash-lid-in 140ms var(--splash-ease) both;
+    animation: splash-lid-in 220ms var(--splash-ease) both;
   }
 
   /*
@@ -82,7 +83,7 @@
     width: var(--die-pin-width);
     height: calc(2 * var(--die-pin-out));
     background: var(--die-pin);
-    animation: splash-pin-out 120ms var(--splash-ease) calc(140ms + var(--i) * 40ms) both;
+    animation: splash-pin-out 180ms var(--splash-ease) calc(200ms + var(--i) * 65ms) both;
   }
   .splash-pin:nth-child(2) {
     --i: 1;
@@ -100,7 +101,7 @@
     inset: 0;
     background: var(--written);
     opacity: 0;
-    animation: splash-tick 160ms ease-out 400ms both;
+    animation: splash-tick 280ms ease-out 620ms both;
   }
 
   .splash-dot {
@@ -111,12 +112,12 @@
     height: calc(2 * var(--die-dot-radius));
     border-radius: 9999px;
     background: var(--die-dot-fill);
-    animation: splash-appear 120ms var(--splash-ease) 380ms both;
+    animation: splash-appear 160ms var(--splash-ease) 580ms both;
   }
   .splash-dot-signal {
     background: var(--pointer);
     opacity: 0;
-    animation: splash-tick 160ms ease-out 380ms both;
+    animation: splash-tick 280ms ease-out 580ms both;
   }
 
   .splash-label {
@@ -126,10 +127,10 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
-    animation: splash-rise 120ms var(--splash-ease) 380ms both;
+    animation: splash-rise 160ms var(--splash-ease) 580ms both;
   }
 
-  /* The name under the chip: it comes with the label and leaves as the chip starts to move. */
+  /* The name under the chip: it comes with the label and leaves just before the chip moves. */
   .splash-caption {
     position: absolute;
     top: calc(100% + 6 * var(--die-u));
@@ -140,7 +141,9 @@
     font-size: 0.75rem;
     letter-spacing: 0.04em;
     white-space: nowrap;
-    animation: splash-appear 120ms var(--splash-ease) 380ms both;
+    animation:
+      splash-appear 160ms var(--splash-ease) 580ms both,
+      splash-vanish 160ms ease-out 1040ms forwards;
   }
   .splash-label::after,
   .splash-caption::after {
@@ -165,6 +168,12 @@
 
 @keyframes splash-appear {
   from {
+    opacity: 0;
+  }
+}
+
+@keyframes splash-vanish {
+  to {
     opacity: 0;
   }
 }

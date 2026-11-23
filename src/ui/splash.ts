@@ -1,6 +1,6 @@
 /** When the chip is complete (splash.css) and may move into the header. */
-const CHIP_READY_MS = 560;
-const MORPH_MS = 360;
+const CHIP_READY_MS = 1060;
+const MORPH_MS = 520;
 const FALLBACK_MS = 220;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 /** Ends the splash should its animations never finish (a hidden tab runs none). */
@@ -76,7 +76,6 @@ function morph(splash: HTMLElement, chip: HTMLElement, target: HTMLElement): Ani
 
   const move = { duration: MORPH_MS, easing: EASE };
   return [
-    animate(splash.querySelector('.splash-caption'), [{ opacity: 0 }], { duration: 120 }),
     animate(splash.querySelector('.splash-backdrop'), [{ opacity: 0 }], move),
     animate(chip, [{ transform: `translate(${x}px, ${y}px) scale(${scale})` }], move),
     animate(
