@@ -75,6 +75,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     switches (`shifter.ts`), and `alu.ts`, which solves one ALU operation gate by gate. Circuits
     with a loop in them are run until they come to rest (`feedback.ts`): the latches and the
     flip-flop (`flipFlop.ts`), and a register taken through one clock cycle (`register.ts`). A
+    circuit without a loop can be followed gate delay by gate delay as it comes to rest
+    (`propagation.ts`). A
     decoder is two planes of gates, the ANDs that recognise a pattern and the ORs they feed
     (`decoder.ts`), and a program counter is two adders, the switches that choose between their
     sums, and a register (`programCounter.ts`).
@@ -363,6 +365,12 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   bits. The 8086 and the 6502 shift one place per row; RISC-V has a barrel shifter of five rows.
 - Press an adder, a gate or a bit of a shifter's row to see that one bit gate by gate, with the
   truth table of any gate you press and the Boolean expressions it works out.
+- **Slow down time**, above an adder, shows it one gate delay at a time: every gate takes one
+  delay to react, so a carry climbs two delays a bit and the sum is wrong on the way. Step, play
+  or drag through the delays; a dashed bit will change again, and **ready at** gives the delay
+  each bit of the result settles at. A flipped bit starts from the wires as they were, so only
+  what it reaches moves; **Longest carry** loads the values that keep the adder busy longest.
+  The same actions are in the command palette, under **Gate delays**.
 - **Where each flag comes from** names the wire behind every flag. The 8086's CF after a
   subtraction is the inverse of the carry out; the 6502's C is the carry out itself; RISC-V has
   no flags, so a branch or `slt` reads one wire of a subtraction.
@@ -580,7 +588,8 @@ npm run verify:6502 # check the 6502 core against py65
   - `logic/`: לוגיקה ספרתית, שאינה מכירה אף מעבד: שערים ומעגלים שמחושבים באמת (`gates.ts`), מחבר
     ripple-carry (`adder.ts`), מעגל הזזה שבנוי משורות של מתגים (`shifter.ts`), ו-`alu.ts`, שפותר
     פעולת ALU אחת שער אחר שער. מעגלים שיש בהם לולאה מורצים עד שהם מתייצבים (`feedback.ts`):
-    הלאצ'ים והפליפ-פלופ (`flipFlop.ts`), ואוגר שעובר מחזור שעון אחד (`register.ts`). מפענח הוא
+    הלאצ'ים והפליפ-פלופ (`flipFlop.ts`), ואוגר שעובר מחזור שעון אחד (`register.ts`). אחרי מעגל
+    בלי לולאה אפשר לעקוב השהיית שער אחר השהיית שער עד שהוא מתייצב (`propagation.ts`). מפענח הוא
     שני מישורים של שערים, שערי ה-AND שמזהים תבנית ושערי ה-OR שהם מזינים (`decoder.ts`), ומונה
     תוכנית הוא שני מחברים, המתגים שבוחרים בין הסכומים שלהם, ואוגר (`programCounter.ts`).
   - `aluLink.ts` ו-`x86AluLink.ts`, `rv32AluLink.ts`, `mos6502AluLink.ts`: הקישור בין הנושאים. כל
@@ -839,6 +848,11 @@ npm run verify:6502 # check the 6502 core against py65
   ל-RISC-V יש barrel shifter של חמש שורות.
 - לחיצה על מחבר, על שער או על סיבית בשורה של מעגל ההזזה מציגה את אותה סיבית שער אחר שער, עם
   טבלת האמת של כל שער שלוחצים עליו והביטויים הבוליאניים שהוא מחשב.
+- **Slow down time**, מעל מחבר, מציג אותו השהיית שער אחת בכל פעם: לכל שער לוקח השהיה אחת להגיב,
+  ולכן הנשא מטפס שתי השהיות לכל סיבית והסכום שגוי בדרך. אפשר לצעוד בין ההשהיות, לנגן אותן או לגרור
+  ביניהן; סיבית מקווקוות עוד תשתנה, ו-**ready at** מציין באיזו השהיה כל סיבית של התוצאה מתייצבת.
+  סיבית שהופכים מתחילה מהחוטים כפי שהיו, כך שזז רק מה שהיא מגיעה אליו; **Longest carry** טוען את
+  הערכים שמעסיקים את המחבר הכי הרבה זמן. אותן פעולות נמצאות גם בפלטת הפקודות, תחת **Gate delays**.
 - **Where each flag comes from** מציין את החוט שמאחורי כל דגל. ה-CF של ה-8086 אחרי חיסור הוא
   ההיפוך של הנשא היוצא; ה-C של ה-6502 הוא הנשא היוצא עצמו; ל-RISC-V אין דגלים, ולכן הסתעפות או
   `slt` קוראות חוט אחד של חיסור.
