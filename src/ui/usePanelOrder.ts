@@ -11,6 +11,7 @@ import { useSidebarLayout } from './useSidebarLayout';
 export type PanelKey = SidebarKey | StageKey;
 
 export const PANEL_LABELS: Record<PanelKey, string> = {
+  challenge: 'Challenge',
   builder: 'Instruction',
   program: 'Program',
   history: 'History',
@@ -47,7 +48,10 @@ function read(raw: string): Orders {
     parsed = null;
   }
   const stored: Record<string, unknown> = isRecord(parsed) ? parsed : {};
-  return { left: sanitizeOrder(stored.left, SIDEBAR_PANELS) };
+  const left = sanitizeOrder(stored.left, SIDEBAR_PANELS);
+  // An order saved before there were challenges gets their panel on top, not at the end.
+  const placed = Array.isArray(stored.left) && stored.left.includes('challenge');
+  return { left: placed ? left : ['challenge', ...left.filter((key) => key !== 'challenge')] };
 }
 
 /** The order the user dragged the sidebar's panels into, remembered between visits. */
@@ -80,6 +84,7 @@ export function usePanelColumns(panels: Panels) {
 
   /** The panels that can be hidden, and whether each one is on show now. */
   const shown: Partial<Record<PanelKey, Ref<boolean>>> = {
+    challenge: panels.challengeShown,
     history: panels.historyShown,
     encoding: panels.bytesShown,
     devices: panels.devicesShown,

@@ -1,5 +1,5 @@
 /** The panels of the sidebar, in their default order. */
-export const SIDEBAR_PANELS = ['builder', 'program', 'history', 'encoding'] as const;
+export const SIDEBAR_PANELS = ['challenge', 'builder', 'program', 'history', 'encoding'] as const;
 
 export type SidebarKey = (typeof SIDEBAR_PANELS)[number];
 
@@ -15,6 +15,7 @@ export interface SidebarLayout {
 }
 
 const DEFAULT_SIZES: Record<SidebarKey, number> = {
+  challenge: 380,
   builder: 320,
   program: 360,
   history: 240,
@@ -26,6 +27,7 @@ const DEFAULT_SIZES: Record<SidebarKey, number> = {
  * builder its input, a row of its choices and its buttons, which are of no use cut off.
  */
 const MIN_HEIGHTS: Record<SidebarKey, number> = {
+  challenge: 132,
   builder: 296,
   program: 96,
   history: 96,

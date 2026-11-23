@@ -9,6 +9,7 @@ import { transportKeys } from './transportKeys';
 import { useAppCommands } from './useAppCommands';
 import type { CpuControls } from './useCpu';
 import { PANEL_LABELS, usePanelOrder } from './usePanelOrder';
+import { useChallenges } from './useChallenges';
 import { useComparison } from './useComparison';
 import type { Panels } from './usePanels';
 import { useShare } from './useShare';
@@ -59,11 +60,12 @@ export function useCommands(
   const panelOrder = usePanelOrder();
   const sidebar = useSidebarLayout();
   const comparison = useComparison();
+  const challenges = useChallenges();
   const share = useShare();
   const mode = useLayoutMode();
   const { view, drawerOpen } = useWorkbenchView();
   const { history, program, insertAt, future, finished, speed, running, nextLine } = cpu;
-  const { historyShown, bytesShown, devicesShown, stackShown } = panels;
+  const { historyShown, bytesShown, devicesShown, stackShown, challengeShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
   const hasCircuit = computed(page.hasCircuit);
   const hasNumbers = computed(page.hasNumbers);
@@ -276,6 +278,23 @@ export function useCommands(
       moves: 'focus',
       run: () => {
         comparison.open.value = true;
+      }
+    },
+    {
+      group: 'Program',
+      label: 'Open the challenges…',
+      // The dialog takes focus; the palette must not take it back as it closes.
+      moves: 'focus',
+      run: () => {
+        challenges.open.value = true;
+      }
+    },
+    {
+      group: 'Program',
+      label: 'Leave the challenge',
+      disabled: !challengeShown.value,
+      run: () => {
+        challengeShown.value = false;
       }
     },
     ...cpu.architecture.examples.map((example, index) => ({

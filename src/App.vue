@@ -30,6 +30,8 @@ import { analytics } from '@/ui/analyticsClient';
 import type { ArchitectureId } from '@/ui/architectures';
 import type { SharedProgram } from '@/ui/shareLink';
 import { useAppAnalytics } from '@/ui/useAppAnalytics';
+import { startChallenge } from '@/ui/useChallenge';
+import { useChallenges } from '@/ui/useChallenges';
 import { useComparison } from '@/ui/useComparison';
 import { sound } from '@/ui/soundEngine';
 import { useCpu } from '@/ui/useCpu';
@@ -38,6 +40,8 @@ import { useFeedback } from '@/ui/useFeedback';
 import { useKeyboardInset } from '@/ui/useKeyboardInset';
 import { usePreferences } from '@/ui/usePreferences';
 import { useSettings } from '@/ui/useSettings';
+import { useSidebarLayout } from '@/ui/useSidebarLayout';
+import { useWorkbenchView } from '@/ui/useWorkbenchView';
 import { useShare } from '@/ui/useShare';
 import { useSharedProgram } from '@/ui/useSharedProgram';
 import { useTopic } from '@/ui/useTopic';
@@ -53,6 +57,7 @@ const LogicWorkbench = defineAsyncComponent(() => import('@/ui/components/LogicW
 const NumbersWorkbench = defineAsyncComponent(() => import('@/ui/components/NumbersWorkbench.vue'));
 const StorageWorkbench = defineAsyncComponent(() => import('@/ui/components/StorageWorkbench.vue'));
 const ControlWorkbench = defineAsyncComponent(() => import('@/ui/components/ControlWorkbench.vue'));
+const ChallengesDialog = defineAsyncComponent(() => import('@/ui/components/ChallengesDialog.vue'));
 const CompareDialog = defineAsyncComponent(() => import('@/ui/components/CompareDialog.vue'));
 const FeedbackDialog = defineAsyncComponent(() => import('@/ui/components/FeedbackDialog.vue'));
 const SettingsDialog = defineAsyncComponent(() => import('@/ui/components/SettingsDialog.vue'));
@@ -67,6 +72,9 @@ const { topic } = useTopic();
 useKeyboardInset();
 useAppAnalytics();
 const { open: comparisonOpen, wanted: comparisonWanted } = useComparison();
+const { open: challengesOpen, wanted: challengesWanted } = useChallenges();
+const workbenchView = useWorkbenchView();
+const sidebar = useSidebarLayout();
 const { wanted: feedbackWanted } = useFeedback();
 const { wanted: settingsWanted } = useSettings();
 const { wanted: shareWanted } = useShare();
@@ -80,6 +88,26 @@ function loadSolution(task: ComparisonTask, id: ComparedId): void {
   architecture.value = id;
   comparisonOpen.value = false;
   analytics.track({ name: 'solution-loaded', architecture: id, task: task.id });
+}
+
+/** The challenges of the CPU on show, for their list. */
+const shownChallenges = computed(
+  () =>
+    ({ x86: X86.challenges, rv32: RV32.challenges, mos6502: MOS6502.challenges })[
+      architecture.value
+    ]
+);
+
+/** Starts a challenge on the CPU on show, from the list. */
+function beginChallenge(id: string): void {
+  if (architecture.value === 'x86') startChallenge(x86, id);
+  else if (architecture.value === 'rv32') startChallenge(rv32, id);
+  else startChallenge(mos6502, id);
+  topic.value = 'cpu';
+  challengesOpen.value = false;
+  // Its panel is in the sidebar, which may be folded, behind a drawer or another view.
+  workbenchView.show('code');
+  sidebar.expand('challenge');
 }
 
 const programs = { x86: x86.program, rv32: rv32.program, mos6502: mos6502.program };
@@ -188,6 +216,12 @@ watch([architecture, topic], () => {
         <Mos6502Workbench v-else :cpu="mos6502" />
       </KeepAlive>
     </div>
+    <ChallengesDialog
+      v-if="challengesWanted"
+      :architecture="architecture"
+      :challenges="shownChallenges"
+      @start="beginChallenge"
+    />
     <CompareDialog v-if="comparisonWanted" v-model:open="comparisonOpen" @load="loadSolution" />
     <FeedbackDialog v-if="feedbackWanted" />
     <SettingsDialog v-if="settingsWanted" />

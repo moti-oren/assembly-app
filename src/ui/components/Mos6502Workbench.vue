@@ -22,6 +22,8 @@ import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
 import { usePrediction } from '@/ui/usePrediction';
 import { useProgramCode } from '@/ui/useProgramCode';
+import { useChallenge } from '@/ui/useChallenge';
+import { useChallenges } from '@/ui/useChallenges';
 import { useStack } from '@/ui/useStack';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { mos6502Stack } from '@/ui/mos6502Stack';
@@ -33,6 +35,7 @@ import FlatMemory from './FlatMemory.vue';
 import HistoryLog from './HistoryLog.vue';
 import InstructionBuilder from './InstructionBuilder.vue';
 import PredictionBar from './PredictionBar.vue';
+import ChallengePanel from './ChallengePanel.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import Mos6502Alu from './Mos6502Alu.vue';
 import Mos6502ChangeStrip from './Mos6502ChangeStrip.vue';
@@ -114,6 +117,8 @@ const {
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, mos6502Stack);
+const challenge = useChallenge(cpu);
+const { open: challengesOpen } = useChallenges();
 
 const memoryPlaces = mos6502MemoryPlaces(state);
 
@@ -169,6 +174,17 @@ followBuilder(draft);
       @move="move"
       @close="close"
     >
+      <template #challenge>
+        <ChallengePanel
+          v-if="challenge.challenge.value && challenge.result.value"
+          v-model:hint-shown="challenge.hintShown.value"
+          :challenge="challenge.challenge.value"
+          :result="challenge.result.value"
+          :given="challenge.given.value"
+          @restart="challenge.restart"
+          @list="challengesOpen = true"
+        />
+      </template>
       <template #builder>
         <InstructionBuilder
           ref="builder"

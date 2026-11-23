@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Columns3, PanelLeft, Share2 } from '@lucide/vue';
+import { BookOpen, Columns3, PanelLeft, Puzzle, Share2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
+import { useChallenges } from '@/ui/useChallenges';
 import { useComparison } from '@/ui/useComparison';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { usePreferences } from '@/ui/usePreferences';
@@ -31,6 +32,7 @@ const examplesOpen = defineModel<boolean>('examplesOpen', { default: false });
 
 const { architecture } = usePreferences();
 const { open: comparisonOpen } = useComparison();
+const { open: challengesOpen } = useChallenges();
 const { open: shareOpen } = useShare();
 const mode = useLayoutMode();
 const { drawerOpen } = useWorkbenchView();
@@ -39,6 +41,11 @@ const { drawerOpen } = useWorkbenchView();
 function compareFromMenu(): void {
   examplesOpen.value = false;
   comparisonOpen.value = true;
+}
+
+function challengesFromMenu(): void {
+  examplesOpen.value = false;
+  challengesOpen.value = true;
 }
 
 function shareFromMenu(): void {
@@ -114,6 +121,21 @@ function loadFromMenu(index: number): void {
         </TooltipTrigger>
         <TooltipContent>The same task on all three CPUs, side by side</TooltipContent>
       </Tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button
+            variant="ghost"
+            size="sm"
+            class="pointer-coarse:h-11 pointer-coarse:min-w-11"
+            aria-label="Challenges"
+            @click="challengesOpen = true"
+          >
+            <Puzzle />
+            <span class="hidden xl:inline">Challenges</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Small tasks to write a program for, checked as you go</TooltipContent>
+      </Tooltip>
       <DropdownMenu v-model:open="examplesOpen" :modal="false">
         <DropdownMenuTrigger as-child>
           <Button
@@ -145,6 +167,10 @@ function loadFromMenu(index: number): void {
       <button type="button" class="sheet-row" @click="compareFromMenu">
         <Columns3 aria-hidden="true" />
         Compare the CPUs
+      </button>
+      <button type="button" class="sheet-row" @click="challengesFromMenu">
+        <Puzzle aria-hidden="true" />
+        Challenges
       </button>
     </template>
     <template #menu>
