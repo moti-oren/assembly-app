@@ -6,7 +6,14 @@ import type { FlagName } from './x86/flags';
 import type { Mnemonic } from './x86/instructions';
 import type { Operand } from './x86/operands';
 import type { RegisterName } from './x86/registers';
-import { createCpuState, getFlag, readRegister, setFlag, writeRegister } from './x86/state';
+import {
+  createCpuState,
+  getFlag,
+  physicalAddress,
+  readRegister,
+  setFlag,
+  writeRegister
+} from './x86/state';
 import { x86NumberLink } from './x86NumberLink';
 
 const reg = (name: RegisterName): Operand => ({ type: 'reg', name });
@@ -85,6 +92,32 @@ describe('x86NumberLink', () => {
     expect(hasNumbers(cmp) && cmp.resultKept).toBe(false);
     const scan = x86NumberLink(execute(cpu, { mnemonic: 'scasb', operands: [] }));
     expect(hasNumbers(scan) && scan.resultKept).toBe(false);
+  });
+
+  it.each([
+    ['cmpsb', 1],
+    ['cmpsw', 2]
+  ] as const)('%s: the numbers agree with the CPU on what memory held', (mnemonic, bytes) => {
+    const next = random(mnemonic.charCodeAt(4) * 97);
+    for (let i = 0; i < 80; i++) {
+      const cpu = createCpuState();
+      writeRegister(cpu, 'si', 0x10);
+      writeRegister(cpu, 'di', 0x20);
+      const source = physicalAddress(readRegister(cpu, 'ds'), 0x10);
+      const target = physicalAddress(readRegister(cpu, 'es'), 0x20);
+      // Equal operands come up now and then, so ZF is set as well as cleared.
+      const same = next() % 4 === 0;
+      for (let byte = 0; byte < bytes; byte++) {
+        cpu.memory[source + byte] = next() & 0xff;
+        cpu.memory[target + byte] = same ? cpu.memory[source + byte] : next() & 0xff;
+      }
+      const link = x86NumberLink(execute(cpu, { mnemonic, operands: [] }));
+      if (!hasNumbers(link)) throw new Error(link.unavailable);
+      expect(link.request).toMatchObject({ kind: 'subtract', width: bytes * 8 });
+      for (const [flag, value] of Object.entries(flagAnswers(link, solveNumber(link.request)))) {
+        expect(`${flag}=${value}`).toBe(`${flag}=${Number(getFlag(cpu, flag as FlagName))}`);
+      }
+    }
   });
 
   it('has nothing to show for bitwise logic, a shift, a multiplication or a move', () => {
