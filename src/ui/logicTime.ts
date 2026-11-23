@@ -67,6 +67,11 @@ export function longestCarry(request: AdderRequest): AdderRequest {
   return { ...request, a: 2 ** request.width - 1, b: 1, carryIn: 0 };
 }
 
+/** How far `step` is along the gate delays, as the filled part of a slider's track. */
+export function progressOf(step: number, last: number): string {
+  return last === 0 ? '0%' : `${(step / last) * 100}%`;
+}
+
 /** Where the circuit is in time, and what that means for its result. */
 export interface TimeSummary {
   position: string;

@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Pause, Play, RotateCcw, StepBack, StepForward, Timer } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
-import { timeSummary } from '@/ui/logicTime';
+import { progressOf, timeSummary } from '@/ui/logicTime';
 import type { LogicLens } from '@/ui/useLogicLens';
 
 const props = defineProps<{ lens: LogicLens }>();
@@ -11,11 +11,7 @@ const time = computed(() => props.lens.time);
 const summary = computed(() =>
   timeSummary(time.value.step.value, time.value.last.value, time.value.worst.value)
 );
-/** How far along the gate delays the slider is, for the filled part of its track. */
-const progress = computed(() => {
-  const { step, last } = time.value;
-  return last.value === 0 ? '0%' : `${(step.value / last.value) * 100}%`;
-});
+const progress = computed(() => progressOf(time.value.step.value, time.value.last.value));
 const atStart = computed(() => time.value.step.value === 0);
 const atEnd = computed(() => time.value.settled.value);
 

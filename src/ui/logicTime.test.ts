@@ -7,6 +7,7 @@ import {
   isAdder,
   longestCarry,
   pendingBits,
+  progressOf,
   readyRow,
   readySummary,
   sharesWires,
@@ -105,6 +106,17 @@ describe('longestCarry', () => {
     const adderOnly = 2 * 8 + 2;
     expect(steps.length - 1).toBeGreaterThanOrEqual(adderOnly);
     expect(steps.length - 1).toBeLessThanOrEqual(depth(solution.circuit));
+  });
+});
+
+describe('progressOf', () => {
+  it('is the part of the gate delays that has passed', () => {
+    expect(progressOf(5, 20)).toBe('25%');
+    expect(progressOf(20, 20)).toBe('100%');
+  });
+
+  it('is nothing when there are no gate delays', () => {
+    expect(progressOf(0, 0)).toBe('0%');
   });
 });
 

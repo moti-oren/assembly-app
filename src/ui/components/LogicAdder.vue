@@ -32,6 +32,19 @@ function pending(name: (bit: number) => string): boolean[] | null {
   return propagation.value && pendingBits(propagation.value, name, width.value, step.value);
 }
 
+/** Every row of wires, worked out once for each moment and not once for each render. */
+const bits = computed(() => ({
+  carry: wires(ADDER.carry),
+  a: wires(ADDER.a),
+  b: wires(ADDER.b),
+  y: wires(ADDER.y),
+  sum: wires(ADDER.sum)
+}));
+const unsettled = computed(() => ({
+  carry: pending(ADDER.carry),
+  y: pending(ADDER.y),
+  sum: pending(ADDER.sum)
+}));
 /** Whether the carry handed on by each adder will change again. The last is the carry out. */
 const carryPending = computed(() => pending((bit) => ADDER.carry(bit + 1)));
 const carryOut = computed(() => ({
@@ -61,33 +74,21 @@ const sumReady = computed(
         name="The carry into"
         tone="quiet"
         mode="lowest"
-        :bits="wires(ADDER.carry)"
-        :pending="pending(ADDER.carry)"
+        :bits="bits.carry"
+        :pending="unsettled.carry"
         :lead="carryOut"
         @flip="lens.flipCarryIn()"
       />
-      <LogicRow
-        label="A"
-        name="A"
-        mode="flip"
-        :bits="wires(ADDER.a)"
-        @flip="lens.flipBit('a', $event)"
-      />
-      <LogicRow
-        label="B"
-        name="B"
-        mode="flip"
-        :bits="wires(ADDER.b)"
-        @flip="lens.flipBit('b', $event)"
-      />
+      <LogicRow label="A" name="A" mode="flip" :bits="bits.a" @flip="lens.flipBit('a', $event)" />
+      <LogicRow label="B" name="B" mode="flip" :bits="bits.b" @flip="lens.flipBit('b', $event)" />
       <LogicRow
         v-if="subtracting"
         class="logic-ripple"
         label="NOT B"
         name="B inverted"
         tone="quiet"
-        :bits="wires(ADDER.y)"
-        :pending="pending(ADDER.y)"
+        :bits="bits.y"
+        :pending="unsettled.y"
       />
       <div class="logic-row logic-ripple">
         <div class="logic-label">Adders</div>
@@ -121,8 +122,8 @@ const sumReady = computed(
         :label="subtracting ? 'A − B' : 'Sum'"
         name="The result"
         :tone="lens.written.value ? 'result' : 'plain'"
-        :bits="wires(ADDER.sum)"
-        :pending="pending(ADDER.sum)"
+        :bits="bits.sum"
+        :pending="unsettled.sum"
       />
       <!-- When each bit of the result is ready: a staircase where a carry had to climb. -->
       <div v-if="sumReady" class="logic-row text-2xs text-tertiary-foreground" data-compact>
