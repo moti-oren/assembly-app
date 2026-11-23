@@ -18,13 +18,9 @@
   }
 
   /*
-   * Under the bus line is what the chip talks to, outside it: the same frame, on a quieter
-   * ground, with its units standing out of it instead of set into it. A wash of the ink rather
-   * than --recessed, which is the chip's own fill on the dark page.
+   * Under the bus line is what the chip talks to, outside it: on the chip's own ground, its
+   * units stand out of it instead of being set into it.
    */
-  .chip-outside {
-    background-color: color-mix(in srgb, var(--foreground) 4%, var(--card));
-  }
   .chip-package .chip-outside .chip-block {
     border-color: var(--input);
     background-color: var(--card);

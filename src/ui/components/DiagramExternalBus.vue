@@ -6,7 +6,7 @@ defineProps<{ model: CpuDiagramModel }>();
 </script>
 
 <template>
-  <!-- The bus leaves the chip: its line runs the frame's width, and under it is what it reaches. -->
+  <!-- The bus leaves the chip: its line spans the units inside, and under it is what it reaches. -->
   <div class="mt-4 flex items-end justify-between gap-3 px-4 max-sm:pb-3 sm:mt-0">
     <p class="truncate pb-1.5 text-xs text-muted-foreground">
       <span class="unit-title">Address / data bus</span>
@@ -23,7 +23,7 @@ defineProps<{ model: CpuDiagramModel }>();
       :tick="model.pulse"
     />
   </div>
-  <DiagramWire class="hidden sm:block" :kind="model.busKind" :tick="model.pulse" />
+  <DiagramWire class="mx-4 hidden sm:block" :kind="model.busKind" :tick="model.pulse" />
   <!--
     Two equal columns at every width; on a phone each unit sets its note under its name. Each
     hangs from the bus near its left edge, clear of the wire that comes down from the adder.
