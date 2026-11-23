@@ -176,6 +176,14 @@
   border-radius: 0;
   background: transparent;
 }
+/*
+ * The stage's sections keep one rhythm: the same room on both sides of every line between them,
+ * and the same step from a section's heading to its content (the scale is in styles.css).
+ */
+.workbench-pane[data-pane='stage'] [data-slot='card'] {
+  gap: var(--section-header-gap);
+  padding-block: var(--pane-section-py);
+}
 /* Every panel starts at the same line, whatever size its card was generated in. */
 .workbench [data-slot='card-header'],
 .workbench [data-slot='card-content'],

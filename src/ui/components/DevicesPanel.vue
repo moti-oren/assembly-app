@@ -79,7 +79,7 @@ function flip(bit: number): void {
     <CardContent
       class="grid gap-x-6 gap-y-4 max-sm:grid-cols-[auto_minmax(0,1fr)] max-sm:gap-x-4 sm:grid-cols-[auto_auto_minmax(0,1fr)]"
     >
-      <div class="flex flex-col gap-3 max-sm:contents">
+      <div class="flex flex-col gap-3.5 max-sm:contents">
         <section class="max-sm:order-1 max-sm:col-span-2" aria-label="LEDs">
           <h3 class="device-title">
             LEDs
@@ -139,7 +139,9 @@ function flip(bit: number): void {
             >{{ access.write }} {{ port(PORTS.digits) }}, {{ port(PORTS.digits + 1) }}</span
           >
         </h3>
-        <div class="device-screen flex gap-2.5 px-3.5 py-3 max-sm:gap-2 max-sm:px-3 max-sm:py-2.5">
+        <div
+          class="device-screen flex items-center gap-2.5 px-3.5 py-3 max-sm:gap-2 max-sm:px-3 max-sm:py-2.5 sm:h-24"
+        >
           <svg
             v-for="digit in digits"
             :key="digit.port"

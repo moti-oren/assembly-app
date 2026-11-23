@@ -214,7 +214,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
         />
       </template>
       <template #cycle>
-        <Card size="sm" class="md:data-[size=sm]:pb-5 short:data-[size=sm]:pb-3">
+        <Card size="sm">
           <CardContent>
             <CpuCycle :state="state" :record="lastRecord" :pending="pending" />
           </CardContent>

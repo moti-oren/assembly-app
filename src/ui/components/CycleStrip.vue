@@ -53,7 +53,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
   <div>
     <!-- A phone has no room for an architecture's controls beside the phases: they take a row. -->
     <div
-      class="flex items-center gap-3 max-sm:gap-2"
+      class="flex min-h-6 items-center gap-3 max-sm:gap-2"
       :class="{ 'max-sm:flex-wrap max-sm:gap-y-1': $slots.actions }"
     >
       <span class="-mr-2 text-sm font-medium max-sm:-mr-1">Cycle</span>
@@ -109,8 +109,8 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
     </div>
     <!--
       Three lines (two on a low window or a phone), whatever the text, so the panels below never
-      move from one step to the next. The idle line takes a little less, and on a phone no more
-      room than it needs.
+      move from one step to the next. The idle line takes no more room than it needs, the same on
+      every CPU and in the pipeline's chart, so the line under this card stays put between them.
     -->
     <details
       class="group mt-2.5 text-code leading-5 text-muted-foreground max-sm:mt-1.5"
@@ -120,7 +120,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         ref="summary"
         class="line-clamp-3 list-none short:line-clamp-2 rounded-sm outline-none max-sm:line-clamp-2 group-open:line-clamp-none group-open:h-auto focus-visible:ring-3 focus-visible:ring-ring/50 max-sm:group-open:line-clamp-none max-sm:group-open:h-auto [&::-webkit-details-marker]:hidden"
         :class="[
-          detail === null ? 'h-12 short:h-7 max-sm:h-5' : 'h-15 short:h-10 max-sm:h-10',
+          detail === null ? 'h-5' : 'h-15 short:h-10 max-sm:h-10',
           { 'cursor-pointer': truncated || open }
         ]"
         @click="onSummaryClick"

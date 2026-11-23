@@ -116,8 +116,8 @@ function reveal(jump: () => void): void {
 </script>
 
 <template>
-  <Card ref="card" size="sm" class="md:data-[size=sm]:pt-5 short:data-[size=sm]:pt-3">
-    <CardContent class="flex flex-col gap-3">
+  <Card ref="card" size="sm">
+    <CardContent class="flex flex-col gap-(--section-header-gap)">
       <div class="flex flex-wrap items-center gap-2">
         <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
         <InfoTip label="About memory">
@@ -180,94 +180,98 @@ function reveal(jump: () => void): void {
         </Button>
       </div>
 
-      <!--
+      <!-- One well: the line that says what was last read or written, over the bytes. -->
+      <div class="well overflow-hidden rounded-lg">
+        <!--
         segment:offset worked out into the 20-bit address that goes onto the bus. An offset that
         cannot be read takes this line, so the message needs no row of its own.
       -->
-      <p
-        class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 font-mono text-xs lg:h-5 lg:flex-nowrap lg:overflow-hidden lg:whitespace-nowrap"
-      >
-        <span v-if="offsetInvalid" :id="offsetErrorId" class="font-sans text-destructive">
-          “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
-        </span>
-        <AddressSum v-else-if="worked" :worked="worked" @show="showLastAccess" />
-      </p>
+        <p
+          class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 border-b px-2.5 py-1.5 font-mono text-xs max-sm:px-1.5 lg:h-8 lg:flex-nowrap lg:overflow-hidden lg:whitespace-nowrap"
+        >
+          <span v-if="offsetInvalid" :id="offsetErrorId" class="font-sans text-destructive">
+            “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+          </span>
+          <AddressSum v-else-if="worked" :worked="worked" @show="showLastAccess" />
+          <span v-else class="font-sans text-tertiary-foreground">No memory access yet</span>
+        </p>
 
-      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5 max-sm:px-1.5">
-        <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
-          <thead>
-            <tr class="text-muted-foreground">
-              <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">offset</th>
-              <th
-                v-for="column in columns"
-                :key="column"
-                class="px-0.5 py-1 text-center font-normal"
-                :class="{
-                  'pl-3': columnGap(column - 1) === 'wide',
-                  'pl-2': columnGap(column - 1) === 'narrow'
-                }"
-              >
-                {{ (column - 1).toString(16).toUpperCase() }}
-              </th>
-              <th class="py-1 pl-3 text-left font-normal">ascii</th>
-            </tr>
-          </thead>
-          <tbody @mouseleave="pointed = null">
-            <tr v-for="row in rows" :key="row.offset">
-              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
-                {{ formatHex(row.offset, 16) }}
-              </th>
-              <td
-                v-for="(byte, column) in row.bytes"
-                :key="byte.address"
-                class="px-0.5 py-0.5 text-center"
-                :class="{
-                  'pl-3': columnGap(column) === 'wide',
-                  'pl-2': columnGap(column) === 'narrow'
-                }"
-                :title="
-                  writes.has(byte.address)
-                    ? undefined
-                    : `Physical ${formatPhysical(byte.address)}h = ${byte.value}`
-                "
-                @mouseenter="pointed = (row.offset + column) & 0xffff"
-              >
-                <WriteTip
-                  :change="writtenByte(writes, byte.address)"
-                  :label="`Physical ${formatPhysical(byte.address)}h`"
+        <div ref="well" class="overflow-auto px-2.5 py-1.5 max-sm:px-1.5">
+          <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
+            <thead>
+              <tr class="text-muted-foreground">
+                <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">offset</th>
+                <th
+                  v-for="column in columns"
+                  :key="column"
+                  class="px-0.5 py-1 text-center font-normal"
+                  :class="{
+                    'pl-3': columnGap(column - 1) === 'wide',
+                    'pl-2': columnGap(column - 1) === 'narrow'
+                  }"
                 >
-                  <ChangeMark
-                    :on="writtenByte(writes, byte.address)?.unchanged === false"
-                    :written="writtenByte(writes, byte.address)?.unchanged"
-                    :tick="tick"
-                    :data-loc="`mem:${byte.address}`"
-                    :style="{ backgroundColor: warmth(byte.address) }"
-                    :class="[
-                      heat.get(byte.address) === 0
-                        ? 'font-semibold'
-                        : byte.value === 0
-                          ? 'byte-zero'
-                          : '',
-                      { 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }
-                    ]"
-                  >
-                    <RollingDigits :text="formatHex(byte.value, 8)" />
-                  </ChangeMark>
-                </WriteTip>
-              </td>
-              <!-- A character and its byte light up together, whichever one is pointed at. -->
-              <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
-                <span
+                  {{ (column - 1).toString(16).toUpperCase() }}
+                </th>
+                <th class="py-1 pl-3 text-left font-normal">ascii</th>
+              </tr>
+            </thead>
+            <tbody @mouseleave="pointed = null">
+              <tr v-for="row in rows" :key="row.offset">
+                <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
+                  {{ formatHex(row.offset, 16) }}
+                </th>
+                <td
                   v-for="(byte, column) in row.bytes"
                   :key="byte.address"
-                  :class="{ 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }"
+                  class="px-0.5 py-0.5 text-center"
+                  :class="{
+                    'pl-3': columnGap(column) === 'wide',
+                    'pl-2': columnGap(column) === 'narrow'
+                  }"
+                  :title="
+                    writes.has(byte.address)
+                      ? undefined
+                      : `Physical ${formatPhysical(byte.address)}h = ${byte.value}`
+                  "
                   @mouseenter="pointed = (row.offset + column) & 0xffff"
-                  >{{ printable(byte.value) }}</span
                 >
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  <WriteTip
+                    :change="writtenByte(writes, byte.address)"
+                    :label="`Physical ${formatPhysical(byte.address)}h`"
+                  >
+                    <ChangeMark
+                      :on="writtenByte(writes, byte.address)?.unchanged === false"
+                      :written="writtenByte(writes, byte.address)?.unchanged"
+                      :tick="tick"
+                      :data-loc="`mem:${byte.address}`"
+                      :style="{ backgroundColor: warmth(byte.address) }"
+                      :class="[
+                        heat.get(byte.address) === 0
+                          ? 'font-semibold'
+                          : byte.value === 0
+                            ? 'byte-zero'
+                            : '',
+                        { 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }
+                      ]"
+                    >
+                      <RollingDigits :text="formatHex(byte.value, 8)" />
+                    </ChangeMark>
+                  </WriteTip>
+                </td>
+                <!-- A character and its byte light up together, whichever one is pointed at. -->
+                <td class="py-0.5 pl-3 whitespace-pre text-muted-foreground">
+                  <span
+                    v-for="(byte, column) in row.bytes"
+                    :key="byte.address"
+                    :class="{ 'byte-pointed': pointed === ((row.offset + column) & 0xffff) }"
+                    @mouseenter="pointed = (row.offset + column) & 0xffff"
+                    >{{ printable(byte.value) }}</span
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </CardContent>
   </Card>

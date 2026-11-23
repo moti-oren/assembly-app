@@ -61,7 +61,7 @@ const detail = computed(() => {
 
 <template>
   <div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+    <div class="flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1.5">
       <span class="flex items-center gap-1">
         <span class="text-sm font-medium">Pipeline</span>
         <InfoTip label="About the pipeline">
@@ -110,7 +110,7 @@ const detail = computed(() => {
 
     <p
       v-if="grid.rows.length === 0 && !detail"
-      class="mt-2 text-xs leading-4 text-muted-foreground"
+      class="mt-2.5 text-code leading-5 text-muted-foreground max-sm:mt-1.5"
     >
       Nothing has run yet.
     </p>

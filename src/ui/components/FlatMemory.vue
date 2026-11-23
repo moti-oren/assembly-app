@@ -108,8 +108,8 @@ function reveal(jump: () => void): void {
 </script>
 
 <template>
-  <Card ref="card" size="sm" class="md:data-[size=sm]:pt-5 short:data-[size=sm]:pt-3">
-    <CardContent class="flex flex-col gap-3">
+  <Card ref="card" size="sm">
+    <CardContent class="flex flex-col gap-(--section-header-gap)">
       <div class="flex flex-wrap items-center gap-2">
         <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
         <InfoTip label="About memory">
@@ -163,110 +163,119 @@ function reveal(jump: () => void): void {
         </div>
       </div>
 
-      <p class="flex items-baseline gap-2 font-mono text-xs lg:h-5 lg:overflow-hidden">
-        <span v-if="invalid" :id="errorId" class="font-sans text-destructive">
-          “{{ addressText }}” isn't a hex address (use 0–9 and A–F). Showing
-          {{ formatAddress(format, 0) }}.
-        </span>
-        <template v-else-if="access">
-          <span class="truncate">{{ access.text }}</span>
-          <button
-            type="button"
-            class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-            @click="showLastAccess"
-          >
-            Show in table
-          </button>
-        </template>
-      </p>
+      <!-- One well: the line that says what was last read or written, over the bytes. -->
+      <div class="well overflow-hidden rounded-lg">
+        <p
+          class="flex items-baseline gap-2 border-b px-2.5 py-1.5 font-mono text-xs max-sm:px-1.5 lg:h-8 lg:overflow-hidden"
+        >
+          <span v-if="invalid" :id="errorId" class="font-sans text-destructive">
+            “{{ addressText }}” isn't a hex address (use 0–9 and A–F). Showing
+            {{ formatAddress(format, 0) }}.
+          </span>
+          <template v-else-if="access">
+            <span class="truncate">{{ access.text }}</span>
+            <button
+              type="button"
+              class="relative ml-auto shrink-0 rounded-sm font-sans text-muted-foreground underline pointer-coarse:after:absolute pointer-coarse:after:-inset-3 pointer-coarse:after:content-[''] decoration-dotted underline-offset-4 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+              @click="showLastAccess"
+            >
+              Show in table
+            </button>
+          </template>
+          <span v-else class="font-sans text-tertiary-foreground">No memory access yet</span>
+        </p>
 
-      <div ref="well" class="well overflow-auto rounded-lg px-2.5 py-1.5 max-sm:px-1.5">
-        <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
-          <thead>
-            <tr class="text-muted-foreground">
-              <!-- Eight bytes a row is a phone: the heading is cut to the width of an address. -->
-              <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">
-                {{ columns === 16 ? 'address' : 'addr' }}
-              </th>
-              <th
-                v-for="column in columns"
-                :key="column"
-                class="px-0.5 py-1 text-center font-normal"
-                :class="{
-                  'pl-3': columnGap(column - 1) === 'wide',
-                  'pl-2': columnGap(column - 1) === 'narrow'
-                }"
-              >
-                {{ (column - 1).toString(16).toUpperCase() }}
-              </th>
-              <th v-if="showsText(columns, format.digits)" class="py-1 pl-3 text-left font-normal">
-                ascii
-              </th>
-            </tr>
-          </thead>
-          <tbody @mouseleave="pointed = null">
-            <tr v-for="row in rows" :key="row[0].address">
-              <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
-                {{ hex(row[0].address) }}
-              </th>
-              <td
-                v-for="(byte, column) in row"
-                :key="byte.address"
-                class="px-0.5 py-0.5 text-center"
-                :class="{
-                  'pl-3': columnGap(column) === 'wide',
-                  'pl-2': columnGap(column) === 'narrow',
-                  'font-semibold': byte.region === 'code',
-                  'underline decoration-dotted underline-offset-2': byte.region === 'device'
-                }"
-                :title="
-                  writes.has(byte.address)
-                    ? undefined
-                    : byte.value === null
-                      ? `${formatAddress(format, byte.address)}: nothing is wired here`
-                      : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
-                "
-                @mouseenter="pointed = byte.address"
-              >
-                <span v-if="byte.value === null" class="text-tertiary-foreground">··</span>
-                <WriteTip
-                  v-else
-                  :change="writtenByte(writes, byte.address)"
-                  :label="formatAddress(format, byte.address)"
+        <div ref="well" class="overflow-auto px-2.5 py-1.5 max-sm:px-1.5">
+          <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
+            <thead>
+              <tr class="text-muted-foreground">
+                <!-- Eight bytes a row is a phone: the heading is cut to the width of an address. -->
+                <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">
+                  {{ columns === 16 ? 'address' : 'addr' }}
+                </th>
+                <th
+                  v-for="column in columns"
+                  :key="column"
+                  class="px-0.5 py-1 text-center font-normal"
+                  :class="{
+                    'pl-3': columnGap(column - 1) === 'wide',
+                    'pl-2': columnGap(column - 1) === 'narrow'
+                  }"
                 >
-                  <ChangeMark
-                    :on="writtenByte(writes, byte.address)?.unchanged === false"
-                    :written="writtenByte(writes, byte.address)?.unchanged"
-                    :tick="tick"
-                    :data-loc="`mem:${byte.address}`"
-                    :style="{ backgroundColor: warmth(byte.address) }"
-                    :class="{
-                      'byte-pointed': pointed === byte.address,
-                      'font-semibold': heat.get(byte.address) === 0 || accessed(byte.address),
-                      underline: accessed(byte.address),
-                      'byte-zero': byte.value === 0 && byte.region === 'ram'
-                    }"
-                  >
-                    <RollingDigits :text="formatHex(byte.value, 8)" />
-                  </ChangeMark>
-                </WriteTip>
-              </td>
-              <!-- A character and its byte light up together, whichever one is pointed at. -->
-              <td
-                v-if="showsText(columns, format.digits)"
-                class="py-0.5 pl-3 whitespace-pre text-muted-foreground"
-              >
-                <span
-                  v-for="byte in row"
+                  {{ (column - 1).toString(16).toUpperCase() }}
+                </th>
+                <th
+                  v-if="showsText(columns, format.digits)"
+                  class="py-1 pl-3 text-left font-normal"
+                >
+                  ascii
+                </th>
+              </tr>
+            </thead>
+            <tbody @mouseleave="pointed = null">
+              <tr v-for="row in rows" :key="row[0].address">
+                <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
+                  {{ hex(row[0].address) }}
+                </th>
+                <td
+                  v-for="(byte, column) in row"
                   :key="byte.address"
-                  :class="{ 'byte-pointed': pointed === byte.address }"
+                  class="px-0.5 py-0.5 text-center"
+                  :class="{
+                    'pl-3': columnGap(column) === 'wide',
+                    'pl-2': columnGap(column) === 'narrow',
+                    'font-semibold': byte.region === 'code',
+                    'underline decoration-dotted underline-offset-2': byte.region === 'device'
+                  }"
+                  :title="
+                    writes.has(byte.address)
+                      ? undefined
+                      : byte.value === null
+                        ? `${formatAddress(format, byte.address)}: nothing is wired here`
+                        : `${formatAddress(format, byte.address)} = ${byte.value}${byte.region === 'code' ? ', machine code' : byte.region === 'device' ? ', a device' : ''}`
+                  "
                   @mouseenter="pointed = byte.address"
-                  >{{ byte.value === null ? ' ' : printable(byte.value) }}</span
                 >
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  <span v-if="byte.value === null" class="text-tertiary-foreground">··</span>
+                  <WriteTip
+                    v-else
+                    :change="writtenByte(writes, byte.address)"
+                    :label="formatAddress(format, byte.address)"
+                  >
+                    <ChangeMark
+                      :on="writtenByte(writes, byte.address)?.unchanged === false"
+                      :written="writtenByte(writes, byte.address)?.unchanged"
+                      :tick="tick"
+                      :data-loc="`mem:${byte.address}`"
+                      :style="{ backgroundColor: warmth(byte.address) }"
+                      :class="{
+                        'byte-pointed': pointed === byte.address,
+                        'font-semibold': heat.get(byte.address) === 0 || accessed(byte.address),
+                        underline: accessed(byte.address),
+                        'byte-zero': byte.value === 0 && byte.region === 'ram'
+                      }"
+                    >
+                      <RollingDigits :text="formatHex(byte.value, 8)" />
+                    </ChangeMark>
+                  </WriteTip>
+                </td>
+                <!-- A character and its byte light up together, whichever one is pointed at. -->
+                <td
+                  v-if="showsText(columns, format.digits)"
+                  class="py-0.5 pl-3 whitespace-pre text-muted-foreground"
+                >
+                  <span
+                    v-for="byte in row"
+                    :key="byte.address"
+                    :class="{ 'byte-pointed': pointed === byte.address }"
+                    @mouseenter="pointed = byte.address"
+                    >{{ byte.value === null ? ' ' : printable(byte.value) }}</span
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </CardContent>
   </Card>
