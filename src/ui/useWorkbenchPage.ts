@@ -5,6 +5,7 @@ import type { WorkbenchPage } from './useWorkbench';
 interface BuilderHandle {
   focus: () => void;
   fold: () => void;
+  clear: () => void;
 }
 
 /** What a memory panel exposes to the page. */
@@ -23,6 +24,7 @@ export function useWorkbenchPage(hasLastAccess: () => boolean): WorkbenchPage {
   return {
     focusBuilder: () => builder.value?.focus(),
     foldBuilder: () => builder.value?.fold(),
+    clearBuilder: () => builder.value?.clear(),
     showStackTop: () => memoryView.value?.showStackTop(),
     showLastAccess: () => memoryView.value?.showLastAccess(),
     hasLastAccess

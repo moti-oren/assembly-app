@@ -109,6 +109,27 @@ export function grade(
   throw new Error('An answer of another kind than its question');
 }
 
+/** The question as the learner is asked it, after the instruction's own text. */
+export function promptOf(question: Question): string {
+  switch (question.kind) {
+    case 'branch':
+      return 'Will it jump?';
+    case 'value':
+      return `What will ${question.register} hold?`;
+    case 'flags':
+      return 'Which flags will be 1?';
+  }
+}
+
+/** How many hex digits a value of the question has. */
+export function digitsOf(question: Extract<Question, { kind: 'value' }>): number {
+  return question.bits / 4;
+}
+
+export function tallyText(tally: Tally): string {
+  return `${tally.right} of ${tally.asked} right`;
+}
+
 export function counted(tally: Tally, outcome: Outcome): Tally {
   return { right: tally.right + (outcome.correct ? 1 : 0), asked: tally.asked + 1 };
 }

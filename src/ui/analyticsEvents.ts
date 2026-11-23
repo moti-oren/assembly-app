@@ -26,4 +26,5 @@ export type AnalyticsEvent =
   /** A program arrived through a link and was opened. */
   | { name: 'link-opened'; architecture: ArchitectureId }
   | { name: 'cpu-error'; architecture: string }
+  | { name: 'prediction-answered'; architecture: string; result: 'right' | 'wrong' }
   | { name: 'feedback-sent'; kind: string };

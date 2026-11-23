@@ -17,11 +17,13 @@ import type { CpuOf } from '@/ui/useCpu';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useDataFlow } from '@/ui/useDataFlow';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
+import { usePrediction } from '@/ui/usePrediction';
 import { usePreferences } from '@/ui/usePreferences';
 import { x86UsesDevices } from '@/ui/usesDevices';
 import { useProgramCode } from '@/ui/useProgramCode';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
+import { x86Predictor } from '@/ui/x86Prediction';
 import { X86_GRAMMAR } from '@/ui/x86Grammar';
 import AppChrome from './AppChrome.vue';
 import ChangeStrip from './ChangeStrip.vue';
@@ -34,6 +36,7 @@ import HistoryLog from './HistoryLog.vue';
 import InstructionBuilder from './InstructionBuilder.vue';
 import LastOperation from './LastOperation.vue';
 import MemoryView from './MemoryView.vue';
+import PredictionBar from './PredictionBar.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import RegistersPanel from './RegistersPanel.vue';
 import SidebarColumn from './SidebarColumn.vue';
@@ -66,8 +69,7 @@ const {
   nextLine,
   finished,
   pending,
-  speed,
-  running
+  speed
 } = cpu;
 
 useDataFlow(state, history);
@@ -76,6 +78,17 @@ useDataFlow(state, history);
 const layout = useLayoutMode();
 
 const { registerBits } = usePreferences();
+
+const page = useWorkbenchPage(() => {
+  void state.memoryVersion;
+  return lastRecord.value !== null && describeMemoryAccess(state, lastRecord.value) !== null;
+});
+const { asking, last, tally, answer, skip, followBuilder, controls } = usePrediction(
+  cpu,
+  x86Predictor,
+  { clearBuilder: page.clearBuilder }
+);
+const { running } = controls;
 
 const {
   panels,
@@ -91,7 +104,7 @@ const {
   askReset,
   runAgain,
   confirmReset
-} = useWorkbench(cpu, {
+} = useWorkbench(controls, {
   aluLink: x86AluLink,
   numberLink: x86NumberLink,
   registerLink: x86RegisterLink,
@@ -107,10 +120,7 @@ const {
     }
   ],
   soundOf: (record) => x86Sounds(record, state),
-  page: useWorkbenchPage(() => {
-    void state.memoryVersion;
-    return lastRecord.value !== null && describeMemoryAccess(state, lastRecord.value) !== null;
-  })
+  page
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
@@ -120,6 +130,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
   assemble,
   encode
 });
+followBuilder(draft);
 </script>
 
 <!-- The 8086's panels, in the columns every architecture shares. -->
@@ -164,7 +175,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
         <InstructionBuilder
           ref="builder"
           :grammar="X86_GRAMMAR"
-          :run="cpu.run"
+          :run="controls.run"
           :add="cpu.addToProgram"
           :error="errorFrom === 'builder' ? error : null"
           :program-lines="programLines"
@@ -270,6 +281,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     </StageColumn>
   </WorkbenchPanes>
 
+  <PredictionBar :asking="asking" :last="last" :tally="tally" @answer="answer" @skip="skip" />
   <TransportBar
     v-model:speed="speed"
     v-model:history-shown="historyShown"
@@ -282,10 +294,10 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     :phase="pending?.phase ?? null"
     :executed="history.length"
     :undone="future.length"
-    @step="cpu.stepProgram"
-    @phase="cpu.stepPhase"
-    @run="cpu.runProgram"
-    @pause="cpu.pause"
+    @step="controls.stepProgram"
+    @phase="controls.stepPhase"
+    @run="controls.runProgram"
+    @pause="controls.pause"
     @undo="cpu.undoLast"
     @redo="cpu.redo"
     @reset="askReset"

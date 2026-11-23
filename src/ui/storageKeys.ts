@@ -19,6 +19,10 @@ export const STORAGE_KEYS = {
   confirmReset: '8086-confirm-reset',
   rv32Pipeline: '8086-rv32-pipeline',
   rv32Forwarding: '8086-rv32-forwarding',
+  prediction: '8086-prediction',
+  predictStep: '8086-predict-step',
+  predictBuilder: '8086-predict-builder',
+  predictRun: '8086-predict-run',
   /** One program per architecture; the architecture's id is added to it (see programStorage). */
   program: '8086-program'
 } as const;

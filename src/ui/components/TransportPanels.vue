@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Binary, Cable, ListOrdered } from '@lucide/vue';
+import { Binary, Cable, CircleHelp, ListOrdered } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePreferences } from '@/ui/usePreferences';
 
 const props = defineProps<{
   historyShown: boolean;
@@ -10,7 +11,7 @@ const props = defineProps<{
   bytesShown: boolean;
   /** Whether each switch is always named, or only where the bar has room for it. */
   named?: boolean;
-  /** In a phone's sheet: three equal columns, each name under its icon, framed on or off. */
+  /** In a phone's sheet: two equal columns, each name under its icon, framed on or off. */
   stacked?: boolean;
 }>();
 
@@ -19,6 +20,8 @@ const emit = defineEmits<{
   'update:devicesShown': [shown: boolean];
   'update:bytesShown': [shown: boolean];
 }>();
+
+const { prediction } = usePreferences();
 
 const toggles = computed(() => [
   {
@@ -38,17 +41,25 @@ const toggles = computed(() => [
     icon: Binary,
     shown: props.bytesShown,
     flip: () => emit('update:bytesShown', !props.bytesShown)
+  },
+  {
+    label: 'Guess',
+    icon: CircleHelp,
+    shown: prediction.value,
+    flip: () => {
+      prediction.value = !prediction.value;
+    }
   }
 ]);
 </script>
 
-<!-- What the page shows, apart from the controls that drive the program. -->
+<!-- What the page shows, and whether a step asks first, apart from the controls that drive the program. -->
 <template>
   <div
     class="toggle-group"
-    :class="stacked ? 'grid w-full grid-cols-3' : { 'flex w-full': named }"
+    :class="stacked ? 'grid w-full grid-cols-2' : { 'flex w-full': named }"
     role="group"
-    aria-label="Panels"
+    aria-label="Panels and guessing"
   >
     <!-- Icons only where there is no room, so the name moves into the label and a tooltip. -->
     <Tooltip v-for="toggle in toggles" :key="toggle.label">
@@ -56,7 +67,7 @@ const toggles = computed(() => [
         <Button
           variant="ghost"
           size="sm"
-          class="px-2.5 pointer-coarse:h-11"
+          class="px-2.5 pointer-coarse:h-11 pointer-coarse:min-w-11"
           :class="
             stacked
               ? 'h-14 min-w-0 flex-col gap-1 border-input px-1 text-xs pointer-coarse:h-14'
