@@ -230,8 +230,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The gear at the top right opens **Settings**, a window over the app (on a phone it is in the
   **⋯** menu and takes the whole screen). Its sections: **General** (sound, anonymous usage),
   **Appearance** (the theme: Light, Dark or System, which follows your device; **Reduce
-  animations**), **CPU** (diagram or tables, the 8086's register bits, RISC-V's pipeline chart and
-  forwarding; the same switches stay on their panels), **Running** (the run speed, which is
+  animations**), **CPU** (diagram or tables, the 8086's register bits, RISC-V's pipeline chart, its
+  forwarding and its branch predictor; the same switches stay on their panels), **Running** (the run speed, which is
   remembered and shared by the three CPUs; whether the I/O panel opens by itself when a program
   uses a port; whether a reset asks first), **Keyboard** (the shortcuts, to read) and **Data**
   (reset the panel layout, or clear everything this browser saved: the programs, the settings and
@@ -282,12 +282,18 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   instructions that ran as the classic five-stage pipeline would run them, IF, ID, EX, MEM and WB,
   up to five at once, cycle by cycle. A dashed cell is a cycle spent waiting: an instruction that
   needs a value a load has not brought yet waits one cycle in ID. A branch or jump changes PC in
-  EX, so when it is taken the two instructions fetched behind it are struck out (flushed). Turn
+  EX, two cycles after it was fetched, so what is fetched behind it until then is a guess; when
+  the guess is wrong, the two instructions fetched behind it are struck out (flushed). **Branches**
+  picks how a conditional branch is guessed: **Not taken** (the next lines are fetched), **Taken**
+  (its target is), **1 bit** (what this branch did last time) or **2 bits** (what it mostly did:
+  once the guess is sure, one wrong guess does not change it). A ✓ on a branch's EX is a guess that was right, a ✗ one
+  that cost a flush; run a loop under each to see how much it loses. A jump is always resolved in
+  EX. Turn
   **Forwarding** off to see every instruction wait in ID until the one before it has written its
   result back. With it on, a blue line down the chart joins an EX to the stage above it that handed
   it a result before that result was written back. The stages of the last instruction run are
   tinted blue. Under the chart, a sentence says why each stall and flush happened, and a line adds
-  up the cycles, and below them is what the last instruction did, in the same words the one-by-one
+  up the cycles and the branches guessed right, and below them is what the last instruction did, in the same words the one-by-one
   view uses. The CPU itself still runs one instruction at a time; the chart is worked out from
   the history.
 - The **Machine code** panel shows the 32 bits of an instruction with each field over its bits:
@@ -732,7 +738,7 @@ npm run verify:6502 # check the 6502 core against py65
 - גלגל השיניים בפינה העליונה פותח את **Settings**, חלון מעל האפליקציה (בטלפון הוא בתפריט **⋯**
   ותופס את כל המסך). המקטעים שלו: **General** (צליל, שימוש אנונימי), **Appearance** (ערכת הנושא:
   Light, Dark או System, שעוקבת אחרי המכשיר; **Reduce animations**), **CPU** (דיאגרמה או טבלאות,
-  הביטים של הרגיסטרים ב-8086, תרשים ה-pipeline וה-forwarding של RISC-V; אותם מתגים נשארים גם
+  הביטים של הרגיסטרים ב-8086, תרשים ה-pipeline, ה-forwarding וחיזוי הענפים של RISC-V; אותם מתגים נשארים גם
   בלוחות שלהם), **Running** (מהירות הריצה, שנשמרת ומשותפת לשלושת המעבדים; האם לוח ה-I/O נפתח
   מעצמו כשתוכנית משתמשת בפורט; האם Reset שואל קודם), **Keyboard** (הקיצורים, לקריאה) ו-**Data**
   (איפוס סידור הלוחות, או מחיקת כל מה שהדפדפן הזה שמר: התוכניות, ההגדרות והסידור). גם פלטת
@@ -777,11 +783,15 @@ npm run verify:6502 # check the 6502 core against py65
 - **Pipeline** בכרטיסיית ה-Cycle (או **Show the pipeline** בפלטת הפקודות) מציג את ההוראות שרצו
   כפי שה-pipeline הקלאסי בן חמשת השלבים היה מריץ אותן, IF, ID, EX, MEM ו-WB, עד חמש בבת אחת, מחזור
   אחר מחזור. משבצת מקווקוות היא מחזור של המתנה: הוראה שצריכה ערך שטעינה עוד לא הביאה מחכה מחזור
-  אחד ב-ID. ענף או קפיצה משנים את PC ב-EX, ולכן כשהם נלקחים שתי ההוראות שנשלפו אחריהם מסומנות בקו
-  (flush). כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. כשהוא
+  אחד ב-ID. ענף או קפיצה משנים את PC ב-EX, שני מחזורים אחרי שנשלפו, ולכן מה שנשלף אחריהם עד אז הוא ניחוש;
+  כשהניחוש שגוי, שתי ההוראות שנשלפו אחריהם מסומנות בקו (flush). **Branches** בוחר איך מנחשים ענף
+  מותנה: **Not taken** (נשלפות השורות הבאות), **Taken** (נשלף היעד שלו), **1 bit** (מה שהענף הזה
+  עשה בפעם הקודמת) או **2 bits** (מה שעשה ברוב הפעמים: כשהניחוש כבר בטוח, ניחוש שגוי אחד לא משנה אותו). ✓ על
+  ה-EX של ענף הוא ניחוש נכון, ✗ ניחוש שעלה ב-flush; הריצו לולאה תחת כל אחד כדי לראות כמה היא
+  מפסידה. קפיצה (jump) נפתרת תמיד ב-EX. כיבוי **Forwarding** מראה כל הוראה מחכה ב-ID עד שזו שלפניה כתבה את התוצאה שלה. כשהוא
   פועל, קו כחול לאורך התרשים מחבר EX לשלב שמעליו שמסר לו תוצאה לפני שנכתבה חזרה. השלבים של
   ההוראה האחרונה שרצה צבועים בכחול. מתחת
-  לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים, ומתחתיהן כתוב מה ההוראה
+  לתרשים משפט מסביר למה קרתה כל השהיה וכל flush, ושורה מסכמת את המחזורים ואת הענפים שנוחשו נכון, ומתחתיהן כתוב מה ההוראה
   האחרונה עשתה, באותן מילים שבתצוגת One by one. המעבד עצמו עדיין מריץ
   הוראה אחת בכל פעם; התרשים מחושב מתוך ההיסטוריה.
 - חלונית **Machine code** מציגה את 32 הסיביות של הוראה, וכל שדה מעל הסיביות שלו: opcode, rd,
