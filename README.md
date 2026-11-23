@@ -216,13 +216,15 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   program stays in view under a long CPU column, and the bottom bar sits below both.
 - The page fits the screen it is on. On a tablet the right column takes the whole width, and the
   left one is a drawer that **Code**, at the top, slides over it (Esc closes it); Reset and the
-  panel buttons move behind **⋯** at the end of the bottom bar. On a phone one view shows at a
+  panel buttons move behind **⋯** at the end of the bottom bar, and the header keeps the topics,
+  the CPU switch and the commands, with Share, Compare, Challenges, the examples and the settings
+  in its own **⋯** menu. On a phone one view shows at a
   time, chosen under the header: **Code** (the left column), **CPU**, or **Memory & I/O**. The
   strip above them always shows the last instruction and what it changed, as `CX 0000 → 000A`,
   with the line that runs next, and a tap on it goes to the CPU. When more changed than fits, a
   `+N` at its end lists every change. The bottom bar keeps Step, the phase button, Run and Undo,
-  and its **⋯** holds the rest; Share, Compare, the examples and the settings are in the **⋯** menu of
-  the header. A phone starts with the CPU as tables, and a row of its memory holds eight bytes.
+  and its **⋯** holds the rest; the topics, Share, Compare, Challenges, the examples and the settings
+  are in the **⋯** menu of the header. A phone starts with the CPU as tables, and a row of its memory holds eight bytes.
   On a touch screen the panels are not dragged, and a tap on a register's name or on a flag shows
   what hovering shows with a mouse.
 - The left column works like the side bar of an editor. Click a panel's header (or its arrow) to
@@ -752,12 +754,13 @@ npm run verify:6502 # check the 6502 core against py65
   מתחת לשתיהן.
 - העמוד מתאים את עצמו למסך. בטאבלט העמודה הימנית תופסת את כל הרוחב, והשמאלית היא מגירה
   שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc סוגר אותה); Reset וכפתורי החלוניות עוברים אל
-  **⋯** שבקצה הסרגל התחתון. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
+  **⋯** שבקצה הסרגל התחתון, ובכותרת נשארים הנושאים, בורר המעבד והפקודות, כש-Share, Compare,
+  Challenges, הדוגמאות וההגדרות נמצאים בתפריט **⋯** שלה. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
   (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
   שהיא שינתה, בצורה `CX 0000 → 000A`, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. כשהשתנה
   יותר ממה שנכנס, `+N` בסופו מציג את כל השינויים. בסרגל התחתון נשארים Step, כפתור
-  השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; Share, Compare, הדוגמאות וההגדרות נמצאים בתפריט **⋯** של
-  הכותרת. טלפון מתחיל עם ה-CPU כטבלאות, ושורה בזיכרון שלו מחזיקה שמונה בתים. במסך מגע לא גוררים
+  השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; הנושאים, Share, Compare, Challenges, הדוגמאות וההגדרות
+  נמצאים בתפריט **⋯** של הכותרת. טלפון מתחיל עם ה-CPU כטבלאות, ושורה בזיכרון שלו מחזיקה שמונה בתים. במסך מגע לא גוררים
   חלוניות, והקשה על שם של רגיסטר או על דגל מציגה את מה שריחוף מציג עם עכבר.
 - העמודה השמאלית עובדת כמו סרגל הצד של עורך קוד. לחיצה על הכותרת של חלונית (או על החץ שלה) מקפלת
   אותה עד הכותרת, ולחיצה נוספת פותחת אותה; ל-**History** ול-**Machine code** יש גם ✕ שסוגר אותן,
