@@ -5,7 +5,15 @@ import { EXAMPLE_PROGRAMS } from './examples';
 import type { Instruction } from './instructions';
 import type { Operand } from './operands';
 import { PREDICTORS, type PredictorKind } from './branchPredictor';
-import { pipelineTiming, type PipelineOptions, type PipelineRow } from './pipeline';
+import {
+  continues,
+  followPipeline,
+  pipelineTiming,
+  startPipeline,
+  timingOf,
+  type PipelineOptions,
+  type PipelineRow
+} from './pipeline';
 
 const ZERO = 0;
 const T0 = 5;
@@ -168,6 +176,38 @@ describe('pipelineTiming', () => {
         }
       }
     }
+  });
+});
+
+describe('a pipeline followed a record at a time', () => {
+  it('gives the timing of the whole history, whichever way it was fed', () => {
+    for (const { name, program } of EXAMPLE_PROGRAMS) {
+      const { records } = runToEnd(RV32, RV32.createState(), program);
+      for (const forwarding of [true, false]) {
+        for (const predictor of PREDICTORS) {
+          const options = { forwarding, predictor };
+          const run = startPipeline(program, options);
+          for (let seen = 1; seen <= records.length; seen++) {
+            followPipeline(run, records.slice(0, seen));
+          }
+          expect(timingOf(run), `${name}, forwarding ${forwarding}, ${predictor}`).toEqual(
+            pipelineTiming(records, program, options)
+          );
+        }
+      }
+    }
+  });
+
+  it('knows a history that grew from one that was undone or replaced', () => {
+    const program = [li(T0, 1), li(T1, 2), li(T2, 3)];
+    const { records } = runToEnd(RV32, RV32.createState(), program);
+    const run = startPipeline(program, FORWARDING);
+    expect(continues(run, records)).toBe(true);
+    followPipeline(run, records.slice(0, 2));
+    expect(continues(run, records)).toBe(true);
+    expect(continues(run, records.slice(0, 1))).toBe(false);
+    const other = runToEnd(RV32, RV32.createState(), program).records;
+    expect(continues(run, other)).toBe(false);
   });
 });
 

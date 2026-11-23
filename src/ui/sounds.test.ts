@@ -8,6 +8,7 @@ import type {
 } from '@/core/rv32/instructions';
 import type { Operand as Rv32Operand } from '@/core/rv32/operands';
 import type { ExecutionRecord as Rv32Record } from '@/core/rv32/execute';
+import { pipelineTiming } from '@/core/rv32/pipeline';
 import type { CpuState as Rv32State } from '@/core/rv32/state';
 import { execute } from '@/core/x86/execute';
 import type { Instruction, Mnemonic } from '@/core/x86/instructions';
@@ -215,7 +216,9 @@ describe('rv32Sounds', () => {
     const state = RV32.createState();
     const history: Rv32Record[] = [];
     for (let i = 0; i < steps; i++) history.push(step(RV32, state, program));
-    return rv32Sounds(history, state, program, { ...pipeline, predictor: 'not-taken' });
+    const options = { forwarding: pipeline.forwarding, predictor: 'not-taken' } as const;
+    const timing = pipeline.shown ? pipelineTiming(history, program, options) : null;
+    return rv32Sounds(history, state, timing);
   }
 
   it('is the instruction itself while the pipeline is not shown', () => {
