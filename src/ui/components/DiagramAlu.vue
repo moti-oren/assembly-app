@@ -64,7 +64,13 @@ const numbers = computed(() => props.model.shown && x86NumberLink(props.model.sh
               : `into ${model.equation.destination}`
           }}
         </span>
-        <OperationLinks v-if="link && numbers" class="ml-auto" :alu="link" :numbers="numbers" />
+        <!-- Where the links do not fit beside the sum they take a row of their own, from its start. -->
+        <OperationLinks
+          v-if="link && numbers"
+          class="ml-auto max-md:ml-0 max-md:w-full"
+          :alu="link"
+          :numbers="numbers"
+        />
       </div>
       <div v-else class="mt-1.5 flex items-baseline gap-x-3 font-mono text-code">
         <span class="standby shrink-0" aria-hidden="true">---- op ---- = ----</span>
