@@ -1,13 +1,23 @@
 import { decode } from '@/core/mos6502/decode';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
 import { formatInstruction, type Instruction, type Mnemonic } from '@/core/mos6502/instructions';
-import { getFlag, type CpuState, type FlagName, type RegisterName } from '@/core/mos6502/state';
+import { getFlag, type CpuState, type RegisterName } from '@/core/mos6502/state';
 import { aluEquation, equationText, flagReason } from './mos6502Alu';
 import { branchOutcome, byteHex, describeAccess } from './mos6502Explain';
 import type { Answer, Predictor, Question } from './prediction';
 
 /** Instructions that work out a result only for its flags. */
 const FLAGS_ONLY = new Set<Mnemonic>(['cmp', 'cpx', 'cpy', 'bit']);
+
+/**
+ * The register a value question is about. The stack pointer moves by itself: the register an
+ * instruction names is the one to ask for.
+ */
+function written(instruction: Instruction): RegisterName | null {
+  const decoded = decode(instruction);
+  if (decoded.nextPc !== 'next') return null;
+  return decoded.writes.find((name) => name !== 'sp') ?? null;
+}
 
 function question(instruction: Instruction): Question | null {
   const decoded = decode(instruction);
@@ -16,23 +26,23 @@ function question(instruction: Instruction): Question | null {
   if (FLAGS_ONLY.has(decoded.mnemonic)) {
     return { kind: 'flags', text, flags: decoded.flagsWritten };
   }
-  // The stack pointer moves by itself: the register an instruction names is the one to ask for.
-  const written = decoded.writes.find((name) => name !== 'sp');
-  if (!written || decoded.nextPc === 'jump') return null;
-  return { kind: 'value', text, register: written.toUpperCase(), key: written, bits: 8 };
+  const name = written(instruction);
+  return name && { kind: 'value', text, register: name.toUpperCase(), bits: 8 };
 }
 
+/** The truth is read from the instruction that ran, so it holds whatever the question said. */
 function truth(asked: Question, record: ExecutionRecord, state: CpuState): Answer {
   switch (asked.kind) {
     case 'branch':
       return { kind: 'branch', taken: record.branch?.taken ?? false };
-    case 'value':
-      return { kind: 'value', value: state.registers[asked.key as RegisterName] };
-    case 'flags':
-      return {
-        kind: 'flags',
-        on: asked.flags.filter((flag) => getFlag(state, flag as FlagName))
-      };
+    case 'value': {
+      const name = written(record.instruction);
+      return { kind: 'value', value: name ? state.registers[name] : 0 };
+    }
+    case 'flags': {
+      const flags = decode(record.instruction).flagsWritten;
+      return { kind: 'flags', on: flags.filter((flag) => getFlag(state, flag)) };
+    }
   }
 }
 
@@ -53,8 +63,9 @@ function why(
     }
     case 'flags':
       return (
-        wrong
-          .map((flag) => `${flag}: ${flagReason(record, flag as FlagName) ?? 'left as it was'}.`)
+        decode(record.instruction)
+          .flagsWritten.filter((flag) => wrong.includes(flag))
+          .map((flag) => `${flag}: ${flagReason(record, flag) ?? 'left as it was'}.`)
           .join(' ') || null
       );
   }

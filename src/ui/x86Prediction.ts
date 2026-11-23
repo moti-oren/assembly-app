@@ -18,38 +18,39 @@ const COMPARED: FlagName[] = ['CF', 'ZF', 'SF', 'OF'];
 /** Instructions that work out a result only for its flags. */
 const FLAGS_ONLY = new Set<Mnemonic>(['cmp', 'test']);
 
+/** The register an instruction names as its destination: the one a value question is about. */
+function destination(instruction: Instruction): RegisterName | null {
+  const [operand] = instruction.operands;
+  const [first] = decode(instruction).operands;
+  return operand?.type === 'reg' && first.role === 'destination' ? operand.name : null;
+}
+
 function question(instruction: Instruction): Question | null {
   const { mnemonic } = instruction;
   const text = formatInstruction(instruction);
   if (JUMP_RULES[mnemonic]) return { kind: 'branch', text };
   if (FLAGS_ONLY.has(mnemonic)) return { kind: 'flags', text, flags: COMPARED };
-  const [destination] = instruction.operands;
-  const [first] = decode(instruction).operands;
-  if (destination?.type !== 'reg' || first.role !== 'destination') return null;
-  return {
-    kind: 'value',
-    text,
-    register: destination.name.toUpperCase(),
-    key: destination.name,
-    bits: operandSize(destination) ?? 16
-  };
+  const [operand] = instruction.operands;
+  const name = destination(instruction);
+  if (!name || !operand) return null;
+  return { kind: 'value', text, register: name.toUpperCase(), bits: operandSize(operand) ?? 16 };
 }
 
+/** The truth is read from the instruction that ran, so it holds whatever the question said. */
 function truth(asked: Question, record: ExecutionRecord, state: CpuState): Answer {
   switch (asked.kind) {
     case 'branch': {
       // No jump writes a flag, and the LOOPs test CX after counting it down: the CX there is now.
       const flag = (name: FlagName) => isFlagSet(record.before.flags, name);
-      const rule = JUMP_RULES[record.instruction.mnemonic]!;
-      return { kind: 'branch', taken: rule.holds(flag, state.registers.cx) };
+      const rule = JUMP_RULES[record.instruction.mnemonic];
+      return { kind: 'branch', taken: rule?.holds(flag, state.registers.cx) ?? false };
     }
-    case 'value':
-      return { kind: 'value', value: readRegister(state, asked.key as RegisterName) };
+    case 'value': {
+      const name = destination(record.instruction);
+      return { kind: 'value', value: name ? readRegister(state, name) : 0 };
+    }
     case 'flags':
-      return {
-        kind: 'flags',
-        on: asked.flags.filter((flag) => isFlagSet(state.flags, flag as FlagName))
-      };
+      return { kind: 'flags', on: COMPARED.filter((flag) => isFlagSet(state.flags, flag)) };
   }
 }
 
@@ -73,8 +74,9 @@ function why(
       return equation(record, state);
     case 'flags':
       return (
-        wrong.map((flag) => `${flag}: ${explainFlag(record, flag as FlagName).text}`).join(' ') ||
-        null
+        COMPARED.filter((flag) => wrong.includes(flag))
+          .map((flag) => `${flag}: ${explainFlag(record, flag).text}`)
+          .join(' ') || null
       );
   }
 }

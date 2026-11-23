@@ -1,20 +1,11 @@
-import { computed, ref, shallowRef, watch, type Ref } from 'vue';
+import { computed, shallowRef, watch, type Ref } from 'vue';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
 import type { CpuState } from '@/core/shared/state';
-import { analytics } from './analyticsClient';
-import {
-  counted,
-  grade,
-  wrongFlags,
-  type Answer,
-  type Outcome,
-  type Predictor,
-  type Question,
-  type Tally
-} from './prediction';
+import type { Answer, Predictor, Question } from './prediction';
 import type { CpuOf } from './useCpu';
 import { usePredictionRun } from './usePredictionRun';
+import { usePredictionScore } from './usePredictionScore';
 import { usePreferences } from './usePreferences';
 
 /** Where an instruction that is asked about comes from. */
@@ -31,15 +22,6 @@ export interface Asking<Instruction = unknown> {
 export interface PredictionHooks {
   clearBuilder: () => void;
 }
-
-/** An answer on show: what was asked, how it did, and how many instructions had run by then. */
-export interface Answered {
-  question: Question;
-  outcome: Outcome;
-  at: number;
-}
-
-const NO_ANSWERS: Tally = { right: 0, asked: 0 };
 
 /**
  * Prediction mode for one CPU: before an instruction runs, the learner is asked what it will
@@ -58,9 +40,7 @@ export function usePrediction<
   const { prediction, predictStep, predictBuilder, predictRun } = usePreferences();
   const enabled = { step: predictStep, builder: predictBuilder, run: predictRun };
   const asking = shallowRef<Asking<Instruction> | null>(null);
-  /** The last answer, until another instruction runs. */
-  const last = shallowRef<Answered | null>(null);
-  const tally = ref<Tally>(NO_ANSWERS);
+  const { last, tally, grades, forgetLast } = usePredictionScore(cpu, predictor);
   const executed = computed(() => cpu.history.value.length);
 
   function questionFor(from: AskedFrom, instruction: Instruction | undefined): Question | null {
@@ -74,7 +54,7 @@ export function usePrediction<
   }
 
   function ask(from: AskedFrom, instruction: Instruction, question: Question): void {
-    last.value = null;
+    forgetLast();
     asking.value = { question, from, instruction };
   }
 
@@ -108,22 +88,7 @@ export function usePrediction<
     asking.value = null;
     const record = execute(asked) ? cpu.lastRecord.value : null;
     if (!record) return run.stop();
-    const state = cpu.state as unknown as State;
-    const truth = predictor.truth(asked.question, record, state);
-    const why = predictor.why(
-      asked.question,
-      record,
-      state,
-      wrongFlags(asked.question, given, truth)
-    );
-    const outcome = grade(asked.question, given, truth, why, predictor.formatValue);
-    tally.value = counted(tally.value, outcome);
-    analytics.track({
-      name: 'prediction-answered',
-      architecture: cpu.architecture.id,
-      result: outcome.correct ? 'right' : 'wrong'
-    });
-    last.value = { question: asked.question, outcome, at: executed.value };
+    const outcome = grades(asked.question, given, record);
     // A wrong answer stops a run, so its explanation can be read.
     if (asked.from === 'run') run.answered(outcome.correct);
   }
@@ -172,13 +137,9 @@ export function usePrediction<
   }
 
   // Whatever else moved the CPU or the program (undo, an edit, a reset) leaves the question
-  // without its instruction, and the answer on show without the step it was about.
+  // without its instruction.
   watch([executed, cpu.program, cpu.nextLine], () => {
     if (asking.value && asking.value.from !== 'builder') dismiss();
-  });
-  watch(executed, (count) => {
-    if (last.value && last.value.at !== count) last.value = null;
-    if (count === 0 && cpu.future.value.length === 0) tally.value = NO_ANSWERS;
   });
   /** `draft` is what the builder holds: once it changes, a question about it is about nothing. */
   function followBuilder(draft: Ref<unknown>): void {

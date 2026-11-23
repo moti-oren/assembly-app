@@ -3,8 +3,8 @@ import { list } from './explainText';
 /** The one thing a learner is asked about an instruction before it runs. */
 export type Question =
   | { kind: 'branch'; text: string }
-  /** `register` is the name as the panels show it; `key` is how the predictor finds it again. */
-  | { kind: 'value'; text: string; register: string; key: string; bits: 8 | 16 | 32 }
+  /** `register` is the name as the panels show it. */
+  | { kind: 'value'; text: string; register: string; bits: 8 | 16 | 32 }
   | { kind: 'flags'; text: string; flags: string[] };
 
 /** An answer to a question, and the shape of the truth it is checked against. */

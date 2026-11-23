@@ -6,19 +6,25 @@ import { readRegister, type CpuState } from '@/core/rv32/state';
 import type { Answer, Predictor, Question } from './prediction';
 import { aluEquation, branchOutcome, describeAccess, hex } from './rv32Explain';
 
-function question(instruction: Instruction): Question | null {
+/** The register a value question is about. A jump's link is where it came from, not a result. */
+function written(instruction: Instruction): number | null {
   const decoded = decode(instruction);
-  const text = formatInstruction(instruction);
-  if (decoded.nextPc === 'branch') return { kind: 'branch', text };
-  // A jump's link is where it came from, not something it worked out.
-  const [written] = decoded.writes;
-  if (decoded.nextPc === 'jump' || written === undefined) return null;
-  return { kind: 'value', text, register: formatRegister(written), key: String(written), bits: 32 };
+  return decoded.nextPc === 'next' ? (decoded.writes[0] ?? null) : null;
 }
 
+function question(instruction: Instruction): Question | null {
+  const text = formatInstruction(instruction);
+  if (decode(instruction).nextPc === 'branch') return { kind: 'branch', text };
+  const index = written(instruction);
+  if (index === null) return null;
+  return { kind: 'value', text, register: formatRegister(index), bits: 32 };
+}
+
+/** The truth is read from the instruction that ran, so it holds whatever the question said. */
 function truth(asked: Question, record: ExecutionRecord, state: CpuState): Answer {
   if (asked.kind === 'value') {
-    return { kind: 'value', value: readRegister(state, Number(asked.key)) };
+    const index = written(record.instruction);
+    return { kind: 'value', value: index === null ? 0 : readRegister(state, index) };
   }
   return { kind: 'branch', taken: record.comparison?.taken ?? false };
 }
