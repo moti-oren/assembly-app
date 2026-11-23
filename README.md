@@ -192,6 +192,14 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **I/O** button in the bottom bar shows the devices: LEDs (out 10h), switches (in 11h), two
   7-segment digits (out 12h and 13h, one bit per segment) and a terminal that prints every byte
   written to it (out 20h). The panel opens by itself when a program uses a port.
+- The **Stack** button in the bottom bar (or **Show the stack** in the command palette) lists the
+  stack of the CPU on show, from its top down: each value's address, what it is (a register's
+  value, the line a `call` returns to, FLAGS) and the instruction that put it there. The value the
+  last instruction pushed is marked as a write; one it took off stays in sight above the top,
+  greyed, because only the stack pointer moved and memory still holds it. On the 6502 the two
+  bytes `jsr` pushes are one row (the return address, kept less 1). RISC-V has no push: the list
+  is the room the program made by lowering `sp`, with the register each word was stored from.
+  **In memory** shows the same bytes in the memory panel.
 - `int n` pushes FLAGS, CS and IP, clears IF and TF, and jumps to the handler stored in vector `n`
   (two words at `0000:n×4`: the handler's program line, then its CS). `iret` returns. `mov` takes a
   program line as its source (`mov word [0x84], L8`) to fill a vector. `into` is `int 4` when OF = 1,
@@ -704,6 +712,13 @@ npm run verify:6502 # check the 6502 core against py65
   **I/O** בסרגל התחתון מציג את ההתקנים: נורות LED (out 10h), מתגים (in 11h), שתי ספרות
   7 מקטעים (out 12h ו-13h, סיבית לכל מקטע) ומסוף שמדפיס כל בית שנכתב אליו (out 20h). החלונית
   נפתחת מעצמה כשתוכנית משתמשת בפורט.
+- כפתור **Stack** בסרגל התחתון (או **Show the stack** בפלטת הפקודות) מציג את המחסנית של המעבד
+  שעל המסך, מהראש כלפי מטה: הכתובת של כל ערך, מה הוא (ערך של רגיסטר, השורה ש-`call` חוזר אליה,
+  FLAGS) והפקודה ששמה אותו שם. הערך שהפקודה האחרונה דחפה מסומן ככתיבה; ערך שהיא שלפה נשאר
+  מוצג מעל הראש, באפור, כי רק מצביע המחסנית זז והזיכרון עדיין מחזיק אותו. ב-6502 שני הבתים
+  ש-`jsr` דוחף הם שורה אחת (כתובת החזרה, פחות 1). ב-RISC-V אין push: הרשימה היא המקום שהתוכנית
+  פינתה כשהורידה את `sp`, עם הרגיסטר שממנו נשמרה כל מילה. **In memory** מציג את אותם בתים
+  בחלונית הזיכרון.
 - `int n` דוחף את FLAGS, CS ו-IP, מאפס את IF ו-TF, וקופץ ל-handler ששמור בווקטור `n`
   (שתי מילים ב-`0000:n×4`: שורת התוכנית של ה-handler ואחריה ה-CS שלו). `iret` חוזר. `mov` מקבל
   שורת תוכנית כמקור (`mov word [0x84], L8`) כדי למלא וקטור. `into` הוא `int 4` כאשר OF = 1,
