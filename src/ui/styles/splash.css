@@ -17,7 +17,7 @@
     background: var(--background);
     /* It is only a picture: clicks and keys reach the app beneath from the first frame. */
     pointer-events: none;
-    transition: opacity 280ms ease-out;
+    transition: opacity 180ms ease-out;
     /* Should the app never mount, the page does not stay hidden behind it. */
     animation: splash-expire 300ms 8s forwards;
   }
