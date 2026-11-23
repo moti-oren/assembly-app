@@ -64,10 +64,11 @@ function settingsFromMenu(): void {
     <div class="flex h-12 items-center gap-3 pr-5 pl-4 max-sm:gap-2 max-sm:px-3">
       <slot name="lead" />
       <!--
-        Below a desktop the name is for a screen reader only. The mark stays on a phone, except
-        the narrowest, and goes on a tablet, whose bar holds the topics beside the topic's switch.
+        Below a wide desktop the name is for a screen reader only: a narrower bar would squeeze it
+        away. The mark stays on a phone, except the narrowest, and goes on a tablet, whose bar
+        holds the topics beside the topic's switch.
       -->
-      <div class="flex min-w-0 items-center gap-2.5 max-lg:shrink-0">
+      <div class="flex min-w-0 items-center gap-2.5 max-2xl:shrink-0">
         <div
           class="die-mark hidden shrink-0 min-[25rem]:grid md:max-lg:hidden"
           aria-hidden="true"
@@ -75,7 +76,9 @@ function settingsFromMenu(): void {
         >
           {{ badge }}
         </div>
-        <h1 class="truncate text-sm font-semibold tracking-tight max-lg:sr-only">CPU Playground</h1>
+        <h1 class="truncate text-sm font-semibold tracking-tight max-2xl:sr-only">
+          CPU Playground
+        </h1>
       </div>
       <!-- A phone has no room for two switches: there the topics are in the menu. -->
       <TopicSwitch v-if="mode !== 'phone'" />
