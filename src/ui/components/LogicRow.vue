@@ -6,6 +6,8 @@ import { bitsLeftToRight, startsDigit } from '@/ui/logicLayout';
 interface EndBit {
   value: Bit;
   label: string;
+  /** Whether the bit will change again before the circuit is at rest. */
+  pending?: boolean;
 }
 
 const props = withDefaults(
@@ -18,6 +20,8 @@ const props = withDefaults(
     tone?: 'plain' | 'result' | 'quiet';
     /** `flip`: every bit is a switch. `lowest`: only bit 0 is. `choose`: a bit is picked. */
     mode?: 'flip' | 'lowest' | 'choose' | 'static';
+    /** For every bit, whether it will change again before the circuit is at rest. */
+    pending?: readonly boolean[] | null;
     /** The bit picked, in a row whose bits are picked. */
     chosen?: number | null;
     lead?: EndBit | null;
@@ -25,13 +29,27 @@ const props = withDefaults(
     /** Whether the row has room on its right for a tail, so its bits line up with one that has. */
     tailed?: boolean;
   }>(),
-  { tone: 'plain', mode: 'static', chosen: null, lead: null, tail: null, tailed: false }
+  {
+    tone: 'plain',
+    mode: 'static',
+    pending: null,
+    chosen: null,
+    lead: null,
+    tail: null,
+    tailed: false
+  }
 );
 
 const emit = defineEmits<{ flip: [bit: number]; choose: [bit: number] }>();
 
 function isButton(bit: number): boolean {
   return props.mode === 'flip' || props.mode === 'choose' || (props.mode === 'lowest' && bit === 0);
+}
+
+/** What a screen reader hears for one bit of the row. */
+function describe(bit: number): string {
+  const unsettled = props.pending?.[bit] ? ', not settled yet' : '';
+  return `${props.name}, bit ${bit}: ${props.bits[bit]}${unsettled}`;
 }
 
 function press(bit: number): void {
@@ -50,10 +68,14 @@ function press(bit: number): void {
         class="logic-bit"
         data-tone="quiet"
         :data-on="lead.value ? '' : undefined"
+        :data-pending="lead.pending ? '' : undefined"
         :style="{ '--bit': bits.length }"
         :title="lead.label"
       >
-        {{ lead.value }}<span class="sr-only">, {{ lead.label }}</span>
+        {{ lead.value
+        }}<span class="sr-only"
+          >, {{ lead.label }}{{ lead.pending ? ', not settled yet' : '' }}</span
+        >
       </span>
     </div>
     <div
@@ -68,10 +90,11 @@ function press(bit: number): void {
         class="logic-bit"
         :data-tone="tone"
         :data-on="bits[bit] ? '' : undefined"
+        :data-pending="pending?.[bit] ? '' : undefined"
         :data-chosen="mode === 'choose' && chosen === bit ? '' : undefined"
         :style="{ '--bit': bit }"
         :aria-pressed="mode === 'choose' ? chosen === bit : bits[bit] === 1"
-        :aria-label="`${name}, bit ${bit}: ${bits[bit]}`"
+        :aria-label="describe(bit)"
         @click="press(bit)"
       >
         {{ bits[bit] }}
@@ -81,9 +104,10 @@ function press(bit: number): void {
         class="logic-bit"
         :data-tone="tone"
         :data-on="bits[bit] ? '' : undefined"
+        :data-pending="pending?.[bit] ? '' : undefined"
         :style="{ '--bit': bit }"
         role="img"
-        :aria-label="`${name}, bit ${bit}: ${bits[bit]}`"
+        :aria-label="describe(bit)"
       >
         {{ bits[bit] }}
       </span>

@@ -227,6 +227,31 @@
   :root[data-motion='reduced'] .logic-ripple :is(.logic-bit, .logic-carry) {
     transition: none;
   }
+  /* Slowed down, a wire changes when its gate reacts: a delay by column would say otherwise. */
+  .logic-rows[data-timed] .logic-ripple :is(.logic-bit, .logic-carry) {
+    transition-delay: 0ms;
+  }
+  /*
+   * A wire that will change again before the circuit is at rest: a dashed outline, and never
+   * filled, so a 1 that cannot be trusted yet does not look like one that can.
+   */
+  .logic-bit[data-pending] {
+    border-style: dashed;
+    border-color: var(--wire);
+  }
+  .logic-bit[data-pending][data-on] {
+    border-color: var(--foreground);
+    background: transparent;
+    color: var(--foreground);
+  }
+  .logic-carry[data-pending] {
+    border-top-style: dashed;
+    opacity: 1;
+  }
+  /* The gate delay a bit is ready at, in ink once that delay has passed. */
+  .logic-ready[data-reached] {
+    color: var(--foreground);
+  }
 
   /* The wires between two rows of a shifter. */
   .logic-wires {

@@ -12,6 +12,8 @@ import {
   type FreeOperation,
   type OperandKey
 } from './logicView';
+import { isAdder, longestCarry, shownSolution } from './logicTime';
+import { useLogicTime } from './useLogicTime';
 
 /** What the circuit shows before any CPU has given it an operation. */
 const STARTING = freeRequest('add', 8, null);
@@ -45,9 +47,16 @@ export function useLogicLens(link: () => AluLink | null) {
   );
   const solution = computed(() => solve(request.value));
   const operation = computed(() => operationOf(request.value));
+  const time = useLogicTime(request, solution);
+  /** The circuit at the moment on show: at rest, or part of the way there while time is slowed. */
+  const shown = computed(() =>
+    time.on.value ? shownSolution(solution.value, time.signals.value) : solution.value
+  );
 
-  /** Whether the circuit shows the CPU's operation as it ran, with nothing changed. */
-  const asRun = computed(() => fromCpu.value !== null && edited.value === null);
+  /** Whether the circuit shows the CPU's operation as it ran: nothing changed, every wire at rest. */
+  const asRun = computed(
+    () => fromCpu.value !== null && edited.value === null && time.settled.value
+  );
   /** Whether the CPU wrote the result on show: colour marks a write, and only a real one. */
   const written = computed(() => asRun.value && circuit.value.resultKept);
 
@@ -71,10 +80,12 @@ export function useLogicLens(link: () => AluLink | null) {
   });
 
   function flipBit(operand: OperandKey, index: number): void {
+    time.keep();
     edited.value = withBitFlipped(request.value, operand, index);
   }
 
   function flipCarryIn(): void {
+    time.keep();
     edited.value = withCarryInFlipped(request.value);
   }
 
@@ -89,6 +100,14 @@ export function useLogicLens(link: () => AluLink | null) {
 
   function setWidth(width: Width): void {
     edited.value = freeRequest(operation.value ?? 'add', width, request.value);
+  }
+
+  /** Slows time on the values that keep the adder busy the longest, starting from rest. */
+  function tryLongestCarry(): void {
+    const current = request.value;
+    if (!isAdder(current)) return;
+    if (!time.on.value) time.toggle();
+    edited.value = longestCarry(current);
   }
 
   /** Back to the CPU's own values, or to the starting circuit when no CPU gave one. */
@@ -109,6 +128,8 @@ export function useLogicLens(link: () => AluLink | null) {
     request,
     circuit,
     solution,
+    shown,
+    time,
     operation,
     fromCpu,
     followsCpu,
@@ -123,6 +144,7 @@ export function useLogicLens(link: () => AluLink | null) {
     flipStage,
     pick,
     setWidth,
+    tryLongestCarry,
     restore,
     choose,
     chooseGate

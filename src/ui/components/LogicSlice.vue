@@ -7,11 +7,11 @@ import LogicDiagram from './LogicDiagram.vue';
 const props = defineProps<{ lens: LogicLens }>();
 
 const diagram = computed(() =>
-  sliceDiagram(props.lens.solution.value, props.lens.bit.value, props.lens.stage.value)
+  sliceDiagram(props.lens.shown.value, props.lens.bit.value, props.lens.stage.value)
 );
 const isShift = computed(() => props.lens.request.value.kind === 'shift');
 const heading = computed(() =>
-  sliceHeading(props.lens.solution.value, props.lens.bit.value, props.lens.stage.value)
+  sliceHeading(props.lens.shown.value, props.lens.bit.value, props.lens.stage.value)
 );
 </script>
 
@@ -31,7 +31,7 @@ const heading = computed(() =>
       v-else
       class="mt-3"
       :diagram="diagram"
-      :signals="lens.solution.value.signals"
+      :signals="lens.shown.value.signals"
       :chosen="lens.gate.value"
       :label="heading"
       :written="lens.asRun.value"

@@ -23,20 +23,32 @@ export function settle(circuit: Circuit, inputs: Signals, held: Signals = {}): S
 
   const rounds = circuit.gates.length * 2 + 8;
   for (let round = 0; round < rounds; round++) {
-    const next = { ...signals };
-    let changed = false;
-    for (const gate of circuit.gates) {
-      const output = gateOutput(
-        gate.kind,
-        gate.inputs.map((name) => read(signals, name, gate.id))
-      );
-      if (output !== signals[gate.id]) changed = true;
-      next[gate.id] = output;
-    }
-    if (!changed) return { signals, settled: true };
-    signals = next;
+    const next = react(circuit, signals);
+    if (!next.changed) return { signals, settled: true };
+    signals = next.signals;
   }
   return { signals, settled: false };
+}
+
+/**
+ * One gate delay: every gate reads the wires as they are, all together, and puts out what it
+ * makes of them. `changed` says whether any gate's output moved.
+ */
+export function react(
+  circuit: Circuit,
+  signals: Signals
+): { signals: Record<string, Bit>; changed: boolean } {
+  const next = { ...signals };
+  let changed = false;
+  for (const gate of circuit.gates) {
+    const output = gateOutput(
+      gate.kind,
+      gate.inputs.map((name) => read(signals, name, gate.id))
+    );
+    if (output !== signals[gate.id]) changed = true;
+    next[gate.id] = output;
+  }
+  return { signals: next, changed };
 }
 
 function read(signals: Signals, name: string, gate: string): Bit {

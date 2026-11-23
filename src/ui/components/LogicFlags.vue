@@ -5,7 +5,7 @@ import type { LogicLens } from '@/ui/useLogicLens';
 
 const props = defineProps<{ lens: LogicLens }>();
 
-const rows = computed(() => flagRows(props.lens.circuit.value, props.lens.solution.value));
+const rows = computed(() => flagRows(props.lens.circuit.value, props.lens.shown.value));
 </script>
 
 <!-- Each flag, and the wire of the circuit it is read from. -->
