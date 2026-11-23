@@ -335,6 +335,23 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   shows the two bytes. `JMP ($xxFF)` reads its high byte from `$xx00`, as the original chip does.
   BRK is two bytes (the CPU skips the one after it), so RTI returns to the next line.
 
+## Challenges
+
+- **Challenges** at the top of the page (in the **⋯** menu on a phone), or **Open the challenges…**
+  in the command palette, lists five small tasks for the CPU on show: set the overflow flag without
+  the carry, multiply by ten with no multiply instruction, swap two registers with nothing to
+  spare, and others. **Start** replaces that CPU's program with the task's given lines, as an
+  example does.
+- A **Challenge** panel opens at the top of the sidebar with the task, what the program must do and
+  what it must keep to (a number of lines, instructions it may not use). Each is ticked as soon as
+  the program meets it: the program is run again on a CPU of its own after every edit, so the CPU
+  on show is never touched and you can still step through your attempt. A task with given lines is
+  run with other values in them too, so writing the answer down does not pass.
+- Under the list a line says where the program stands, and once it passes, how many lines it took
+  against par. **Show a hint** gives a nudge, **Start over** brings the given lines back, and
+  closing the panel (or loading an example) leaves the challenge. Solved challenges are ticked in
+  the list with the fewest lines they took, and remembered between visits.
+
 ## Comparing the CPUs
 
 - **Compare** at the top of the page (in the **⋯** menu on a phone), or **Compare the CPUs on the same task…**
@@ -836,6 +853,21 @@ npm run verify:6502 # check the 6502 core against py65
 - JSR דוחפת את הכתובת של הבית האחרון שלה, ו-RTS מוסיפה לה 1; **Stack** בחלונית הזיכרון מראה את
   שני הבתים. `JMP ($xxFF)` קוראת את הבית העליון מ-`$xx00`, כמו השבב המקורי. BRK היא שני בתים
   (המעבד מדלג על זה שאחריה), ולכן RTI חוזרת לשורה הבאה.
+
+## אתגרים
+
+- **Challenges** בראש העמוד (בטלפון: בתפריט **⋯**), או **Open the challenges…** בפלטת הפקודות, מציג
+  חמש משימות קטנות למעבד שעל המסך: להדליק את דגל ה-overflow בלי ה-carry, להכפיל בעשר בלי הוראת
+  כפל, להחליף שני רגיסטרים בלי מקום נוסף, ועוד. **Start** מחליף את התוכנית של אותו מעבד בשורות
+  הנתונות של המשימה, כמו דוגמה.
+- חלונית **Challenge** נפתחת בראש סרגל הצד עם המשימה, מה שהתוכנית צריכה לעשות ובמה היא צריכה
+  לעמוד (מספר שורות, הוראות שאסור להשתמש בהן). כל תנאי מסומן ברגע שהתוכנית עומדת בו: התוכנית
+  מורצת מחדש על מעבד משלה אחרי כל עריכה, כך שהמעבד שעל המסך לא משתנה ואפשר להמשיך לצעוד בניסיון
+  שלכם. משימה עם שורות נתונות מורצת גם עם ערכים אחרים בהן, כך שכתיבת התשובה ישירות לא עוברת.
+- מתחת לרשימה שורה אומרת איפה התוכנית עומדת, וכשהיא עוברת, כמה שורות היא לקחה ביחס ל-par.
+  **Show a hint** נותן רמז, **Start over** מחזיר את השורות הנתונות, וסגירת החלונית (או טעינת
+  דוגמה) עוזבת את האתגר. אתגרים שנפתרו מסומנים ברשימה עם מספר השורות הקטן ביותר שלקחו, ונשמרים
+  בין ביקורים.
 
 ## השוואת המעבדים
 
