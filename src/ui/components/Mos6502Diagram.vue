@@ -219,7 +219,7 @@ const flagChanged = (bit: number) =>
         </div>
 
         <!--
-        The bus leaves the chip: its line runs the frame's width, and under it is the memory,
+        The bus leaves the chip: its line spans the units inside, and under it is the memory,
         where the devices are wired in too.
       -->
         <div
@@ -234,7 +234,7 @@ const flagChanged = (bit: number) =>
             :tick="pulse"
           />
         </div>
-        <DiagramWire class="hidden @min-[37rem]:block" :kind="view.bus.use" :tick="pulse" />
+        <DiagramWire class="mx-4 hidden @min-[37rem]:block" :kind="view.bus.use" :tick="pulse" />
         <div
           class="chip-outside flex flex-col items-center rounded-b-lg px-4 pb-4 @max-[37rem]:border-t @max-[37rem]:pt-3"
         >
