@@ -29,6 +29,8 @@ export type WorkbenchPage = Omit<
 > & {
   /** Folds the builder's choices away, so the program below it stays in view. */
   foldBuilder: () => void;
+  /** Empties the builder, after the instruction it held was run for it. */
+  clearBuilder: () => void;
 };
 
 /** What a workbench tells the shared logic about its architecture. */

@@ -123,7 +123,9 @@ defineExpose({
     unfold();
     focusInput();
   },
-  fold
+  fold,
+  /** Empties the box: what it held has run. */
+  clear: () => clear()
 });
 
 function choose(option: BuilderOption<Action>): void {

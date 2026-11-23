@@ -54,7 +54,7 @@ function sentences(sentences: (string | false | null)[]): string {
 }
 
 /** Why a conditional jump was taken or not; null for any other instruction. */
-function jumpOutcome(record: ExecutionRecord, state: CpuState): string | null {
+export function jumpOutcome(record: ExecutionRecord, state: CpuState): string | null {
   const { mnemonic } = record.instruction;
   const rule = JUMP_RULES[mnemonic];
   if (!rule) return null;

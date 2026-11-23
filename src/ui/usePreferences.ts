@@ -17,7 +17,7 @@ export const CPU_VIEW_LABELS: Record<CpuView, string> = {
   table: 'Show the CPU as tables'
 };
 
-/** Theme, sound, usage sharing, view, running and motion, shared by the settings and the command palette. All are remembered. */
+/** Theme, sound, usage sharing, view, running, guessing and motion, shared by the settings and the command palette. All are remembered. */
 export const usePreferences = createGlobalState(() => {
   /** Light until the user picks a theme. Light is the page without a class, dark the `dark` class. */
   const colorMode = useColorMode({
@@ -61,6 +61,13 @@ export const usePreferences = createGlobalState(() => {
   /** Whether a reset that would lose the history asks first. */
   const confirmReset = useLocalStorage(STORAGE_KEYS.confirmReset, true);
 
+  /** Whether an instruction asks what it will do before it runs. */
+  const prediction = useLocalStorage(STORAGE_KEYS.prediction, false);
+  /** Where it asks, while it is on: a program step, the builder's instruction, a run. */
+  const predictStep = useLocalStorage(STORAGE_KEYS.predictStep, true);
+  const predictBuilder = useLocalStorage(STORAGE_KEYS.predictBuilder, true);
+  const predictRun = useLocalStorage(STORAGE_KEYS.predictRun, true);
+
   /** Asked for here; the system setting can ask for it too, and either one is enough. */
   const reduceMotion = useLocalStorage(STORAGE_KEYS.reduceMotion, false);
   const systemReducesMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -100,6 +107,10 @@ export const usePreferences = createGlobalState(() => {
     runSpeed,
     autoOpenDevices,
     confirmReset,
+    prediction,
+    predictStep,
+    predictBuilder,
+    predictRun,
     reduceMotion,
     systemReducesMotion,
     calm,

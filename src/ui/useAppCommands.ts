@@ -15,12 +15,22 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
     analyticsOn,
     autoOpenDevices,
     confirmReset,
+    prediction,
+    predictStep,
+    predictBuilder,
+    predictRun,
     reduceMotion,
     systemReducesMotion,
     setTheme,
     toggleTheme
   } = usePreferences();
   const settings = useSettings();
+  /** Where prediction mode asks, each with the words of its command. */
+  const asksOn = [
+    { on: predictStep, what: 'on a program step' },
+    { on: predictBuilder, what: 'on an instruction from the builder' },
+    { on: predictRun, what: 'during a run' }
+  ];
   const { topic } = useTopic();
   const feedback = useFeedback();
 
@@ -67,6 +77,21 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
             reduceMotion.value = !reduceMotion.value;
           }
         },
+    {
+      group: 'Preferences',
+      label: prediction.value ? 'Stop guessing before it runs' : 'Guess before it runs',
+      run: () => {
+        prediction.value = !prediction.value;
+      }
+    },
+    ...asksOn.map(({ on, what }) => ({
+      group: 'Preferences',
+      label: on.value ? `Stop asking for a guess ${what}` : `Ask for a guess ${what}`,
+      disabled: !prediction.value,
+      run: () => {
+        on.value = !on.value;
+      }
+    })),
     {
       group: 'Preferences',
       label: analyticsOn.value ? 'Stop sharing anonymous usage' : 'Share anonymous usage',

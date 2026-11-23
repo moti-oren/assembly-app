@@ -23,6 +23,8 @@ export function shortcutList(apple: boolean): Shortcut[] {
       keys: ['Shift', 'Enter'],
       where: 'In the instruction builder'
     },
+    { label: 'Check your guess', keys: ['Enter'], where: "In a question's answer box" },
+    { label: 'Skip the question', keys: ['Esc'], where: 'In a question before a step' },
     { label: 'Move a panel', keys: ['Alt', '↑ ↓'], where: "On a sidebar panel's handle" }
   ];
 }

@@ -20,14 +20,17 @@ import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
+import { usePrediction } from '@/ui/usePrediction';
 import { useProgramCode } from '@/ui/useProgramCode';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
+import { rv32Predictor } from '@/ui/rv32Prediction';
 import AppChrome from './AppChrome.vue';
 import DevicesPanel from './DevicesPanel.vue';
 import FlatMemory from './FlatMemory.vue';
 import HistoryLog from './HistoryLog.vue';
 import InstructionBuilder from './InstructionBuilder.vue';
+import PredictionBar from './PredictionBar.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import Rv32Alu from './Rv32Alu.vue';
 import Rv32ChangeStrip from './Rv32ChangeStrip.vue';
@@ -67,8 +70,7 @@ const {
   nextLine,
   finished,
   pending,
-  speed,
-  running
+  speed
 } = cpu;
 
 // The result strip is shown only off a desktop; elsewhere it is not even worked out.
@@ -78,6 +80,14 @@ const layout = useLayoutMode();
 const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
 
 const pipeline = useRv32Pipeline();
+
+const page = useWorkbenchPage(() => lastRecord.value?.access != null);
+const { asking, last, tally, answer, skip, followBuilder, controls } = usePrediction(
+  cpu,
+  rv32Predictor,
+  { clearBuilder: page.clearBuilder }
+);
+const { running } = controls;
 
 const {
   panels,
@@ -93,7 +103,7 @@ const {
   askReset,
   runAgain,
   confirmReset
-} = useWorkbench(cpu, {
+} = useWorkbench(controls, {
   aluLink: rv32AluLink,
   numberLink: rv32NumberLink,
   registerLink: rv32RegisterLink,
@@ -106,7 +116,7 @@ const {
       forwarding: pipeline.forwarding.value
     }),
   commands: pipeline.commands,
-  page: useWorkbenchPage(() => lastRecord.value?.access != null)
+  page
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
@@ -127,6 +137,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
   assemble,
   encode
 });
+followBuilder(draft);
 </script>
 
 <!-- RISC-V's panels, in the columns every architecture shares. -->
@@ -171,7 +182,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
         <InstructionBuilder
           ref="builder"
           :grammar="RV32_GRAMMAR"
-          :run="cpu.run"
+          :run="controls.run"
           :add="cpu.addToProgram"
           :error="errorFrom === 'builder' ? error : null"
           :program-lines="programLines"
@@ -289,6 +300,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     </StageColumn>
   </WorkbenchPanes>
 
+  <PredictionBar :asking="asking" :last="last" :tally="tally" @answer="answer" @skip="skip" />
   <TransportBar
     v-model:speed="speed"
     v-model:history-shown="historyShown"
@@ -301,10 +313,10 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     :phase="pending?.phase ?? null"
     :executed="history.length"
     :undone="future.length"
-    @step="cpu.stepProgram"
-    @phase="cpu.stepPhase"
-    @run="cpu.runProgram"
-    @pause="cpu.pause"
+    @step="controls.stepProgram"
+    @phase="controls.stepPhase"
+    @run="controls.runProgram"
+    @pause="controls.pause"
     @undo="cpu.undoLast"
     @redo="cpu.redo"
     @reset="askReset"

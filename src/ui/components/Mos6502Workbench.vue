@@ -20,14 +20,17 @@ import type { CpuOf } from '@/ui/useCpu';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
+import { usePrediction } from '@/ui/usePrediction';
 import { useProgramCode } from '@/ui/useProgramCode';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
+import { mos6502Predictor } from '@/ui/mos6502Prediction';
 import AppChrome from './AppChrome.vue';
 import DevicesPanel from './DevicesPanel.vue';
 import FlatMemory from './FlatMemory.vue';
 import HistoryLog from './HistoryLog.vue';
 import InstructionBuilder from './InstructionBuilder.vue';
+import PredictionBar from './PredictionBar.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import Mos6502Alu from './Mos6502Alu.vue';
 import Mos6502ChangeStrip from './Mos6502ChangeStrip.vue';
@@ -66,14 +69,21 @@ const {
   nextLine,
   finished,
   pending,
-  speed,
-  running
+  speed
 } = cpu;
 
 // The result strip is shown only off a desktop; elsewhere it is not even worked out.
 const layout = useLayoutMode();
 
 const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
+
+const page = useWorkbenchPage(() => lastRecord.value?.access != null);
+const { asking, last, tally, answer, skip, followBuilder, controls } = usePrediction(
+  cpu,
+  mos6502Predictor,
+  { clearBuilder: page.clearBuilder }
+);
+const { running } = controls;
 
 const {
   panels,
@@ -89,14 +99,14 @@ const {
   askReset,
   runAgain,
   confirmReset
-} = useWorkbench(cpu, {
+} = useWorkbench(controls, {
   aluLink: mos6502AluLink,
   numberLink: mos6502NumberLink,
   registerLink: mos6502RegisterLink,
   controlUnavailable: () => mos6502ControlLink().unavailable,
   usesDevices: mos6502UsesDevices,
   soundOf: (record) => mos6502Sounds(record, state),
-  page: useWorkbenchPage(() => lastRecord.value?.access != null)
+  page
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
@@ -114,6 +124,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
   assemble,
   encode
 });
+followBuilder(draft);
 </script>
 
 <!-- The 6502's panels, in the columns every architecture shares. -->
@@ -158,7 +169,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
         <InstructionBuilder
           ref="builder"
           :grammar="MOS6502_GRAMMAR"
-          :run="cpu.run"
+          :run="controls.run"
           :add="cpu.addToProgram"
           :error="errorFrom === 'builder' ? error : null"
           :program-lines="programLines"
@@ -266,6 +277,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     </StageColumn>
   </WorkbenchPanes>
 
+  <PredictionBar :asking="asking" :last="last" :tally="tally" @answer="answer" @skip="skip" />
   <TransportBar
     v-model:speed="speed"
     v-model:history-shown="historyShown"
@@ -278,10 +290,10 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
     :phase="pending?.phase ?? null"
     :executed="history.length"
     :undone="future.length"
-    @step="cpu.stepProgram"
-    @phase="cpu.stepPhase"
-    @run="cpu.runProgram"
-    @pause="cpu.pause"
+    @step="controls.stepProgram"
+    @phase="controls.stepPhase"
+    @run="controls.runProgram"
+    @pause="controls.pause"
     @undo="cpu.undoLast"
     @redo="cpu.redo"
     @reset="askReset"
