@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="Instruction extends ProgramInstruction">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useResizeObserver } from '@vueuse/core';
-import { ChevronRight, Trash2 } from '@lucide/vue';
+import { ChevronRight, Lock, Trash2 } from '@lucide/vue';
 import { formatBytes } from '@/core/shared/numbers';
 import { formatLabel, isLabel, type ProgramInstruction } from '@/core/shared/program';
 import { Button } from '@/components/ui/button';
@@ -17,32 +17,38 @@ import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CodePlace, LineCode } from '@/ui/programCode';
 import { lineMoveOf } from '@/ui/programKeys';
+import { canMove, moveRefusal } from '@/ui/programLock';
 import type { ProgramSource } from '@/ui/useProgramLines';
 import ProgramLineActions from './ProgramLineActions.vue';
 
-const props = defineProps<{
-  program: Instruction[];
-  /** How the architecture writes an instruction. */
-  format: (instruction: Instruction) => string;
-  /** The machine code of each line, shown beside it. */
-  code: LineCode[];
-  /** Where a line's code sits, as the tooltip says it. */
-  codePlace: CodePlace;
-  ip: number;
-  /** Line new instructions are inserted before; null = the end. */
-  insertAt: number | null;
-  /** The program line executed last, if the last instruction came from the program. */
-  lastLine: number | null;
-  finished: boolean;
-  /** The example the program was loaded from, while it is still that program. */
-  source?: ProgramSource | null;
-  /** The line being edited in the builder, if one is. */
-  editingLine?: number | null;
-  /** True when lines were moved under a program that has already run. */
-  stale?: boolean;
-  /** The last move of a line, from here or from the command palette, to be announced. */
-  lastMove?: { from: number; to: number } | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    program: Instruction[];
+    /** How the architecture writes an instruction. */
+    format: (instruction: Instruction) => string;
+    /** The machine code of each line, shown beside it. */
+    code: LineCode[];
+    /** Where a line's code sits, as the tooltip says it. */
+    codePlace: CodePlace;
+    ip: number;
+    /** Line new instructions are inserted before; null = the end. */
+    insertAt: number | null;
+    /** The program line executed last, if the last instruction came from the program. */
+    lastLine: number | null;
+    finished: boolean;
+    /** The example the program was loaded from, while it is still that program. */
+    source?: ProgramSource | null;
+    /** The line being edited in the builder, if one is. */
+    editingLine?: number | null;
+    /** True when lines were moved under a program that has already run. */
+    stale?: boolean;
+    /** The last move of a line, from here or from the command palette, to be announced. */
+    lastMove?: { from: number; to: number } | null;
+    /** Lines at the top that are given by a challenge: shown, and not edited, moved or deleted. */
+    locked?: number;
+  }>(),
+  { source: null, editingLine: null, lastMove: null, locked: 0 }
+);
 
 const emit = defineEmits<{
   clear: [];
@@ -104,20 +110,26 @@ watch(() => [props.ip, props.finished, props.program, props.insertAt], placeMark
   flush: 'post'
 });
 
-/** The last move in words, for a screen reader: the focus alone does not say a line moved. */
+/**
+ * The last move in words, or why one was refused, for a screen reader: the focus alone does not
+ * say a line moved, and a refused move changes nothing at all.
+ */
 const moved = ref('');
 
 // Emptied first and filled a tick later: a live region stays silent when its text is set to
 // what it already says, as it would be for the same move made twice.
+function announce(text: string | null): void {
+  moved.value = '';
+  if (text === null) return;
+  void nextTick(() => {
+    moved.value = text;
+  });
+}
+
 watch(
   () => props.lastMove,
-  (lastMove) => {
-    moved.value = '';
-    if (!lastMove) return;
-    void nextTick(() => {
-      moved.value = `${formatLabel(lastMove.from)} moved to ${formatLabel(lastMove.to)}`;
-    });
-  }
+  (lastMove) =>
+    announce(lastMove ? `${formatLabel(lastMove.from)} moved to ${formatLabel(lastMove.to)}` : null)
 );
 
 /**
@@ -143,6 +155,12 @@ function onListKeydown(event: KeyboardEvent): void {
   const change = lineMoveOf(event, row, props.program.length);
   if (!change) return;
   event.preventDefault();
+  // A given line stays where it is, and nothing moves in above it. The program itself would
+  // refuse the move too: asking here keeps the focus where it is, and says why.
+  if (!canMove(change.from, change.to, props.locked)) {
+    announce(moveRefusal(change.from, props.locked));
+    return;
+  }
   // Caught on the way down and stopped: on the menu button, Arrow Down would open the menu too.
   event.stopPropagation();
   const control = event.target.closest<HTMLElement>('[data-action]');
@@ -290,10 +308,19 @@ function machineCode(index: number): string {
             </span>
             <span v-else />
             <!-- Placed by name: on a phone the machine code is not drawn, and takes no column. -->
+            <span
+              v-if="index < locked"
+              class="col-start-5 flex size-6 items-center justify-center justify-self-end text-muted-foreground pointer-coarse:size-11"
+              title="Given by the challenge: it stays as it is"
+            >
+              <Lock class="size-3.5" aria-hidden="true" />
+              <span class="sr-only">Locked</span>
+            </span>
             <ProgramLineActions
+              v-else
               class="col-start-5 justify-self-end"
               :label="formatLabel(index)"
-              :can-move-up="index > 0"
+              :can-move-up="index > locked"
               :can-move-down="index < program.length - 1"
               :can-inspect="!!code[index]"
               @edit="emit('edit', index)"

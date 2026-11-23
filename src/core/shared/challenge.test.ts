@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkChallenge, givenLines, type Challenge } from './challenge';
+import { checkChallenge, givenLines, keptGiven, type Challenge } from './challenge';
 import { CpuError } from './cpuError';
 import type { ExecutionRecord } from './executionRecord';
 import type { LineRunner } from './program';
@@ -62,6 +62,26 @@ const check = (program: Toy[]) => checkChallenge(TOY, QUADRUPLE, program);
 describe('checkChallenge', () => {
   it('starts every program with the first case', () => {
     expect(givenLines(QUADRUPLE)).toEqual([set(3)]);
+  });
+
+  it('counts the given lines a program still starts with', () => {
+    expect(keptGiven(QUADRUPLE, [set(3), dbl])).toBe(1);
+    expect(keptGiven(QUADRUPLE, [set(4), dbl])).toBe(0);
+    expect(keptGiven(QUADRUPLE, [dbl, set(3)])).toBe(0);
+    expect(keptGiven(QUADRUPLE, [])).toBe(0);
+  });
+
+  it('counts none of two given lines when only the first is still there', () => {
+    const two = { ...QUADRUPLE, cases: [{ given: [set(3), dbl], met: [] }] };
+    expect(keptGiven(two, [set(3), dbl, dbl])).toBe(2);
+    expect(keptGiven(two, [set(3)])).toBe(0);
+    expect(checkChallenge(TOY, two, [set(3)]).givenKept).toBe(false);
+  });
+
+  it('has nothing to keep when a challenge gives no lines', () => {
+    const none = { ...QUADRUPLE, cases: [{ given: [], met: [() => true] }] };
+    expect(keptGiven(none, [dbl])).toBe(0);
+    expect(checkChallenge(TOY, none, [dbl]).givenKept).toBe(true);
   });
 
   it('passes a program that meets the goal in every case and keeps to the limits', () => {
