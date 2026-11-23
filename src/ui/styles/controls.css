@@ -4,8 +4,8 @@
   /*
    * The app's mark: a chip seen from above, an ink lid with its pin-1 dot and four pins on each
    * side. The pins sit behind the lid, so only their ends show. Its shape is measured in --die-u,
-   * one 26th of the lid, so the header's mark and the opening animation (splash.css), drawn at
-   * 2.75 times the size, are the same chip.
+   * one 26th of the lid, so the header's mark and the large chip of the opening animation
+   * (splash.css) are the same chip.
    */
   :is(.die-mark, .splash-chip) {
     --die-size: calc(26 * var(--die-u));

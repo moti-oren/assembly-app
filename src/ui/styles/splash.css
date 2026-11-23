@@ -3,8 +3,8 @@
  * markup is in index.html, so it paints before Vue; splash.ts fades it out once the app has
  * mounted. The parts are empty elements, so before this sheet arrives there is nothing to see.
  *
- * The chip is the header's .die-mark at 2.75 times the size: its shape (the --die-* sizes) is
- * set in controls.css for both. Only the label is its own size, as it has three letters to fit.
+ * The chip is the header's .die-mark drawn large: its shape (the --die-* sizes) is set in
+ * controls.css for both. Only the label is its own size, as it has three letters to fit.
  */
 
 @layer components {
@@ -17,7 +17,7 @@
     background: var(--background);
     /* It is only a picture: clicks and keys reach the app beneath from the first frame. */
     pointer-events: none;
-    transition: opacity 280ms ease-out;
+    transition: opacity 180ms ease-out;
     /* Should the app never mount, the page does not stay hidden behind it. */
     animation: splash-expire 300ms 8s forwards;
   }
@@ -26,7 +26,8 @@
   }
 
   .splash-chip {
-    --die-u: 0.171875rem;
+    /* About a third of a phone's width, and at most 9.75rem across on a large screen. */
+    --die-u: clamp(0.1875rem, 1.2vmin, 0.375rem);
     position: relative;
     isolation: isolate;
     width: var(--die-size);
@@ -152,7 +153,7 @@
 @keyframes splash-label-in {
   from {
     opacity: 0;
-    translate: 0 0.25rem;
+    translate: 0 calc(1.5 * var(--die-u));
     letter-spacing: 0.2em;
   }
 }
