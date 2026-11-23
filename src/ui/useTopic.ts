@@ -28,5 +28,11 @@ export const useTopic = createGlobalState(() => {
     topic.value = 'storage';
   }
 
-  return { topic, showCircuit, showNumbers, showStorage };
+  /** Opens the last instruction of the CPU on show as the control lines it was decoded into. */
+  function showControl(): void {
+    analytics.track({ name: 'control-opened', architecture: usePreferences().architecture.value });
+    topic.value = 'control';
+  }
+
+  return { topic, showCircuit, showNumbers, showStorage, showControl };
 });

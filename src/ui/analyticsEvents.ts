@@ -13,6 +13,8 @@ export type AnalyticsEvent =
   | { name: 'numbers-opened'; architecture: ArchitectureId }
   /** The link from a register a CPU wrote to the flip-flops that keep it was followed. */
   | { name: 'storage-opened'; architecture: ArchitectureId }
+  /** The link from an instruction a CPU ran to the control lines it was decoded into was followed. */
+  | { name: 'control-opened'; architecture: ArchitectureId }
   /** The first instruction a CPU ran in this visit. */
   | { name: 'first-step'; architecture: string }
   | { name: 'program-run'; architecture: string }

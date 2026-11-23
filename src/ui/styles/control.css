@@ -1,0 +1,67 @@
+/* The control topic: a decoder drawn as a grid of the gates it is made of. */
+
+@layer components {
+  /*
+   * One decoder: an AND gate per row, the inputs it reads on the left and the lines it feeds on
+   * the right. The names of the rows stay in sight while a wide grid scrolls under them.
+   */
+  .control-plane {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-feature-settings: 'zero';
+    line-height: 1;
+  }
+  .control-plane th,
+  .control-plane td {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 0.25rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--tertiary-foreground);
+    font-weight: 400;
+    text-align: center;
+  }
+  .control-plane .control-name {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    padding-right: 0.75rem;
+    background: var(--page);
+    color: var(--muted-foreground);
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+  }
+  /* A column's name is written up its side, so a column stays as narrow as a bit. */
+  .control-plane .control-up {
+    height: 5.75rem;
+    padding-bottom: 0.375rem;
+    color: var(--muted-foreground);
+    vertical-align: bottom;
+  }
+  .control-plane .control-up span {
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+    white-space: nowrap;
+  }
+  /* Where the inputs end and the lines begin. */
+  .control-plane .control-divide {
+    border-left: 1px solid var(--wire);
+  }
+  /* What a gate asks of an input, in ink where the input carries it. */
+  .control-plane td[data-met] {
+    color: var(--foreground);
+  }
+  /* The gate that is on: the row the word lit. */
+  .control-plane tr[data-on] > * {
+    background: var(--muted);
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .control-plane .control-value {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+}
