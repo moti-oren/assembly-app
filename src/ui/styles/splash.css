@@ -53,8 +53,28 @@
     display: grid;
     place-items: center;
     border-radius: var(--die-radius);
+    overflow: hidden;
     background: var(--die-lid);
     animation: splash-lid-in 220ms var(--splash-ease) both;
+  }
+
+  /*
+   * One glint across the lid while the chip holds still: a slanted band of the label's ink, so a
+   * light lift on the dark lid and a soft shade on the light one. The lid clips it.
+   */
+  .splash-sheen {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 60%;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklch, var(--die-lid-foreground) 18%, transparent),
+      transparent
+    );
+    transform: translateX(-140%) skewX(-20deg);
+    animation: splash-sheen 500ms ease-in-out 1150ms both;
   }
 
   /*
@@ -182,6 +202,15 @@
   from {
     opacity: 0;
     transform: translateY(calc(1.5 * var(--die-u)));
+  }
+}
+
+@keyframes splash-sheen {
+  from {
+    transform: translateX(-140%) skewX(-20deg);
+  }
+  to {
+    transform: translateX(240%) skewX(-20deg);
   }
 }
 
