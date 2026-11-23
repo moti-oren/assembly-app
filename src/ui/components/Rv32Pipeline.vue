@@ -6,6 +6,7 @@ import type { Instruction } from '@/core/rv32/instructions';
 import { PIPELINE_STAGES, pipelineTiming } from '@/core/rv32/pipeline';
 import type { CpuState } from '@/core/rv32/state';
 import {
+  cellTitle,
   pipelineGrid,
   pipelineNotes,
   pipelineSummary,
@@ -17,6 +18,7 @@ import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import InfoTip from './InfoTip.vue';
 import Rv32CycleToggle from './Rv32CycleToggle.vue';
+import Rv32PipelineOptions from './Rv32PipelineOptions.vue';
 import TopicLinkButton from './TopicLinkButton.vue';
 
 const props = defineProps<{
@@ -41,10 +43,13 @@ const CELL_CLASSES: Record<PipelineCell['kind'], string> = {
   flushed: 'bg-muted text-tertiary-foreground line-through'
 };
 
-const { forwarding } = useRv32Pipeline();
+const { forwarding, predictor } = useRv32Pipeline();
 
 const timing = computed(() =>
-  pipelineTiming(props.history, props.program, { forwarding: forwarding.value })
+  pipelineTiming(props.history, props.program, {
+    forwarding: forwarding.value,
+    predictor: predictor.value
+  })
 );
 const grid = computed(() => pipelineGrid(timing.value, ROWS));
 const notes = computed(() =>
@@ -73,6 +78,11 @@ const detail = computed(() => {
             run the program: every instruction shows up here, cycle by cycle, with the stalls and
             flushes the overlap costs.
           </p>
+          <p class="mt-2">
+            A branch decides in EX, two cycles after it was fetched. What is fetched behind it until
+            then is a guess: a ✓ on its EX is a guess that was right, a ✗ one that flushed two
+            instructions.
+          </p>
           <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
             <template v-for="stage in PIPELINE_STAGES" :key="stage">
               <dt class="stage-chip font-mono">{{ stage }}</dt>
@@ -81,33 +91,7 @@ const detail = computed(() => {
           </dl>
         </InfoTip>
       </span>
-      <!-- A switch drawn as one: a track and a thumb, so it reads as something to flip. -->
-      <button
-        type="button"
-        role="switch"
-        class="group/switch inline-flex h-5 items-center gap-1.5 rounded-full pr-1 text-2xs font-medium outline-none pointer-coarse:h-11 focus-visible:ring-3 focus-visible:ring-ring/50"
-        :class="forwarding ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
-        :aria-checked="forwarding"
-        aria-describedby="forwarding-hint"
-        title="Hand a result straight to the next instruction, before it is written back"
-        @click="forwarding = !forwarding"
-      >
-        <span
-          class="relative h-3.5 w-6 shrink-0 rounded-full transition-colors calm:transition-none"
-          :class="forwarding ? 'bg-foreground' : 'bg-wire group-hover/switch:bg-muted-foreground'"
-          aria-hidden="true"
-        >
-          <span
-            class="absolute top-0.5 left-0.5 size-2.5 rounded-full bg-background shadow-(--shadow-thumb) transition-transform calm:transition-none"
-            :class="{ 'translate-x-2.5': forwarding }"
-          />
-        </span>
-        Forwarding
-        <!-- The title is a pointer's alone: this says the same to a screen reader. -->
-        <span id="forwarding-hint" class="sr-only">
-          Hand a result straight to the next instruction, before it is written back
-        </span>
-      </button>
+      <Rv32PipelineOptions />
       <span class="ml-auto flex items-center gap-3">
         <span v-if="controlUnavailable !== undefined" class="max-sm:hidden">
           <TopicLinkButton topic="control" :unavailable="controlUnavailable" />
@@ -161,9 +145,14 @@ const detail = computed(() => {
                   cell?.kind === 'run' && row.newest && 'stage-chip-active',
                   { 'inset-ring-2 inset-ring-pointer': cell?.forwarded || cell?.source }
                 ]"
-                :title="cell?.forwarded?.map((link) => link.text).join('; ')"
+                :title="cellTitle(cell)"
               >
                 {{ cell?.stage }}
+                <!-- Where a branch decides: whether its predictor had guessed it. -->
+                <template v-if="cell?.guess">
+                  <span aria-hidden="true">{{ cell.guess === 'right' ? '✓' : '✗' }}</span>
+                  <span class="sr-only">(guessed {{ cell.guess }})</span>
+                </template>
                 <span v-if="cell?.kind === 'stall'" class="sr-only">(waiting)</span>
                 <!-- The line a forwarded result takes: down the column, into this EX. -->
                 <template v-for="link in cell?.forwarded" :key="link.text">

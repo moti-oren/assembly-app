@@ -19,6 +19,7 @@ export const STORAGE_KEYS = {
   confirmReset: '8086-confirm-reset',
   rv32Pipeline: '8086-rv32-pipeline',
   rv32Forwarding: '8086-rv32-forwarding',
+  rv32Predictor: '8086-rv32-predictor',
   prediction: '8086-prediction',
   predictStep: '8086-predict-step',
   predictBuilder: '8086-predict-builder',

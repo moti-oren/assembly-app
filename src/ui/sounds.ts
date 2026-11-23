@@ -5,7 +5,7 @@ import type { ExecutionRecord as Mos6502Record } from '@/core/mos6502/executionC
 import { flagBit, type CpuState as Mos6502State } from '@/core/mos6502/state';
 import type { ExecutionRecord as Rv32Record } from '@/core/rv32/execute';
 import type { Instruction as Rv32Instruction } from '@/core/rv32/instructions';
-import { pipelineTiming, type PipelineTiming } from '@/core/rv32/pipeline';
+import { pipelineTiming, type PipelineOptions, type PipelineTiming } from '@/core/rv32/pipeline';
 import { RA, ZERO } from '@/core/rv32/registers';
 import type { CpuState as Rv32State } from '@/core/rv32/state';
 import { decode } from '@/core/x86/decode';
@@ -134,12 +134,12 @@ export function mos6502Sounds(record: Mos6502Record, after: Mos6502State): StepS
 
 /**
  * What the newest instruction cost or saved in RISC-V's pipeline: a wait in ID or a flush behind
- * a taken branch is a stall, and an operand handed over early is a forward.
+ * a jump or a branch guessed wrong is a stall, and an operand handed over early is a forward.
  */
 function pipelineCue(timing: PipelineTiming): 'stall' | 'forward' | null {
   const row = [...timing.rows].reverse().find((candidate) => candidate.step !== null);
   if (!row) return null;
-  if (row.hazard || row.taken) return 'stall';
+  if (row.hazard || row.flushes) return 'stall';
   return row.forwards.length > 0 ? 'forward' : null;
 }
 
@@ -151,11 +151,11 @@ export function rv32Sounds(
   history: readonly Rv32Record[],
   after: Rv32State,
   program: Program<Rv32Instruction>,
-  pipeline: { shown: boolean; forwarding: boolean }
+  pipeline: PipelineOptions & { shown: boolean }
 ): StepSounds {
   const record = history.at(-1);
   if (!record) return { step: 'idle', layers: [] };
   if (!pipeline.shown) return { step: rv32StepSound(record, after), layers: [] };
-  const cue = pipelineCue(pipelineTiming(history, program, { forwarding: pipeline.forwarding }));
+  const cue = pipelineCue(pipelineTiming(history, program, pipeline));
   return { step: 'pipeline-tick', layers: cue ? [cue] : [] };
 }

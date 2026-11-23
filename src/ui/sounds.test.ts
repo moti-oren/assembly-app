@@ -215,7 +215,7 @@ describe('rv32Sounds', () => {
     const state = RV32.createState();
     const history: Rv32Record[] = [];
     for (let i = 0; i < steps; i++) history.push(step(RV32, state, program));
-    return rv32Sounds(history, state, program, pipeline);
+    return rv32Sounds(history, state, program, { ...pipeline, predictor: 'not-taken' });
   }
 
   it('is the instruction itself while the pipeline is not shown', () => {

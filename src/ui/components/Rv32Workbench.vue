@@ -113,7 +113,8 @@ const {
   soundOf: () =>
     rv32Sounds(history.value, state, program.value, {
       shown: pipeline.shown.value,
-      forwarding: pipeline.forwarding.value
+      forwarding: pipeline.forwarding.value,
+      predictor: pipeline.predictor.value
     }),
   commands: pipeline.commands,
   page
