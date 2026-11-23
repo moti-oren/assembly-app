@@ -36,8 +36,8 @@ const SHAPES: Record<GateKind, string> = {
     @keydown.enter.prevent="$emit('choose')"
     @keydown.space.prevent="$emit('choose')"
   >
-    <!-- Room for a finger around the gate. -->
-    <rect x="-4" y="-8" width="52" height="56" fill="transparent" />
+    <!-- Room for a finger around the gate: 44px even where the drawing is at its smallest. -->
+    <rect x="-8" y="-10" width="60" height="60" fill="transparent" />
     <!-- The inputs reach the curved back of an OR or XOR gate. -->
     <path
       v-if="kind === 'or' || kind === 'nor' || kind === 'xor'"
