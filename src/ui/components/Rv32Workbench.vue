@@ -20,6 +20,7 @@ import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
+import { useRv32Timing } from '@/ui/useRv32Timing';
 import { usePrediction } from '@/ui/usePrediction';
 import { useProgramCode } from '@/ui/useProgramCode';
 import { useChallenge } from '@/ui/useChallenge';
@@ -86,6 +87,7 @@ const layout = useLayoutMode();
 const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
 
 const pipeline = useRv32Pipeline();
+const timing = useRv32Timing(cpu);
 
 const page = useWorkbenchPage(() => lastRecord.value?.access != null);
 const { asking, last, tally, answer, skip, followBuilder, controls } = usePrediction(
@@ -116,12 +118,8 @@ const {
   // Every RISC-V instruction has a control unit to show.
   controlUnavailable: () => null,
   usesDevices: rv32UsesDevices,
-  soundOf: () =>
-    rv32Sounds(history.value, state, program.value, {
-      shown: pipeline.shown.value,
-      forwarding: pipeline.forwarding.value,
-      predictor: pipeline.predictor.value
-    }),
+  // The timing is the chart's own, worked out once for both.
+  soundOf: () => rv32Sounds(history.value, state, pipeline.shown.value ? timing.value : null),
   commands: pipeline.commands,
   page
 });
@@ -266,6 +264,7 @@ followBuilder(draft);
           <CardContent>
             <Rv32Pipeline
               v-if="pipelineShown"
+              :timing="timing"
               :history="history"
               :program="program"
               :state="state"

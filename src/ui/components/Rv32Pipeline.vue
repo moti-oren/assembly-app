@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import type { Program } from '@/core/shared/program';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
-import { PIPELINE_STAGES, pipelineTiming } from '@/core/rv32/pipeline';
+import { PIPELINE_STAGES, type PipelineTiming } from '@/core/rv32/pipeline';
 import type { CpuState } from '@/core/rv32/state';
 import {
   cellTitle,
@@ -22,6 +22,8 @@ import Rv32PipelineOptions from './Rv32PipelineOptions.vue';
 import TopicLinkButton from './TopicLinkButton.vue';
 
 const props = defineProps<{
+  /** How the instructions that ran flow through the pipeline. */
+  timing: PipelineTiming;
   /** The instructions that ran, oldest first. */
   history: readonly ExecutionRecord[];
   program: Program<Instruction>;
@@ -43,19 +45,13 @@ const CELL_CLASSES: Record<PipelineCell['kind'], string> = {
   flushed: 'bg-muted text-tertiary-foreground line-through'
 };
 
-const { forwarding, predictor } = useRv32Pipeline();
+const { forwarding } = useRv32Pipeline();
 
-const timing = computed(() =>
-  pipelineTiming(props.history, props.program, {
-    forwarding: forwarding.value,
-    predictor: predictor.value
-  })
-);
-const grid = computed(() => pipelineGrid(timing.value, ROWS));
+const grid = computed(() => pipelineGrid(props.timing, ROWS));
 const notes = computed(() =>
-  pipelineNotes(timing.value, grid.value.from, { forwarding: forwarding.value })
+  pipelineNotes(props.timing, grid.value.from, { forwarding: forwarding.value })
 );
-const summary = computed(() => pipelineSummary(timing.value));
+const summary = computed(() => pipelineSummary(props.timing));
 
 /** What the line on show is doing, in the words the one-by-one view gives it. */
 const detail = computed(() => {

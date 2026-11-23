@@ -1,11 +1,9 @@
 import { PORTS } from '@/core/shared/devices';
 import type { ExecutionRecord as SharedRecord } from '@/core/shared/executionRecord';
-import type { Program } from '@/core/shared/program';
 import type { ExecutionRecord as Mos6502Record } from '@/core/mos6502/executionContext';
 import { flagBit, type CpuState as Mos6502State } from '@/core/mos6502/state';
 import type { ExecutionRecord as Rv32Record } from '@/core/rv32/execute';
-import type { Instruction as Rv32Instruction } from '@/core/rv32/instructions';
-import { pipelineTiming, type PipelineOptions, type PipelineTiming } from '@/core/rv32/pipeline';
+import type { PipelineRow, PipelineTiming } from '@/core/rv32/pipeline';
 import { RA, ZERO } from '@/core/rv32/registers';
 import type { CpuState as Rv32State } from '@/core/rv32/state';
 import { decode } from '@/core/x86/decode';
@@ -137,7 +135,11 @@ export function mos6502Sounds(record: Mos6502Record, after: Mos6502State): StepS
  * a jump or a branch guessed wrong is a stall, and an operand handed over early is a forward.
  */
 function pipelineCue(timing: PipelineTiming): 'stall' | 'forward' | null {
-  const row = [...timing.rows].reverse().find((candidate) => candidate.step !== null);
+  // The newest instruction that ran is the last row, or sits just above the two it flushed.
+  let row: PipelineRow | undefined;
+  for (let index = timing.rows.length - 1; index >= 0 && !row; index--) {
+    if (timing.rows[index].step !== null) row = timing.rows[index];
+  }
   if (!row) return null;
   if (row.hazard || row.flushes) return 'stall';
   return row.forwards.length > 0 ? 'forward' : null;
@@ -145,17 +147,17 @@ function pipelineCue(timing: PipelineTiming): 'stall' | 'forward' | null {
 
 /**
  * A RISC-V instruction on its own, or as the pipeline chart shows it: there every instruction
- * is one tick of the clock, and only what the overlap did to it stands out.
+ * is one tick of the clock, and only what the overlap did to it stands out. `timing` is the
+ * pipeline's, while its chart is on show, and null otherwise.
  */
 export function rv32Sounds(
   history: readonly Rv32Record[],
   after: Rv32State,
-  program: Program<Rv32Instruction>,
-  pipeline: PipelineOptions & { shown: boolean }
+  timing: PipelineTiming | null
 ): StepSounds {
   const record = history.at(-1);
   if (!record) return { step: 'idle', layers: [] };
-  if (!pipeline.shown) return { step: rv32StepSound(record, after), layers: [] };
-  const cue = pipelineCue(pipelineTiming(history, program, pipeline));
+  if (!timing) return { step: rv32StepSound(record, after), layers: [] };
+  const cue = pipelineCue(timing);
   return { step: 'pipeline-tick', layers: cue ? [cue] : [] };
 }

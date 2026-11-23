@@ -78,7 +78,7 @@ export interface PipelineRow {
 }
 
 export interface PipelineTiming {
-  rows: PipelineRow[];
+  rows: readonly PipelineRow[];
   /** Cycles until the last instruction has written back; 0 when nothing has run. */
   cycles: number;
   instructions: number;
@@ -249,62 +249,135 @@ function produce(
   }
 }
 
+/**
+ * A pipeline being followed through a history that grows: everything the next instruction's
+ * timing depends on, so a step costs one instruction and not the whole history again.
+ */
+export interface PipelineRun {
+  readonly options: PipelineOptions;
+  readonly program: Program<Instruction>;
+  /** Every row so far. It grows in place: a row, once pushed, is never changed. */
+  readonly rows: PipelineRow[];
+  /** For each register, when its newest value can reach EX, and who produces it. */
+  readonly ready: Ready;
+  readonly predictor: BranchPredictor;
+  /** The cycle the next instruction is fetched in, and the one the last reached EX in. */
+  fetch: number;
+  previousEx: number;
+  /** Set by a flush: what the next instruction loses to it. */
+  flushPenalty: number;
+  /** The cycle the last instruction wrote back in. */
+  last: number;
+  stallCycles: number;
+  flushCycles: number;
+  branches: number;
+  mispredicted: number;
+  /** The records read, and the last of them: a history that still has it there only grew. */
+  seen: number;
+  lastRecord: ExecutionRecord | null;
+}
+
+/** A pipeline nothing has run through yet. */
+export function startPipeline(
+  program: Program<Instruction>,
+  options: PipelineOptions
+): PipelineRun {
+  return {
+    options,
+    program,
+    rows: [],
+    ready: new Map(),
+    predictor: branchPredictor(options.predictor),
+    fetch: 1,
+    previousEx: 0,
+    flushPenalty: 0,
+    last: 0,
+    stallCycles: 0,
+    flushCycles: 0,
+    branches: 0,
+    mispredicted: 0,
+    seen: 0,
+    lastRecord: null
+  };
+}
+
+/** Sends the next instruction that ran through the pipeline. */
+function advance(run: PipelineRun, record: ExecutionRecord): void {
+  const known = decodeOnce(record.instruction);
+  run.flushCycles += run.flushPenalty;
+  run.flushPenalty = 0;
+  // ID is free once the instruction ahead has moved on to EX.
+  const id = Math.max(run.fetch + 1, run.previousEx);
+  const { ex, hazard } = waitFor(known.reads, run.ready, id);
+  const row = run.rows.length;
+  const address = record.line === null ? record.before.registers.pc : addressOfLine(record.line);
+  const prediction = predict(run.predictor, record, known, address);
+  const missed = prediction !== null && prediction.guess !== prediction.taken;
+  const flushes = known.nextPc === 'jump' || missed;
+  run.rows.push({
+    step: run.seen,
+    line: record.line,
+    text: known.text,
+    cycles: stages(run.fetch, id, ex),
+    hazard,
+    forwards: forwardsInto(known.reads, run.ready, ex),
+    flushes,
+    prediction,
+    flushedBy: null
+  });
+  produce(known, row, ex, run.ready, run.options);
+  run.stallCycles += ex - id - 1;
+  if (prediction) run.branches += 1;
+  if (missed) run.mispredicted += 1;
+  run.previousEx = ex;
+  run.last = ex + 2;
+  if (flushes) {
+    const first = wrongPath(record.instruction, prediction, address);
+    run.rows.push(...flushedRows(first, run.program, { id, ex, by: row }));
+    run.flushPenalty = 2;
+  }
+  // What comes next, in the program or at a target guessed right, is fetched as this one moves
+  // into ID; after a flush, only once this one has decided in EX.
+  run.fetch = flushes ? ex + 1 : id;
+  run.seen += 1;
+  run.lastRecord = record;
+}
+
+/**
+ * Whether `records` is the history `run` has read with more instructions after it. After an undo,
+ * a seek or a reset it is not, and the pipeline has to be started again.
+ */
+export function continues(run: PipelineRun, records: readonly ExecutionRecord[]): boolean {
+  if (run.seen > records.length) return false;
+  return run.seen === 0 || records[run.seen - 1] === run.lastRecord;
+}
+
+/** Sends through the pipeline the records it has not read yet. The history must continue it. */
+export function followPipeline(run: PipelineRun, records: readonly ExecutionRecord[]): void {
+  for (let step = run.seen; step < records.length; step++) advance(run, records[step]);
+}
+
+/** The timing so far. Its rows are the run's own, and grow with it. */
+export function timingOf(run: PipelineRun): PipelineTiming {
+  const { rows, last, seen, stallCycles, flushCycles, branches, mispredicted } = run;
+  return {
+    rows,
+    cycles: last,
+    instructions: seen,
+    stallCycles,
+    flushCycles,
+    branches,
+    mispredicted
+  };
+}
+
+/** The timing of a whole history, from an empty pipeline. */
 export function pipelineTiming(
   records: readonly ExecutionRecord[],
   program: Program<Instruction>,
   options: PipelineOptions
 ): PipelineTiming {
-  const rows: PipelineRow[] = [];
-  /** For each register, when its newest value can reach EX, and who produces it. */
-  const ready: Ready = new Map();
-  const predictor = branchPredictor(options.predictor);
-  let fetch = 1;
-  let previousEx = 0;
-  /** Set by a flush: what the next instruction loses to it. */
-  let flushPenalty = 0;
-  const totals = { stallCycles: 0, flushCycles: 0, branches: 0, mispredicted: 0 };
-  let last = 0;
-
-  records.forEach((record, step) => {
-    const known = decodeOnce(record.instruction);
-    totals.flushCycles += flushPenalty;
-    flushPenalty = 0;
-    // ID is free once the instruction ahead has moved on to EX.
-    const id = Math.max(fetch + 1, previousEx);
-    const { ex, hazard } = waitFor(known.reads, ready, id);
-    const row = rows.length;
-    const address = record.line === null ? record.before.registers.pc : addressOfLine(record.line);
-    const prediction = predict(predictor, record, known, address);
-    const missed = prediction !== null && prediction.guess !== prediction.taken;
-    const flushes = known.nextPc === 'jump' || missed;
-    rows.push({
-      step,
-      line: record.line,
-      text: known.text,
-      cycles: stages(fetch, id, ex),
-      hazard,
-      forwards: forwardsInto(known.reads, ready, ex),
-      flushes,
-      prediction,
-      flushedBy: null
-    });
-    produce(known, row, ex, ready, options);
-    totals.stallCycles += ex - id - 1;
-    if (prediction) totals.branches += 1;
-    if (missed) totals.mispredicted += 1;
-    previousEx = ex;
-    last = ex + 2;
-    if (flushes) {
-      const first = wrongPath(record.instruction, prediction, address);
-      rows.push(...flushedRows(first, program, { id, ex, by: row }));
-      flushPenalty = 2;
-      fetch = ex + 1;
-    } else {
-      // What comes next, in the program or at a target guessed right, is fetched as this one
-      // moves into ID.
-      fetch = id;
-    }
-  });
-
-  return { rows, cycles: last, instructions: records.length, ...totals };
+  const run = startPipeline(program, options);
+  followPipeline(run, records);
+  return timingOf(run);
 }
