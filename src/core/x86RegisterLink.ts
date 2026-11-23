@@ -5,6 +5,7 @@ import {
   type RegisterLink,
   type RegisterWrite
 } from './registerLink';
+import { decode } from './x86/decode';
 import type { ExecutionRecord } from './x86/execute';
 import {
   BYTE_REGISTER_LOCATION,
@@ -49,7 +50,8 @@ export function x86RegisterLink(record: ExecutionRecord, after: CpuSnapshot | nu
   if (!after) return { unavailable: NOT_KEPT };
   const writes = writesOf(record, after);
   if (writes.length === 0) {
-    const flags = record.before.flags !== after.flags ? 'FLAGS' : null;
+    // Written, as a register is, whether or not the value changed.
+    const flags = decode(record.instruction).writesFlags ? 'FLAGS' : null;
     return { unavailable: nothingWritten(name, 'IP', flags) };
   }
   const half = writes.find((write) => write.part !== null);

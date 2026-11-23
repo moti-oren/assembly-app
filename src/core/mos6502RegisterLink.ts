@@ -1,8 +1,9 @@
+import { decode } from './mos6502/decode';
 import type { ExecutionRecord } from './mos6502/executionContext';
 import { REGISTER_NAMES, type CpuState } from './mos6502/state';
 import { NOT_KEPT, nothingWritten, written, type RegisterLink } from './registerLink';
 
-type Snapshot = Pick<CpuState, 'registers' | 'flags'>;
+type Snapshot = Pick<CpuState, 'registers'>;
 
 /** The registers an executed 6502 instruction wrote, or why there is none to show. */
 export function mos6502RegisterLink(record: ExecutionRecord, after: Snapshot | null): RegisterLink {
@@ -21,6 +22,7 @@ export function mos6502RegisterLink(record: ExecutionRecord, after: Snapshot | n
       : []
   );
   if (writes.length > 0) return { writes, note: null };
-  const flags = record.before.flags !== after.flags ? 'P' : null;
+  // Written, as a register is, whether or not the value changed.
+  const flags = decode(record.instruction).flagsWritten.length > 0 ? 'P' : null;
   return { unavailable: nothingWritten(name, 'PC', flags) };
 }
