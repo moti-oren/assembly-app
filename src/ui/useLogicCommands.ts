@@ -36,7 +36,40 @@ export function useLogicCommands(
         disabled: width === each,
         run: () => lens.setWidth(each)
       })),
+      ...timeCommands(lens),
       ...app.value
     ];
   });
+}
+
+/** The commands of the adder's gate delays; a circuit that is not the adder has none. */
+function timeCommands(lens: LogicLens): PaletteCommand[] {
+  const { time } = lens;
+  if (!time.available.value) return [];
+  const group = 'Gate delays';
+  const longest = { group, label: 'Try the longest carry', run: lens.tryLongestCarry };
+  if (!time.on.value) return [{ group, label: 'Slow down time', run: time.toggle }, longest];
+  return [
+    { group, label: 'Back to full speed', run: time.toggle },
+    {
+      group,
+      label: time.playing.value ? 'Pause the gate delays' : 'Play the gate delays',
+      disabled: time.last.value === 0,
+      run: time.playing.value ? time.pause : time.play
+    },
+    { group, label: 'Step one gate delay', disabled: time.settled.value, run: time.stepOn },
+    {
+      group,
+      label: 'Step back one gate delay',
+      disabled: time.step.value === 0,
+      run: time.stepBack
+    },
+    {
+      group,
+      label: 'Rewind to the moment the inputs changed',
+      disabled: time.step.value === 0,
+      run: time.rewind
+    },
+    longest
+  ];
 }
