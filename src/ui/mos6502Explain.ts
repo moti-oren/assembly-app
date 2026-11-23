@@ -66,7 +66,7 @@ export function cyclesBreakdown(record: ExecutionRecord): string {
 }
 
 /** Why a branch was taken or not; null for any other instruction. */
-function branchOutcome(record: ExecutionRecord): string | null {
+export function branchOutcome(record: ExecutionRecord): string | null {
   if (!record.branch) return null;
   const { flag, taken } = record.branch;
   // No branch writes a flag, so the one it tested is the one before it.

@@ -75,7 +75,7 @@ function compared(value: number, signed: boolean | null): string {
 }
 
 /** Why a branch was taken or not; null for any other instruction. */
-function branchOutcome(record: ExecutionRecord): string | null {
+export function branchOutcome(record: ExecutionRecord): string | null {
   const branch = BRANCHES[record.instruction.mnemonic];
   const { comparison } = record;
   if (!branch || !comparison) return null;
