@@ -1,3 +1,4 @@
+import type { Challenge, ChallengeInstruction } from './challenge';
 import type { ExecutionRecord } from './executionRecord';
 import type { LineRunner, Program, ProgramInstruction } from './program';
 import type { CpuState } from './state';
@@ -27,4 +28,6 @@ export interface Architecture<
   /** Points the instruction pointer at a program line, e.g. after the program was edited. */
   setNextLine(state: State, line: number, program: Program<Instruction>): void;
   readonly examples: readonly Example<Instruction>[];
+  /** Tasks to write a program for, judged by running it. */
+  readonly challenges: readonly Challenge<Instruction & ChallengeInstruction, State>[];
 }

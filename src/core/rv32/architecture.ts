@@ -1,4 +1,5 @@
 import type { Architecture } from '../shared/architecture';
+import { CHALLENGES } from './challenges';
 import { EXAMPLE_PROGRAMS } from './examples';
 import { execute, type ExecutionRecord } from './execute';
 import { isValid, type Instruction } from './instructions';
@@ -15,5 +16,6 @@ export const RV32: Architecture<Instruction, CpuState, ExecutionRecord> = {
   setNextLine: (state, line) => {
     state.registers.pc = addressOfLine(line);
   },
-  examples: EXAMPLE_PROGRAMS
+  examples: EXAMPLE_PROGRAMS,
+  challenges: CHALLENGES
 };

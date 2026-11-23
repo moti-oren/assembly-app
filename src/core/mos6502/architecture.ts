@@ -1,4 +1,5 @@
 import type { Architecture } from '../shared/architecture';
+import { CHALLENGES } from './challenges';
 import { EXAMPLE_PROGRAMS } from './examples';
 import { execute } from './execute';
 import type { ExecutionRecord } from './executionContext';
@@ -18,5 +19,6 @@ export const MOS6502: Architecture<Instruction, CpuState, ExecutionRecord> = {
   setNextLine: (state, line, program) => {
     state.registers.pc = addressOfLine(program, line);
   },
-  examples: EXAMPLE_PROGRAMS
+  examples: EXAMPLE_PROGRAMS,
+  challenges: CHALLENGES
 };
