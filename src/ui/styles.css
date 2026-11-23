@@ -148,7 +148,7 @@
    * The stage's one spacing scale: the room above and below the line between two sections, from
    * a section's heading to what is under it, and from a label inside a section to its content.
    */
-  --pane-section-py: 1.25rem;
+  --pane-section-py: 2rem;
   --section-header-gap: 0.75rem;
   --sublabel-gap: 0.5rem;
   /* The bar of a scrolling area, and the same bar under the pointer. */
@@ -347,7 +347,7 @@
 /* A phone and a low window have less height to give the lines between sections. */
 @media (width < 48rem), (min-width: 64rem) and (max-height: 50rem) {
   :root {
-    --pane-section-py: 0.75rem;
+    --pane-section-py: 1rem;
   }
 }
 
