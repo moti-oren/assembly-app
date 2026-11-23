@@ -1,5 +1,6 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { hasCircuit, type AluLink } from '@/core/aluLink';
+import { hasNumbers, type NumberLink } from '@/core/numberLink';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { ProgramInstruction } from '@/core/shared/program';
 import type { PaletteCommand } from './paletteCommand';
@@ -17,7 +18,7 @@ import { useWorkbenchView } from './useWorkbenchView';
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
 export type WorkbenchPage = Omit<
   PageActions,
-  'askClearProgram' | 'askReset' | 'runAgain' | 'hasCircuit'
+  'askClearProgram' | 'askReset' | 'runAgain' | 'hasCircuit' | 'hasNumbers'
 > & {
   /** Folds the builder's choices away, so the program below it stays in view. */
   foldBuilder: () => void;
@@ -30,6 +31,8 @@ export interface WorkbenchHooks<Instruction, Record> {
   page: WorkbenchPage;
   /** The circuit of gates behind an executed instruction, for the link into the logic topic. */
   aluLink: (record: Record) => AluLink;
+  /** An executed instruction as arithmetic on numbers, for the link into the number topic. */
+  numberLink: (record: Record) => NumberLink;
   /** Palette commands for the architecture's own panels, labelled for the current state. */
   commands?: () => PaletteCommand[];
 }
@@ -61,6 +64,11 @@ export function useWorkbench<
     const record = cpu.lastRecord.value;
     return record && hooks.aluLink(record);
   });
+  /** Where it leads in the number topic. */
+  const numberLink = computed(() => {
+    const record = cpu.lastRecord.value;
+    return record && hooks.numberLink(record);
+  });
 
   const commands = useCommands(
     cpu,
@@ -68,6 +76,7 @@ export function useWorkbench<
     {
       ...hooks.page,
       hasCircuit: () => aluLink.value !== null && hasCircuit(aluLink.value),
+      hasNumbers: () => numberLink.value !== null && hasNumbers(numberLink.value),
       // A builder out of sight or collapsed is brought back first; its input can only take
       // focus once it is drawn.
       focusBuilder: () => {

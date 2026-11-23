@@ -1,7 +1,5 @@
-import { hasCircuit, type AluLink } from '@/core/aluLink';
-
-/** A point in a CPU's history, as the logic topic shows it. */
-export interface CpuMoment {
+/** A point in a CPU's history, as another topic shows it. `Link` is where it leads there. */
+export interface CpuMoment<Link> {
   /** The CPU's name: `8086`. */
   cpu: string;
   /** How many instructions have run, and how many there are with the undone ones. */
@@ -9,32 +7,34 @@ export interface CpuMoment {
   total: number;
   /** The last instruction as text, or null when nothing has run. */
   instruction: string | null;
-  /** Where that instruction leads in the logic topic. */
-  link: AluLink | null;
-  /** The nearest positions, back and forward, whose instruction has a circuit to show. */
+  /** Where that instruction leads in the topic. */
+  link: Link | null;
+  /** The nearest positions, back and forward, whose instruction has something to show there. */
   previous: number | null;
   next: number | null;
 }
 
 /** A CPU's timeline, and how its records are read. */
-export interface MomentSource<Record> {
+export interface MomentSource<Record, Link> {
   cpu: string;
   history: readonly Record[];
   /** The undone instructions, in the order they would run again. */
   future: readonly Record[];
   format: (record: Record) => string;
-  link: (record: Record) => AluLink;
+  link: (record: Record) => Link;
+  /** Whether the topic has something to show for a link, or only a reason why not. */
+  shows: (link: Link) => boolean;
 }
 
-export function momentOf<Record>(source: MomentSource<Record>): CpuMoment {
-  const { history, future, link } = source;
+export function momentOf<Record, Link>(source: MomentSource<Record, Link>): CpuMoment<Link> {
+  const { history, future, link, shows } = source;
   const position = history.length;
   const last = history.at(-1);
   let previous: number | null = null;
   for (let at = position - 1; at >= 1 && previous === null; at--) {
-    if (hasCircuit(link(history[at - 1]))) previous = at;
+    if (shows(link(history[at - 1]))) previous = at;
   }
-  const ahead = future.findIndex((record) => hasCircuit(link(record)));
+  const ahead = future.findIndex((record) => shows(link(record)));
   return {
     cpu: source.cpu,
     position,

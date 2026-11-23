@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { x86AluLink } from '@/core/x86AluLink';
+import { x86NumberLink } from '@/core/x86NumberLink';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { assemble, encode } from '@/core/x86/encode';
 import type { ExecutionRecord } from '@/core/x86/execute';
@@ -88,6 +89,7 @@ const {
   confirmReset
 } = useWorkbench(cpu, {
   aluLink: x86AluLink,
+  numberLink: x86NumberLink,
   usesDevices: x86UsesDevices,
   commands: () => [
     {

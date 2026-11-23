@@ -1,0 +1,98 @@
+/* The number topic: the values of a width on a ring, and one operation as a journey round it. */
+
+@layer components {
+  /* The page of the number topic: one column that scrolls, as wide as reads well. */
+  .numbers-page {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--page);
+  }
+
+  /* The sizes of the drawing are in the units of its viewBox, which scales with it. */
+  .numbers-wheel {
+    display: block;
+    width: 100%;
+    max-width: 19rem;
+    height: auto;
+    margin-inline: auto;
+    touch-action: none;
+  }
+  .wheel-ring {
+    fill: none;
+    stroke: var(--wire);
+    stroke-width: 1.5;
+  }
+  /* Where the scale ends and starts again: a quiet tick, until a journey goes over it. */
+  .wheel-seam {
+    stroke: var(--muted-foreground);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 2 3;
+  }
+  .wheel-seam[data-crossed] {
+    stroke: var(--foreground);
+    stroke-width: 4;
+    stroke-dasharray: none;
+  }
+  .wheel-mark {
+    fill: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+  }
+  .wheel-journey {
+    fill: none;
+    stroke: var(--foreground);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .wheel-head {
+    fill: var(--foreground);
+  }
+  /* Where the journey ends: orange only when the CPU really wrote this result. */
+  .wheel-end {
+    fill: var(--page);
+    stroke: var(--foreground);
+    stroke-width: 2.5;
+  }
+  .wheel-end[data-written] {
+    stroke: var(--changed-foreground);
+    fill: var(--changed-foreground);
+  }
+  /* A, which the operation reads, and the handle that moves it. */
+  .wheel-start {
+    fill: var(--pointer);
+    stroke: var(--page);
+    stroke-width: 2;
+  }
+  .wheel-reach {
+    fill: transparent;
+  }
+  .wheel-handle {
+    cursor: grab;
+  }
+  .wheel-handle:active {
+    cursor: grabbing;
+  }
+  /* Not every browser draws an outline round a shape in an SVG: the ring is the handle's own line. */
+  .wheel-handle:focus-visible {
+    outline: none;
+  }
+  .wheel-handle:focus-visible .wheel-start {
+    stroke: var(--ring);
+    stroke-width: 4;
+  }
+
+  /* A bit an extension put in: it is a copy, so it is drawn lighter than the bits of the value. */
+  .logic-bit[data-filled]:not([data-tone='result']) {
+    border-style: dashed;
+  }
+  .logic-bit[data-filled][data-on]:not([data-tone='result']) {
+    border-color: var(--border);
+    background: var(--muted);
+    color: var(--foreground);
+  }
+}

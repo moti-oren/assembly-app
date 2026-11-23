@@ -4,8 +4,9 @@ import type { ExecutionRecord } from '@/core/rv32/execute';
 import { formatInstruction } from '@/core/rv32/instructions';
 import { Card, CardContent } from '@/components/ui/card';
 import { rv32AluLink } from '@/core/rv32AluLink';
+import { rv32NumberLink } from '@/core/rv32NumberLink';
 import { aluEquation } from '@/ui/rv32Explain';
-import TopicLinkButton from './TopicLinkButton.vue';
+import OperationLinks from './OperationLinks.vue';
 
 const props = defineProps<{
   record: ExecutionRecord | null;
@@ -13,6 +14,7 @@ const props = defineProps<{
 
 const equation = computed(() => props.record && aluEquation(props.record));
 const link = computed(() => props.record && rv32AluLink(props.record));
+const numbers = computed(() => props.record && rv32NumberLink(props.record));
 </script>
 
 <template>
@@ -31,7 +33,7 @@ const link = computed(() => props.record && rv32AluLink(props.record));
           <span class="font-sans text-xs text-muted-foreground">
             {{ equation.destination }}{{ equation.note ? ` (${equation.note})` : '' }}
           </span>
-          <TopicLinkButton v-if="link" :link="link" />
+          <OperationLinks v-if="link && numbers" :alu="link" :numbers="numbers" />
         </span>
         <span v-else class="ml-auto font-sans text-xs text-muted-foreground">
           The ALU was not used.

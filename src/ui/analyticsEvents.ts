@@ -9,6 +9,8 @@ export type AnalyticsEvent =
   | { name: 'view'; topic: TopicId; architecture: ArchitectureId }
   /** The link from a CPU's operation to its gates was followed. */
   | { name: 'circuit-opened'; architecture: ArchitectureId }
+  /** The link from a CPU's operation to what it means as numbers was followed. */
+  | { name: 'numbers-opened'; architecture: ArchitectureId }
   /** The first instruction a CPU ran in this visit. */
   | { name: 'first-step'; architecture: string }
   | { name: 'program-run'; architecture: string }

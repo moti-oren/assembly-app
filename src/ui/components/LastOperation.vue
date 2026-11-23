@@ -5,8 +5,9 @@ import { formatInstruction } from '@/core/x86/instructions';
 import type { CpuState } from '@/core/x86/state';
 import { Card, CardContent } from '@/components/ui/card';
 import { x86AluLink } from '@/core/x86AluLink';
+import { x86NumberLink } from '@/core/x86NumberLink';
 import { describeEquation } from '@/ui/describe';
-import TopicLinkButton from './TopicLinkButton.vue';
+import OperationLinks from './OperationLinks.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -15,6 +16,7 @@ const props = defineProps<{
 
 const equation = computed(() => props.record && describeEquation(props.state, props.record));
 const link = computed(() => props.record && x86AluLink(props.record));
+const numbers = computed(() => props.record && x86NumberLink(props.record));
 </script>
 
 <template>
@@ -44,7 +46,7 @@ const link = computed(() => props.record && x86AluLink(props.record));
           <span class="font-sans text-xs text-muted-foreground">
             {{ equation.discarded ? 'only the flags are kept' : `into ${equation.destination}` }}
           </span>
-          <TopicLinkButton v-if="link" :link="link" />
+          <OperationLinks v-if="link && numbers" :alu="link" :numbers="numbers" />
         </span>
       </template>
       <span v-else class="font-sans text-sm text-muted-foreground">

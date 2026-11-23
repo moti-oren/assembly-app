@@ -5,8 +5,9 @@ import { formatInstruction, type Instruction } from '@/core/rv32/instructions';
 import type { CpuState } from '@/core/rv32/state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { rv32AluLink } from '@/core/rv32AluLink';
+import { rv32NumberLink } from '@/core/rv32NumberLink';
 import { aluEquation, describeComparison } from '@/ui/rv32Explain';
-import TopicLinkButton from './TopicLinkButton.vue';
+import OperationLinks from './OperationLinks.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -19,6 +20,7 @@ const comparison = computed(
 );
 
 const link = computed(() => props.record && rv32AluLink(props.record));
+const numbers = computed(() => props.record && rv32NumberLink(props.record));
 
 /** SLT and its kin compare too, but leave the answer in a register instead of jumping. */
 const setLessThan = computed(() => {
@@ -58,7 +60,7 @@ const setLessThan = computed(() => {
           class="flex w-full items-center justify-end gap-2 font-sans text-xs text-muted-foreground"
         >
           compared {{ comparison.how }}
-          <TopicLinkButton v-if="link" :link="link" />
+          <OperationLinks v-if="link && numbers" :alu="link" :numbers="numbers" />
         </span>
       </div>
       <div v-else-if="setLessThan" class="flex flex-wrap items-baseline gap-x-2">
@@ -73,7 +75,7 @@ const setLessThan = computed(() => {
         <span class="font-sans text-xs text-muted-foreground">
           {{ setLessThan.destination }} ({{ setLessThan.note }})
         </span>
-        <TopicLinkButton v-if="link" :link="link" />
+        <OperationLinks v-if="link && numbers" :alu="link" :numbers="numbers" />
       </div>
       <p v-else class="font-sans text-xs text-muted-foreground">
         {{

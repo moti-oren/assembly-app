@@ -34,6 +34,8 @@ export interface PageActions {
   hasLastAccess: () => boolean;
   /** Whether the last instruction has a circuit of gates to show in the logic topic. */
   hasCircuit: () => boolean;
+  /** Whether the last instruction can be shown as arithmetic in the number topic. */
+  hasNumbers: () => boolean;
 }
 
 /**
@@ -49,7 +51,7 @@ export function useCommands(
 ): ComputedRef<PaletteCommand[]> {
   const { cpuView, architecture } = usePreferences();
   const app = useAppCommands();
-  const { showCircuit } = useTopic();
+  const { showCircuit, showNumbers } = useTopic();
   const panelOrder = usePanelOrder();
   const sidebar = useSidebarLayout();
   const comparison = useComparison();
@@ -60,6 +62,7 @@ export function useCommands(
   const { historyShown, bytesShown, devicesShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
   const hasCircuit = computed(page.hasCircuit);
+  const hasNumbers = computed(page.hasNumbers);
   const keys = transportKeys(isApple);
 
   return computed<PaletteCommand[]>(() => [
@@ -208,6 +211,13 @@ export function useCommands(
       // The logic topic's page takes focus; the palette must not take it back as it closes.
       moves: 'focus',
       run: () => showCircuit()
+    },
+    {
+      group: 'CPU',
+      label: 'Show the last operation as numbers',
+      disabled: !hasNumbers.value,
+      moves: 'focus',
+      run: () => showNumbers()
     },
     ...extra(),
     {

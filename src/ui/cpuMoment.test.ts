@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AluLink } from '@/core/aluLink';
+import { hasCircuit, type AluLink } from '@/core/aluLink';
 import { momentOf } from './cpuMoment';
 
 /** A record is its own text here; one starting with `add` has a circuit. */
@@ -15,7 +15,14 @@ const link = (record: string): AluLink =>
     : { unavailable: 'no circuit' };
 
 const moment = (history: string[], future: string[] = []) =>
-  momentOf({ cpu: '8086', history, future, format: (record) => record, link });
+  momentOf({
+    cpu: '8086',
+    history,
+    future,
+    format: (record) => record,
+    link,
+    shows: hasCircuit
+  });
 
 describe('momentOf', () => {
   it('has no instruction before anything has run', () => {

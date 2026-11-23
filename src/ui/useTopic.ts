@@ -16,5 +16,11 @@ export const useTopic = createGlobalState(() => {
     topic.value = 'logic';
   }
 
-  return { topic, showCircuit };
+  /** Opens the last instruction of the CPU on show as arithmetic on numbers. */
+  function showNumbers(): void {
+    analytics.track({ name: 'numbers-opened', architecture: usePreferences().architecture.value });
+    topic.value = 'numbers';
+  }
+
+  return { topic, showCircuit, showNumbers };
 });

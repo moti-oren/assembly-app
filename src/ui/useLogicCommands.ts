@@ -14,7 +14,7 @@ export interface LogicPageActions {
 /** Everything the command palette offers in the logic topic, labelled for the current state. */
 export function useLogicCommands(
   lens: LogicLens,
-  moment: () => CpuMoment,
+  moment: () => CpuMoment<unknown>,
   page: LogicPageActions
 ): ComputedRef<PaletteCommand[]> {
   const app = useAppCommands();
