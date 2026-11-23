@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { rv32AluLink } from '@/core/rv32AluLink';
 import { rv32NumberLink } from '@/core/rv32NumberLink';
+import { rv32RegisterLink } from '@/core/rv32RegisterLink';
 import { computed } from 'vue';
 import { assemble, encode } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
@@ -81,6 +82,7 @@ const pipeline = useRv32Pipeline();
 const {
   panels,
   commands,
+  registerLink,
   columns,
   paletteOpen,
   examplesOpen,
@@ -93,6 +95,7 @@ const {
 } = useWorkbench(cpu, {
   aluLink: rv32AluLink,
   numberLink: rv32NumberLink,
+  registerLink: rv32RegisterLink,
   usesDevices: rv32UsesDevices,
   soundOf: () =>
     rv32Sounds(history.value, state, program.value, {
@@ -250,6 +253,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :previous="lastRecord?.before.registers ?? null"
           :record="lastRecord"
           :after="lastAfter"
+          :stored="registerLink"
           :tick="history.length"
         />
       </template>

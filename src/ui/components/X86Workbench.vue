@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { x86AluLink } from '@/core/x86AluLink';
 import { x86NumberLink } from '@/core/x86NumberLink';
+import { x86RegisterLink } from '@/core/x86RegisterLink';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { assemble, encode } from '@/core/x86/encode';
 import type { ExecutionRecord } from '@/core/x86/execute';
@@ -78,6 +79,7 @@ const { registerBits } = usePreferences();
 const {
   panels,
   commands,
+  registerLink,
   columns,
   paletteOpen,
   examplesOpen,
@@ -90,6 +92,7 @@ const {
 } = useWorkbench(cpu, {
   aluLink: x86AluLink,
   numberLink: x86NumberLink,
+  registerLink: x86RegisterLink,
   usesDevices: x86UsesDevices,
   commands: () => [
     {
@@ -228,6 +231,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :previous="lastRecord?.before.registers ?? null"
           :record="lastRecord"
           :after="lastAfter"
+          :stored="registerLink"
           :tick="history.length"
         />
       </template>

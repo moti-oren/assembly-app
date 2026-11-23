@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { mos6502AluLink } from '@/core/mos6502AluLink';
 import { mos6502NumberLink } from '@/core/mos6502NumberLink';
+import { mos6502RegisterLink } from '@/core/mos6502RegisterLink';
 import { computed } from 'vue';
 import { assemble, encode } from '@/core/mos6502/encode';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
@@ -76,6 +77,7 @@ const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
 const {
   panels,
   commands,
+  registerLink,
   columns,
   paletteOpen,
   examplesOpen,
@@ -88,6 +90,7 @@ const {
 } = useWorkbench(cpu, {
   aluLink: mos6502AluLink,
   numberLink: mos6502NumberLink,
+  registerLink: mos6502RegisterLink,
   usesDevices: mos6502UsesDevices,
   soundOf: (record) => mos6502Sounds(record, state),
   page: useWorkbenchPage(() => lastRecord.value?.access != null)
@@ -228,6 +231,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
           :previous="lastRecord?.before.registers ?? null"
           :record="lastRecord"
           :after="lastAfter"
+          :stored="registerLink"
           :tick="history.length"
         />
       </template>
