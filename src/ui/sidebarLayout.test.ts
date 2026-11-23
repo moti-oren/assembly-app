@@ -15,7 +15,13 @@ describe('readLayout', () => {
       JSON.stringify({ collapsed: ['history'], sizes: { builder: 200, program: 400 } })
     );
     expect(layout.collapsed).toEqual(['history']);
-    expect(layout.sizes).toEqual({ builder: 200, program: 400, history: 240, encoding: 240 });
+    expect(layout.sizes).toEqual({
+      challenge: 380,
+      builder: 200,
+      program: 400,
+      history: 240,
+      encoding: 240
+    });
   });
 
   it('drops unknown panels, repeats and sizes that are not positive numbers', () => {
@@ -26,7 +32,13 @@ describe('readLayout', () => {
       })
     );
     expect(layout.collapsed).toEqual(['program']);
-    expect(layout.sizes).toEqual({ builder: 320, program: 360, history: 240, encoding: 120 });
+    expect(layout.sizes).toEqual({
+      challenge: 380,
+      builder: 320,
+      program: 360,
+      history: 240,
+      encoding: 120
+    });
   });
 
   it('falls back to the defaults for anything that is not a layout', () => {

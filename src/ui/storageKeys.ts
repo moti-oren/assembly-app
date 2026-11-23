@@ -25,6 +25,9 @@ export const STORAGE_KEYS = {
   predictStep: '8086-predict-step',
   predictBuilder: '8086-predict-builder',
   predictRun: '8086-predict-run',
+  /** The challenge each CPU is working on, and the fewest lines each solved one took. */
+  challenge: '8086-challenge',
+  challengesSolved: '8086-challenges-solved',
   /** One program per architecture; the architecture's id is added to it (see programStorage). */
   program: '8086-program'
 } as const;

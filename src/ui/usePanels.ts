@@ -1,7 +1,8 @@
-import { ref, watch, type Ref } from 'vue';
+import { computed, ref, watch, type Ref } from 'vue';
 import { createGlobalState, useLocalStorage } from '@vueuse/core';
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import { STORAGE_KEYS } from './storageKeys';
+import { useChallenges } from './useChallenges';
 import type { CpuControls } from './useCpu';
 import { usePreferences } from './usePreferences';
 import { useSidebarLayout } from './useSidebarLayout';
@@ -15,6 +16,8 @@ export interface Panels {
   devicesShown: Ref<boolean>;
   /** The stack as a list of its values, apart from the memory it lives in. */
   stackShown: Ref<boolean>;
+  /** The challenge the program is for: on show while there is one, and closing it leaves it. */
+  challengeShown: Ref<boolean>;
   /** A program line whose bytes were clicked; it stays on show until the program moves on. */
   inspectedLine: Ref<number | null>;
   inspect: (line: number) => void;
@@ -51,6 +54,16 @@ export function usePanels<Instruction, Record extends ExecutionRecord>(
   const { history, program, programSource, lastRecord } = cpu;
   const { historyShown, bytesShown, devicesShown, stackShown, devicesOpenedByProgram } = useShown();
   const inspectedLine = ref<number | null>(null);
+  const challenges = useChallenges();
+  const challengeShown = computed({
+    get: () => {
+      const id = challenges.active.value[cpu.architecture.id];
+      return cpu.architecture.challenges.some((challenge) => challenge.id === id);
+    },
+    set: (shown) => {
+      if (!shown) challenges.leave(cpu.architecture.id);
+    }
+  });
   const sidebar = useSidebarLayout();
   const { autoOpenDevices } = usePreferences();
 
@@ -81,5 +94,13 @@ export function usePanels<Instruction, Record extends ExecutionRecord>(
     sidebar.expand('encoding');
   }
 
-  return { historyShown, bytesShown, devicesShown, stackShown, inspectedLine, inspect };
+  return {
+    historyShown,
+    bytesShown,
+    devicesShown,
+    stackShown,
+    challengeShown,
+    inspectedLine,
+    inspect
+  };
 }

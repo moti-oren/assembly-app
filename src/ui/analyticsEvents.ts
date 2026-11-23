@@ -26,5 +26,8 @@ export type AnalyticsEvent =
   /** A program arrived through a link and was opened. */
   | { name: 'link-opened'; architecture: ArchitectureId }
   | { name: 'cpu-error'; architecture: string }
+  /** A challenge was started, or its program first met every goal; only its id is sent. */
+  | { name: 'challenge-started'; architecture: string; challenge: string }
+  | { name: 'challenge-solved'; architecture: string; challenge: string }
   | { name: 'prediction-answered'; architecture: string; result: 'right' | 'wrong' }
   | { name: 'feedback-sent'; kind: string };

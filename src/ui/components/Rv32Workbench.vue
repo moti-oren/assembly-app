@@ -22,6 +22,8 @@ import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import { usePrediction } from '@/ui/usePrediction';
 import { useProgramCode } from '@/ui/useProgramCode';
+import { useChallenge } from '@/ui/useChallenge';
+import { useChallenges } from '@/ui/useChallenges';
 import { useStack } from '@/ui/useStack';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { rv32Stack } from '@/ui/rv32Stack';
@@ -33,6 +35,7 @@ import FlatMemory from './FlatMemory.vue';
 import HistoryLog from './HistoryLog.vue';
 import InstructionBuilder from './InstructionBuilder.vue';
 import PredictionBar from './PredictionBar.vue';
+import ChallengePanel from './ChallengePanel.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import Rv32Alu from './Rv32Alu.vue';
 import Rv32ChangeStrip from './Rv32ChangeStrip.vue';
@@ -125,6 +128,8 @@ const {
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, rv32Stack);
+const challenge = useChallenge(cpu);
+const { open: challengesOpen } = useChallenges();
 const { shown: pipelineShown } = pipeline;
 
 const memoryPlaces = rv32MemoryPlaces(state);
@@ -183,6 +188,17 @@ followBuilder(draft);
       @move="move"
       @close="close"
     >
+      <template #challenge>
+        <ChallengePanel
+          v-if="challenge.challenge.value && challenge.result.value"
+          v-model:hint-shown="challenge.hintShown.value"
+          :challenge="challenge.challenge.value"
+          :result="challenge.result.value"
+          :given="challenge.given.value"
+          @restart="challenge.restart"
+          @list="challengesOpen = true"
+        />
+      </template>
       <template #builder>
         <InstructionBuilder
           ref="builder"

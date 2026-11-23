@@ -21,6 +21,8 @@ import { usePrediction } from '@/ui/usePrediction';
 import { usePreferences } from '@/ui/usePreferences';
 import { x86UsesDevices } from '@/ui/usesDevices';
 import { useProgramCode } from '@/ui/useProgramCode';
+import { useChallenge } from '@/ui/useChallenge';
+import { useChallenges } from '@/ui/useChallenges';
 import { useStack } from '@/ui/useStack';
 import { useWorkbench } from '@/ui/useWorkbench';
 import { x86Stack } from '@/ui/x86Stack';
@@ -39,6 +41,7 @@ import InstructionBuilder from './InstructionBuilder.vue';
 import LastOperation from './LastOperation.vue';
 import MemoryView from './MemoryView.vue';
 import PredictionBar from './PredictionBar.vue';
+import ChallengePanel from './ChallengePanel.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import RegistersPanel from './RegistersPanel.vue';
 import SidebarColumn from './SidebarColumn.vue';
@@ -128,6 +131,8 @@ const {
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, x86Stack);
+const challenge = useChallenge(cpu);
+const { open: challengesOpen } = useChallenges();
 
 const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, inspectedLine, {
   format: formatInstruction,
@@ -175,6 +180,17 @@ followBuilder(draft);
       @move="move"
       @close="close"
     >
+      <template #challenge>
+        <ChallengePanel
+          v-if="challenge.challenge.value && challenge.result.value"
+          v-model:hint-shown="challenge.hintShown.value"
+          :challenge="challenge.challenge.value"
+          :result="challenge.result.value"
+          :given="challenge.given.value"
+          @restart="challenge.restart"
+          @list="challengesOpen = true"
+        />
+      </template>
       <template #builder>
         <InstructionBuilder
           ref="builder"

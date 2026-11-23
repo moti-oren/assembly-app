@@ -231,6 +231,7 @@ export interface CpuControls<
     id: string;
     name: string;
     examples: readonly { name: string; description: string }[];
+    challenges: readonly { id: string }[];
   };
   program: Readonly<Ref<readonly Instruction[]>>;
   /** The example the program was loaded from, until it is edited. */
