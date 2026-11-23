@@ -47,7 +47,7 @@ const scales = computed(() => {
         :key="fill.label"
         variant="ghost"
         size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-10"
+        class="h-7 px-2.5 text-xs pointer-coarse:h-11"
         :aria-pressed="request.signed === fill.signed"
         @click="lens.change({ ...request, signed: fill.signed })"
       >
@@ -60,7 +60,7 @@ const scales = computed(() => {
         :key="bits"
         variant="ghost"
         size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-10"
+        class="h-7 px-2.5 text-xs pointer-coarse:h-11"
         :disabled="bits >= request.to"
         :aria-pressed="request.from === bits"
         @click="lens.change({ ...request, from: bits, value: request.value % 2 ** bits })"

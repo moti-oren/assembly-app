@@ -42,7 +42,7 @@ const LINKS = {
     v-if="unavailable === null"
     variant="outline"
     size="sm"
-    class="h-7 gap-1.5 px-2 font-sans text-xs pointer-coarse:h-10"
+    class="h-7 gap-1.5 px-2 font-sans text-xs pointer-coarse:h-11"
     :aria-label="`${LINKS[topic].label}: ${LINKS[topic].title}`"
     @click="LINKS[topic].open()"
   >
@@ -54,7 +54,7 @@ const LINKS = {
       <Button
         variant="outline"
         size="sm"
-        class="h-7 cursor-help gap-1.5 border-dashed px-2 font-sans text-xs text-muted-foreground pointer-coarse:h-10"
+        class="h-7 cursor-help gap-1.5 border-dashed px-2 font-sans text-xs text-muted-foreground pointer-coarse:h-11"
         aria-disabled="true"
         :aria-label="`${LINKS[topic].label}. ${LINKS[topic].none}: ${unavailable}`"
         @click="toggle"
