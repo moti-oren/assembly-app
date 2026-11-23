@@ -13,6 +13,8 @@ export interface Panels {
   bytesShown: Ref<boolean>;
   /** The LEDs, switches, digits and terminal. They open by themselves when a program uses a port. */
   devicesShown: Ref<boolean>;
+  /** The stack as a list of its values, apart from the memory it lives in. */
+  stackShown: Ref<boolean>;
   /** A program line whose bytes were clicked; it stays on show until the program moves on. */
   inspectedLine: Ref<number | null>;
   inspect: (line: number) => void;
@@ -32,16 +34,22 @@ const useShown = createGlobalState(() => ({
   historyShown: useLocalStorage(STORAGE_KEYS.historyShown, false),
   bytesShown: useLocalStorage(STORAGE_KEYS.bytesShown, false),
   devicesShown: useLocalStorage(STORAGE_KEYS.devicesShown, false),
+  stackShown: useLocalStorage(STORAGE_KEYS.stackShown, false),
   /** True while the devices are open because a program opened them, not the user. */
   devicesOpenedByProgram: ref(false)
 }));
+
+/** Whether the stack panel is on show, for the transport bar's switch, which has no CPU. */
+export function useStackShown(): Ref<boolean> {
+  return useShown().stackShown;
+}
 
 export function usePanels<Instruction, Record extends ExecutionRecord>(
   cpu: CpuControls<Instruction, Record>,
   usesDevices: UsesDevices<Instruction, Record>
 ): Panels {
   const { history, program, programSource, lastRecord } = cpu;
-  const { historyShown, bytesShown, devicesShown, devicesOpenedByProgram } = useShown();
+  const { historyShown, bytesShown, devicesShown, stackShown, devicesOpenedByProgram } = useShown();
   const inspectedLine = ref<number | null>(null);
   const sidebar = useSidebarLayout();
   const { autoOpenDevices } = usePreferences();
@@ -73,5 +81,5 @@ export function usePanels<Instruction, Record extends ExecutionRecord>(
     sidebar.expand('encoding');
   }
 
-  return { historyShown, bytesShown, devicesShown, inspectedLine, inspect };
+  return { historyShown, bytesShown, devicesShown, stackShown, inspectedLine, inspect };
 }

@@ -6,8 +6,8 @@ import type { PhoneView } from './layoutMode';
  * different panels.
  */
 export const STAGE = {
-  diagram: ['cycle', 'cpu', 'devices', 'memory'],
-  table: ['cycle', 'registers', 'operation', 'flags', 'devices', 'memory']
+  diagram: ['cycle', 'cpu', 'stack', 'devices', 'memory'],
+  table: ['cycle', 'registers', 'operation', 'flags', 'stack', 'devices', 'memory']
 } as const;
 
 export type StageKey = (typeof STAGE)[keyof typeof STAGE][number];
@@ -19,6 +19,7 @@ const PHONE_VIEW: Record<StageKey, PhoneView> = {
   registers: 'cpu',
   operation: 'cpu',
   flags: 'cpu',
+  stack: 'memory',
   devices: 'memory',
   memory: 'memory'
 };

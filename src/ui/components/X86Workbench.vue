@@ -21,7 +21,9 @@ import { usePrediction } from '@/ui/usePrediction';
 import { usePreferences } from '@/ui/usePreferences';
 import { x86UsesDevices } from '@/ui/usesDevices';
 import { useProgramCode } from '@/ui/useProgramCode';
+import { useStack } from '@/ui/useStack';
 import { useWorkbench } from '@/ui/useWorkbench';
+import { x86Stack } from '@/ui/x86Stack';
 import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
 import { x86Predictor } from '@/ui/x86Prediction';
 import { X86_GRAMMAR } from '@/ui/x86Grammar';
@@ -40,6 +42,7 @@ import PredictionBar from './PredictionBar.vue';
 import ProgramPanel from './ProgramPanel.vue';
 import RegistersPanel from './RegistersPanel.vue';
 import SidebarColumn from './SidebarColumn.vue';
+import StackPanel from './StackPanel.vue';
 import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
 import WorkbenchPanes from './WorkbenchPanes.vue';
@@ -124,6 +127,7 @@ const {
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
+const stack = useStack(cpu, x86Stack);
 
 const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, inspectedLine, {
   format: formatInstruction,
@@ -264,6 +268,9 @@ followBuilder(draft);
           :record="lastRecord"
           :tick="history.length"
         />
+      </template>
+      <template #stack>
+        <StackPanel :view="stack" @memory="page.showStackTop" />
       </template>
       <template #devices>
         <DevicesPanel :state="state" :access="X86_DEVICE_ACCESS" @input="cpu.setInput" />

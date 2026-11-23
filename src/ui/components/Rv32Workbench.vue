@@ -22,7 +22,9 @@ import { rv32UsesDevices } from '@/ui/usesDevices';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import { usePrediction } from '@/ui/usePrediction';
 import { useProgramCode } from '@/ui/useProgramCode';
+import { useStack } from '@/ui/useStack';
 import { useWorkbench } from '@/ui/useWorkbench';
+import { rv32Stack } from '@/ui/rv32Stack';
 import { useWorkbenchPage } from '@/ui/useWorkbenchPage';
 import { rv32Predictor } from '@/ui/rv32Prediction';
 import AppChrome from './AppChrome.vue';
@@ -41,6 +43,7 @@ import Rv32Encoding from './Rv32Encoding.vue';
 import Rv32Pipeline from './Rv32Pipeline.vue';
 import Rv32Registers from './Rv32Registers.vue';
 import SidebarColumn from './SidebarColumn.vue';
+import StackPanel from './StackPanel.vue';
 import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
 import WorkbenchPanes from './WorkbenchPanes.vue';
@@ -121,6 +124,7 @@ const {
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
+const stack = useStack(cpu, rv32Stack);
 const { shown: pipelineShown } = pipeline;
 
 const memoryPlaces = rv32MemoryPlaces(state);
@@ -279,6 +283,9 @@ followBuilder(draft);
       </template>
       <template #flags>
         <Rv32Compare :state="state" :program="program" :record="lastRecord" />
+      </template>
+      <template #stack>
+        <StackPanel :view="stack" @memory="page.showStackTop" />
       </template>
       <template #devices>
         <DevicesPanel :state="state" :access="RV32_DEVICE_ACCESS" @input="cpu.setInput" />

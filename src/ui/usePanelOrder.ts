@@ -20,6 +20,7 @@ export const PANEL_LABELS: Record<PanelKey, string> = {
   registers: 'Registers',
   operation: 'Last operation',
   flags: 'Flags',
+  stack: 'Stack',
   devices: 'I/O devices',
   memory: 'Memory'
 };
@@ -81,7 +82,8 @@ export function usePanelColumns(panels: Panels) {
   const shown: Partial<Record<PanelKey, Ref<boolean>>> = {
     history: panels.historyShown,
     encoding: panels.bytesShown,
-    devices: panels.devicesShown
+    devices: panels.devicesShown,
+    stack: panels.stackShown
   };
   const closable = SIDEBAR_PANELS.filter((key) => shown[key] !== undefined);
 
