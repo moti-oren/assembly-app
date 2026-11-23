@@ -19,7 +19,13 @@ import { useWorkbenchView } from './useWorkbenchView';
 /** What the page asks of the panels a workbench shows; they own the elements these act on. */
 export type WorkbenchPage = Omit<
   PageActions,
-  'askClearProgram' | 'askReset' | 'runAgain' | 'hasCircuit' | 'hasNumbers' | 'hasRegisters'
+  | 'askClearProgram'
+  | 'askReset'
+  | 'runAgain'
+  | 'hasCircuit'
+  | 'hasNumbers'
+  | 'hasRegisters'
+  | 'hasControl'
 > & {
   /** Folds the builder's choices away, so the program below it stays in view. */
   foldBuilder: () => void;
@@ -36,6 +42,11 @@ export interface WorkbenchHooks<Instruction, Record extends ExecutionRecord> {
   numberLink: (record: Record) => NumberLink;
   /** The registers an executed instruction wrote, for the link into the storage topic. */
   registerLink: (record: Record, after: Record['before'] | null) => RegisterLink;
+  /**
+   * Why the control topic has nothing to show for an executed instruction, or null when it has.
+   * Asked on every step, so it must not work the control unit out.
+   */
+  controlUnavailable: (record: Record) => string | null;
   /** Palette commands for the architecture's own panels, labelled for the current state. */
   commands?: () => PaletteCommand[];
 }
@@ -78,6 +89,12 @@ export function useWorkbench<
     return record && hooks.registerLink(record, cpu.lastAfter.value);
   });
 
+  /** Why the control topic has nothing to show for it: null when it has, undefined before a run. */
+  const controlUnavailable = computed(() => {
+    const record = cpu.lastRecord.value;
+    return record ? hooks.controlUnavailable(record) : undefined;
+  });
+
   const commands = useCommands(
     cpu,
     panels,
@@ -86,6 +103,7 @@ export function useWorkbench<
       hasCircuit: () => aluLink.value !== null && hasCircuit(aluLink.value),
       hasNumbers: () => numberLink.value !== null && hasNumbers(numberLink.value),
       hasRegisters: () => registerLink.value !== null && hasRegisters(registerLink.value),
+      hasControl: () => controlUnavailable.value === null,
       // A builder out of sight or collapsed is brought back first; its input can only take
       // focus once it is drawn.
       focusBuilder: () => {
@@ -135,6 +153,7 @@ export function useWorkbench<
     commands,
     aluLink,
     registerLink,
+    controlUnavailable,
     columns,
     paletteOpen,
     examplesOpen,

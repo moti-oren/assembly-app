@@ -104,6 +104,16 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         :class="{ 'max-sm:ml-0 max-sm:flex-1': $slots.actions }"
         >{{ instruction ?? 'idle' }}</span
       >
+      <!--
+        The way into another topic, where there is room for it beside the instruction: the header
+        has the topics at every width.
+      -->
+      <span
+        v-if="$slots.link"
+        class="flex-none"
+        :class="$slots.actions ? 'max-xl:hidden' : 'max-sm:hidden'"
+        ><slot name="link"
+      /></span>
       <!-- Controls an architecture adds to its own cycle card. -->
       <slot name="actions" />
     </div>

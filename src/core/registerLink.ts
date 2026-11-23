@@ -50,8 +50,8 @@ export const NOT_KEPT = 'What this instruction left in the registers was not kep
 /**
  * Said of an instruction that wrote none of the registers shown. The instruction pointer is a
  * register as well, but it is loaded on every instruction, by the part of the CPU that fetches
- * the next one; that, and the flags, are left to topics not made yet. `flags` names the flags
- * register when the instruction changed it.
+ * the next one, which the control topic shows for RISC-V alone; elsewhere that, and the flags,
+ * are not shown yet. `flags` names the flags register when the instruction changed it.
  */
 export function nothingWritten(name: string, pointer: string, flags: string | null): string {
   return flags

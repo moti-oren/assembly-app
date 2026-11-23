@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { x86AluLink } from '@/core/x86AluLink';
 import { x86NumberLink } from '@/core/x86NumberLink';
+import { x86ControlLink } from '@/core/x86ControlLink';
 import { x86RegisterLink } from '@/core/x86RegisterLink';
 import { formatInstruction, type Instruction } from '@/core/x86/instructions';
 import { assemble, encode } from '@/core/x86/encode';
@@ -80,6 +81,7 @@ const {
   panels,
   commands,
   registerLink,
+  controlUnavailable,
   columns,
   paletteOpen,
   examplesOpen,
@@ -93,6 +95,7 @@ const {
   aluLink: x86AluLink,
   numberLink: x86NumberLink,
   registerLink: x86RegisterLink,
+  controlUnavailable: () => x86ControlLink().unavailable,
   usesDevices: x86UsesDevices,
   commands: () => [
     {
@@ -221,7 +224,12 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
       <template #cycle>
         <Card size="sm">
           <CardContent>
-            <CpuCycle :state="state" :record="lastRecord" :pending="pending" />
+            <CpuCycle
+              :state="state"
+              :record="lastRecord"
+              :pending="pending"
+              :control-unavailable="controlUnavailable"
+            />
           </CardContent>
         </Card>
       </template>

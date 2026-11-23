@@ -7,6 +7,7 @@ import type { CpuState } from '@/core/x86/state';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import { describeDecode, describeExecute, describeFetch } from '@/ui/x86Explain';
 import CycleStrip from './CycleStrip.vue';
+import TopicLinkButton from './TopicLinkButton.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -14,6 +15,8 @@ const props = defineProps<{
   record: ExecutionRecord | null;
   /** The program line being stepped by phase, if any. */
   pending: PendingInstruction<Instruction> | null;
+  /** Why the control topic has nothing to show for the last instruction: null when it has. */
+  controlUnavailable: string | null | undefined;
 }>();
 
 const active = computed<CyclePhase | null>(
@@ -39,5 +42,9 @@ const INTRO =
     :instruction="instruction ? formatInstruction(instruction) : null"
     :detail="detail"
     :intro="INTRO"
-  />
+  >
+    <template v-if="controlUnavailable !== undefined" #link>
+      <TopicLinkButton topic="control" :unavailable="controlUnavailable" />
+    </template>
+  </CycleStrip>
 </template>

@@ -83,6 +83,7 @@ const {
   panels,
   commands,
   registerLink,
+  controlUnavailable,
   columns,
   paletteOpen,
   examplesOpen,
@@ -96,6 +97,8 @@ const {
   aluLink: rv32AluLink,
   numberLink: rv32NumberLink,
   registerLink: rv32RegisterLink,
+  // Every RISC-V instruction has a control unit to show.
+  controlUnavailable: () => null,
   usesDevices: rv32UsesDevices,
   soundOf: () =>
     rv32Sounds(history.value, state, program.value, {
@@ -236,6 +239,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
               :state="state"
               :pending="pending"
               :running="running"
+              :control-unavailable="controlUnavailable"
             />
             <Rv32Cycle
               v-else
@@ -243,6 +247,7 @@ const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, in
               :program="program"
               :record="lastRecord"
               :pending="pending"
+              :control-unavailable="controlUnavailable"
             />
           </CardContent>
         </Card>

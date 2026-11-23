@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onActivated, onMounted, ref, useTemplateRef } from 'vue';
-import { Binary, MemoryStick } from '@lucide/vue';
+import { Binary, MemoryStick, Workflow } from '@lucide/vue';
 import type { AluLink } from '@/core/aluLink';
 import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
@@ -156,6 +156,15 @@ const commands = useLogicCommands(lens, () => props.moment, {
           >
             <MemoryStick />
             How the result is kept
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            class="pointer-coarse:h-11"
+            @click="topic = 'control'"
+          >
+            <Workflow />
+            What picks the operation
           </Button>
         </div>
       </div>

@@ -17,6 +17,7 @@ import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
 import InfoTip from './InfoTip.vue';
 import Rv32CycleToggle from './Rv32CycleToggle.vue';
+import TopicLinkButton from './TopicLinkButton.vue';
 
 const props = defineProps<{
   /** The instructions that ran, oldest first. */
@@ -27,6 +28,8 @@ const props = defineProps<{
   pending: PendingInstruction<Instruction> | null;
   /** True while the program runs on a timer: the explanation is not announced line by line. */
   running: boolean;
+  /** Why the control topic has nothing to show for the last instruction: null when it has. */
+  controlUnavailable: string | null | undefined;
 }>();
 
 /** The rows on show: enough to see a few instructions overlap, few enough to fit the card. */
@@ -105,7 +108,12 @@ const detail = computed(() => {
           Hand a result straight to the next instruction, before it is written back
         </span>
       </button>
-      <Rv32CycleToggle class="ml-auto" />
+      <span class="ml-auto flex items-center gap-3">
+        <span v-if="controlUnavailable !== undefined" class="max-sm:hidden">
+          <TopicLinkButton topic="control" :unavailable="controlUnavailable" />
+        </span>
+        <Rv32CycleToggle />
+      </span>
     </div>
 
     <p
