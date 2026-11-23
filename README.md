@@ -345,12 +345,14 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   spare, and others. **Start** replaces that CPU's program with the task's given lines, as an
   example does.
 - A **Challenge** panel opens at the top of the sidebar with the task, what the program must do and
-  what it must keep to (a number of lines, instructions it may not use). Each is ticked as soon as
+  what it must keep to (a number of lines, instructions it may not use). The given lines are locked, with a lock beside
+  each in the program: they are not edited, moved or deleted, new lines go under them, and
+  clearing the program keeps them. Each is ticked as soon as
   the program meets it: the program is run again on a CPU of its own after every edit, so the CPU
   on show is never touched and you can still step through your attempt. A task with given lines is
   run with other values in them too, so writing the answer down does not pass.
 - Under the list a line says where the program stands, and once it passes, how many lines it took
-  against par. **Show a hint** gives a nudge, **Start over** brings the given lines back, and
+  against par. **Show a hint** gives a nudge, **Start over** brings the task back as it began, and
   closing the panel (or loading an example) leaves the challenge. Solved challenges are ticked in
   the list with the fewest lines they took, and remembered between visits.
 
@@ -864,11 +866,13 @@ npm run verify:6502 # check the 6502 core against py65
   כפל, להחליף שני רגיסטרים בלי מקום נוסף, ועוד. **Start** מחליף את התוכנית של אותו מעבד בשורות
   הנתונות של המשימה, כמו דוגמה.
 - חלונית **Challenge** נפתחת בראש סרגל הצד עם המשימה, מה שהתוכנית צריכה לעשות ובמה היא צריכה
-  לעמוד (מספר שורות, הוראות שאסור להשתמש בהן). כל תנאי מסומן ברגע שהתוכנית עומדת בו: התוכנית
+  לעמוד (מספר שורות, הוראות שאסור להשתמש בהן). השורות הנתונות נעולות, עם מנעול ליד כל אחת
+  בתוכנית: אי אפשר לערוך, להזיז או למחוק אותן, שורות חדשות נכנסות מתחתיהן, וניקוי התוכנית
+  משאיר אותן. כל תנאי מסומן ברגע שהתוכנית עומדת בו: התוכנית
   מורצת מחדש על מעבד משלה אחרי כל עריכה, כך שהמעבד שעל המסך לא משתנה ואפשר להמשיך לצעוד בניסיון
   שלכם. משימה עם שורות נתונות מורצת גם עם ערכים אחרים בהן, כך שכתיבת התשובה ישירות לא עוברת.
 - מתחת לרשימה שורה אומרת איפה התוכנית עומדת, וכשהיא עוברת, כמה שורות היא לקחה ביחס ל-par.
-  **Show a hint** נותן רמז, **Start over** מחזיר את השורות הנתונות, וסגירת החלונית (או טעינת
+  **Show a hint** נותן רמז, **Start over** מחזיר את המשימה למצב ההתחלתי, וסגירת החלונית (או טעינת
   דוגמה) עוזבת את האתגר. אתגרים שנפתרו מסומנים ברשימה עם מספר השורות הקטן ביותר שלקחו, ונשמרים
   בין ביקורים.
 
