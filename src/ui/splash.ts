@@ -27,11 +27,14 @@ export function isLandable(box: Box): boolean {
   return box.width > 0 && box.height > 0;
 }
 
-/** How long until the chip is complete, counted from when its lid began to appear. */
-function untilReady(splash: HTMLElement): number {
-  const started = splash.querySelector('.splash-lid')?.getAnimations()[0]?.startTime;
-  const now = document.timeline.currentTime;
-  if (typeof started !== 'number' || typeof now !== 'number') return 0;
+/**
+ * How long until the chip is complete, counted from when its lid began to appear. An animation
+ * that has not started yet has no start time: it starts with the next frame, so the whole build
+ * is still to come. That is the case whenever the style sheet arrives with the app itself, as it
+ * does from the dev server.
+ */
+export function untilReady(started: CSSNumberish | null, now: CSSNumberish | null): number {
+  if (typeof started !== 'number' || typeof now !== 'number') return CHIP_READY_MS;
   return Math.max(0, CHIP_READY_MS - (now - started));
 }
 
@@ -118,7 +121,7 @@ export function dismissSplash(): void {
     splash?.remove();
     return;
   }
-  setTimeout(() => {
+  const leave = (): void => {
     const target = document.querySelector<HTMLElement>('[data-splash-target]');
     const landable = target !== null && isLandable(target.getBoundingClientRect());
     const playing = landable ? morph(splash, chip, target) : fade(splash, chip);
@@ -128,5 +131,12 @@ export function dismissSplash(): void {
     };
     void Promise.allSettled(playing.map((animation) => animation.finished)).then(finish);
     setTimeout(finish, STUCK_MS);
-  }, untilReady(splash));
+  };
+  // Counted once the lid's animation has really started, which may be a long frame away. A hidden
+  // tab starts it when shown; a cancelled one (its ready rejected) still lets the splash leave.
+  const lid = splash.querySelector('.splash-lid')?.getAnimations()[0];
+  const schedule = (): void => {
+    setTimeout(leave, untilReady(lid?.startTime ?? null, document.timeline.currentTime));
+  };
+  void (lid?.ready ?? Promise.resolve()).then(schedule, schedule);
 }
