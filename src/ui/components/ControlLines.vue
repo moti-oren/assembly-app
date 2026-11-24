@@ -73,7 +73,7 @@ async function repairAll(): Promise<void> {
         v-if="summary"
         variant="outline"
         size="sm"
-        class="max-md:w-full md:ml-auto pointer-coarse:h-11"
+        class="w-full @2xl:ml-auto @2xl:w-auto pointer-coarse:h-11"
         @click="repairAll"
       >
         <Wrench />

@@ -18,5 +18,9 @@ export const useTopicSections = createGlobalState(() => {
       : [...collapsed.value, key];
   }
 
-  return { isCollapsed, toggle };
+  function expand(key: string): void {
+    if (isCollapsed(key)) toggle(key);
+  }
+
+  return { isCollapsed, toggle, expand };
 });

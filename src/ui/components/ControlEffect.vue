@@ -35,7 +35,7 @@ const conflicts = computed(() => outcome.value?.conflicts.map(conflictText) ?? [
       <div
         v-for="row in rows"
         :key="row.id"
-        class="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-3 border-b py-1.5 last:border-b-0 max-sm:grid-cols-1"
+        class="grid grid-cols-1 gap-x-3 border-b py-1.5 last:border-b-0 @md:grid-cols-[7.5rem_minmax(0,1fr)]"
       >
         <dt class="text-sm text-muted-foreground">{{ row.label }}</dt>
         <dd class="min-w-0 font-mono text-code break-words">
