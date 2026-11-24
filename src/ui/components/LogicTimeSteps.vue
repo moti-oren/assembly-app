@@ -7,8 +7,11 @@ import type { LogicLens } from '@/ui/useLogicLens';
 
 const props = defineProps<{
   lens: LogicLens;
-  /** On two rows, where one has no room for them all: a phone. */
-  stacked?: boolean;
+  /**
+   * On a phone's one row: the position as two numbers, and the longest carry left to the bar's
+   * More button.
+   */
+  compact?: boolean;
 }>();
 
 const time = computed(() => props.lens.time);
@@ -29,7 +32,7 @@ const STEP_CLASS =
 
 <!-- The adder's gate delays, to step or play through while time is slowed down. -->
 <template>
-  <div class="flex min-w-0 flex-1 items-center gap-x-3 gap-y-1" :class="{ 'flex-wrap': stacked }">
+  <div class="flex min-w-0 flex-1 items-center gap-x-3">
     <div class="flex items-center gap-1" role="group" aria-label="Gate delays">
       <Button
         variant="ghost"
@@ -75,7 +78,6 @@ const STEP_CLASS =
     <input
       type="range"
       class="timeline h-4 w-16 min-w-0 flex-1 basis-16 cursor-pointer sm:max-w-64 pointer-coarse:h-11"
-      :class="{ 'order-1': stacked }"
       :style="{ '--progress': progress }"
       min="0"
       :max="Math.max(time.last.value, 1)"
@@ -84,18 +86,14 @@ const STEP_CLASS =
       :aria-valuetext="summary.position"
       @input="time.seek(Number(($event.target as HTMLInputElement).value))"
     />
-    <span
-      class="shrink-0 font-mono text-xs whitespace-nowrap tabular-nums"
-      :class="{ 'flex-1 text-right': stacked }"
-      aria-hidden="true"
-    >
-      {{ summary.position }}
+    <span class="shrink-0 font-mono text-xs whitespace-nowrap tabular-nums" aria-hidden="true">
+      {{ compact ? `${time.step.value}/${time.last.value}` : summary.position }}
     </span>
     <Button
+      v-if="!compact"
       variant="outline"
       size="sm"
       class="shrink-0 pointer-coarse:h-11"
-      :class="{ 'order-1': stacked }"
       @click="lens.tryLongestCarry()"
     >
       Longest carry

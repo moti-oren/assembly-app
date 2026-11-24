@@ -2,6 +2,7 @@ import { hasCircuit, resultTaps, tap, type AluCircuit, type AluLink } from '@/co
 import type { AluRequest, ShiftRequest, Width } from '@/core/logic/alu';
 import type { Bit } from '@/core/logic/gates';
 import { barrelStages } from '@/core/logic/shifter';
+import type { TopicSectionInfo } from './topicSections';
 
 export const WIDTHS: readonly Width[] = [8, 16, 32];
 
@@ -197,4 +198,19 @@ export function unavailableText(link: AluLink | null): string | null {
   return link && !hasCircuit(link)
     ? `${link.unavailable} The circuit on show is one to try by hand.`
     : null;
+}
+
+/**
+ * The sections of the logic topic's sidebar. A phone shows the sidebar as a view of its own, so
+ * there the switches of the gate picked stay under its truth table, and it has no section.
+ */
+export function logicSections(phone: boolean, followsCpu: boolean): TopicSectionInfo[] {
+  return [
+    { id: 'circuit', label: 'Circuit' },
+    ...(phone ? [] : [{ id: 'gate', label: 'The gate picked' }]),
+    {
+      id: 'flags',
+      label: followsCpu ? 'Where each flag comes from' : 'What the circuit can also tell'
+    }
+  ];
 }
