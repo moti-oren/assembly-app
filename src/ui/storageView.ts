@@ -1,12 +1,6 @@
 import type { Width } from '@/core/logic/alu';
-import type { ClockPhase, RegisterRequest } from '@/core/logic/register';
-import {
-  allBits,
-  hasRegisters,
-  written,
-  type RegisterLink,
-  type RegisterWrite
-} from '@/core/registerLink';
+import { allBits, type ClockPhase, type RegisterRequest } from '@/core/logic/register';
+import { hasRegisters, written, type RegisterLink, type RegisterWrite } from '@/core/registerLink';
 import { hexOf } from './logicView';
 
 /** The memory cells the storage topic builds up, the simplest first. */

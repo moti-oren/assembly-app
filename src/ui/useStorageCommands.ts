@@ -6,11 +6,13 @@ import type { PaletteCommand } from './paletteCommand';
 import { PULSE_WIRE } from './storageTiming';
 import { CELLS, CLOCK_ACTION } from './storageView';
 import { useAppCommands } from './useAppCommands';
+import type { StorageFile } from './useStorageFile';
 import type { StorageLens } from './useStorageLens';
 
 /** Everything the command palette offers in the storage topic, labelled for the current state. */
 export function useStorageCommands(
   lens: StorageLens,
+  file: StorageFile,
   moment: () => CpuMoment<unknown>,
   page: TopicPageActions
 ): ComputedRef<PaletteCommand[]> {
@@ -20,6 +22,7 @@ export function useStorageCommands(
     const phase = lens.phase.value;
     const free = lens.cell.free.value;
     const pulsed = free ? PULSE_WIRE[free] : undefined;
+    const filePhase = file.phase.value;
     return [
       ...momentCommands(moment(), page),
       { group: 'Register', label: CLOCK_ACTION[phase], run: lens.clock },
@@ -61,6 +64,32 @@ export function useStorageCommands(
         label: 'Clear the timing diagram',
         disabled: lens.cell.trace.value.length < 2,
         run: lens.cell.clearTrace
+      },
+      {
+        group: 'Register file',
+        label: `${CLOCK_ACTION[filePhase]} of the register file`,
+        run: file.clock
+      },
+      {
+        group: 'Register file',
+        label: 'Start the register file’s clock cycle over',
+        disabled: filePhase === 'before',
+        run: file.rewind
+      },
+      {
+        group: 'Register file',
+        label: file.request.value.write
+          ? 'Turn the register file’s write line off'
+          : 'Turn the register file’s write line on',
+        run: file.flipWrite
+      },
+      {
+        group: 'Register file',
+        label: file.fromCpu.value
+          ? 'Put back the CPU’s address in the register file'
+          : 'Put back the starting address in the register file',
+        disabled: !file.isEdited.value,
+        run: file.restore
       },
       ...app.value
     ];

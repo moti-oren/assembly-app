@@ -1,5 +1,6 @@
 import type { Width } from './logic/alu';
-import type { RegisterRequest } from './logic/register';
+import { allBits, type RegisterRequest } from './logic/register';
+import type { RegisterFileRequest } from './logic/registerFile';
 
 /** One register an instruction wrote, as the clock cycle of its flip-flops. */
 export interface RegisterWrite {
@@ -10,15 +11,29 @@ export interface RegisterWrite {
   request: RegisterRequest;
 }
 
+/**
+ * The registers of a CPU that picks the one to write by an address, as the instruction found
+ * them: the address and the value it sent, and whether it asked for a write at all.
+ */
+export interface RegisterFileView {
+  request: RegisterFileRequest;
+  /** The CPU's name for each register, by its address. */
+  names: readonly string[];
+}
+
 /** The registers one executed instruction wrote. */
 export interface RegisterView {
   writes: RegisterWrite[];
   note: string | null;
+  /** Left out by a CPU whose registers are not picked by an address. */
+  file?: RegisterFileView;
 }
 
 /** An instruction with no register to show, and why. */
 export interface NoRegisterView {
   unavailable: string;
+  /** There for a write that no register kept, as one to RISC-V's x0. */
+  file?: RegisterFileView;
 }
 
 /** Where an executed instruction leads in the storage topic. */
@@ -26,10 +41,6 @@ export type RegisterLink = RegisterView | NoRegisterView;
 
 export function hasRegisters(link: RegisterLink): link is RegisterView {
   return 'writes' in link;
-}
-
-export function allBits(width: Width): number {
-  return width === 32 ? 0xffffffff : 2 ** width - 1;
 }
 
 /** A register whose bits in `enabled` took the value it has afterwards. */
