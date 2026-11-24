@@ -8,6 +8,8 @@ export const STORAGE_KEYS = {
   reduceMotion: '8086-reduce-motion',
   panelOrder: '8086-panel-order',
   sidebarLayout: '8086-sidebar-layout',
+  /** The collapsed sections of the topics' sidebars. */
+  topicSections: '8086-topic-sections',
   historyShown: '8086-history-shown',
   bytesShown: '8086-bytes-shown',
   devicesShown: '8086-devices-shown',
