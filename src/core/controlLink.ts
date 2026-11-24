@@ -1,4 +1,5 @@
 import { solveDecoder, type DecoderShape, type DecoderSolution } from './logic/decoder';
+import type { Faults } from './logic/fault';
 import { bitOf, type Bit } from './logic/gates';
 import type { PcRequest } from './logic/programCounter';
 
@@ -57,15 +58,38 @@ export interface ControlSolution {
   alu: DecoderSolution;
 }
 
-/** Runs an instruction word through the two decoders, the second reading the first one's wires. */
-export function solveControl({ wires, main, alu }: ControlShape, word: number): ControlSolution {
+/** The faults that break a line of this decoder. */
+function faultsIn({ lines }: DecoderShape, faults: Faults): Faults {
+  return Object.fromEntries(
+    lines.filter(({ id }) => id in faults).map(({ id }) => [id, faults[id]])
+  );
+}
+
+/**
+ * Runs an instruction word through the two decoders, the second reading the first one's wires.
+ * `faults` names the control lines that are broken, each stuck at one value; a line of the first
+ * decoder that the second reads carries its fault there. A linker never passes any.
+ */
+export function solveControl(
+  { wires, main, alu }: ControlShape,
+  word: number,
+  faults: Faults = {}
+): ControlSolution {
+  const known = [...main.lines, ...alu.lines].map((line) => line.id);
+  const unknown = Object.keys(faults).find((name) => !known.includes(name));
+  if (unknown !== undefined) throw new Error(`No control line is called ${unknown}.`);
   const fromWord = (name: string): Bit => bitOf(word, wires[name]);
-  const first = solveDecoder(main, Object.fromEntries(main.inputs.map((n) => [n, fromWord(n)])));
+  const first = solveDecoder(
+    main,
+    Object.fromEntries(main.inputs.map((n) => [n, fromWord(n)])),
+    faultsIn(main, faults)
+  );
   const second = solveDecoder(
     alu,
     Object.fromEntries(
       alu.inputs.map((name) => [name, name in wires ? fromWord(name) : first.signals[name]])
-    )
+    ),
+    faultsIn(alu, faults)
   );
   return { main: first, alu: second };
 }
