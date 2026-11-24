@@ -18,3 +18,12 @@ export function lineMoveOf(
   const to = from + (event.key === 'ArrowUp' ? -1 : 1);
   return to < 0 || to >= length ? null : { from, to };
 }
+
+/**
+ * The line whose controls take the focus once line `index` is removed from a program that now has
+ * `length` lines: the one that took its place, or the line above when it was the last. Null when
+ * no line is left.
+ */
+export function rowAfterRemove(index: number, length: number): number | null {
+  return length === 0 ? null : Math.min(index, length - 1);
+}

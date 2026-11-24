@@ -150,6 +150,12 @@ export function useWorkbench<
     sidebar.expand('builder');
   });
 
+  /** Clears the program once its dialog said yes; the focus goes to the builder, to write anew. */
+  function clearProgram(): void {
+    cpu.clearProgram();
+    hooks.page.focusBuilder();
+  }
+
   return {
     panels,
     commands,
@@ -164,6 +170,7 @@ export function useWorkbench<
     historyLength,
     askReset,
     runAgain,
-    confirmReset
+    confirmReset,
+    clearProgram
   };
 }

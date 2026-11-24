@@ -16,7 +16,7 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CodePlace, LineCode } from '@/ui/programCode';
-import { lineMoveOf } from '@/ui/programKeys';
+import { lineMoveOf, rowAfterRemove } from '@/ui/programKeys';
 import { canMove, moveRefusal } from '@/ui/programLock';
 import type { ProgramSource } from '@/ui/useProgramLines';
 import ProgramLineActions from './ProgramLineActions.vue';
@@ -148,6 +148,22 @@ function move(from: number, to: number, action: string): void {
   });
 }
 
+/**
+ * Removes a line. Its buttons go with it, so the focus goes to the same place in the line that
+ * takes its place, or the line above when it was the last; with no line left, to the list.
+ */
+function remove(index: number): void {
+  const removedFrom = list.value?.contains(document.activeElement) ?? false;
+  emit('remove', index);
+  if (!removedFrom) return;
+  void nextTick(() => {
+    const at = rowAfterRemove(index, props.program.length);
+    const row = list.value?.querySelector<HTMLElement>(`[data-row="${at}"]`);
+    const control = row?.querySelector<HTMLElement>('[data-action="more"]');
+    (control ?? list.value)?.focus();
+  });
+}
+
 /** Alt with Up or Down moves the line whose control has the focus. */
 function onListKeydown(event: KeyboardEvent): void {
   if (!(event.target instanceof HTMLElement)) return;
@@ -168,7 +184,7 @@ function onListKeydown(event: KeyboardEvent): void {
 }
 
 const ROW =
-  'group col-span-full grid h-7 pointer-coarse:h-11 grid-cols-subgrid items-center pr-1 pl-2';
+  'group relative col-span-full grid h-7 pointer-coarse:h-11 grid-cols-subgrid items-center pr-1 pl-2';
 
 function machineCode(index: number): string {
   return formatBytes(props.code[index].bytes);
@@ -178,7 +194,7 @@ function machineCode(index: number): string {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Program</CardTitle>
+      <CardTitle role="heading" aria-level="2">Program</CardTitle>
       <CardDescription>
         <template v-if="program.length === 0">No lines yet</template>
         <template v-else-if="finished">Finished</template>
@@ -232,6 +248,7 @@ function machineCode(index: number): string {
       -->
       <ol
         ref="list"
+        tabindex="-1"
         data-fill
         class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_auto_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
@@ -322,9 +339,13 @@ function machineCode(index: number): string {
               <Lock class="size-3.5" aria-hidden="true" />
               <span class="sr-only">Locked</span>
             </span>
+            <!--
+              With a mouse the buttons show only on hover, so they take no column: they sit over
+              the line's end, and the line keeps its whole width. On a touch screen they stay.
+            -->
             <ProgramLineActions
               v-else
-              class="col-start-5 justify-self-end"
+              class="col-start-5 justify-self-end pointer-fine:absolute pointer-fine:inset-y-0 pointer-fine:right-1 pointer-fine:items-center pointer-fine:rounded-sm pointer-fine:bg-inset"
               :label="formatLabel(index)"
               :can-move-up="index > locked"
               :can-move-down="index < program.length - 1"
@@ -334,7 +355,7 @@ function machineCode(index: number): string {
               @move-down="move(index, index + 1, 'more')"
               @insert-above="emit('update:insertAt', index)"
               @inspect="emit('inspect', index)"
-              @remove="emit('remove', index)"
+              @remove="remove(index)"
             />
           </li>
         </template>

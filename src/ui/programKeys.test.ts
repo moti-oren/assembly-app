@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lineMoveOf } from './programKeys';
+import { lineMoveOf, rowAfterRemove } from './programKeys';
 
 const alt = (key: string) => ({ key, altKey: true });
 
@@ -22,5 +22,13 @@ describe('lineMoveOf', () => {
   it('ignores a key that came from no line', () => {
     expect(lineMoveOf(alt('ArrowUp'), Number.NaN, 4)).toBeNull();
     expect(lineMoveOf(alt('ArrowUp'), 4, 4)).toBeNull();
+  });
+});
+
+describe('rowAfterRemove', () => {
+  it('keeps the focus on the line that took the removed one’s place, or the one above', () => {
+    expect(rowAfterRemove(1, 3)).toBe(1);
+    expect(rowAfterRemove(3, 3)).toBe(2);
+    expect(rowAfterRemove(0, 0)).toBeNull();
   });
 });

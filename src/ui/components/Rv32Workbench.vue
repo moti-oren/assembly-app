@@ -111,7 +111,8 @@ const {
   historyLength,
   askReset,
   runAgain,
-  confirmReset
+  confirmReset,
+  clearProgram
 } = useWorkbench(controls, {
   aluLink: rv32AluLink,
   numberLink: rv32NumberLink,
@@ -161,7 +162,7 @@ followBuilder(draft);
     :program-length="program.length"
     :history-length="historyLength"
     @load-example="cpu.loadExample"
-    @clear-program="cpu.clearProgram"
+    @clear-program="clearProgram"
     @reset-cpu="confirmReset"
   />
   <Rv32ChangeStrip
