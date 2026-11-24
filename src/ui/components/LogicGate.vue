@@ -11,12 +11,15 @@ defineProps<{
   chosen: boolean;
   /** The value a broken gate's output is stuck at; null for a gate that works. */
   stuck?: Bit | null;
+  /** A gate that is only drawn: pressing it shows nothing more. */
+  still?: boolean;
 }>();
 defineEmits<{ choose: [] }>();
 
 /** The outline of each gate, in a box GATE_WIDTH wide and GATE_HEIGHT high. */
 const SHAPES: Record<GateKind, string> = {
   and: 'M0,2 H22 A18,18 0 0 1 22,38 H0 Z',
+  nand: 'M0,2 H18 A18,18 0 0 1 18,38 H0 Z',
   or: 'M0,2 Q12,20 0,38 Q26,38 44,20 Q26,2 0,2 Z',
   nor: 'M0,2 Q10,20 0,38 Q22,38 36,20 Q22,2 0,2 Z',
   xor: 'M6,2 Q18,20 6,38 Q30,38 44,20 Q30,2 6,2 Z',
@@ -29,10 +32,11 @@ const SHAPES: Record<GateKind, string> = {
 <template>
   <g
     class="logic-gate"
-    role="button"
-    tabindex="0"
+    :role="still ? 'img' : 'button'"
+    :tabindex="still ? undefined : 0"
+    :data-still="still ? '' : undefined"
     :transform="`translate(${x} ${y})`"
-    :aria-pressed="chosen"
+    :aria-pressed="still ? undefined : chosen"
     :data-stuck="stuck != null ? '' : undefined"
     :aria-label="`${kind.toUpperCase()} gate: ${name}${stuck != null ? `, broken: stuck at ${stuck}` : ''}`"
     @click="$emit('choose')"
@@ -51,14 +55,14 @@ const SHAPES: Record<GateKind, string> = {
     <path v-if="kind === 'xor'" class="logic-wire" d="M0,2 Q12,20 0,38" />
     <!-- The small circle that inverts the output. -->
     <circle
-      v-if="kind === 'not' || kind === 'nor'"
+      v-if="kind === 'not' || kind === 'nor' || kind === 'nand'"
       class="logic-gate-body"
       :cx="kind === 'not' ? 39 : 40"
       cy="20"
       r="4"
     />
     <text
-      :x="kind === 'xor' ? GATE_WIDTH / 2 + 3 : GATE_WIDTH / 2 - 2"
+      :x="kind === 'xor' ? GATE_WIDTH / 2 + 3 : GATE_WIDTH / 2 - (kind === 'nand' ? 4 : 2)"
       :y="GATE_HEIGHT / 2 + 3"
       text-anchor="middle"
     >
