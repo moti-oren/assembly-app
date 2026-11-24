@@ -51,8 +51,15 @@ function open(index: number): void {
 -->
 <template>
   <StageSection :title="`Many registers: ${fileTitle(request)}`" label="The register file">
-    <template v-if="file.isEdited.value" #aside>
-      <Button variant="ghost" size="sm" class="pointer-coarse:h-11" @click="file.restore()">
+    <template #aside>
+      <!-- It stays in place, and can keep the focus, when there is nothing to put back. -->
+      <Button
+        variant="ghost"
+        size="sm"
+        class="aria-disabled:cursor-default aria-disabled:text-tertiary-foreground aria-disabled:hover:bg-transparent pointer-coarse:h-11"
+        :aria-disabled="!file.isEdited.value"
+        @click="file.isEdited.value && file.restore()"
+      >
         <Undo2 />
         {{ file.fromCpu.value ? 'Put back the CPU’s address' : 'Put back the starting address' }}
       </Button>

@@ -34,6 +34,8 @@ defineSlots<{
   default?: () => unknown;
   /** A row of them above the bar, where a phone's bar has no room. */
   above?: () => unknown;
+  /** Those a narrow bar keeps behind its More button, over the ways on; `close` shuts it. */
+  more?: (props: { close: () => void }) => unknown;
 }>();
 
 const ICONS: Record<LinkedTopic, typeof Binary> = {
@@ -55,6 +57,10 @@ const framed = computed(() => (mode.value === 'phone' ? 'outline' : 'ghost'));
  */
 const OFF_CLASS =
   'aria-disabled:cursor-default aria-disabled:text-tertiary-foreground aria-disabled:hover:bg-transparent';
+
+function closeMore(): void {
+  moreOpen.value = false;
+}
 
 function goFromMore(to: LinkedTopic): void {
   moreOpen.value = false;
@@ -160,6 +166,7 @@ function goFromMore(to: LinkedTopic): void {
         label="Other topics"
         description="The ways on from here into the other topics."
       >
+        <slot name="more" :close="closeMore" />
         <Button
           v-for="way in ways"
           :key="way.to"

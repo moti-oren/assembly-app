@@ -61,7 +61,12 @@ const allCommands = computed(() => [...props.commands, ...viewCommands.value]);
 
 // The control that opened this page is gone with the page it was on: focus starts here instead.
 const stage = useTemplateRef<HTMLElement>('stage');
-const focusStage = (): void => stage.value?.focus({ preventScroll: true });
+function focusStage(): void {
+  // A control that outlived the change of page, such as a topic tab, keeps the focus it has.
+  const held = document.activeElement;
+  if (held && held !== document.body) return;
+  stage.value?.focus({ preventScroll: true });
+}
 onMounted(focusStage);
 onActivated(focusStage);
 </script>
@@ -148,5 +153,6 @@ onActivated(focusStage);
   >
     <slot name="bar" />
     <template v-if="$slots.above" #above><slot name="above" /></template>
+    <template v-if="$slots.more" #more="more"><slot name="more" v-bind="more" /></template>
   </TopicBar>
 </template>

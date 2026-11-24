@@ -83,7 +83,7 @@ const heading = computed(() =>
           Pulse
         </Button>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           class="aria-disabled:cursor-default aria-disabled:text-tertiary-foreground aria-disabled:hover:bg-transparent pointer-coarse:h-11"
           aria-label="Clear the timing diagram"
