@@ -453,6 +453,13 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   and whether it is taken. When the scales put the numbers in opposite orders the page says so.
   The 6502's `bmi` and `bpl` are marked where they go against the numbers: it has no signed
   comparison.
+- A shift is shown as the multiplication or division it is: every place to the left doubles the
+  number, every place to the right halves it, rounding down. Each scale has its own line (`−7 ÷ 2
+  = −4, 1 left over`) and says whether the bits read that answer: a doubling that no longer fits,
+  or a halving with the fill of the other scale (zeros halve the unsigned number, copies of the
+  top bit the signed one). After one place the carry flag says the unsigned answer did not fit,
+  or that the halving left one over. The 8086's `shl`, `shr` and `sar`, RISC-V's `sll`, `srl`
+  and `sra` and the 6502's `asl` and `lsr` open it; a rotate does not.
 - A RISC-V `lb`, `lh`, `lbu` or `lhu` is shown as an extension: the byte or half word above the
   32 bits it becomes, the new bits all copies of its top bit or all zeros, and which of the two
   numbers that keeps.
@@ -460,9 +467,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   by digit: each half of the byte summed in binary, and put right by 6 where it is past 9.
 - Press a bit to flip it, or drag the blue dot round a wheel (the arrow keys move it too), and
   see what the answer would have been (**What if**). The CPU is not changed. **Add**,
-  **Subtract**, **Extend**, **Decimal** and **One value** (a row of bits read as hex, unsigned,
-  signed, ASCII and decimal digits) and the width can be picked freely.
-- Bitwise logic, shifts, multiplication and division are not shown as numbers yet: there
+  **Subtract**, **Shift** (with its direction, its fill and how many places), **Extend**,
+  **Decimal** and **One value** (a row of bits read as hex, unsigned, signed, ASCII and decimal
+  digits) and the width can be picked freely.
+- Bitwise logic, rotates, multiplication and division are not shown as numbers: there
   **Numbers** is greyed and says why.
 
 ## From an instruction to the register that keeps its result
@@ -985,16 +993,22 @@ npm run verify:6502 # check the 6502 core against py65
   השאלה שכל אחת שואלת, שני המספרים בסולם שלה, הדגלים שלפיהם היא מחליטה, והאם היא נלקחת. כששני
   הסולמות מסדרים את המספרים בסדר הפוך, הדף אומר זאת. `bmi` ו-`bpl` של ה-6502 מסומנות כשהן
   הולכות נגד המספרים: אין לו השוואה עם סימן.
+- הזזה מוצגת ככפל או כחילוק שהיא: כל מקום שמאלה מכפיל את המספר, כל מקום ימינה מחלק אותו בשניים
+  ומעגל כלפי מטה. לכל סולם שורה משלו (`−7 ÷ 2 = −4, 1 left over`), והיא אומרת אם הסיביות קוראות
+  את התשובה הזאת: הכפלה שכבר לא נכנסת, או חלוקה עם המילוי של הסולם האחר (אפסים מחלקים את המספר
+  ללא סימן, העתקים של הסיבית העליונה את המספר עם סימן). אחרי מקום אחד דגל הנשא אומר שהתשובה ללא
+  סימן לא נכנסה, או שהחלוקה השאירה שארית. `shl`, `shr` ו-`sar` של ה-8086, `sll`, `srl` ו-`sra`
+  של RISC-V ו-`asl` ו-`lsr` של ה-6502 פותחות אותה; סיבוב לא.
 - `lb`, `lh`, `lbu` או `lhu` של RISC-V מוצגות כהרחבה: הבית או חצי המילה מעל 32 הסיביות שהם
   נעשים, הסיביות החדשות כולן העתקים של הסיבית העליונה או כולן אפסים, ואיזה משני המספרים זה שומר.
 - `adc` או `sbc` של ה-6502 במצב עשרוני, שאין להם שערים להציג, מוצגים כאן ספרה אחר ספרה: כל חצי
   של הבית מסוכם בבינארי, ומתוקן ב-6 כשהוא עובר את 9.
 - לחיצה על סיבית הופכת אותה, וגרירה של הנקודה הכחולה סביב גלגל מזיזה אותה (גם מקשי החצים), ומראות
   מה התשובה הייתה (**What if**). המעבד אינו משתנה. אפשר לבחור באופן חופשי בין **Add**,
-  **Subtract**, **Extend**, **Decimal** ו-**One value** (שורת סיביות שנקראת כהקסה, ללא סימן, עם
-  סימן, ASCII וספרות עשרוניות), וגם את הרוחב.
-- פעולות לוגיות על סיביות, הזזות, כפל וחילוק אינם מוצגים עדיין כמספרים: שם **Numbers** אפור
-  ומסביר למה.
+  **Subtract**, **Shift** (עם הכיוון, המילוי ומספר המקומות), **Extend**, **Decimal** ו-**One
+  value** (שורת סיביות שנקראת כהקסה, ללא סימן, עם סימן, ASCII וספרות עשרוניות), וגם את הרוחב.
+- פעולות לוגיות על סיביות, סיבובים, כפל וחילוק אינם מוצגים כמספרים: שם **Numbers** אפור ומסביר
+  למה.
 
 ## מהוראה לאוגר ששומר את התוצאה שלה
 
