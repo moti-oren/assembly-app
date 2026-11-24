@@ -234,7 +234,7 @@ function onEnter(event: KeyboardEvent): void {
 <template>
   <Card ref="card" tabindex="-1" class="outline-none" @pointerdown="unfold" @keydown="onKeydown">
     <CardHeader>
-      <CardTitle>Instruction</CardTitle>
+      <CardTitle role="heading" aria-level="2">Instruction</CardTitle>
     </CardHeader>
 
     <CardContent class="flex flex-col gap-3">
@@ -260,7 +260,11 @@ function onEnter(event: KeyboardEvent): void {
 
       <!-- With the choices folded away their button shares this line, so the fold leaves no gap. -->
       <div class="flex items-baseline gap-3">
-        <p class="min-h-5 min-w-0 flex-1 truncate text-sm text-muted-foreground" aria-live="polite">
+        <p
+          class="min-h-5 min-w-0 flex-1 truncate text-sm text-muted-foreground"
+          aria-live="polite"
+          :title="!doesNotFit && preview ? `${preview.label} ${preview.text}` : undefined"
+        >
           <template v-if="doesNotFit">
             <span class="text-destructive">{{ hint }}</span>
           </template>
