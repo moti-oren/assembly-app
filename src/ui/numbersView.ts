@@ -41,6 +41,10 @@ function operandsOf(request: NumberRequest): { a: number; b: number | null } {
   }
 }
 
+/** A whole number as it is written by hand: grouped in thousands, with a real minus sign. */
+export const numberText = (value: number): string =>
+  value.toLocaleString('en-US').replace('-', '−');
+
 /** A value as a row of bits, bit 0 first. */
 export function bitsOf(value: number, width: number): (0 | 1)[] {
   return Array.from({ length: width }, (_, bit) => (Math.floor(value / 2 ** bit) % 2 ? 1 : 0));
@@ -103,7 +107,7 @@ export function freeView(request: NumberRequest): NumberView {
     extend: [],
     value: []
   };
-  return { request, flags: flags[request.kind], resultKept: true, note: null };
+  return { request, flags: flags[request.kind], resultKept: true, comparable: true, note: null };
 }
 
 /** Whether two requests are the same operation, with only the values put into it differing. */

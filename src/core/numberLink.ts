@@ -25,6 +25,11 @@ export interface NumberView {
   flags: FlagReading[];
   /** False when the result is thrown away and only the flags are kept, as in a comparison. */
   resultKept: boolean;
+  /**
+   * Whether every flag a conditional jump reads was set from these two numbers. False where one
+   * is left as it was (INC and DEC keep the carry): a jump after it does not go by them alone.
+   */
+  comparable: boolean;
   note: string | null;
 }
 

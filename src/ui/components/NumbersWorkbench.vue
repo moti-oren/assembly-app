@@ -5,9 +5,12 @@ import { hasNumbers, type NumberLink } from '@/core/numberLink';
 import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
 import { WIDTHS } from '@/ui/logicView';
+import { isComparison } from '@/ui/numbersCompare';
+import { CONDITION_SETS } from '@/ui/numbersConditions';
 import { equationText, LENSES, lensLesson, lensTitle, widthAllowed } from '@/ui/numbersView';
 import { useNumberLens } from '@/ui/useNumberLens';
 import { useNumbersCommands } from '@/ui/useNumbersCommands';
+import { usePreferences } from '@/ui/usePreferences';
 import { useTopic } from '@/ui/useTopic';
 import AppErrorNotice from './AppErrorNotice.vue';
 import ArchitectureSwitch from './ArchitectureSwitch.vue';
@@ -15,6 +18,7 @@ import CommandPalette from './CommandPalette.vue';
 import HeaderShell from './HeaderShell.vue';
 import NumbersArithmetic from './NumbersArithmetic.vue';
 import NumbersBcd from './NumbersBcd.vue';
+import NumbersCompare from './NumbersCompare.vue';
 import NumbersExtension from './NumbersExtension.vue';
 import NumbersFlags from './NumbersFlags.vue';
 import NumbersValue from './NumbersValue.vue';
@@ -32,6 +36,7 @@ const emit = defineEmits<{
 
 const lens = useNumberLens(() => props.moment.link);
 const { topic } = useTopic();
+const { architecture } = usePreferences();
 const paletteOpen = ref(false);
 
 // The control that opened this page is gone with the page it was on: focus starts here instead.
@@ -167,6 +172,11 @@ const unavailable = computed(() => {
       <!-- A value by itself, or one made wider, sets no flag: there is nothing to list. -->
       <div v-if="lens.view.value.flags.length > 0 || lens.view.value.note" class="border-t pt-5">
         <NumbersFlags :lens="lens" />
+      </div>
+
+      <!-- Two numbers with one taken from the other are two numbers compared. -->
+      <div v-if="isComparison(lens.view.value) && 'unsigned' in solution" class="border-t pt-5">
+        <NumbersCompare :conditions="CONDITION_SETS[architecture]" :solution="solution" />
       </div>
 
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-4">

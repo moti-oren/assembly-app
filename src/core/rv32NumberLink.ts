@@ -35,7 +35,7 @@ const NARROW_LOADS: Partial<Record<Mnemonic, boolean>> = {
 const NO_FLAGS = 'RISC-V keeps no flags: when the answer does not fit, nothing records it.';
 
 function compared(a: number, b: number, reading: FlagReading, note: string): NumberView {
-  return { request: difference(a, b), flags: [reading], resultKept: false, note };
+  return { request: difference(a, b), flags: [reading], resultKept: false, comparable: true, note };
 }
 
 function extended(access: MemoryAccess, signed: boolean): NumberView {
@@ -43,6 +43,7 @@ function extended(access: MemoryAccess, signed: boolean): NumberView {
     request: { kind: 'extend', value: access.value, from: access.size * 8, to: WIDTH, signed },
     flags: [],
     resultKept: true,
+    comparable: false,
     note: signed
       ? 'A signed load copies the top bit, so a negative number stays the same number.'
       : 'An unsigned load fills with zeros, so the value is never negative.'
@@ -58,10 +59,17 @@ function computed(alu: AluTrace): NumberLink {
         request: { kind: 'add', width: WIDTH, a, b, extra: 0 },
         flags: [],
         resultKept: true,
+        comparable: true,
         note: NO_FLAGS
       };
     case 'sub':
-      return { request: difference(a, b), flags: [], resultKept: true, note: NO_FLAGS };
+      return {
+        request: difference(a, b),
+        flags: [],
+        resultKept: true,
+        comparable: true,
+        note: NO_FLAGS
+      };
     case 'slt':
       return compared(a, b, reads(SET_RESULT, 'signed', 'below'), less);
     case 'sltu':

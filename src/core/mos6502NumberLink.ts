@@ -29,6 +29,7 @@ function binary(alu: AluTrace): NumberView {
       ...RESULT_FLAGS
     ],
     resultKept: true,
+    comparable: true,
     note: adding
       ? null
       : 'C works backwards here: 1 means no borrow, 0 means one more is taken off.'
@@ -47,6 +48,7 @@ function decimal(alu: AluTrace): NumberView {
     },
     flags: [reads('C', 'decimal', 'outside', !adding)],
     resultKept: true,
+    comparable: false,
     note: 'In decimal mode each half of the byte is one digit, and C carries a hundred.'
   };
 }
@@ -62,6 +64,7 @@ function step(alu: AluTrace, mnemonic: Mnemonic): NumberView {
     },
     flags: RESULT_FLAGS,
     resultKept: true,
+    comparable: false,
     note: `${mnemonic.toUpperCase()} leaves C and V alone, so nothing says when it wrapped.`
   };
 }
@@ -77,6 +80,7 @@ function computed(alu: AluTrace, mnemonic: Mnemonic): NumberLink {
         request: { kind: 'subtract', width: WIDTH, a: alu.a, b: alu.b, extra: 0 },
         flags: [reads('C', 'unsigned', 'below', true), ...RESULT_FLAGS],
         resultKept: false,
+        comparable: true,
         note: 'The 6502 compares on the unsigned scale only: no V is worked out.'
       };
     case 'step':

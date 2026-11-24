@@ -35,6 +35,7 @@ function arithmetic(alu: Trace<'add' | 'subtract'>, mnemonic: Mnemonic): NumberL
       ...RESULT_FLAGS
     ],
     resultKept: !compares,
+    comparable: alu.updatesCarry,
     note: compares
       ? COMPARED
       : alu.updatesCarry
