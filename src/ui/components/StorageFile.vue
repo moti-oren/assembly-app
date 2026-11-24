@@ -16,6 +16,7 @@ import { CLOCK_ACTION } from '@/ui/storageView';
 import type { StorageFile } from '@/ui/useStorageFile';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
+import StageSection from './StageSection.vue';
 
 const props = defineProps<{ file: StorageFile }>();
 const emit = defineEmits<{
@@ -49,30 +50,21 @@ function open(index: number): void {
   register's load line, and the clock they all share writes that one alone.
 -->
 <template>
-  <section aria-label="The register file">
-    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <h2 class="text-base font-semibold tracking-tight">
-        Many registers: {{ fileTitle(request) }}
-      </h2>
-      <Button
-        v-if="file.isEdited.value"
-        variant="ghost"
-        size="sm"
-        class="pointer-coarse:h-11"
-        @click="file.restore()"
-      >
+  <StageSection :title="`Many registers: ${fileTitle(request)}`" label="The register file">
+    <template v-if="file.isEdited.value" #aside>
+      <Button variant="ghost" size="sm" class="pointer-coarse:h-11" @click="file.restore()">
         <Undo2 />
         {{ file.fromCpu.value ? 'Put back the CPU’s address' : 'Put back the starting address' }}
       </Button>
-    </div>
-    <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+    </template>
+    <template #lesson>
       Every register sees the same value at its inputs and the same clock. What picks the one that
       takes it is its write line, and a decoder turns that on: an AND gate per register, which reads
       the address and whether the instruction writes at all. Press a bit of the address, or the
       write line, to flip it.
-    </p>
+    </template>
 
-    <div class="logic-rows mt-3">
+    <div class="logic-rows">
       <LogicBitNumbers :width="address.length" />
       <LogicRow
         label="Address"
@@ -83,7 +75,7 @@ function open(index: number): void {
       />
     </div>
     <div
-      class="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2 [--cell-height:2.25rem] [--cell:2.25rem] pointer-coarse:[--cell-height:2.75rem] pointer-coarse:[--cell:2.75rem]"
+      class="-mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 [--cell-height:2.25rem] [--cell:2.25rem] pointer-coarse:[--cell-height:2.75rem] pointer-coarse:[--cell:2.75rem]"
     >
       <span class="flex items-center gap-2 text-xs font-medium">
         Write
@@ -105,12 +97,12 @@ function open(index: number): void {
         }}</span>
       </span>
     </div>
-    <p class="mt-2 max-w-prose text-sm text-pretty" role="status">
+    <p class="max-w-prose text-sm text-pretty" role="status">
       {{ decoderText(file.view.value, solution) }}
     </p>
 
     <ul
-      class="mt-3 grid grid-cols-[repeat(auto-fill,minmax(13.5rem,1fr))] gap-1"
+      class="grid grid-cols-[repeat(auto-fill,minmax(13.5rem,1fr))] gap-1"
       aria-label="The registers, by address"
     >
       <li v-for="row in rows" :key="row.index">
@@ -138,7 +130,7 @@ function open(index: number): void {
       </li>
     </ul>
 
-    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
       <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="file.clock()">
         <ArrowDown v-if="clockHigh" />
         <ArrowUp v-else />
@@ -163,12 +155,12 @@ function open(index: number): void {
         Start over
       </Button>
     </div>
-    <p class="mt-2 max-w-prose text-sm text-pretty" aria-live="polite">
+    <p class="max-w-prose text-sm text-pretty" aria-live="polite">
       {{ filePhaseText(solution, phase) }}
     </p>
-    <p class="mt-2 max-w-prose text-xs text-pretty text-muted-foreground">
+    <p class="max-w-prose text-xs text-pretty text-muted-foreground">
       Press a register to see its own flip-flops above: its load line is the write line of every one
       of its bits.
     </p>
-  </section>
+  </StageSection>
 </template>
