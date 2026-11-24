@@ -116,14 +116,13 @@ const flagChanged = (bit: number) =>
                     >
                     <span
                       v-else-if="register.name === 'pc' && change('pc')?.jump"
-                      class="text-pointer"
+                      class="font-semibold text-foreground"
                       >jumped from ${{ change('pc')!.before }}</span
                     >
                     <template v-else-if="register.name === 'pc'">{{ register.note }}</template>
                     <RollingDigits
                       v-else
                       effect="flip"
-                      dim-zeros
                       :text="formatBinary(state.registers[register.name], 8)"
                     />
                   </span>

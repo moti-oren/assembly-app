@@ -65,7 +65,7 @@ function changed(flag: FlagName): boolean {
               </div>
               <span
                 class="truncate text-2xs leading-tight tracking-tight"
-                :class="changed(flag) ? 'opacity-80' : 'text-muted-foreground'"
+                :class="changed(flag) ? '' : 'text-muted-foreground'"
                 >{{ FLAG_INFO[flag].label }}</span
               >
             </div>
