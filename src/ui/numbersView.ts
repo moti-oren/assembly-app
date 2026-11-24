@@ -107,7 +107,7 @@ export function freeView(request: NumberRequest): NumberView {
     extend: [],
     value: []
   };
-  return { request, flags: flags[request.kind], resultKept: true, note: null };
+  return { request, flags: flags[request.kind], resultKept: true, comparable: true, note: null };
 }
 
 /** Whether two requests are the same operation, with only the values put into it differing. */

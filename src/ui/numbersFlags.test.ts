@@ -11,6 +11,7 @@ describe('flagRows', () => {
       request,
       flags: [reads('CF', 'unsigned', 'outside'), reads('OF', 'signed', 'outside')],
       resultKept: true,
+      comparable: true,
       note: null
     };
     expect(flagRows(view, solveArithmetic(request))).toEqual([
@@ -30,6 +31,7 @@ describe('flagRows', () => {
       request: compare,
       flags: [reads('C', 'unsigned', 'below', true)],
       resultKept: false,
+      comparable: true,
       note: null
     };
     expect(flagRows(view, solveArithmetic(compare))[0]).toMatchObject({
