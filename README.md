@@ -500,6 +500,12 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **Stored**, at the top of a CPU's registers panel, opens the storage topic on the register the
   last instruction wrote; so does **Show how the last register written is kept** in the command
   palette.
+- The page is laid out like the logic topic's: on the left where the register came from and
+  which circuit each part shows (the register written and its width, the memory cell, the
+  shift register or the counter); on the right the circuits; and under both a bar with the
+  steps through the CPU's history and **Reset**. Every circuit keeps its own clock button
+  beside its wires, since each has a clock of its own. On a tablet the left side is the
+  **Controls** drawer, and on a phone **Controls** and **Flip-flops** are two views.
 - The register is shown as rows of bits: the value waiting at its inputs, a write line for every
   bit, a flip-flop under every column, and what the flip-flops hold. The page opens before the
   clock edge, with the old value still held. **Raise the clock** loads the new one; **Lower the
@@ -538,8 +544,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   there **Stored** is greyed and says why. So does RISC-V's `x0`, which has no flip-flops, and a
   jump, which writes only the instruction pointer: how that register is loaded on every
   instruction is shown in the control topic, for RISC-V.
-- **The gates that work a value out**, at the foot of the page, opens the logic topic, and **What
-  turns the write line on** opens the control topic.
+- **Logic** and **Control**, at the right of the bar under the page (behind **⋯** below a
+  desktop), open the gates that work a value out and what turns the write line on.
 
 ## From an instruction to its control lines
 
@@ -1088,6 +1094,11 @@ npm run verify:6502 # check the 6502 core against py65
 
 - **Stored**, בראש חלונית האוגרים של מעבד, פותח את נושא האחסון על האוגר שההוראה האחרונה כתבה; כך
   גם **Show how the last register written is kept** בפלטת הפקודות.
+- העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיע האוגר ואיזה מעגל כל חלק מציג (האוגר
+  שנכתב והרוחב שלו, תא הזיכרון, אוגר ההזזה או המונה); מימין המעגלים; ומתחת לשניהם סרגל עם הצעדים
+  בהיסטוריה של המעבד ו-**Reset**. כל מעגל שומר את כפתור השעון שלו ליד החוטים שלו, כי לכל אחד שעון
+  משלו. בטאבלט הצד השמאלי הוא המגירה **Controls**, ובטלפון **Controls** ו-**Flip-flops** הן שתי
+  תצוגות.
 - האוגר מוצג כשורות של סיביות: הערך שמחכה על הכניסות, קו כתיבה לכל סיבית, פליפ-פלופ מתחת לכל
   עמודה, ומה שהפליפ-פלופים מחזיקים. העמוד נפתח לפני קצה השעון, כשהערך הישן עדיין מוחזק. **Raise
   the clock** טוען את הערך החדש; **Lower the clock** מסיים את המחזור, ו-**Start over** מתחיל
@@ -1121,8 +1132,8 @@ npm run verify:6502 # check the 6502 core against py65
 - להוראה שלא כתבה אוגר (השוואה, כתיבה לזיכרון, הסתעפות) אין מה להציג: שם **Stored** אפור ומסביר
   למה. כך גם `x0` של RISC-V, שאין לו פליפ-פלופים, וקפיצה, שכותבת רק את מצביע ההוראה: האופן שבו
   האוגר הזה נטען בכל הוראה מוצג בנושא הבקרה, עבור RISC-V.
-- **The gates that work a value out**, בתחתית העמוד, פותח את נושא הלוגיקה, ו-**What turns the
-  write line on** פותח את נושא הבקרה.
+- **Logic** ו-**Control**, בצד ימין של הסרגל שמתחת לעמוד (מתחת לדסקטופ: מאחורי **⋯**), פותחים את
+  השערים שמחשבים ערך ואת מה שמדליק את קו הכתיבה.
 
 ## מהוראה לקווי הבקרה שלה
 
