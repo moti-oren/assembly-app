@@ -76,7 +76,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     with a loop in them are run until they come to rest (`feedback.ts`): the latches and the
     flip-flop (`flipFlop.ts`), and a register taken through one clock cycle (`register.ts`). A
     circuit without a loop can be followed gate delay by gate delay as it comes to rest
-    (`propagation.ts`). A
+    (`propagation.ts`), and any of its gates can be broken, its output stuck at 0 or at 1
+    (`fault.ts`). A
     decoder is two planes of gates, the ANDs that recognise a pattern and the ORs they feed
     (`decoder.ts`), and a program counter is two adders, the switches that choose between their
     sums, and a register (`programCounter.ts`).
@@ -406,6 +407,15 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   each bit of the result settles at. A flipped bit starts from the wires as they were, so only
   what it reaches moves; **Longest carry** loads the values that keep the adder busy longest.
   The same actions are in the command palette, under **Gate delays**.
+- **Break a gate**: under the truth table of the gate you pressed, **Stuck at 0** or **Stuck at
+  1** holds its output at that value whatever its inputs are. A line above the circuit sets the
+  broken circuit's answer beside the working one's, the wrong bits of the result are underlined,
+  and the flags follow the broken wires. Often nothing is wrong at all: the inputs hide a fault
+  when the gate would put out that value anyway, so change a bit to catch it. With time slowed
+  down the mistake spreads from the gate a delay at a time. A fault stays while the circuit is
+  the same one, so you can step the CPU and see which instructions it spoils; the CPU itself is
+  never touched. **Works** mends the gate and **Repair every gate** mends them all (also in the
+  command palette, under **Faults**).
 - **Where each flag comes from** names the wire behind every flag. The 8086's CF after a
   subtraction is the inverse of the carry out; the 6502's C is the carry out itself; RISC-V has
   no flags, so a branch or `slt` reads one wire of a subtraction.
@@ -629,7 +639,8 @@ npm run verify:6502 # check the 6502 core against py65
     ripple-carry (`adder.ts`), מעגל הזזה שבנוי משורות של מתגים (`shifter.ts`), ו-`alu.ts`, שפותר
     פעולת ALU אחת שער אחר שער. מעגלים שיש בהם לולאה מורצים עד שהם מתייצבים (`feedback.ts`):
     הלאצ'ים והפליפ-פלופ (`flipFlop.ts`), ואוגר שעובר מחזור שעון אחד (`register.ts`). אחרי מעגל
-    בלי לולאה אפשר לעקוב השהיית שער אחר השהיית שער עד שהוא מתייצב (`propagation.ts`). מפענח הוא
+    בלי לולאה אפשר לעקוב השהיית שער אחר השהיית שער עד שהוא מתייצב (`propagation.ts`), ואפשר
+    לשבור כל שער שלו, כך שהפלט שלו תקוע על 0 או על 1 (`fault.ts`). מפענח הוא
     שני מישורים של שערים, שערי ה-AND שמזהים תבנית ושערי ה-OR שהם מזינים (`decoder.ts`), ומונה
     תוכנית הוא שני מחברים, המתגים שבוחרים בין הסכומים שלהם, ואוגר (`programCounter.ts`).
   - `aluLink.ts` ו-`x86AluLink.ts`, `rv32AluLink.ts`, `mos6502AluLink.ts`: הקישור בין הנושאים. כל
@@ -922,6 +933,14 @@ npm run verify:6502 # check the 6502 core against py65
   ביניהן; סיבית מקווקוות עוד תשתנה, ו-**ready at** מציין באיזו השהיה כל סיבית של התוצאה מתייצבת.
   סיבית שהופכים מתחילה מהחוטים כפי שהיו, כך שזז רק מה שהיא מגיעה אליו; **Longest carry** טוען את
   הערכים שמעסיקים את המחבר הכי הרבה זמן. אותן פעולות נמצאות גם בפלטת הפקודות, תחת **Gate delays**.
+- **שבירת שער**: מתחת לטבלת האמת של השער שלחצתם עליו, **Stuck at 0** או **Stuck at 1** מחזיקים
+  את הפלט שלו על הערך הזה, יהיו הקלטים אשר יהיו. שורה מעל המעגל מציבה את התשובה של המעגל השבור
+  ליד התשובה של מעגל תקין, הסיביות השגויות בתוצאה מסומנות בקו תחתון, והדגלים הולכים אחרי החוטים
+  השבורים. לעיתים קרובות שום דבר לא שגוי: הקלטים מסתירים תקלה כשהשער היה מוציא את הערך הזה
+  ממילא, ולכן הפכו סיבית כדי לתפוס אותה. כשהזמן מואט, השגיאה מתפשטת מהשער השהיה אחר השהיה.
+  תקלה נשארת כל עוד המעגל הוא אותו מעגל, כך שאפשר לצעוד במעבד ולראות אילו הוראות היא מקלקלת;
+  המעבד עצמו אינו מושפע לעולם. **Works** מתקן את השער ו-**Repair every gate** מתקן את כולם (גם
+  בפלטת הפקודות, תחת **Faults**).
 - **Where each flag comes from** מציין את החוט שמאחורי כל דגל. ה-CF של ה-8086 אחרי חיסור הוא
   ההיפוך של הנשא היוצא; ה-C של ה-6502 הוא הנשא היוצא עצמו; ל-RISC-V אין דגלים, ולכן הסתעפות או
   `slt` קוראות חוט אחד של חיסור.
