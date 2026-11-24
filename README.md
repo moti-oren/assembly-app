@@ -77,7 +77,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     flip-flop (`flipFlop.ts`), and a register taken through one clock cycle (`register.ts`). A
     circuit without a loop can be followed gate delay by gate delay as it comes to rest
     (`propagation.ts`), and any of its gates can be broken, its output stuck at 0 or at 1
-    (`fault.ts`). A
+    (`fault.ts`), or built from NAND gates alone (`nand.ts`). A
     decoder is two planes of gates, the ANDs that recognise a pattern and the ORs they feed
     (`decoder.ts`), and a program counter is two adders, the switches that choose between their
     sums, and a register (`programCounter.ts`).
@@ -416,6 +416,11 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   the same one, so you can step the CPU and see which instructions it spoils; the CPU itself is
   never touched. **Works** mends the gate and **Repair every gate** mends them all (also in the
   command palette, under **Faults**).
+- **As NAND gates**, under the gate you pressed, draws that gate built from NAND gates alone,
+  with the values now on its wires: two for an AND, three for an OR, four for an XOR or a
+  shifter's switch. Below it is the price, worked out by really building the circuit that way:
+  how many NAND gates the gate, its bit and the whole circuit take, and how much longer the
+  longest path becomes.
 - **Where each flag comes from** names the wire behind every flag. The 8086's CF after a
   subtraction is the inverse of the carry out; the 6502's C is the carry out itself; RISC-V has
   no flags, so a branch or `slt` reads one wire of a subtraction.
@@ -640,7 +645,8 @@ npm run verify:6502 # check the 6502 core against py65
     פעולת ALU אחת שער אחר שער. מעגלים שיש בהם לולאה מורצים עד שהם מתייצבים (`feedback.ts`):
     הלאצ'ים והפליפ-פלופ (`flipFlop.ts`), ואוגר שעובר מחזור שעון אחד (`register.ts`). אחרי מעגל
     בלי לולאה אפשר לעקוב השהיית שער אחר השהיית שער עד שהוא מתייצב (`propagation.ts`), ואפשר
-    לשבור כל שער שלו, כך שהפלט שלו תקוע על 0 או על 1 (`fault.ts`). מפענח הוא
+    לשבור כל שער שלו, כך שהפלט שלו תקוע על 0 או על 1 (`fault.ts`), או לבנות אותו משערי NAND בלבד
+    (`nand.ts`). מפענח הוא
     שני מישורים של שערים, שערי ה-AND שמזהים תבנית ושערי ה-OR שהם מזינים (`decoder.ts`), ומונה
     תוכנית הוא שני מחברים, המתגים שבוחרים בין הסכומים שלהם, ואוגר (`programCounter.ts`).
   - `aluLink.ts` ו-`x86AluLink.ts`, `rv32AluLink.ts`, `mos6502AluLink.ts`: הקישור בין הנושאים. כל
@@ -941,6 +947,10 @@ npm run verify:6502 # check the 6502 core against py65
   תקלה נשארת כל עוד המעגל הוא אותו מעגל, כך שאפשר לצעוד במעבד ולראות אילו הוראות היא מקלקלת;
   המעבד עצמו אינו מושפע לעולם. **Works** מתקן את השער ו-**Repair every gate** מתקן את כולם (גם
   בפלטת הפקודות, תחת **Faults**).
+- **As NAND gates**, מתחת לשער שלחצתם עליו, מצייר את אותו שער כשהוא בנוי משערי NAND בלבד, עם
+  הערכים שעל החוטים שלו עכשיו: שניים ל-AND, שלושה ל-OR, ארבעה ל-XOR או למתג של מעגל ההזזה.
+  מתחתיו כתוב המחיר, שמחושב מבנייה אמיתית של המעגל בדרך הזו: כמה שערי NAND צריכים השער, הסיבית
+  שלו והמעגל כולו, ובכמה מתארך המסלול הארוך ביותר.
 - **Where each flag comes from** מציין את החוט שמאחורי כל דגל. ה-CF של ה-8086 אחרי חיסור הוא
   ההיפוך של הנשא היוצא; ה-C של ה-6502 הוא הנשא היוצא עצמו; ל-RISC-V אין דגלים, ולכן הסתעפות או
   `slt` קוראות חוט אחד של חיסור.
