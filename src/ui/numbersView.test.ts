@@ -7,6 +7,7 @@ import {
   freeRequest,
   freeView,
   sameOperation,
+  unavailableText,
   widthAllowed,
   widthOf,
   withBitFlipped,
@@ -197,5 +198,17 @@ describe('the shift lens', () => {
     expect(text({ ...shift, value: 0xf9, direction: 'right', fill: 'sign' })).toBe(
       '0xF9 >> 1 = 0xFC, copying the top bit'
     );
+  });
+});
+
+describe('unavailableText', () => {
+  it('says why an instruction has no numbers, and what the numbers on show are', () => {
+    expect(unavailableText({ unavailable: 'A rotate is not arithmetic.' })).toBe(
+      'A rotate is not arithmetic. The numbers on show are ones to try by hand.'
+    );
+  });
+
+  it('has nothing to say before an instruction ran', () => {
+    expect(unavailableText(null)).toBeNull();
   });
 });

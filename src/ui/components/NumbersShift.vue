@@ -127,7 +127,7 @@ function move(by: number): void {
     />
   </div>
 
-  <div class="mt-4 grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-4 md:grid-cols-2">
+  <div class="mt-4 grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-4 @xl:grid-cols-2">
     <section v-for="each in scales" :key="each.scale" :aria-label="`As ${each.scale} numbers`">
       <h3 class="text-sm font-semibold capitalize">{{ each.scale }}</h3>
       <p class="mt-1 font-mono text-sm font-semibold tabular-nums">{{ each.summary.sum }}</p>
