@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, RotateCcw } from '@lucide/vue';
 import { PC, type PcSolution } from '@/core/logic/programCounter';
 import { heldAt } from '@/core/logic/register';
 import { Button } from '@/components/ui/button';
-import { bitsOf, PC_PHASE_TEXT, pcChoiceText } from '@/ui/controlView';
+import { bitsOf, pcChoiceText, pcPhaseText } from '@/ui/controlView';
 import { hexOf } from '@/ui/logicView';
 import { CLOCK_ACTION } from '@/ui/storageView';
 import type { ControlLens } from '@/ui/useControlLens';
@@ -132,6 +132,8 @@ const SWITCHES = [
         Start over
       </Button>
     </div>
-    <p class="max-w-prose text-sm text-pretty" aria-live="polite">{{ PC_PHASE_TEXT[phase] }}</p>
+    <p class="max-w-prose text-sm text-pretty" aria-live="polite">
+      {{ pcPhaseText(phase, solution.signals[PC.load] === 1) }}
+    </p>
   </div>
 </template>

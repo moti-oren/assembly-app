@@ -16,6 +16,7 @@ import {
   inputLabel,
   parseWord,
   pcChoiceText,
+  pcPhaseText,
   readingText,
   STARTING_WORD,
   unavailableText,
@@ -172,5 +173,15 @@ describe('readingText', () => {
 
   it('says when the opcode is unknown', () => {
     expect(read(0)).toBe('No RV32IM instruction has this opcode.');
+  });
+});
+
+describe('pcPhaseText', () => {
+  it('says PC took the address only when its load line is 1', () => {
+    expect(pcPhaseText('high', true)).toContain('PC took the address');
+    for (const phase of ['before', 'high', 'after'] as const) {
+      expect(pcPhaseText(phase, false)).not.toContain('PC took');
+      expect(pcPhaseText(phase, false)).toContain('load line');
+    }
   });
 });

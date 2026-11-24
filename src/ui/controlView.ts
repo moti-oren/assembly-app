@@ -205,13 +205,27 @@ export function pcChoiceText({ request, signals }: PcSolution): string {
     : 'Neither Branch nor Jump is 1, and the instruction was not fetched: PC keeps its value.';
 }
 
-/** What goes on at each moment of the clock cycle that ends the instruction. */
-export const PC_PHASE_TEXT: Record<ClockPhase, string> = {
-  before:
-    'The clock is low. The next address waits at PC’s input, and PC still holds this instruction’s.',
-  high: 'The clock has risen: PC took the address at its input. The next instruction is fetched from there.',
-  after: 'The clock is low again. PC holds the next address until the clock rises once more.'
-};
+/**
+ * What goes on at a moment of the clock cycle that ends the instruction; `loads` is PC's load
+ * line, which is 0 when the instruction was run directly rather than fetched.
+ */
+export function pcPhaseText(phase: ClockPhase, loads: boolean): string {
+  if (!loads) {
+    if (phase === 'before')
+      return 'The clock is low, and PC’s load line is 0: whatever waits at its input will not get in.';
+    if (phase === 'high')
+      return 'The clock has risen, but PC’s load line is 0: PC keeps its value, and nothing is fetched from a new address.';
+    return 'The clock is low again. PC’s load line was 0, so PC still holds the address it held.';
+  }
+  switch (phase) {
+    case 'before':
+      return 'The clock is low. The next address waits at PC’s input, and PC still holds this instruction’s.';
+    case 'high':
+      return 'The clock has risen: PC took the address at its input. The next instruction is fetched from there.';
+    case 'after':
+      return 'The clock is low again. PC holds the next address until the clock rises once more.';
+  }
+}
 
 /** The bits of a value, bit 0 first, for a row of the page. */
 export function bitsOf(value: number, width: number): Bit[] {
