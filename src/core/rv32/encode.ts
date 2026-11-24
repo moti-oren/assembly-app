@@ -136,7 +136,7 @@ type Reg = Extract<Operand, { type: 'reg' }>;
 type Mem = Extract<Operand, { type: 'mem' }>;
 
 /** The registers and immediate of an instruction, in the slots its format gives them. */
-interface Slots {
+export interface Slots {
   rd?: number;
   rs1?: number;
   rs2?: number;
@@ -193,11 +193,13 @@ function isImmediateShift(mnemonic: Mnemonic): boolean {
   return mnemonic === 'slli' || mnemonic === 'srli' || mnemonic === 'srai';
 }
 
-function fieldsOf(instruction: Instruction, distance: number): EncodedField[] {
-  const { mnemonic } = instruction;
+/** The fields of the word that holds `mnemonic` with these registers and this immediate. */
+export function fieldsFor(
+  mnemonic: Mnemonic,
+  { rd, rs1, rs2, immediate = 0 }: Slots
+): EncodedField[] {
   const { format } = getSpec(mnemonic);
   const { opcode, funct3, funct7 } = OPCODES[mnemonic];
-  const { rd, rs1, rs2, immediate = 0 } = slots(instruction, distance);
   const name = mnemonic.toUpperCase();
   const fields: EncodedField[] = [
     { name: 'opcode', high: 6, low: 0, value: opcode, label: 'opcode', note: OPCODE_NAMES[opcode] }
@@ -250,7 +252,7 @@ export function encodeAt(instruction: Instruction, address: number): Encoding {
   const { format } = getSpec(instruction.mnemonic);
   const label = instruction.operands.find((operand) => operand.type === 'label');
   const distance = label ? addressOfLine(label.target) - address : 0;
-  const fields = fieldsOf(instruction, distance);
+  const fields = fieldsFor(instruction.mnemonic, slots(instruction, distance));
   const word = u32(fields.reduce((bits, { low, value }) => bits | (value << low), 0));
   return {
     word,
