@@ -546,6 +546,12 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **Control**, at the top of the page, opens the control topic on the last instruction the CPU
   ran; so does **Control** in the cycle panel of a wide window, and **Show how the last
   instruction was decoded** in the command palette.
+- The page is laid out like the logic topic's: on the left where the instruction came from, its
+  word in hex (to type another) and the fields its bits fall into; on the right the bits, the
+  two decoders, the lines, what they make the CPU do and PC; and under both a bar with the steps
+  through the CPU's history, **Reset** and the ways on to **Logic** and **Storage**. On a tablet
+  the left side is the **Controls** drawer; on a phone **Controls** and **Control unit** are two
+  views, and the fields stay under the bits.
 - The instruction is shown as the control unit gets it: 32 bits, with the fields they fall into.
   The fields a decoder reads (the opcode, funct3, and two bits of funct7) are outlined.
 - **The main decoder** is a grid of the gates it is made of. Every row is an AND gate that
@@ -1122,6 +1128,11 @@ npm run verify:6502 # check the 6502 core against py65
 
 - **Control**, בראש העמוד, פותח את נושא הבקרה על ההוראה האחרונה שהמעבד הריץ; כך גם **Control**
   בחלונית המחזור בחלון רחב, ו-**Show how the last instruction was decoded** בפלטת הפקודות.
+- העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיעה ההוראה, המילה שלה ב-hex (כדי להקליד
+  אחרת) והשדות שהסיביות שלה מתחלקות אליהם; מימין הסיביות, שני המפענחים, הקווים, מה שהם גורמים
+  למעבד לעשות ו-PC; ומתחת לשניהם סרגל עם הצעדים בהיסטוריה של המעבד, **Reset** והמעברים ל-**Logic**
+  ול-**Storage**. בטאבלט הצד השמאלי הוא המגירה **Controls**; בטלפון **Controls** ו-**Control
+  unit** הן שתי תצוגות, והשדות נשארים מתחת לסיביות.
 - ההוראה מוצגת כפי שיחידת הבקרה מקבלת אותה: 32 סיביות, עם השדות שהן מתחלקות אליהם. השדות שמפענח
   קורא (ה-opcode, funct3 ושתי סיביות של funct7) מסומנים במסגרת.
 - **The main decoder** הוא רשת של השערים שמהם הוא בנוי. כל שורה היא שער AND שמזהה סוג אחד של
