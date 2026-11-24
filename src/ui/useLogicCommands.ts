@@ -36,6 +36,14 @@ export function useLogicCommands(
         disabled: width === each,
         run: () => lens.setWidth(each)
       })),
+      {
+        group: 'Circuit',
+        label: lens.nandShown.value
+          ? 'Hide the NAND gates of the gate picked'
+          : 'Show the gate picked as NAND gates',
+        disabled: lens.chosenGate.value === null,
+        run: lens.toggleNand
+      },
       ...timeCommands(lens),
       ...faultCommands(lens),
       ...app.value
