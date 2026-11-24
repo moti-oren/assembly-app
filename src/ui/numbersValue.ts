@@ -1,4 +1,5 @@
 import type { ValueReadings } from '@/core/representation/readings';
+import { numberText as text } from './numbersView';
 
 /** One way of reading a row of bits. */
 export interface ValueRow {
@@ -9,8 +10,6 @@ export interface ValueRow {
   /** How the reading is made, in a few words. */
   how: string;
 }
-
-const text = (value: number): string => value.toLocaleString('en-US').replace('-', '−');
 
 /** Every reading of a value, in the order they are shown. */
 export function valueRows(readings: ValueReadings): ValueRow[] {

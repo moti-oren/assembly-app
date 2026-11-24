@@ -1,6 +1,7 @@
 import { flagAnswers, type FlagReading, type NumberView } from '@/core/numberLink';
 import type { ScaleSolution } from '@/core/representation/arithmetic';
 import type { NumberSolution } from '@/core/representation/request';
+import { numberText as text } from './numbersView';
 
 /** One flag of the operation: its value, and what that says about the numbers. */
 export interface FlagRow {
@@ -34,8 +35,6 @@ export function flagRows(view: NumberView, solution: NumberSolution): FlagRow[] 
     meaning: `${reading.inverted ? '1 unless' : '1 when'} ${question(reading)}`
   }));
 }
-
-const text = (value: number): string => value.toLocaleString('en-US').replace('-', '−');
 
 /** One scale's reading of an operation, as the sum and what became of it. */
 export interface ScaleSummary {
