@@ -2,8 +2,8 @@
 import { computed } from 'vue';
 import type { Faults } from '@/core/logic/fault';
 import type { Signals } from '@/core/logic/gates';
-import { gateTable, polyline, type DiagramGate, type SliceDiagram } from '@/ui/logicSlice';
-import LogicGate from './LogicGate.vue';
+import { gateTable, type DiagramGate, type SliceDiagram } from '@/ui/logicSlice';
+import LogicDrawing from './LogicDrawing.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -25,6 +25,8 @@ defineEmits<{ choose: [gate: number] }>();
 defineSlots<{
   /** What else there is to say or do about the gate picked, under its truth table. */
   gate?: (props: { gate: DiagramGate }) => unknown;
+  /** The same, across the whole width under the table. */
+  under?: (props: { gate: DiagramGate }) => unknown;
 }>();
 
 const gate = computed(() => props.diagram.gates[props.chosen] ?? null);
@@ -35,58 +37,15 @@ const table = computed(() => gate.value && gateTable(gate.value, props.signals))
 <template>
   <div class="flex flex-col gap-4">
     <div class="well overflow-x-auto rounded-lg p-3">
-      <svg
-        class="logic-diagram"
-        :viewBox="`0 0 ${diagram.width} ${diagram.height}`"
-        :style="{ minWidth: `${diagram.width * 0.75}px`, maxWidth: `${diagram.width * 1.15}px` }"
-        role="group"
-        :aria-label="`${label}: ${diagram.gates.length} gates`"
-      >
-        <polyline
-          v-for="(wire, index) in diagram.wires"
-          :key="index"
-          class="logic-wire"
-          :points="polyline(wire.points)"
-          :data-on="signals[wire.signal] ? '' : undefined"
-        />
-        <circle
-          v-for="dot in diagram.dots"
-          :key="`${dot.x},${dot.y}`"
-          class="logic-dot"
-          :cx="dot.x"
-          :cy="dot.y"
-          r="3"
-          :data-on="signals[dot.signal] ? '' : undefined"
-        />
-        <LogicGate
-          v-for="(each, index) in diagram.gates"
-          :key="each.id"
-          :kind="each.kind"
-          :x="each.x"
-          :y="each.y"
-          :name="each.name"
-          :chosen="index === chosen"
-          :stuck="stuck[each.id] ?? null"
-          @choose="$emit('choose', index)"
-        />
-        <text
-          v-for="terminal in diagram.terminals"
-          :key="terminal.signal + terminal.side"
-          class="logic-terminal"
-          :x="terminal.side === 'in' ? terminal.x - 8 : terminal.x + 8"
-          :y="terminal.y + 4"
-          :text-anchor="terminal.side === 'in' ? 'end' : 'start'"
-        >
-          {{ terminal.label }}
-          <tspan
-            class="logic-value"
-            dx="3"
-            :data-tone="terminal.side === 'out' && written ? 'result' : undefined"
-          >
-            {{ signals[terminal.signal] }}
-          </tspan>
-        </text>
-      </svg>
+      <LogicDrawing
+        :diagram="diagram"
+        :signals="signals"
+        :chosen="chosen"
+        :label="label"
+        :written="written"
+        :stuck="stuck"
+        @choose="$emit('choose', $event)"
+      />
     </div>
 
     <div v-if="gate && table" class="flex flex-wrap items-start gap-x-8 gap-y-3">
@@ -133,5 +92,6 @@ const table = computed(() => gate.value && gateTable(gate.value, props.signals))
         <p class="mt-2 text-xs text-muted-foreground">Press a gate to see its truth table.</p>
       </div>
     </div>
+    <slot v-if="gate" name="under" :gate="gate" />
   </div>
 </template>

@@ -4,6 +4,7 @@ import { sliceHeading } from '@/ui/logicSlice';
 import type { LogicLens } from '@/ui/useLogicLens';
 import LogicDiagram from './LogicDiagram.vue';
 import LogicFault from './LogicFault.vue';
+import LogicNand from './LogicNand.vue';
 
 const props = defineProps<{ lens: LogicLens }>();
 
@@ -39,6 +40,9 @@ const heading = computed(() =>
     >
       <template #gate="{ gate }">
         <LogicFault :lens="lens" :gate="gate" />
+      </template>
+      <template #under="{ gate }">
+        <LogicNand :lens="lens" :gate="gate" />
       </template>
     </LogicDiagram>
   </section>

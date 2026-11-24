@@ -320,6 +320,9 @@
   .logic-gate {
     cursor: pointer;
   }
+  .logic-gate[data-still] {
+    cursor: default;
+  }
   .logic-gate .logic-gate-body {
     fill: var(--inset);
     stroke: var(--muted-foreground);

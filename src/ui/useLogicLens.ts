@@ -1,7 +1,6 @@
 import { computed, ref, watch } from 'vue';
 import { hasCircuit, type AluCircuit, type AluLink } from '@/core/aluLink';
 import { solve, type AluRequest, type Width } from '@/core/logic/alu';
-import { sliceDiagram } from './logicSlice';
 import {
   freeCircuit,
   freeRequest,
@@ -14,6 +13,7 @@ import {
   type OperandKey
 } from './logicView';
 import { isAdder, longestCarry, shownSolution } from './logicTime';
+import { useLogicChoice } from './useLogicChoice';
 import { useLogicFaults } from './useLogicFaults';
 import { useLogicTime } from './useLogicTime';
 
@@ -71,27 +71,9 @@ export function useLogicLens(link: () => AluLink | null) {
   /** Whether the CPU wrote the result on show: colour marks a write, and only a real one. */
   const written = computed(() => asRun.value && circuit.value.resultKept);
 
-  const chosenBit = ref(0);
-  const chosenStage = ref(0);
-  /** The gate whose truth table is on show, by its place in the drawing of one bit. */
-  const gate = ref(0);
-  // Another kind of circuit has other gates; the same circuit keeps the one picked.
-  watch(
-    () => request.value.kind,
-    () => {
-      gate.value = 0;
-    }
-  );
-  /** The bit and the shifter row shown gate by gate, kept inside the circuit as it changes. */
-  const bit = computed(() => Math.min(chosenBit.value, request.value.width - 1));
-  const stage = computed(() => {
-    const current = request.value;
-    const rows = current.kind === 'shift' ? current.stages.length : 1;
-    return Math.min(chosenStage.value, Math.max(rows - 1, 0));
-  });
-  /** The bit on show drawn gate by gate; null for a shifter with no rows. */
-  const diagram = computed(() => sliceDiagram(shown.value, bit.value, stage.value));
-  const chosenGate = computed(() => diagram.value?.gates[gate.value] ?? null);
+  const choice = useLogicChoice(request, shown);
+  /** Whether the gate picked is also drawn as the NAND gates it can be built from. */
+  const nandShown = ref(false);
   const { wrong, broken } = faults.beside(healthy, solution, time.settled);
 
   function flipBit(operand: OperandKey, index: number): void {
@@ -130,15 +112,6 @@ export function useLogicLens(link: () => AluLink | null) {
     edited.value = null;
   }
 
-  function choose(index: number, row = 0): void {
-    chosenBit.value = index;
-    chosenStage.value = row;
-  }
-
-  function chooseGate(index: number): void {
-    gate.value = index;
-  }
-
   return {
     request,
     circuit,
@@ -149,8 +122,6 @@ export function useLogicLens(link: () => AluLink | null) {
     faultCount: faults.count,
     wrong,
     broken,
-    diagram,
-    chosenGate,
     stickGate: faults.stick,
     repairGate: faults.repair,
     repairAll: faults.repairAll,
@@ -161,18 +132,18 @@ export function useLogicLens(link: () => AluLink | null) {
     isEdited: computed(() => edited.value !== null),
     asRun,
     written,
-    gate,
-    bit,
-    stage,
+    ...choice,
+    nandShown,
+    toggleNand: () => {
+      nandShown.value = !nandShown.value;
+    },
     flipBit,
     flipCarryIn,
     flipStage,
     pick,
     setWidth,
     tryLongestCarry,
-    restore,
-    choose,
-    chooseGate
+    restore
   };
 }
 
