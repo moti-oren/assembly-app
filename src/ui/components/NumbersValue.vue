@@ -49,9 +49,9 @@ const rows = computed(() => valueRows(props.solution.readings));
   </dl>
   <NumbersBytes
     :order="lens.byteOrder.value"
-    @update:order="lens.setByteOrder($event)"
     class="mt-5"
     :value="request.bits"
     :width="request.width"
+    @update:order="lens.setByteOrder($event)"
   />
 </template>
