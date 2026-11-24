@@ -1,15 +1,6 @@
 /* The logic topic: rows of bits in columns, and one bit drawn gate by gate. */
 
 @layer components {
-  /* The page of the logic topic: one column that scrolls, as wide as reads well. */
-  .logic-page {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    background: var(--page);
-  }
-
   /*
    * Rows of bits that share their columns, the top bit on the left. --cell is one column; a
    * finger gets a wider one. A wide circuit scrolls sideways under its row labels. --cell-height
