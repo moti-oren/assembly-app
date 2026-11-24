@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RegisterLink } from '@/core/registerLink';
 import type { ExecutionRecord } from '@/core/x86/execute';
 import type { Instruction } from '@/core/x86/instructions';
 import type { CpuState } from '@/core/x86/state';
@@ -22,6 +23,8 @@ const props = defineProps<{
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes and the wire pulses. */
   tick: number;
+  /** Where the last instruction's write leads in the storage topic. */
+  stored: RegisterLink | null;
 }>();
 
 /** The CPU as two units and the buses between them; the parts below draw it. */
@@ -31,7 +34,7 @@ const { registerBits } = usePreferences();
 </script>
 
 <template>
-  <CpuCanvas>
+  <CpuCanvas :stored="stored">
     <template #actions>
       <!-- Sixteen bits a row crowd the registers, so they are shown only when asked for. -->
       <Button
