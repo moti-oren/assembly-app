@@ -8,7 +8,7 @@ import type { LogicLens } from '@/ui/useLogicLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
-import LogicTime from './LogicTime.vue';
+import LogicTimeNote from './LogicTimeNote.vue';
 
 const props = defineProps<{ lens: LogicLens }>();
 
@@ -65,7 +65,7 @@ const sumReady = computed(
 -->
 <template>
   <div class="flex flex-col gap-3">
-    <LogicTime :lens="lens" />
+    <LogicTimeNote :lens="lens" />
     <div ref="rows" class="logic-rows" :data-timed="propagation ? '' : undefined">
       <LogicBitNumbers :width="width" />
       <LogicRow

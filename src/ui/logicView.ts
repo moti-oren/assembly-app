@@ -1,4 +1,4 @@
-import { resultTaps, tap, type AluCircuit } from '@/core/aluLink';
+import { hasCircuit, resultTaps, tap, type AluCircuit, type AluLink } from '@/core/aluLink';
 import type { AluRequest, ShiftRequest, Width } from '@/core/logic/alu';
 import type { Bit } from '@/core/logic/gates';
 import { barrelStages } from '@/core/logic/shifter';
@@ -190,4 +190,11 @@ export function circuitLesson(request: AluRequest): string {
     default:
       return 'One gate per bit: each works on a bit of A and the same bit of B, and no bit affects another.';
   }
+}
+
+/** Why the CPU's last instruction has no circuit to show, when it has none. */
+export function unavailableText(link: AluLink | null): string | null {
+  return link && !hasCircuit(link)
+    ? `${link.unavailable} The circuit on show is one to try by hand.`
+    : null;
 }

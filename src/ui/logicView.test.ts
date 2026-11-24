@@ -10,6 +10,7 @@ import {
   operationOf,
   sameCircuit,
   shiftCount,
+  unavailableText,
   withBitFlipped,
   withCarryInFlipped,
   withStageFlipped
@@ -135,5 +136,17 @@ describe('text', () => {
   it('names the circuit', () => {
     expect(circuitTitle(add)).toBe('16-bit adder');
     expect(circuitTitle({ kind: 'or', width: 8, a: 0, b: 0 })).toBe('8 OR gates');
+  });
+});
+
+describe('unavailableText', () => {
+  it('says why an instruction has no circuit, and what the circuit on show is', () => {
+    expect(unavailableText({ unavailable: 'Multiplication has no circuit here.' })).toBe(
+      'Multiplication has no circuit here. The circuit on show is one to try by hand.'
+    );
+  });
+
+  it('has nothing to say before an instruction ran', () => {
+    expect(unavailableText(null)).toBeNull();
   });
 });

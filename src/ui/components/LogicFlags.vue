@@ -10,15 +10,12 @@ const rows = computed(() => flagRows(props.lens.circuit.value, props.lens.shown.
 
 <!-- Each flag, and the wire of the circuit it is read from. -->
 <template>
-  <section aria-label="Flags">
-    <h3 class="text-sm font-semibold">
-      {{ lens.followsCpu.value ? 'Where each flag comes from' : 'What the circuit can also tell' }}
-    </h3>
-    <p v-if="rows.length === 0" class="mt-2 text-sm text-muted-foreground">
+  <div>
+    <p v-if="rows.length === 0" class="text-sm text-muted-foreground">
       No flag is connected to this circuit: only the result leaves it.
     </p>
-    <ul v-else class="mt-2 divide-y">
-      <li v-for="row in rows" :key="row.flag" class="flex items-baseline gap-3 px-1.5 py-2">
+    <ul v-else class="-my-2 divide-y">
+      <li v-for="row in rows" :key="row.flag" class="flex items-baseline gap-3 py-2">
         <span class="w-20 shrink-0 font-mono text-code font-semibold">{{ row.flag }}</span>
         <span
           class="logic-bit shrink-0"
@@ -35,8 +32,8 @@ const rows = computed(() => flagRows(props.lens.circuit.value, props.lens.shown.
         </span>
       </li>
     </ul>
-    <p v-if="lens.circuit.value.note" class="mt-3 max-w-prose text-xs text-muted-foreground">
+    <p v-if="lens.circuit.value.note" class="mt-4 max-w-prose text-xs text-muted-foreground">
       {{ lens.circuit.value.note }}
     </p>
-  </section>
+  </div>
 </template>
