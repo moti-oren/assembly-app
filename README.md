@@ -106,7 +106,11 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     two decoders that read it (`rv32Control.ts`: nine kinds of instruction, and the ALU's
     operations) and what decides the next PC; the other two say why they have nothing to show.
     The test runs every RV32IM instruction and checks the decoders against the CPU's own decoding
-    and the clocked PC against the CPU's.
+    and the clocked PC against the CPU's. `rv32ControlPath.ts` does a word again as a
+    single-cycle datapath, told only by its control lines (any of which can be stuck at 0 or 1),
+    with the registers and memory the instruction found (`rv32ControlMemory.ts`); its test runs
+    every instruction and expects the lines alone to do what the CPU did.
+    `rv32/disassemble.ts` reads a word back as an instruction, for display.
 - `src/ui/`: Vue components and `useCpu`, which wraps a CPU core in Vue reactivity. Each
   architecture has a workbench (`X86Workbench`, `Rv32Workbench`, `Mos6502Workbench`) that lays
   out its panels: the shared ones (program, history, builder, devices, and `FlatMemory` for the
@@ -543,13 +547,25 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **What the lines tell the CPU** lists every line that is 1 with what it does. **Gates** beside
   an ALU line opens the logic topic on the same instruction, and **Stored** beside RegWrite opens
   the storage topic.
+- Press a line, at 1 or at 0, to break it: **Stuck at 0** or **Stuck at 1** holds it there
+  whatever the word says, and **Works** mends it. A broken line stays broken as the CPU steps, so
+  a program can be followed with RegWrite stuck at 0. **Mend every line** (also in the command
+  palette) puts them all back. The CPU itself is never changed.
+- **What the lines make the CPU do** follows the lines through the datapath, with the registers
+  and memory the CPU's instruction found: what goes into the ALU, its result, whether memory is
+  read or written, what rd takes, and where PC goes. With a line broken, every row that comes
+  out differently is set beside what it would be with every line working: MemWrite stuck at 1
+  makes an ADD write rs2 into memory. A fault the lines cause (a store into the code, two values
+  sent to rd at once) is said, not guessed.
 - **Where PC goes next** shows PC + 4 and PC + the immediate, each from an adder, the Branch,
   Jump and comparison lines that choose between them, and PC itself as a register: **Raise the
   clock** loads the chosen address. An instruction run by itself, not fetched from the program,
   leaves PC alone unless it jumps.
 - Press a bit of the word to flip it and see what the decoders make of it (**What if**): bit 30
-  turns ADD into SUB, and an opcode no instruction has turns every line off. The CPU is not
-  changed, and a changed word has no PC to follow.
+  turns ADD into SUB, and an opcode no instruction has turns every line off. Or type any word in
+  hex in the box under the bits and press **Decode** (**Type an instruction word** in the command
+  palette): the page reads it back as assembly, or says that a real CPU would refuse it. The CPU
+  is not changed: a changed word is followed as if it stood in place of the CPU's instruction.
 - This is RISC-V's control unit. The 8086 decodes with microcode and the 6502 with a table read
   again on every cycle: there **Control** is greyed and says why, and the page offers a RISC-V
   word to try by hand.
@@ -704,7 +720,11 @@ npm run verify:6502 # check the 6502 core against py65
     אל נושא הבקרה. זה של RISC-V הופך הוראה שבוצעה למילה של 32 סיביות, לשני המפענחים שקוראים אותה
     (`rv32Control.ts`: תשעה סוגי הוראות, והפעולות של ה-ALU) ולמה שקובע את ה-PC הבא; שני האחרים
     מסבירים למה אין להם מה להציג. הבדיקה מריצה כל הוראה של RV32IM ובודקת את המפענחים מול הפענוח
-    של המעבד עצמו, ואת ה-PC אחרי השעון מול זה של המעבד.
+    של המעבד עצמו, ואת ה-PC אחרי השעון מול זה של המעבד. `rv32ControlPath.ts` מבצע מילה מחדש
+    כמסלול נתונים של מחזור יחיד, שמונע רק מקווי הבקרה שלה (וכל אחד מהם יכול להיות תקוע על 0 או
+    על 1), עם האוגרים והזיכרון שההוראה מצאה (`rv32ControlMemory.ts`); הבדיקה שלו מריצה כל הוראה
+    ומצפה שהקווים לבדם יעשו את מה שהמעבד עשה. `rv32/disassemble.ts` קורא מילה חזרה כהוראה,
+    לתצוגה בלבד.
 - `src/ui/`: רכיבי Vue ו-`useCpu`, שעוטף ליבת CPU בריאקטיביות של Vue. לכל ארכיטקטורה יש שולחן
   עבודה (`X86Workbench`, `Rv32Workbench`, `Mos6502Workbench`) שמסדר את החלוניות שלה: המשותפות
   (תוכנית, היסטוריה, בונה, התקנים, ו-`FlatMemory` למרחבי הכתובות השטוחים של RISC-V ושל ה-6502)
@@ -1092,12 +1112,23 @@ npm run verify:6502 # check the 6502 core against py65
   ובהסתעפות גם איזה חוט של החיסור נקרא.
 - **What the lines tell the CPU** מפרט כל קו שערכו 1 ומה הוא עושה. **Gates** ליד קו של ה-ALU
   פותח את נושא הלוגיקה על אותה הוראה, ו-**Stored** ליד RegWrite פותח את נושא האחסון.
+- לחיצה על קו, בין שערכו 1 ובין שערכו 0, מאפשרת לשבור אותו: **Stuck at 0** או **Stuck at 1**
+  מחזיקים אותו שם, מה שלא תאמר המילה, ו-**Works** מתקן אותו. קו שבור נשאר שבור כשהמעבד צועד, כך
+  שאפשר לעקוב אחרי תוכנית עם RegWrite תקוע על 0. **Mend every line** (גם בפלטת הפקודות) מחזיר את
+  כולם. המעבד עצמו אינו משתנה לעולם.
+- **What the lines make the CPU do** עוקב אחרי הקווים דרך מסלול הנתונים, עם האוגרים והזיכרון
+  שההוראה של המעבד מצאה: מה נכנס ל-ALU, מה התוצאה שלו, האם הזיכרון נקרא או נכתב, מה rd מקבל
+  ולאן PC הולך. כשקו שבור, כל שורה שיוצאת אחרת מוצגת לצד מה שהייתה עם כל הקווים תקינים: MemWrite
+  תקוע על 1 גורם ל-ADD לכתוב את rs2 לזיכרון. תקלה שהקווים גורמים (כתיבה לתוך הקוד, שני ערכים
+  שנשלחים ל-rd בבת אחת) נאמרת, ולא מנוחשת.
 - **Where PC goes next** מציג את PC + 4 ואת PC + ה-immediate, כל אחד ממחבר משלו, את הקווים
   Branch ו-Jump ואת קו ההשוואה שבוחרים ביניהם, ואת PC עצמו כאוגר: **Raise the clock** טוען את
   הכתובת שנבחרה. הוראה שהורצה לבדה, ולא נשלפה מהתוכנית, משאירה את PC במקומו אלא אם היא קופצת.
 - לחיצה על סיבית של המילה הופכת אותה ומראה מה המפענחים עושים ממנה (**What if**): סיבית 30 הופכת
-  ADD ל-SUB, ו-opcode שאין לאף הוראה מכבה את כל הקווים. המעבד אינו משתנה, ולמילה ששונתה אין PC
-  לעקוב אחריו.
+  ADD ל-SUB, ו-opcode שאין לאף הוראה מכבה את כל הקווים. אפשר גם להקליד כל מילה ב-hex בתיבה
+  שמתחת לסיביות וללחוץ **Decode** (**Type an instruction word** בפלטת הפקודות): העמוד קורא אותה
+  חזרה כאסמבלי, או אומר שמעבד אמיתי היה דוחה אותה. המעבד אינו משתנה: מילה ששונתה מוצגת כאילו
+  עמדה במקום ההוראה של המעבד.
 - זוהי יחידת הבקרה של RISC-V. ה-8086 מפענח בעזרת מיקרוקוד וה-6502 בעזרת טבלה שנקראת מחדש בכל
   מחזור: שם **Control** אפור ומסביר למה, והעמוד מציע מילה של RISC-V לניסוי ביד.
 

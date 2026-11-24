@@ -12,6 +12,7 @@ import { parseRegister } from './rv32/registers';
 import { addressOfLine, createCpuState, DATA_BASE, writeRegister } from './rv32/state';
 import { rv32AluLink } from './rv32AluLink';
 import { RV32_CONTROL } from './rv32Control';
+import { memoryBefore } from './rv32ControlMemory';
 import { controlImmediate, rv32ControlLink } from './rv32ControlLink';
 import { x86ControlLink } from './x86ControlLink';
 
@@ -68,7 +69,7 @@ function run(instruction: Instruction, fetched: boolean, next: () => number) {
   cpu.registers.pc = addressOfLine(AT);
   const program = Array.from({ length: PROGRAM_LINES }, (_, at) => (at === AT ? instruction : NOP));
   const record = execute(cpu, instruction, fetched ? AT : null, program);
-  const link = rv32ControlLink(record);
+  const link = rv32ControlLink(record, memoryBefore(cpu, program, record));
   if (!hasControl(link)) throw new Error(link.unavailable);
   return { cpu, record, link, solution: solveControl(link.shape, link.word) };
 }
@@ -191,7 +192,8 @@ describe('rv32ControlLink', () => {
   it('does not show PC for a branch too far for its immediate', () => {
     const cpu = createCpuState();
     const far = line('bne', r('a1'), r('a1'), { type: 'label', target: 5000 });
-    const link = rv32ControlLink(execute(cpu, far, null, [far]));
+    const record = execute(cpu, far, null, [far]);
+    const link = rv32ControlLink(record, memoryBefore(cpu, [far], record));
     expect(link).toMatchObject({ pc: null });
     expect((link as ControlView).pcNote).toContain('Out of range');
   });

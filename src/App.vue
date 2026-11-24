@@ -10,6 +10,7 @@ import { RV32 } from '@/core/rv32/architecture';
 import { formatInstruction as formatRv32 } from '@/core/rv32/instructions';
 import { rv32AluLink } from '@/core/rv32AluLink';
 import { rv32ControlLink } from '@/core/rv32ControlLink';
+import { memoryBefore } from '@/core/rv32ControlMemory';
 import { rv32NumberLink } from '@/core/rv32NumberLink';
 import { rv32RegisterLink } from '@/core/rv32RegisterLink';
 import { X86 } from '@/core/x86/architecture';
@@ -160,7 +161,10 @@ const { moment: registerMoment } = useCpuMoment({
 
 const { moment: controlMoment } = useCpuMoment({
   x86: followed(x86, x86Text, { link: x86ControlLink, shows: hasControl }),
-  rv32: followed(rv32, rv32Text, { link: rv32ControlLink, shows: hasControl }),
+  rv32: followed(rv32, rv32Text, {
+    link: (record) => rv32ControlLink(record, memoryBefore(rv32.state, rv32.program.value, record)),
+    shows: hasControl
+  }),
   mos6502: followed(mos6502, mos6502Text, { link: mos6502ControlLink, shows: hasControl })
 });
 

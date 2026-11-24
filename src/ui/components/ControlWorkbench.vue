@@ -11,6 +11,7 @@ import { useTopic } from '@/ui/useTopic';
 import AppErrorNotice from './AppErrorNotice.vue';
 import ArchitectureSwitch from './ArchitectureSwitch.vue';
 import CommandPalette from './CommandPalette.vue';
+import ControlEffect from './ControlEffect.vue';
 import ControlLines from './ControlLines.vue';
 import ControlPc from './ControlPc.vue';
 import ControlPlane from './ControlPlane.vue';
@@ -39,7 +40,8 @@ onMounted(focusPage);
 onActivated(focusPage);
 const commands = useControlCommands(lens, () => props.moment, {
   seek: (position) => emit('seek', position),
-  back: () => emit('back')
+  back: () => emit('back'),
+  focusWord: () => page.value?.querySelector<HTMLElement>('[data-control-word]')?.focus()
 });
 
 const equation = computed(() => equationText(lens.word.value, lens.solution.value));
@@ -76,8 +78,8 @@ const unavailable = computed(() => unavailableText(props.moment.link));
         <h2 class="text-base font-semibold tracking-tight">The instruction, as 32 bits</h2>
         <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
           This is all the control unit gets. It reads a few of these bits and, from them alone, sets
-          every line that tells the rest of the CPU what to do. Press a bit to flip it and see what
-          the word becomes.
+          every line that tells the rest of the CPU what to do. Press a bit to flip it, or type
+          another word in hex, and see what it becomes.
         </p>
         <div class="mt-3">
           <ControlWord :lens="lens" />
@@ -94,6 +96,7 @@ const unavailable = computed(() => unavailableText(props.moment.link));
         <div class="mt-3">
           <ControlPlane
             :solution="lens.solution.value.main"
+            :faults="lens.faults.value"
             :wires="lens.shape.value.wires"
             caption="The main decoder: one AND gate for each kind of instruction, and the control lines it feeds"
             row-heading="Kind"
@@ -111,6 +114,7 @@ const unavailable = computed(() => unavailableText(props.moment.link));
         <div class="mt-3">
           <ControlPlane
             :solution="lens.solution.value.alu"
+            :faults="lens.faults.value"
             :wires="lens.shape.value.wires"
             caption="The ALU decoder: one AND gate for each operation, and the ALU lines it feeds"
             row-heading="Operation"
@@ -120,8 +124,25 @@ const unavailable = computed(() => unavailableText(props.moment.link));
 
       <section class="border-t pt-5" aria-label="The control lines">
         <h2 class="text-base font-semibold tracking-tight">What the lines tell the CPU</h2>
+        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+          Press a line to see what it switches, and break it: a line stuck at 0 or at 1 stays there
+          whatever the word says. It stays broken as the CPU steps, so you can follow a program with
+          it.
+        </p>
         <div class="mt-3">
           <ControlLines :lens="lens" @open="topic = $event" />
+        </div>
+      </section>
+
+      <section class="border-t pt-5" aria-label="What the instruction does">
+        <h2 class="text-base font-semibold tracking-tight">What the lines make the CPU do</h2>
+        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+          The lines are all the rest of the CPU gets. Here they turn its switches, with nothing else
+          knowing which instruction this is: what goes into the ALU, whether memory is used, what rd
+          takes.
+        </p>
+        <div class="mt-3">
+          <ControlEffect :lens="lens" />
         </div>
       </section>
 
@@ -134,7 +155,7 @@ const unavailable = computed(() => unavailableText(props.moment.link));
         <div class="mt-3">
           <ControlPc v-if="lens.pc.value" :lens="lens" :solution="lens.pc.value" />
           <p v-else class="max-w-prose text-sm text-pretty">
-            {{ pcAbsentText(lens.fromCpu.value, lens.isEdited.value) }}
+            {{ pcAbsentText(lens.fromCpu.value) }}
           </p>
         </div>
       </section>

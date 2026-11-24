@@ -64,4 +64,28 @@
     color: var(--foreground);
     font-weight: 600;
   }
+  /* A broken line: its value is boxed with a broken outline, as a broken gate is drawn. */
+  .control-plane .control-value[data-stuck] {
+    outline: 1px dashed var(--foreground);
+    outline-offset: -3px;
+  }
+  /* A control line as a button to pick it; a broken one has a broken outline. */
+  .control-line {
+    border: 1px solid var(--wire);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-feature-settings: 'zero';
+  }
+  .control-line:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .control-line[aria-pressed='true'] {
+    border-color: var(--foreground);
+    background: var(--accent);
+  }
+  .control-line[data-stuck] {
+    border-style: dashed;
+    border-color: var(--foreground);
+  }
 }

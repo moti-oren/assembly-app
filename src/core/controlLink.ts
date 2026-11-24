@@ -1,4 +1,5 @@
 import { solveDecoder, type DecoderShape, type DecoderSolution } from './logic/decoder';
+import type { Faults } from './logic/fault';
 import { bitOf, type Bit } from './logic/gates';
 import type { PcRequest } from './logic/programCounter';
 
@@ -26,6 +27,27 @@ export interface WordField {
   decoded: boolean;
 }
 
+/** What a read of memory gave: the bytes as an unsigned number, low byte first, or a fault. */
+export type MemoryRead = number | { fault: string };
+
+/** Memory as an instruction found it, for a datapath that does the instruction again. */
+export interface ControlMemory {
+  read: (address: number, size: number) => MemoryRead;
+  /** Why a store there would trap, or null when it would go through. */
+  storeFault: (address: number, size: number) => string | null;
+}
+
+/** What an instruction found when it ran: all a datapath needs to do it again from its lines. */
+export interface ControlContext {
+  /** Every register the word can name, by its number. */
+  registers: readonly number[];
+  /** The address of the instruction. */
+  here: number;
+  /** Whether it was fetched from the program, so the instruction pointer moves on. */
+  fetched: Bit;
+  memory: ControlMemory;
+}
+
 /** What the control unit made of one executed instruction. */
 export interface ControlView {
   /** The instruction as the bits the control unit reads. */
@@ -37,6 +59,8 @@ export interface ControlView {
   pc: PcRequest | null;
   /** Said about the instruction pointer: why it is not shown, or what is unusual about it. */
   pcNote: string | null;
+  /** What the instruction found, for following what its control lines make the CPU do. */
+  context: ControlContext;
 }
 
 /** An instruction with no control unit to show, and why. */
@@ -57,15 +81,38 @@ export interface ControlSolution {
   alu: DecoderSolution;
 }
 
-/** Runs an instruction word through the two decoders, the second reading the first one's wires. */
-export function solveControl({ wires, main, alu }: ControlShape, word: number): ControlSolution {
+/** The faults that break a line of this decoder. */
+function faultsIn({ lines }: DecoderShape, faults: Faults): Faults {
+  return Object.fromEntries(
+    lines.filter(({ id }) => id in faults).map(({ id }) => [id, faults[id]])
+  );
+}
+
+/**
+ * Runs an instruction word through the two decoders, the second reading the first one's wires.
+ * `faults` names the control lines that are broken, each stuck at one value; a line of the first
+ * decoder that the second reads carries its fault there. A linker never passes any.
+ */
+export function solveControl(
+  { wires, main, alu }: ControlShape,
+  word: number,
+  faults: Faults = {}
+): ControlSolution {
+  const known = [...main.lines, ...alu.lines].map((line) => line.id);
+  const unknown = Object.keys(faults).find((name) => !known.includes(name));
+  if (unknown !== undefined) throw new Error(`No control line is called ${unknown}.`);
   const fromWord = (name: string): Bit => bitOf(word, wires[name]);
-  const first = solveDecoder(main, Object.fromEntries(main.inputs.map((n) => [n, fromWord(n)])));
+  const first = solveDecoder(
+    main,
+    Object.fromEntries(main.inputs.map((n) => [n, fromWord(n)])),
+    faultsIn(main, faults)
+  );
   const second = solveDecoder(
     alu,
     Object.fromEntries(
       alu.inputs.map((name) => [name, name in wires ? fromWord(name) : first.signals[name]])
-    )
+    ),
+    faultsIn(alu, faults)
   );
   return { main: first, alu: second };
 }

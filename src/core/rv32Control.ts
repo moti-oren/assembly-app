@@ -3,6 +3,7 @@ import type { DecoderLine, DecoderTerm } from './logic/decoder';
 import { bitOf, type Bit } from './logic/gates';
 import { IMMEDIATE_OPERATIONS } from './rv32/alu';
 import { OPCODES } from './rv32/encode';
+import type { ImmediateFormat } from './rv32/immediate';
 import { getSpec, MNEMONICS, type Mnemonic } from './rv32/instructions';
 
 const OPCODE_WIRES = ['op6', 'op5', 'op4', 'op3', 'op2', 'op1', 'op0'];
@@ -60,6 +61,15 @@ const MAIN_LINES: Record<string, ClassId[]> = {
   immB: ['BRANCH'],
   immU: ['LUI', 'AUIPC'],
   immJ: ['JAL']
+};
+
+/** The line of the main decoder that says how the immediate is laid out, for each format. */
+export const IMMEDIATE_LINES: Record<string, ImmediateFormat> = {
+  immI: 'I',
+  immS: 'S',
+  immB: 'B',
+  immU: 'U',
+  immJ: 'J'
 };
 
 /** What each ALU operation asks of the ALU's lines. */

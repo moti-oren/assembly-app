@@ -95,6 +95,35 @@ export interface StoreResult {
   portWrites: PortWrite[];
 }
 
+/** Where a store goes: a device or RAM. A store anywhere else is a CpuError. */
+function storeTarget(
+  program: Program<Instruction>,
+  address: number,
+  size: AccessSize
+): Exclude<Target, { kind: 'code' }> {
+  const target = locate(address, size, addressOfLine(program.length), 'store');
+  if (target.kind !== 'code') return target;
+  const line = Math.floor((address - CODE_BASE) / INSTRUCTION_SIZE);
+  throw new CpuError(
+    `Store into code: 0x${formatHex32(address)} holds ${formatLabel(line)}. This playground runs the program as a list of lines, so a program cannot change its own code.`
+  );
+}
+
+/** Why a store of `size` bytes at `address` would trap, or null when it would go through. */
+export function storeFault(
+  program: Program<Instruction>,
+  address: number,
+  size: AccessSize
+): string | null {
+  try {
+    storeTarget(program, address, size);
+    return null;
+  } catch (error) {
+    if (error instanceof CpuError) return error.message;
+    throw error;
+  }
+}
+
 export function store(
   state: CpuState,
   program: Program<Instruction>,
@@ -102,16 +131,10 @@ export function store(
   size: AccessSize,
   value: number
 ): StoreResult {
-  const target = locate(address, size, addressOfLine(program.length), 'store');
+  const target = storeTarget(program, address, size);
   switch (target.kind) {
     case 'device':
       return { memoryWrites: [], portWrites: [writePort(state, target.port, value)] };
-    case 'code': {
-      const line = Math.floor((address - CODE_BASE) / INSTRUCTION_SIZE);
-      throw new CpuError(
-        `Store into code: 0x${formatHex32(address)} holds ${formatLabel(line)}. This playground runs the program as a list of lines, so a program cannot change its own code.`
-      );
-    }
     case 'ram': {
       const bytes = Array.from({ length: size }, (_, i) => (value >>> (8 * i)) & 0xff);
       return { memoryWrites: writeBytes(state, address, bytes), portWrites: [] };

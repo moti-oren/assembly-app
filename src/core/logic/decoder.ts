@@ -1,3 +1,4 @@
+import { withStuck, type Faults } from './fault';
 import { evaluate, type Bit, type Circuit, type Gate, type Signals } from './gates';
 
 /** One AND gate of a decoder: on when every input it names carries the bit it asks for. */
@@ -59,9 +60,13 @@ export interface DecoderSolution {
   signals: Signals;
 }
 
-/** Builds the decoder and runs the inputs through it. */
-export function solveDecoder(shape: DecoderShape, inputs: Signals): DecoderSolution {
-  const circuit = decoder(shape);
+/** Builds the decoder, breaks the gates named in `faults`, and runs the inputs through it. */
+export function solveDecoder(
+  shape: DecoderShape,
+  inputs: Signals,
+  faults: Faults = {}
+): DecoderSolution {
+  const circuit = withStuck(decoder(shape), faults);
   return { shape, circuit, signals: evaluate(circuit, inputs) };
 }
 

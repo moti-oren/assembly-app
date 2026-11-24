@@ -1,27 +1,40 @@
 import { flagValues, hasCircuit } from './aluLink';
-import { solveControl, type ControlLink, type ControlSolution } from './controlLink';
+import {
+  solveControl,
+  type ControlLink,
+  type ControlMemory,
+  type ControlSolution,
+  type WordField
+} from './controlLink';
 import { solve } from './logic/alu';
 import type { Bit } from './logic/gates';
 import type { PcRequest } from './logic/programCounter';
 import { u32 } from './rv32/bits';
-import { encodeAt, type FieldName } from './rv32/encode';
+import { wordLayout } from './rv32/disassemble';
+import { encodeAt, type EncodedField, type FieldName } from './rv32/encode';
 import type { ExecutionRecord } from './rv32/execute';
-import { immediateOf, type ImmediateFormat } from './rv32/immediate';
-import { addressOfLine, INSTRUCTION_SIZE } from './rv32/state';
+import { immediateOf } from './rv32/immediate';
+import { addressOfLine, INSTRUCTION_SIZE, readRegister } from './rv32/state';
 import { BRANCH_TAKEN, rv32AluLink } from './rv32AluLink';
-import { RV32_CONTROL } from './rv32Control';
-
-/** The line of the main decoder that says how the immediate is laid out, for each format. */
-const IMMEDIATE_LINES: Record<string, ImmediateFormat> = {
-  immI: 'I',
-  immS: 'S',
-  immB: 'B',
-  immU: 'U',
-  immJ: 'J'
-};
+import { IMMEDIATE_LINES, RV32_CONTROL } from './rv32Control';
 
 /** The fields the decoders tell instructions apart by; the rest only name registers and values. */
 const DECODED: FieldName[] = ['opcode', 'funct3', 'funct7'];
+
+const asWordFields = (fields: readonly EncodedField[]): WordField[] =>
+  fields.map(({ name, label, high, low, note }) => ({
+    label,
+    high,
+    low,
+    note,
+    decoded: DECODED.includes(name)
+  }));
+
+/** The fields of a word nobody ran, when it is an instruction of RV32IM. */
+export function rv32WordFields(word: number): WordField[] | null {
+  const fields = wordLayout(word);
+  return fields && asWordFields(fields);
+}
 
 const NOT_FETCHED =
   'This instruction was run by itself, not fetched from the program, so PC stays where it is unless the instruction jumps.';
@@ -59,23 +72,26 @@ function pcRequest(record: ExecutionRecord, word: number, here: number): PcReque
   };
 }
 
-/** The control unit behind an executed RISC-V instruction: its word, the decoders and PC. */
-export function rv32ControlLink(record: ExecutionRecord): ControlLink {
+/**
+ * The control unit behind an executed RISC-V instruction: its word, the decoders and PC, with the
+ * registers and the `memory` the instruction found.
+ */
+export function rv32ControlLink(record: ExecutionRecord, memory: ControlMemory): ControlLink {
   const { instruction, line, before } = record;
   const here = line === null ? before.registers.pc : addressOfLine(line);
   const { word, fields, problem } = encodeAt(instruction, here);
   return {
     word,
     width: 32,
-    fields: fields.map(({ name, label, high, low, note }) => ({
-      label,
-      high,
-      low,
-      note,
-      decoded: DECODED.includes(name)
-    })),
+    fields: asWordFields(fields),
     shape: RV32_CONTROL,
     pc: problem ? null : pcRequest(record, word, here),
-    pcNote: problem ?? (line === null ? NOT_FETCHED : null)
+    pcNote: problem ?? (line === null ? NOT_FETCHED : null),
+    context: {
+      registers: Array.from({ length: 32 }, (_, index) => readRegister(before, index)),
+      here,
+      fetched: line === null ? 0 : 1,
+      memory
+    }
   };
 }
