@@ -406,16 +406,21 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   under every bit with the carry rippling between them (a subtraction is the same adder with B
   inverted), one gate per bit for AND, OR and XOR, or a shifter whose rows of switches move the
   bits. The 8086 and the 6502 shift one place per row; RISC-V has a barrel shifter of five rows.
+- The page is laid out like a CPU's. On the left is what you set: where the operation came
+  from, the operation and its width, the gate you picked, and the flags. On the right is the
+  circuit, and a bar runs under both. Each panel on the left folds to its header. On a tablet
+  the left side is a drawer (**Controls**, in the header); on a phone **Controls** and
+  **Circuit** are two views.
 - Press an adder, a gate or a bit of a shifter's row to see that one bit gate by gate, with the
   truth table of any gate you press and the Boolean expressions it works out.
-- **Slow down time**, above an adder, shows it one gate delay at a time: every gate takes one
+- **Slow down time**, in the bar while an adder is on show, shows it one gate delay at a time: every gate takes one
   delay to react, so a carry climbs two delays a bit and the sum is wrong on the way. Step, play
   or drag through the delays; a dashed bit will change again, and **ready at** gives the delay
   each bit of the result settles at. A flipped bit starts from the wires as they were, so only
   what it reaches moves; **Longest carry** loads the values that keep the adder busy longest.
   The same actions are in the command palette, under **Gate delays**.
-- **Break a gate**: under the truth table of the gate you pressed, **Stuck at 0** or **Stuck at
-  1** holds its output at that value whatever its inputs are. A line above the circuit sets the
+- **Break a gate**: in **The gate picked** on the left (on a phone, under the truth table of
+  the gate you pressed), **Stuck at 0** or **Stuck at 1** holds its output at that value whatever its inputs are. A line above the circuit sets the
   broken circuit's answer beside the working one's, the wrong bits of the result are underlined,
   and the flags follow the broken wires. Often nothing is wrong at all: the inputs hide a fault
   when the gate would put out that value anyway, so change a bit to catch it. With time slowed
@@ -423,7 +428,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   the same one, so you can step the CPU and see which instructions it spoils; the CPU itself is
   never touched. **Works** mends the gate and **Repair every gate** mends them all (also in the
   command palette, under **Faults**).
-- **As NAND gates**, under the gate you pressed, draws that gate built from NAND gates alone,
+- **As NAND gates**, beside it, draws that gate under the drawing, built from NAND gates alone,
   with the values now on its wires: two for an AND, three for an OR, four for an XOR or a
   shifter's switch. Below it is the price, worked out by really building the circuit that way:
   how many NAND gates the gate, its bit and the whole circuit take, and how much longer the
@@ -432,15 +437,15 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   subtraction is the inverse of the carry out; the 6502's C is the carry out itself; RISC-V has
   no flags, so a branch or `slt` reads one wire of a subtraction.
 - Press a bit of an input to flip it and see what the circuit would have made (**What if**). The
-  CPU is not changed; **The CPU's values** puts its bits back. The operation and the width can be
+  CPU is not changed; **Reset**, in the bar, puts its bits back. The operation and the width can be
   changed too, to try a circuit freely.
-- The arrows step to the operation before or after this one in the CPU's history, and **Back to
-  the …** returns to the CPU at the instruction on show.
+- The arrows in the bar step to the operation before or after this one in the CPU's history, and
+  the **CPU** tab returns to the CPU at the instruction on show (on a phone, the arrow with the
+  CPU's name above the page).
 - Multiplication, division and the 6502's decimal mode have no circuit yet: there **Gates** is
   greyed and says why.
-- **What it means as numbers**, at the foot of the page, opens the same operation in the number
-  topic, **How the result is kept** opens the storage topic, and **What picks the operation**
-  opens the control topic.
+- **Numbers**, **Storage** and **Control**, at the right of the bar (behind **⋯** below a
+  desktop), open the same operation in the number topic, the storage topic and the control topic.
 
 ## From an operation to its numbers
 
@@ -990,14 +995,19 @@ npm run verify:6502 # check the 6502 core against py65
   כשהנשא מתגלגל ביניהם (חיסור הוא אותו מחבר עם B הפוך), שער אחד לכל סיבית ב-AND, ב-OR וב-XOR, או
   מעגל הזזה ששורות המתגים שלו מזיזות את הסיביות. ה-8086 וה-6502 מזיזים מקום אחד בכל שורה;
   ל-RISC-V יש barrel shifter של חמש שורות.
+- העמוד בנוי כמו העמוד של מעבד. משמאל מה שקובעים: מאין הגיעה הפעולה, הפעולה והרוחב שלה, השער
+  שנבחר והדגלים. מימין המעגל, ומתחת לשניהם סרגל. כל חלונית משמאל מתקפלת לכותרת שלה. בטאבלט הצד
+  השמאלי הוא מגירה (**Controls**, בכותרת העליונה); בטלפון **Controls** ו-**Circuit** הן שתי
+  תצוגות.
 - לחיצה על מחבר, על שער או על סיבית בשורה של מעגל ההזזה מציגה את אותה סיבית שער אחר שער, עם
   טבלת האמת של כל שער שלוחצים עליו והביטויים הבוליאניים שהוא מחשב.
-- **Slow down time**, מעל מחבר, מציג אותו השהיית שער אחת בכל פעם: לכל שער לוקח השהיה אחת להגיב,
+- **Slow down time**, בסרגל כשמוצג מחבר, מציג אותו השהיית שער אחת בכל פעם: לכל שער לוקח השהיה אחת להגיב,
   ולכן הנשא מטפס שתי השהיות לכל סיבית והסכום שגוי בדרך. אפשר לצעוד בין ההשהיות, לנגן אותן או לגרור
   ביניהן; סיבית מקווקוות עוד תשתנה, ו-**ready at** מציין באיזו השהיה כל סיבית של התוצאה מתייצבת.
   סיבית שהופכים מתחילה מהחוטים כפי שהיו, כך שזז רק מה שהיא מגיעה אליו; **Longest carry** טוען את
   הערכים שמעסיקים את המחבר הכי הרבה זמן. אותן פעולות נמצאות גם בפלטת הפקודות, תחת **Gate delays**.
-- **שבירת שער**: מתחת לטבלת האמת של השער שלחצתם עליו, **Stuck at 0** או **Stuck at 1** מחזיקים
+- **שבירת שער**: ב-**The gate picked** משמאל (בטלפון: מתחת לטבלת האמת של השער שלחצתם עליו),
+  **Stuck at 0** או **Stuck at 1** מחזיקים
   את הפלט שלו על הערך הזה, יהיו הקלטים אשר יהיו. שורה מעל המעגל מציבה את התשובה של המעגל השבור
   ליד התשובה של מעגל תקין, הסיביות השגויות בתוצאה מסומנות בקו תחתון, והדגלים הולכים אחרי החוטים
   השבורים. לעיתים קרובות שום דבר לא שגוי: הקלטים מסתירים תקלה כשהשער היה מוציא את הערך הזה
@@ -1005,7 +1015,7 @@ npm run verify:6502 # check the 6502 core against py65
   תקלה נשארת כל עוד המעגל הוא אותו מעגל, כך שאפשר לצעוד במעבד ולראות אילו הוראות היא מקלקלת;
   המעבד עצמו אינו מושפע לעולם. **Works** מתקן את השער ו-**Repair every gate** מתקן את כולם (גם
   בפלטת הפקודות, תחת **Faults**).
-- **As NAND gates**, מתחת לשער שלחצתם עליו, מצייר את אותו שער כשהוא בנוי משערי NAND בלבד, עם
+- **As NAND gates**, לידו, מצייר מתחת לציור את אותו שער כשהוא בנוי משערי NAND בלבד, עם
   הערכים שעל החוטים שלו עכשיו: שניים ל-AND, שלושה ל-OR, ארבעה ל-XOR או למתג של מעגל ההזזה.
   מתחתיו כתוב המחיר, שמחושב מבנייה אמיתית של המעגל בדרך הזו: כמה שערי NAND צריכים השער, הסיבית
   שלו והמעגל כולו, ובכמה מתארך המסלול הארוך ביותר.
@@ -1013,13 +1023,13 @@ npm run verify:6502 # check the 6502 core against py65
   ההיפוך של הנשא היוצא; ה-C של ה-6502 הוא הנשא היוצא עצמו; ל-RISC-V אין דגלים, ולכן הסתעפות או
   `slt` קוראות חוט אחד של חיסור.
 - לחיצה על סיבית של קלט הופכת אותה ומראה מה המעגל היה מחשב (**What if**). המעבד אינו משתנה;
-  **The CPU's values** מחזיר את הסיביות שלו. אפשר לשנות גם את הפעולה ואת הרוחב, ולנסות מעגל באופן
+  **Reset**, בסרגל, מחזיר את הסיביות שלו. אפשר לשנות גם את הפעולה ואת הרוחב, ולנסות מעגל באופן
   חופשי.
-- החצים עוברים לפעולה שלפני זו או אחריה בהיסטוריה של המעבד, ו-**Back to the …** חוזר למעבד
-  בהוראה המוצגת.
+- החצים שבסרגל עוברים לפעולה שלפני זו או אחריה בהיסטוריה של המעבד, והלשונית **CPU** חוזרת למעבד
+  בהוראה המוצגת (בטלפון: החץ עם שם המעבד מעל העמוד).
 - לכפל, לחילוק ולמצב העשרוני של ה-6502 אין עדיין מעגל: שם **Gates** אפור ומסביר למה.
-- **What it means as numbers**, בתחתית העמוד, פותח את אותה פעולה בנושא המספרים, **How the
-  result is kept** פותח את נושא האחסון, ו-**What picks the operation** פותח את נושא הבקרה.
+- **Numbers**, **Storage** ו-**Control**, בצד ימין של הסרגל (מתחת לדסקטופ: מאחורי **⋯**), פותחים
+  את אותה פעולה בנושא המספרים, בנושא האחסון ובנושא הבקרה.
 
 ## מפעולה למספרים שלה
 
