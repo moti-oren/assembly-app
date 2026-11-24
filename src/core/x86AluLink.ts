@@ -98,6 +98,12 @@ function withoutAlu(mnemonic: Mnemonic): AluLink {
       unavailable: `${name} divides by subtracting and shifting many times over; that circuit is not shown yet.`
     };
   }
+  // NOT flips every bit on its own, a row of inverters: it is computed, just not drawn here.
+  if (mnemonic === 'not') {
+    return {
+      unavailable: 'NOT inverts every bit by itself; that row of inverters is not shown yet.'
+    };
+  }
   return { unavailable: `${name} worked nothing out in the ALU.` };
 }
 

@@ -7,6 +7,7 @@ import { parseRegister } from '@/core/rv32/registers';
 import { createCpuState, DATA_BASE, DEVICE_BASE, writeRegister } from '@/core/rv32/state';
 import {
   aluEquation,
+  aluIdleText,
   describeAccess,
   describeComparison,
   describeDecode,
@@ -149,5 +150,15 @@ describe('describeAccess', () => {
     const state = cpu();
     const record = execute(state, line('lw', r('t0'), at(0, 'zero')), null, program);
     expect(describeAccess(record)).toBe('Loaded the word 0x00500513 from 0x00000000, in the code');
+  });
+});
+
+describe('aluIdleText', () => {
+  it('says a branch used the ALU to compare, and anything else did not', () => {
+    const beq = line('beq', r('a0'), r('a1'), label(0));
+    const branch = execute(createCpuState(), beq, null, [beq]);
+    expect(aluIdleText(branch)).toContain('subtracted the two registers');
+    const lui = line('lui', r('a0'), imm(1));
+    expect(aluIdleText(execute(createCpuState(), lui, null, [lui]))).toBe('The ALU was not used.');
   });
 });

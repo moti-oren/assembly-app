@@ -156,6 +156,13 @@ export interface AluEquation {
   note: string | null;
 }
 
+/** What the ALU card says when it has no sum to show: a branch used the ALU all the same. */
+export function aluIdleText(record: ExecutionRecord): string {
+  return record.comparison
+    ? 'The ALU subtracted the two registers to compare them: the comparison is below.'
+    : 'The ALU was not used.';
+}
+
 export function aluEquation(record: ExecutionRecord): AluEquation | null {
   const { alu, instruction } = record;
   if (!alu) return null;

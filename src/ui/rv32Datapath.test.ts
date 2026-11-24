@@ -91,3 +91,14 @@ describe('datapathView', () => {
     });
   });
 });
+
+describe('a branch in EXECUTE', () => {
+  it('shows the subtraction that compares its registers', () => {
+    const beq = line('beq', r('a0'), r('a1'), label(0));
+    const state = createCpuState();
+    const record = execute(state, beq, 0, [beq]);
+    const view = datapathView({ state, program: [beq], record, pending: null });
+    expect(view.execute.use).toBe('read');
+    expect(view.execute.text).toContain('−');
+  });
+});
