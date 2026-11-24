@@ -100,8 +100,9 @@ const sections = computed(() => logicSections(mode.value === 'phone', lens.follo
 
       <p class="max-w-prose px-4 py-(--pane-section-py) text-xs text-pretty text-muted-foreground">
         These are the simplest circuits that work out the same bits. A real chip uses faster ones,
-        such as an adder that does not wait for its carry to ripple, but every wire you see here
-        carries the value the CPU computed.
+        such as an adder that does not wait for its carry to ripple<template v-if="lens.asRun.value"
+          >, but every wire you see here carries the value the CPU computed</template
+        >.
       </p>
     </template>
 
