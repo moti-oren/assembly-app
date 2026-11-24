@@ -1,5 +1,7 @@
 import { reads, type FlagReading, type NumberLink, type NumberView } from './numberLink';
 import type { ArithmeticRequest } from './representation/arithmetic';
+import type { ScalingRequest } from './representation/scaling';
+import type { AluMnemonic } from './rv32/alu';
 import type { AluTrace, ExecutionRecord, MemoryAccess } from './rv32/execute';
 import type { Mnemonic } from './rv32/instructions';
 import { BRANCH_TAKEN, SET_RESULT } from './rv32AluLink';
@@ -50,9 +52,32 @@ function extended(access: MemoryAccess, signed: boolean): NumberView {
   };
 }
 
+const SCALINGS: Partial<Record<AluMnemonic, Pick<ScalingRequest, 'direction' | 'fill'>>> = {
+  sll: { direction: 'left', fill: 'zero' },
+  srl: { direction: 'right', fill: 'zero' },
+  sra: { direction: 'right', fill: 'sign' }
+};
+
+/** A shift by the low five bits of the count: RISC-V never moves more places than it has. */
+function scaled(
+  a: number,
+  b: number,
+  shape: Pick<ScalingRequest, 'direction' | 'fill'>
+): NumberView {
+  return {
+    request: { kind: 'shift', width: WIDTH, value: a, ...shape, count: b & 31 },
+    flags: [],
+    resultKept: true,
+    comparable: false,
+    note: NO_FLAGS
+  };
+}
+
 function computed(alu: AluTrace): NumberLink {
   const { operation, a, b } = alu;
   const less = 'The same bits, compared on one scale: rd gets 1 when a is the smaller.';
+  const shape = SCALINGS[operation];
+  if (shape) return scaled(a, b, shape);
   switch (operation) {
     case 'add':
       return {

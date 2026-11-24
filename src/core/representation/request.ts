@@ -2,6 +2,7 @@ import { solveArithmetic, type ArithmeticRequest, type ArithmeticSolution } from
 import { solveBcd, type BcdRequest, type BcdSolution } from './bcd';
 import { solveExtension, type ExtensionRequest, type ExtensionSolution } from './extension';
 import { readValue, type ValueReadings, type Width } from './readings';
+import { solveScaling, type ScalingRequest, type ScalingSolution } from './scaling';
 
 /** One row of bits, to be read every way it can be. */
 export interface ValueRequest {
@@ -16,13 +17,16 @@ export interface ValueSolution {
 }
 
 /** Something the number topic can show. */
-export type NumberRequest = ArithmeticRequest | ExtensionRequest | BcdRequest | ValueRequest;
+export type NumberRequest =
+  ArithmeticRequest | ExtensionRequest | BcdRequest | ScalingRequest | ValueRequest;
 
-export type NumberSolution = ArithmeticSolution | ExtensionSolution | BcdSolution | ValueSolution;
+export type NumberSolution =
+  ArithmeticSolution | ExtensionSolution | BcdSolution | ScalingSolution | ValueSolution;
 
 export function solveNumber(request: ArithmeticRequest): ArithmeticSolution;
 export function solveNumber(request: ExtensionRequest): ExtensionSolution;
 export function solveNumber(request: BcdRequest): BcdSolution;
+export function solveNumber(request: ScalingRequest): ScalingSolution;
 export function solveNumber(request: ValueRequest): ValueSolution;
 export function solveNumber(request: NumberRequest): NumberSolution;
 export function solveNumber(request: NumberRequest): NumberSolution {
@@ -34,6 +38,8 @@ export function solveNumber(request: NumberRequest): NumberSolution {
       return solveExtension(request);
     case 'bcd':
       return solveBcd(request);
+    case 'shift':
+      return solveScaling(request);
     case 'value':
       return { request, readings: readValue(request.bits, request.width) };
   }

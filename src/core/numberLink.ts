@@ -1,12 +1,14 @@
 import type { ArithmeticSolution } from './representation/arithmetic';
 import type { Scale } from './representation/readings';
 import type { NumberRequest, NumberSolution } from './representation/request';
+import type { ScalingRequest, ScalingSolution } from './representation/scaling';
 
 /**
  * What a flag says about the numbers: on one scale, that the true answer did not fit (`outside`)
- * or is below zero (`below`); or, of the result itself, that it is zero or reads as negative.
+ * or is below zero (`below`), or that a division left something over (`remainder`); or, of the
+ * result itself, that it is zero or reads as negative.
  */
-export type Verdict = 'outside' | 'below' | 'zero' | 'negative';
+export type Verdict = 'outside' | 'below' | 'remainder' | 'zero' | 'negative';
 
 /** One of a CPU's flags, and the question about the numbers that it answers. */
 export interface FlagReading {
@@ -64,7 +66,56 @@ function arithmeticVerdict(solution: ArithmeticSolution, scale: Scale, verdict: 
       return solution.result === 0;
     case 'negative':
       return solution.signed.shown < 0;
+    case 'remainder':
+      throw new Error('A sum or a difference leaves no remainder.');
   }
+}
+
+function scalingVerdict(solution: ScalingSolution, scale: Scale, verdict: Verdict): boolean {
+  switch (verdict) {
+    case 'outside':
+      return !solution.scales[scale].fits;
+    case 'remainder':
+      return solution.scales[scale].remainder !== 0;
+    case 'zero':
+      return solution.result === 0;
+    case 'negative':
+      return solution.scales.signed.shown < 0;
+    case 'below':
+      throw new Error('A shift compares nothing.');
+  }
+}
+
+/** What each of a CPU's flags is called, for the flags a shift can set. */
+export interface ShiftFlagNames {
+  carry: string;
+  /** Left out by a CPU that has no flag for a signed answer that did not fit. */
+  overflow?: string;
+  zero: string;
+  negative: string;
+}
+
+/**
+ * What the flags say after a shift. The carry is the last bit pushed out, which is a question
+ * about the numbers only for one place: to the left, that the unsigned answer did not fit; to the
+ * right, that the halving left one over.
+ */
+export function shiftReadings(request: ScalingRequest, names: ShiftFlagNames): FlagReading[] {
+  const result = [
+    reads(names.zero, 'unsigned', 'zero'),
+    reads(names.negative, 'signed', 'negative')
+  ];
+  if (request.count !== 1) return result;
+  if (request.direction === 'right') {
+    // The bit pushed out is what is left over on either scale: it is named on the fill's own.
+    const scale = request.fill === 'sign' ? 'signed' : 'unsigned';
+    return [reads(names.carry, scale, 'remainder'), ...result];
+  }
+  return [
+    reads(names.carry, 'unsigned', 'outside'),
+    ...(names.overflow ? [reads(names.overflow, 'signed', 'outside')] : []),
+    ...result
+  ];
 }
 
 function answer(solution: NumberSolution, { flag, scale, verdict }: FlagReading): boolean {
@@ -73,6 +124,9 @@ function answer(solution: NumberSolution, { flag, scale, verdict }: FlagReading)
   }
   if ('unsigned' in solution && scale !== 'decimal') {
     return arithmeticVerdict(solution, scale, verdict);
+  }
+  if ('scales' in solution && scale !== 'decimal') {
+    return scalingVerdict(solution, scale, verdict);
   }
   throw new Error(`Nothing here says whether ${flag} is ${verdict} on the ${scale} scale.`);
 }

@@ -1,4 +1,4 @@
-import { reads, type FlagReading, type NumberView } from '@/core/numberLink';
+import { reads, shiftReadings, type FlagReading, type NumberView } from '@/core/numberLink';
 import { isDecimalByte, wrap, type Width } from '@/core/representation/readings';
 import { resultOf, type NumberRequest, type NumberSolution } from '@/core/representation/request';
 import { hexOf } from './logicView';
@@ -7,6 +7,7 @@ import { hexOf } from './logicView';
 export const LENSES = [
   { id: 'add', label: 'Add' },
   { id: 'subtract', label: 'Subtract' },
+  { id: 'shift', label: 'Shift' },
   { id: 'extend', label: 'Extend' },
   { id: 'bcd', label: 'Decimal' },
   { id: 'value', label: 'One value' }
@@ -36,6 +37,8 @@ function operandsOf(request: NumberRequest): { a: number; b: number | null } {
       return { a: request.value, b: null };
     case 'value':
       return { a: request.bits, b: null };
+    case 'shift':
+      return { a: request.value, b: null };
     default:
       return { a: request.a, b: request.b };
   }
@@ -74,6 +77,15 @@ export function freeRequest(lens: LensId, width: Width, from: NumberRequest | nu
         signed: from?.kind === 'extend' ? from.signed : true
       };
     }
+    case 'shift':
+      return {
+        kind: 'shift',
+        width,
+        value: a,
+        direction: from?.kind === 'shift' ? from.direction : 'left',
+        fill: from?.kind === 'shift' ? from.fill : 'zero',
+        count: from?.kind === 'shift' ? Math.min(from.count, width) : 1
+      };
     case 'bcd':
       return {
         kind: 'bcd',
@@ -104,6 +116,15 @@ export function freeView(request: NumberRequest): NumberView {
         'outside'
       )
     ],
+    shift:
+      request.kind === 'shift'
+        ? shiftReadings(request, {
+            carry: 'Carry',
+            overflow: 'Overflow',
+            zero: 'Zero',
+            negative: 'Negative'
+          })
+        : [],
     extend: [],
     value: []
   };
@@ -117,6 +138,11 @@ export function sameOperation(one: NumberRequest, other: NumberRequest): boolean
     return one.from === other.from && one.signed === other.signed;
   }
   if (one.kind === 'bcd' && other.kind === 'bcd') return one.operation === other.operation;
+  if (one.kind === 'shift' && other.kind === 'shift') {
+    return (
+      one.direction === other.direction && one.fill === other.fill && one.count === other.count
+    );
+  }
   return true;
 }
 
@@ -131,6 +157,8 @@ export function withOperand(
       return { ...request, value: wrap(value, request.from) };
     case 'value':
       return { ...request, bits: wrap(value, request.width) };
+    case 'shift':
+      return { ...request, value: wrap(value, request.width) };
     default: {
       const bits = wrap(value, widthOf(request));
       return operand === 'a' ? { ...request, a: bits } : { ...request, b: bits };
@@ -152,7 +180,9 @@ export function withBitFlipped(
 
 /** The request with its carry or borrow coming in flipped, where it has one. */
 export function withExtraFlipped(request: NumberRequest): NumberRequest {
-  if (request.kind === 'extend' || request.kind === 'value') return request;
+  if (request.kind === 'extend' || request.kind === 'value' || request.kind === 'shift') {
+    return request;
+  }
   return { ...request, extra: request.extra ? 0 : 1 };
 }
 
@@ -182,6 +212,12 @@ export function equationText(request: NumberRequest, solution: NumberSolution): 
       const extra = request.extra ? ` ${sign} 1` : '';
       return `${decimalText(request.a)} ${sign} ${decimalText(request.b)}${extra} = ${decimalText(result)} in decimal digits`;
     }
+    case 'shift': {
+      const sign = request.direction === 'left' ? '<<' : '>>';
+      const how =
+        request.direction === 'right' && request.fill === 'sign' ? ', copying the top bit' : '';
+      return `${hexOf(request.value, request.width)} ${sign} ${request.count} = ${hexOf(result, request.width)}${how}`;
+    }
     case 'value':
       return hexOf(result, request.width);
   }
@@ -198,6 +234,8 @@ export function lensTitle(request: NumberRequest): string {
       return `${request.from} bits made ${request.to}`;
     case 'bcd':
       return 'Two decimal digits in a byte';
+    case 'shift':
+      return `${request.width} bits moved ${request.direction}, read two ways`;
     case 'value':
       return `${request.width} bits, read every way`;
   }
@@ -213,6 +251,8 @@ export function lensLesson(request: NumberRequest): string {
       return 'A narrow value has to fill a wider register. Copying its top bit into the new places keeps the signed number; filling them with zeros keeps the unsigned one.';
     case 'bcd':
       return 'Each half of the byte is one decimal digit. The halves are added in binary, and a half that is no longer a digit is put right by 6, the six values four bits have beyond 9.';
+    case 'shift':
+      return 'Every place to the left doubles a number and every place to the right halves it, as moving the digits of a decimal number multiplies or divides it by ten. Halving has to know the scale: zeros in the emptied places halve the unsigned number, copies of the top bit halve the signed one. Either way it rounds down, so −7 halved is −4, where a division instruction would give −3.';
     case 'value':
       return 'A row of bits means nothing by itself: the instruction that uses it decides how it is read.';
   }

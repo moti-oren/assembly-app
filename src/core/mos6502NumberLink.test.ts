@@ -85,12 +85,21 @@ describe('mos6502NumberLink', () => {
     expect(cpu.registers.a).toBe(0x22);
   });
 
-  it('has nothing to show for bitwise logic, a shift or a load', () => {
+  it.each(['asl', 'lsr'] as const)('%s on A: the numbers agree with the CPU', (mnemonic) =>
+    agrees(mnemonic, () => ({ type: 'acc' }))
+  );
+
+  it.each(['asl', 'lsr'] as const)('%s on memory: the numbers agree with the CPU', (mnemonic) =>
+    agrees(mnemonic, () => zp(0x10))
+  );
+
+  it('has nothing to show for bitwise logic, a rotate or a load', () => {
     const cpu = createCpuState();
     const link = (instruction: Instruction) =>
       mos6502NumberLink(execute(cpu, instruction, null, [instruction]));
     expect(link(line('and', imm(1)))).toHaveProperty('unavailable');
-    expect(link(line('asl', { type: 'acc' }))).toHaveProperty('unavailable');
+    expect(link(line('rol', { type: 'acc' }))).toHaveProperty('unavailable');
+    expect(link(line('ror', { type: 'acc' }))).toHaveProperty('unavailable');
     expect(link(line('lda', imm(1)))).toHaveProperty('unavailable');
   });
 });
