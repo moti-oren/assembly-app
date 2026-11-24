@@ -14,6 +14,7 @@ import CommandPalette from './CommandPalette.vue';
 import HeaderShell from './HeaderShell.vue';
 import LogicAdder from './LogicAdder.vue';
 import LogicBitwise from './LogicBitwise.vue';
+import LogicFaultNote from './LogicFaultNote.vue';
 import LogicFlags from './LogicFlags.vue';
 import LogicOrigin from './LogicOrigin.vue';
 import LogicShifter from './LogicShifter.vue';
@@ -113,6 +114,8 @@ const commands = useLogicCommands(lens, () => props.moment, {
           {{ circuitLesson(lens.request.value) }}
           Press a bit of an input to flip it.
         </p>
+
+        <LogicFaultNote :lens="lens" />
 
         <div class="mt-3">
           <LogicShifter v-if="lens.request.value.kind === 'shift'" :lens="lens" />

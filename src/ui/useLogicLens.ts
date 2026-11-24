@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue';
 import { hasCircuit, type AluCircuit, type AluLink } from '@/core/aluLink';
 import { solve, type AluRequest, type Width } from '@/core/logic/alu';
+import { sliceDiagram } from './logicSlice';
 import {
   freeCircuit,
   freeRequest,
@@ -13,6 +14,7 @@ import {
   type OperandKey
 } from './logicView';
 import { isAdder, longestCarry, shownSolution } from './logicTime';
+import { useLogicFaults } from './useLogicFaults';
 import { useLogicTime } from './useLogicTime';
 
 /** What the circuit shows before any CPU has given it an operation. */
@@ -45,7 +47,13 @@ export function useLogicLens(link: () => AluLink | null) {
       ? { ...fromCpu.value, request: request.value }
       : freeCircuit(request.value)
   );
-  const solution = computed(() => solve(request.value));
+  // A gate that breaks or is mended changes the wires from where they are, not from rest.
+  const faults = useLogicFaults(request, () => time.keep());
+  /** The circuit with every gate working, which a broken one is set beside. */
+  const healthy = computed(() => solve(request.value));
+  const solution = computed(() =>
+    faults.any.value ? solve(request.value, faults.faults.value) : healthy.value
+  );
   const operation = computed(() => operationOf(request.value));
   const time = useLogicTime(request, solution);
   /** The circuit at the moment on show: at rest, or part of the way there while time is slowed. */
@@ -53,9 +61,12 @@ export function useLogicLens(link: () => AluLink | null) {
     time.on.value ? shownSolution(solution.value, time.signals.value) : solution.value
   );
 
-  /** Whether the circuit shows the CPU's operation as it ran: nothing changed, every wire at rest. */
+  /**
+   * Whether the circuit shows the CPU's operation as it ran: nothing changed, no gate broken,
+   * every wire at rest.
+   */
   const asRun = computed(
-    () => fromCpu.value !== null && edited.value === null && time.settled.value
+    () => fromCpu.value !== null && edited.value === null && !faults.any.value && time.settled.value
   );
   /** Whether the CPU wrote the result on show: colour marks a write, and only a real one. */
   const written = computed(() => asRun.value && circuit.value.resultKept);
@@ -78,6 +89,10 @@ export function useLogicLens(link: () => AluLink | null) {
     const rows = current.kind === 'shift' ? current.stages.length : 1;
     return Math.min(chosenStage.value, Math.max(rows - 1, 0));
   });
+  /** The bit on show drawn gate by gate; null for a shifter with no rows. */
+  const diagram = computed(() => sliceDiagram(shown.value, bit.value, stage.value));
+  const chosenGate = computed(() => diagram.value?.gates[gate.value] ?? null);
+  const { wrong, broken } = faults.beside(healthy, solution, time.settled);
 
   function flipBit(operand: OperandKey, index: number): void {
     time.keep();
@@ -128,7 +143,17 @@ export function useLogicLens(link: () => AluLink | null) {
     request,
     circuit,
     solution,
+    healthy,
     shown,
+    faults: faults.faults,
+    faultCount: faults.count,
+    wrong,
+    broken,
+    diagram,
+    chosenGate,
+    stickGate: faults.stick,
+    repairGate: faults.repair,
+    repairAll: faults.repairAll,
     time,
     operation,
     fromCpu,

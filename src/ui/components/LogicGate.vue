@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GateKind } from '@/core/logic/gates';
+import type { Bit, GateKind } from '@/core/logic/gates';
 import { GATE_HEIGHT, GATE_WIDTH } from '@/ui/logicSlice';
 
 defineProps<{
@@ -9,6 +9,8 @@ defineProps<{
   /** What the gate works out, for a screen reader. */
   name: string;
   chosen: boolean;
+  /** The value a broken gate's output is stuck at; null for a gate that works. */
+  stuck?: Bit | null;
 }>();
 defineEmits<{ choose: [] }>();
 
@@ -31,7 +33,8 @@ const SHAPES: Record<GateKind, string> = {
     tabindex="0"
     :transform="`translate(${x} ${y})`"
     :aria-pressed="chosen"
-    :aria-label="`${kind.toUpperCase()} gate: ${name}`"
+    :data-stuck="stuck != null ? '' : undefined"
+    :aria-label="`${kind.toUpperCase()} gate: ${name}${stuck != null ? `, broken: stuck at ${stuck}` : ''}`"
     @click="$emit('choose')"
     @keydown.enter.prevent="$emit('choose')"
     @keydown.space.prevent="$emit('choose')"
@@ -60,6 +63,17 @@ const SHAPES: Record<GateKind, string> = {
       text-anchor="middle"
     >
       {{ kind.toUpperCase() }}
+    </text>
+    <!-- Under the gate, clear of its wires; a mux has its select line there, so above it. -->
+    <text
+      v-if="stuck != null"
+      class="logic-stuck"
+      :x="GATE_WIDTH / 2"
+      :y="kind === 'mux' ? -5 : GATE_HEIGHT + 11"
+      text-anchor="middle"
+      aria-hidden="true"
+    >
+      stuck at {{ stuck }}
     </text>
   </g>
 </template>

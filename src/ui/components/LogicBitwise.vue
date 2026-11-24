@@ -55,7 +55,8 @@ function wires(name: (bit: number) => string): Bit[] {
           type="button"
           class="logic-unit"
           :aria-pressed="lens.bit.value === bit"
-          :aria-label="`The ${gateName} gate of bit ${bit}: show it`"
+          :data-stuck="lens.broken.value?.[bit] ? '' : undefined"
+          :aria-label="`The ${gateName} gate of bit ${bit}${lens.broken.value?.[bit] ? ', broken' : ''}: show it`"
           @click="lens.choose(bit)"
         >
           {{ symbol }}
@@ -67,6 +68,7 @@ function wires(name: (bit: number) => string): Bit[] {
       name="The result"
       :tone="lens.written.value ? 'result' : 'plain'"
       :bits="wires(ADDER.sum)"
+      :wrong="lens.wrong.value"
     />
   </div>
 </template>

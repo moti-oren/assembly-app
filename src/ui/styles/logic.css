@@ -248,6 +248,32 @@
     border-top-style: dashed;
     opacity: 1;
   }
+  /* A bit a broken gate made the wrong value: a bar under it, which no other state draws. */
+  .logic-bit[data-wrong] {
+    position: relative;
+  }
+  .logic-bit[data-wrong]::before {
+    content: '';
+    position: absolute;
+    right: 15%;
+    bottom: -0.3125rem;
+    left: 15%;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--foreground);
+  }
+  /* A bit one of whose gates is broken. */
+  .logic-unit[data-stuck] {
+    border-style: dashed;
+    border-color: var(--foreground);
+    color: var(--foreground);
+  }
+  .logic-unit[data-stuck][aria-pressed='true'] {
+    border-color: var(--background);
+    color: var(--background);
+    outline: 1px solid var(--foreground);
+  }
+
   /* The gate delay a bit is ready at, in ink once that delay has passed. */
   .logic-ready[data-reached] {
     color: var(--foreground);
@@ -311,6 +337,14 @@
     fill: var(--muted);
     stroke: var(--foreground);
     stroke-width: 2.25;
+  }
+  /* A broken gate: its outline is broken too. */
+  .logic-gate[data-stuck] .logic-gate-body {
+    stroke: var(--foreground);
+    stroke-dasharray: 4 3;
+  }
+  .logic-gate .logic-stuck {
+    fill: var(--foreground);
   }
   /* The sizes of the drawing's text are in the units of its viewBox, which scales with it. */
   .logic-gate text {
