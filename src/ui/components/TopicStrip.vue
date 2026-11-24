@@ -41,8 +41,12 @@ const { showControls } = useTopicView();
       <ArrowLeft class="size-3.5" aria-hidden="true" />
       {{ moment.cpu }}
     </button>
-    <span v-else-if="moment.instruction" class="shrink-0 text-muted-foreground">
-      {{ moment.instruction }}
+    <!-- The instruction on show, and on a phone, where the step arrows have no words, its step. -->
+    <span v-if="moment.instruction" class="max-w-[45%] shrink-0 truncate text-muted-foreground">
+      {{ moment.instruction
+      }}<span v-if="mode === 'phone'" class="ml-1.5 font-sans">
+        · {{ moment.position }}/{{ moment.total }}</span
+      >
     </span>
     <span class="min-w-0 flex-1 truncate font-semibold" aria-live="polite">
       <span v-if="unavailable" class="font-sans font-normal text-muted-foreground">To try: </span>
