@@ -3,6 +3,7 @@ import { computed, useTemplateRef } from 'vue';
 import { bitsOf } from '@/ui/controlView';
 import type { ControlLens } from '@/ui/useControlLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
+import ControlFieldMarks from './ControlFieldMarks.vue';
 import ControlFields from './ControlFields.vue';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
@@ -25,6 +26,7 @@ const bits = computed(() => bitsOf(props.lens.word.value, WIDTH));
 <template>
   <div class="flex flex-col gap-3">
     <div ref="rows" class="logic-rows">
+      <ControlFieldMarks :fields="lens.fields.value" :width="WIDTH" />
       <LogicBitNumbers :width="WIDTH" />
       <LogicRow
         label="Word"

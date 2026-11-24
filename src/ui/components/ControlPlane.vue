@@ -88,6 +88,21 @@ const view = computed(() => planeView(props.solution, props.faults));
         </tr>
       </tbody>
       <tfoot>
+        <!-- A tall table leaves its headings far above: they are said again over its outputs. -->
+        <tr aria-hidden="true">
+          <th class="control-name" />
+          <th v-for="input in view.inputs" :key="input.id" class="control-up">
+            <span>{{ inputLabel(input.id, wires) }}</span>
+          </th>
+          <th
+            v-for="(line, index) in view.lines"
+            :key="line.id"
+            class="control-up"
+            :class="{ 'control-divide': index === 0 }"
+          >
+            <span>{{ controlLabel(line.id) }}</span>
+          </th>
+        </tr>
         <tr>
           <th scope="row" class="control-name">Out</th>
           <td v-for="input in view.inputs" :key="input.id" />

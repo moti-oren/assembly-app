@@ -88,4 +88,39 @@
     border-style: dashed;
     border-color: var(--foreground);
   }
+
+  /* The fields over the word's bits: a bracket along the top of each, its name at its start. */
+  .control-field-mark {
+    position: relative;
+    align-self: end;
+    height: 1.25rem;
+    border-top: 1px solid var(--wire);
+  }
+  .control-field-mark[data-decoded] {
+    border-top-color: var(--foreground);
+  }
+  .control-field-mark[data-start] {
+    border-left: 1px solid currentColor;
+  }
+  .control-field-mark[data-end] {
+    border-right: 1px solid currentColor;
+  }
+  .control-field-mark[data-start],
+  .control-field-mark[data-end] {
+    color: var(--wire);
+  }
+  .control-field-mark[data-decoded][data-start],
+  .control-field-mark[data-decoded][data-end] {
+    color: var(--foreground);
+  }
+  /* A name longer than its field is cut: the field list beside the bits gives it whole. */
+  .control-field-name {
+    position: absolute;
+    top: 0.125rem;
+    left: 0.25rem;
+    overflow: hidden;
+    color: var(--muted-foreground);
+    text-overflow: clip;
+    white-space: nowrap;
+  }
 }
