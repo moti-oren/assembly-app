@@ -477,6 +477,11 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   numbers that keeps.
 - An `adc` or `sbc` of the 6502 in decimal mode, which has no gates to show, is shown here digit
   by digit: each half of the byte summed in binary, and put right by 6 where it is past 9.
+- The page is laid out like the logic topic's: on the left where the operation came from, what
+  to show and how wide, one more coming in, and the flags; on the right the numbers; and under
+  both a bar with the steps through the CPU's history, **Reset** and the way on to **Logic**.
+  On a tablet the left side is the **Controls** drawer, and on a phone **Controls** and
+  **Numbers** are two views.
 - Press a bit to flip it, or drag the blue dot round a wheel (the arrow keys move it too), and
   see what the answer would have been (**What if**). The CPU is not changed. **Add**,
   **Subtract**, **Shift** (with its direction, its fill and how many places), **Extend**,
@@ -1057,6 +1062,10 @@ npm run verify:6502 # check the 6502 core against py65
   נעשים, הסיביות החדשות כולן העתקים של הסיבית העליונה או כולן אפסים, ואיזה משני המספרים זה שומר.
 - `adc` או `sbc` של ה-6502 במצב עשרוני, שאין להם שערים להציג, מוצגים כאן ספרה אחר ספרה: כל חצי
   של הבית מסוכם בבינארי, ומתוקן ב-6 כשהוא עובר את 9.
+- העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיעה הפעולה, מה להציג ובאיזה רוחב, האחד
+  הנוסף שנכנס, והדגלים; מימין המספרים; ומתחת לשניהם סרגל עם הצעדים בהיסטוריה של המעבד, **Reset**
+  והמעבר ל-**Logic**. בטאבלט הצד השמאלי הוא המגירה **Controls**, ובטלפון **Controls** ו-**Numbers**
+  הן שתי תצוגות.
 - לחיצה על סיבית הופכת אותה, וגרירה של הנקודה הכחולה סביב גלגל מזיזה אותה (גם מקשי החצים), ומראות
   מה התשובה הייתה (**What if**). המעבד אינו משתנה. אפשר לבחור באופן חופשי בין **Add**,
   **Subtract**, **Shift** (עם הכיוון, המילוי ומספר המקומות), **Extend**, **Decimal** ו-**One
