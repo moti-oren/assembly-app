@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue';
 import { hasNumbers, type NumberLink, type NumberView } from '@/core/numberLink';
+import type { ByteOrder } from '@/core/representation/bytes';
 import type { Width } from '@/core/representation/readings';
 import { solveNumber, type NumberRequest } from '@/core/representation/request';
 import {
@@ -19,7 +20,8 @@ const STARTING = freeRequest('add', 8, null);
 
 /**
  * The operation on show in the number topic: the CPU's last instruction, or the learner's own
- * once they change a value or pick another lens. The CPU is never touched.
+ * once they change a value or pick another lens, and how a value's bytes are set out. The CPU is
+ * never touched.
  */
 export function useNumberLens(link: () => NumberLink | null) {
   /** The CPU's operation, when its last instruction has one to show. */
@@ -33,6 +35,9 @@ export function useNumberLens(link: () => NumberLink | null) {
   watch(fromCpu, () => {
     edited.value = null;
   });
+
+  /** The order a value's bytes are set out in: the CPUs' own until the learner picks the other. */
+  const byteOrder = ref<ByteOrder>('little');
 
   const request = computed(() => edited.value ?? fromCpu.value?.request ?? STARTING);
   /** Whether the CPU's flags still apply: the operation is the CPU's, whatever its values. */
@@ -78,6 +83,10 @@ export function useNumberLens(link: () => NumberLink | null) {
     change(freeRequest(request.value.kind, next, request.value));
   }
 
+  function setByteOrder(order: ByteOrder): void {
+    byteOrder.value = order;
+  }
+
   /** Back to the CPU's own values, or to the starting ones when no CPU gave any. */
   function restore(): void {
     edited.value = null;
@@ -94,12 +103,14 @@ export function useNumberLens(link: () => NumberLink | null) {
     asRun,
     written,
     discarded,
+    byteOrder,
     change,
     setOperand,
     flipBit,
     flipExtra,
     pick,
     setWidth,
+    setByteOrder,
     restore
   };
 }
