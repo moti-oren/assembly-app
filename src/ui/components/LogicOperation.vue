@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { FREE_OPERATIONS, WIDTHS } from '@/ui/logicView';
+import { FREE_OPERATIONS } from '@/ui/logicView';
 import type { LogicLens } from '@/ui/useLogicLens';
+import WidthPicker from './WidthPicker.vue';
 
 defineProps<{ lens: LogicLens }>();
 </script>
@@ -25,29 +26,6 @@ defineProps<{ lens: LogicLens }>();
         </Button>
       </div>
     </div>
-    <div>
-      <h3 class="mb-(--sublabel-gap) text-xs font-semibold">Width in bits</h3>
-      <div
-        class="segmented w-max"
-        :style="{
-          '--segments': WIDTHS.length,
-          '--active': WIDTHS.indexOf(lens.request.value.width)
-        }"
-        role="group"
-        aria-label="Width in bits"
-      >
-        <Button
-          v-for="each in WIDTHS"
-          :key="each"
-          variant="ghost"
-          size="sm"
-          class="h-7 px-3 text-xs pointer-coarse:h-11"
-          :aria-pressed="lens.request.value.width === each"
-          @click="lens.setWidth(each)"
-        >
-          {{ each }}
-        </Button>
-      </div>
-    </div>
+    <WidthPicker :width="lens.request.value.width" @set="lens.setWidth" />
   </div>
 </template>
