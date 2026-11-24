@@ -10,7 +10,6 @@ import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useSettings } from '@/ui/useSettings';
 import { useTopic } from '@/ui/useTopic';
 import BottomSheet from './BottomSheet.vue';
-import TopicSwitch from './TopicSwitch.vue';
 
 defineProps<{
   /** Two letters on the chip beside the name: what is on show. */
@@ -53,8 +52,8 @@ function settingsFromMenu(): void {
 </script>
 
 <!--
-  The bar every topic has: the name, the topics, the commands and the way into the settings. A
-  topic puts its own switch in `context`, its buttons in `actions`, and below a desktop the rows of
+  The bar every topic has: the mark and the name, and the commands; below a desktop also one menu
+  with the topics, feedback and the settings, which a desktop has in its activity bar. A topic puts its own switch in `context`, its buttons in `actions`, and below a desktop the rows of
   its sheet: what it does in `menu-actions`, and what it lists under them in `menu`.
 -->
 <template>
@@ -62,26 +61,22 @@ function settingsFromMenu(): void {
   <header class="relative z-(--z-sticky) flex-none border-b bg-card">
     <!-- The last button is an icon with no edge of its own: more room on its side sets it in. -->
     <div class="flex h-12 items-center gap-3 pr-5 pl-4 max-sm:gap-2 max-sm:px-3">
-      <slot name="lead" />
       <!--
-        Below a wide desktop the name is for a screen reader only: a narrower bar would squeeze it
-        away. The mark stays on a phone, except the narrowest, and goes on a tablet, whose bar
-        holds the topics beside the topic's switch.
+        The mark is the first thing in the bar at every width but the narrowest, where the opening
+        animation lands. Below a desktop the name is for a screen reader only: a narrower bar would
+        squeeze it away. The topics are the activity bar's, or the menu's below a desktop.
       -->
-      <div class="flex min-w-0 items-center gap-2.5 max-2xl:shrink-0">
+      <div class="flex min-w-0 items-center gap-2.5 max-lg:shrink-0">
         <div
-          class="die-mark hidden shrink-0 min-[25rem]:grid md:max-lg:hidden"
+          class="die-mark hidden shrink-0 min-[25rem]:grid"
           aria-hidden="true"
           data-splash-target
         >
           {{ badge }}
         </div>
-        <h1 class="truncate text-sm font-semibold tracking-tight max-2xl:sr-only">
-          CPU Playground
-        </h1>
+        <h1 class="truncate text-sm font-semibold tracking-tight max-lg:sr-only">CPU Playground</h1>
       </div>
-      <!-- A phone has no room for two switches: there the topics are in the menu. -->
-      <TopicSwitch v-if="mode !== 'phone'" />
+      <slot name="lead" />
       <slot name="context" />
 
       <div class="ml-auto flex items-center gap-1">
@@ -102,38 +97,11 @@ function settingsFromMenu(): void {
           </template>
         </Button>
 
-        <template v-if="!compact">
-          <slot name="actions" />
-          <Button
-            v-if="feedback.available"
-            variant="ghost"
-            size="icon-sm"
-            class="pointer-coarse:size-11"
-            aria-label="Send feedback"
-            title="Send feedback"
-            aria-haspopup="dialog"
-            data-feedback-opener
-            @click="feedback.open.value = true"
-          >
-            <MessageSquare aria-hidden="true" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            class="pointer-coarse:size-11"
-            aria-label="Settings"
-            title="Settings"
-            aria-haspopup="dialog"
-            data-settings-opener
-            @click="settings.open.value = true"
-          >
-            <Settings aria-hidden="true" />
-          </Button>
-        </template>
+        <slot v-if="!compact" name="actions" />
 
         <!--
-          Below a desktop there is room for one menu: a sheet with the topic's own and the settings,
-          and on a phone, which has no topic tabs, the topics too.
+          Below a desktop there is room for one menu: a sheet with the topics, the page's own
+          actions, feedback and the settings, which a desktop has in its activity bar.
         -->
         <template v-else>
           <Button
@@ -152,18 +120,17 @@ function settingsFromMenu(): void {
           </Button>
           <BottomSheet v-model:open="menuOpen" title="Menu" :description="menuLabel">
             <div>
-              <template v-if="mode === 'phone'">
-                <button
-                  v-for="choice in TOPIC_CHOICES.filter((each) => each.id !== topic)"
-                  :key="choice.id"
-                  type="button"
-                  class="sheet-row"
-                  @click="goTo(choice.id)"
-                >
-                  <ArrowRightLeft aria-hidden="true" />
-                  Go to {{ choice.name }}
-                </button>
-              </template>
+              <!-- There is no activity bar below a desktop: the topics are here. -->
+              <button
+                v-for="choice in TOPIC_CHOICES.filter((each) => each.id !== topic)"
+                :key="choice.id"
+                type="button"
+                class="sheet-row"
+                @click="goTo(choice.id)"
+              >
+                <ArrowRightLeft aria-hidden="true" />
+                Go to {{ choice.name }}
+              </button>
               <slot name="menu-actions" />
               <button
                 v-if="feedback.available"
