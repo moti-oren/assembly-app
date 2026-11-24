@@ -8,7 +8,7 @@ import {
 } from '@/core/numberLink';
 import { isDecimalByte, wrap, type Width } from '@/core/representation/readings';
 import { resultOf, type NumberRequest, type NumberSolution } from '@/core/representation/request';
-import { hexOf } from './logicView';
+import { hexOf, WIDTHS } from './logicView';
 
 /** What the number topic can show, whether or not a CPU asked for it. */
 export const LENSES = [
@@ -35,6 +35,11 @@ export function widthOf(request: NumberRequest): Width {
 export function widthAllowed(request: NumberRequest, width: Width): boolean {
   if (request.kind === 'bcd') return false;
   return request.kind !== 'extend' || width > 8;
+}
+
+/** The widths a request cannot be made: what a width picker shows as off. */
+export function disallowedWidths(request: NumberRequest): Width[] {
+  return WIDTHS.filter((width) => !widthAllowed(request, width));
 }
 
 /** The request's inputs, whatever it calls them; null where it has no second one. */

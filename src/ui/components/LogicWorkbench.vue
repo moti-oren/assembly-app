@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { Timer } from '@lucide/vue';
 import type { AluLink } from '@/core/aluLink';
+import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
-import { circuitLesson, circuitTitle, equationText, unavailableText } from '@/ui/logicView';
-import type { TopicSectionInfo } from '@/ui/topicSections';
+import {
+  circuitLesson,
+  circuitTitle,
+  equationText,
+  logicSections,
+  unavailableText
+} from '@/ui/logicView';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useLogicCommands } from '@/ui/useLogicCommands';
 import { useLogicLens } from '@/ui/useLogicLens';
@@ -39,22 +46,7 @@ const commands = useLogicCommands(lens, () => props.moment, {
 
 // The operation is what a working circuit makes of it: a broken gate is the circuit's own affair.
 const equation = computed(() => equationText(lens.request.value, lens.healthy.value.result));
-const discarded = computed(
-  () => lens.fromCpu.value !== null && !lens.circuit.value.resultKept && lens.followsCpu.value
-);
-
-/**
- * The sidebar's sections. A phone shows the sidebar as a view of its own, so there the switches
- * of the gate picked stay under its truth table, beside the drawing it was picked in.
- */
-const sections = computed<TopicSectionInfo[]>(() => [
-  { id: 'circuit', label: 'Circuit' },
-  ...(mode.value === 'phone' ? [] : [{ id: 'gate', label: 'The gate picked' }]),
-  {
-    id: 'flags',
-    label: lens.followsCpu.value ? 'Where each flag comes from' : 'What the circuit can also tell'
-  }
-]);
+const sections = computed(() => logicSections(mode.value === 'phone', lens.followsCpu.value));
 </script>
 
 <!-- The logic topic: the gates behind the CPU's last operation, to read and to change. -->
@@ -71,7 +63,7 @@ const sections = computed<TopicSectionInfo[]>(() => [
     :from-cpu="lens.fromCpu.value !== null"
     :unavailable="unavailableText(moment.link)"
     :aside="
-      discarded
+      lens.discarded.value
         ? 'The CPU throws this result away and keeps only what the circuit’s wires say about it.'
         : null
     "
@@ -118,7 +110,19 @@ const sections = computed<TopicSectionInfo[]>(() => [
       <LogicTimeSteps v-if="mode !== 'phone' && lens.time.on.value" :lens="lens" />
     </template>
     <template v-if="mode === 'phone' && lens.time.on.value" #above>
-      <LogicTimeSteps :lens="lens" stacked />
+      <LogicTimeSteps :lens="lens" compact />
+    </template>
+    <!-- A phone's row of gate delays has no room for it. -->
+    <template v-if="mode === 'phone' && lens.time.available.value" #more="{ close }">
+      <Button
+        variant="outline"
+        size="sm"
+        class="justify-start pointer-coarse:h-11"
+        @click="(lens.tryLongestCarry(), close())"
+      >
+        <Timer />
+        Longest carry
+      </Button>
     </template>
   </TopicWorkbench>
 </template>

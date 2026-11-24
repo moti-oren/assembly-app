@@ -129,6 +129,8 @@ export function useLogicLens(link: () => AluLink | null) {
     operation,
     fromCpu,
     followsCpu,
+    /** Whether the CPU threw this result away and kept only what the wires say about it. */
+    discarded: computed(() => followsCpu.value && !circuit.value.resultKept),
     isEdited: computed(() => edited.value !== null),
     asRun,
     written,

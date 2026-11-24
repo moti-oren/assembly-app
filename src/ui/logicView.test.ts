@@ -7,6 +7,7 @@ import {
   freeCircuit,
   freeRequest,
   hexOf,
+  logicSections,
   operationOf,
   sameCircuit,
   shiftCount,
@@ -148,5 +149,20 @@ describe('unavailableText', () => {
 
   it('has nothing to say before an instruction ran', () => {
     expect(unavailableText(null)).toBeNull();
+  });
+});
+
+describe('logicSections', () => {
+  it('gives the gate picked a section beside the drawing', () => {
+    expect(logicSections(false, true).map((each) => each.id)).toEqual(['circuit', 'gate', 'flags']);
+  });
+
+  it('leaves the gate picked under its truth table on a phone', () => {
+    expect(logicSections(true, true).map((each) => each.id)).toEqual(['circuit', 'flags']);
+  });
+
+  it('names the flags for a circuit that follows the CPU, and for one that does not', () => {
+    expect(logicSections(false, true).at(-1)?.label).toBe('Where each flag comes from');
+    expect(logicSections(false, false).at(-1)?.label).toBe('What the circuit can also tell');
   });
 });

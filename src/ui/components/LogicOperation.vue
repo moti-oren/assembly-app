@@ -13,6 +13,7 @@ defineProps<{ lens: LogicLens }>();
     <ChoiceGroup
       label="Operation"
       titled
+      :columns="4"
       :choices="FREE_OPERATIONS"
       :chosen="lens.operation.value"
       @pick="lens.pick"

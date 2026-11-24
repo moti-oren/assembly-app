@@ -3,6 +3,7 @@ import { solveNumber, type NumberRequest } from '@/core/representation/request';
 import type { ScalingRequest } from '@/core/representation/scaling';
 import {
   bitsOf,
+  disallowedWidths,
   equationText,
   freeRequest,
   freeView,
@@ -210,5 +211,19 @@ describe('unavailableText', () => {
 
   it('has nothing to say before an instruction ran', () => {
     expect(unavailableText(null)).toBeNull();
+  });
+});
+
+describe('disallowedWidths', () => {
+  it('lets a sum be any width', () => {
+    expect(disallowedWidths(sum)).toEqual([]);
+  });
+
+  it('keeps a decimal byte at its one width', () => {
+    expect(disallowedWidths(freeRequest('bcd', 8, null))).toEqual([8, 16, 32]);
+  });
+
+  it('does not let an extension be as narrow as what it extends', () => {
+    expect(disallowedWidths(freeRequest('extend', 16, null))).toEqual([8]);
   });
 });

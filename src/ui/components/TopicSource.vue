@@ -30,18 +30,24 @@ const mode = useLayoutMode();
         }}</span>
       </template>
       <span v-else>Nothing has run on the {{ moment.cpu }} yet: these are values to try.</span>
-      <span
-        v-if="edited"
-        class="rounded-sm border border-foreground/40 px-1.5 py-px text-2xs font-semibold text-foreground"
-        >What if</span
+    </p>
+    <!-- The tag sits on the operation's own line, so nothing under it moves as it comes and goes. -->
+    <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <p
+        class="font-mono text-sm font-semibold wrap-anywhere"
+        :aria-live="mode === 'desktop' ? 'polite' : 'off'"
       >
-    </p>
-    <p
-      class="font-mono text-sm font-semibold wrap-anywhere"
-      :aria-live="mode === 'desktop' ? 'polite' : 'off'"
-    >
-      {{ equation }}
-    </p>
+        {{ equation }}
+      </p>
+      <!-- Always there, so the tag is read out as it appears. -->
+      <span role="status">
+        <span
+          v-if="edited"
+          class="rounded-sm border border-foreground/40 px-1.5 py-px text-2xs font-semibold"
+          >What if</span
+        >
+      </span>
+    </div>
     <p v-if="unavailable && !edited" class="max-w-prose text-xs text-pretty">
       {{ unavailable }}
     </p>

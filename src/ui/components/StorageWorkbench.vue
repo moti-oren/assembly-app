@@ -52,6 +52,8 @@ async function showRegister(write: RegisterWrite): Promise<void> {
   // Once the section is named for the new register, so that name is what is read out.
   await nextTick();
   registerSection.value?.$el.focus();
+  // A press of the pointer shows no focus ring: the section itself comes into sight.
+  registerSection.value?.$el.scrollIntoView({ block: 'nearest' });
 }
 
 /** The registers the CPU's instruction wrote, when it wrote more than one. */
