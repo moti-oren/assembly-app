@@ -41,14 +41,23 @@ export function deviceByte(io: IoState, port: number): number {
   return port === PORTS.switches ? io.in[port] : io.out[port];
 }
 
-/** `count` rows of `columns` bytes, from `start` rounded down to a row. */
+/** How many addresses a format can write: 64K for the 6502's four digits, 4G for RISC-V's eight. */
+export function addressSpace(format: AddressFormat): number {
+  return 16 ** format.digits;
+}
+
+/**
+ * `count` rows of `columns` bytes, from `start` rounded down to a row. Near the end of the
+ * address space (`space`), the rows stop at its last byte rather than run past it.
+ */
 export function memoryRows(
   byteAt: ByteAt,
   start: number,
   count: number,
-  columns: MemoryColumns = 16
+  columns: MemoryColumns = 16,
+  space = Infinity
 ): ShownByte[][] {
-  const first = rowStart(start, columns);
+  const first = Math.max(0, Math.min(rowStart(start, columns), space - count * columns));
   return Array.from({ length: count }, (_, row) =>
     Array.from({ length: columns }, (_, column) => byteAt(first + columns * row + column))
   );

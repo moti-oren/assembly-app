@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PORTS } from '@/core/shared/devices';
 import { createIo } from '@/core/shared/state';
-import { deviceByte, formatAddress, memoryRows } from './flatMemory';
+import { addressSpace, deviceByte, formatAddress, memoryRows } from './flatMemory';
 
 describe('flat memory', () => {
   it('writes addresses as each architecture does', () => {
@@ -22,6 +22,19 @@ describe('flat memory', () => {
     const rows = memoryRows((address) => ({ address, value: 0, region: 'ram' }), 0x213, 2);
     expect(rows.map((row) => row[0].address)).toEqual([0x210, 0x220]);
     expect(rows[1].at(-1)?.address).toBe(0x22f);
+  });
+
+  it('stops at the last address instead of running past it', () => {
+    const space = addressSpace({ prefix: '$', digits: 4 });
+    const rows = memoryRows(
+      (address) => ({ address, value: 0, region: 'ram' }),
+      0xfff0,
+      4,
+      16,
+      space
+    );
+    expect(rows.map((row) => row[0].address)).toEqual([0xffc0, 0xffd0, 0xffe0, 0xfff0]);
+    expect(rows.at(-1)?.at(-1)?.address).toBe(0xffff);
   });
 
   it('holds eight bytes a row when asked to', () => {
