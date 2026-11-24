@@ -23,7 +23,7 @@ defineProps<{
 <template>
   <Card>
     <CardHeader class="items-center">
-      <CardTitle class="self-center">CPU</CardTitle>
+      <CardTitle role="heading" aria-level="2" class="self-center">CPU</CardTitle>
       <CardAction
         class="flex flex-wrap items-center justify-end gap-3 text-xs text-muted-foreground"
       >

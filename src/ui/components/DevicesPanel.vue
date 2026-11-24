@@ -63,7 +63,11 @@ function flip(bit: number): void {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="flex items-center gap-1 group-data-[size=sm]/card:text-base">
+      <CardTitle
+        role="heading"
+        aria-level="2"
+        class="flex items-center gap-1 group-data-[size=sm]/card:text-base"
+      >
         I/O devices
         <InfoTip label="About the devices">
           <span class="font-mono">{{ access.write }}</span> writes to a {{ access.noun }},

@@ -32,7 +32,9 @@ const news = computed(() => isNews(props.result));
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">Challenge</CardTitle>
+      <CardTitle role="heading" aria-level="2" class="group-data-[size=sm]/card:text-base"
+        >Challenge</CardTitle
+      >
       <CardDescription>{{ challenge.title }}</CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-2.5 text-sm">

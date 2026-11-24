@@ -48,6 +48,8 @@ function above(index: number): SidebarKey | null {
 <template>
   <SortableColumn
     ref="column"
+    role="region"
+    aria-label="The program and the instruction builder"
     :keys="keys"
     :labels="labels"
     :item-style="

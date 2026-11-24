@@ -14,7 +14,9 @@ import {
   type RegisterName
 } from '@/core/mos6502/state';
 import { mos6502RegisterChange } from '@/ui/architectureDiffs';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { diagramView } from '@/ui/mos6502Diagram';
+import { FLAG_INFO } from '@/ui/mos6502View';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import ChangeMark from './ChangeMark.vue';
@@ -22,6 +24,7 @@ import CpuCanvas from './CpuCanvas.vue';
 import DatapathStage from './DatapathStage.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -145,19 +148,28 @@ const flagChanged = (bit: number) =>
               <div class="mt-1 flex h-6 items-center gap-2 px-1" aria-label="Flags">
                 <span class="w-6 font-semibold">P</span>
                 <span class="flex gap-1">
-                  <span
-                    v-for="flag in FLAG_NAMES"
-                    :key="flag"
-                    class="w-6 rounded-sm text-center"
-                    :class="[
-                      state.flags & flagBit(flag)
-                        ? 'bg-secondary font-semibold text-foreground inset-ring inset-ring-foreground/40'
-                        : 'text-muted-foreground inset-ring inset-ring-border',
-                      flagChanged(flagBit(flag)) ? 'ring-2 ring-changed-glow' : ''
-                    ]"
-                    :title="`${flag} = ${state.flags & flagBit(flag) ? 1 : 0}`"
-                    >{{ flag }}</span
-                  >
+                  <TapTooltip v-for="flag in FLAG_NAMES" :key="flag" v-slot="{ toggle }">
+                    <TooltipTrigger as-child>
+                      <span
+                        tabindex="0"
+                        role="img"
+                        class="relative w-6 cursor-help rounded-sm text-center outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:after:absolute pointer-coarse:after:-inset-y-2.5 pointer-coarse:after:inset-x-0 pointer-coarse:after:content-['']"
+                        :class="[
+                          state.flags & flagBit(flag)
+                            ? 'bg-secondary font-semibold text-foreground inset-ring inset-ring-foreground/40'
+                            : 'text-muted-foreground inset-ring inset-ring-border',
+                          flagChanged(flagBit(flag)) ? 'ring-2 ring-changed-glow' : ''
+                        ]"
+                        :aria-label="`${flag}, ${FLAG_INFO[flag].label}: ${state.flags & flagBit(flag) ? 1 : 0}. ${FLAG_INFO[flag].description}`"
+                        @click="toggle"
+                        >{{ flag }}</span
+                      >
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {{ flag }} = {{ state.flags & flagBit(flag) ? 1 : 0 }}.
+                      {{ FLAG_INFO[flag].label }}: {{ FLAG_INFO[flag].description }}
+                    </TooltipContent>
+                  </TapTooltip>
                 </span>
               </div>
             </div>

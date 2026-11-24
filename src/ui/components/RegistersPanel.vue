@@ -66,7 +66,7 @@ function change(name: RegisterName): ValueChange | null {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Registers</CardTitle>
+      <CardTitle role="heading" aria-level="2">Registers</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
           <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
@@ -111,7 +111,7 @@ function change(name: RegisterName): ValueChange | null {
                 <TooltipTrigger as-child>
                   <span
                     tabindex="0"
-                    class="cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+                    class="cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground pointer-coarse:inline-flex pointer-coarse:min-h-8 pointer-coarse:min-w-8 pointer-coarse:items-center"
                     @click="toggle"
                     >{{ name.toUpperCase() }}</span
                   >

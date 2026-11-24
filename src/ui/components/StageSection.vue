@@ -23,7 +23,7 @@ defineSlots<{
   <section :aria-label="label ?? title">
     <Card size="sm">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level="2">
           <h2>{{ title }}</h2>
         </CardTitle>
         <CardAction v-if="$slots.aside" class="text-xs text-muted-foreground">

@@ -36,7 +36,9 @@ const setLessThan = computed(() => {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">No flags</CardTitle>
+      <CardTitle role="heading" aria-level="2" class="group-data-[size=sm]/card:text-base"
+        >No flags</CardTitle
+      >
       <CardDescription>
         RISC-V keeps no flags. A branch compares two registers itself (<span class="font-mono"
           >beq</span

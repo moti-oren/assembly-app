@@ -24,7 +24,7 @@ const sections = useTopicSections();
   >
     <Card size="sm">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level="2">
           <h2>{{ label }}</h2>
         </CardTitle>
       </CardHeader>

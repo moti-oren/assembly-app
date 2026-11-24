@@ -42,7 +42,9 @@ function bitOf(bit: number): number {
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="group-data-[size=sm]/card:text-base">Machine code</CardTitle>
+      <CardTitle role="heading" aria-level="2" class="group-data-[size=sm]/card:text-base"
+        >Machine code</CardTitle
+      >
       <CardDescription v-if="shown">
         <span class="font-mono text-foreground">{{ formatInstruction(shown.instruction) }}</span>
         · {{ summary }}
