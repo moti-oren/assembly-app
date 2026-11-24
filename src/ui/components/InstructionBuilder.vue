@@ -50,6 +50,15 @@ const options = useBuilderOptions(props.grammar, draft, filter, () => props.prog
 const { hovered, groups, doesNotFit, hint, moreToChoose, orderedOptions, enterOption, preview } =
   options;
 
+// A word typed whole, then a space or a comma, is picked as if Enter had been pressed, and what
+// was typed after it carries on: `mov ax 3` and `lw a0, 8(sp)` read as they are written.
+watch(filter, (text) => {
+  const finished = options.finishedWord(text);
+  if (!finished) return;
+  choose(finished.option);
+  filter.value = finished.rest;
+});
+
 const onOptionArrow = useOptionArrows({
   card: () => card.value?.$el ?? null,
   count: () => orderedOptions.value.length,
