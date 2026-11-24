@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { ADDER } from './adder';
 import { solve, tapValue, type AluRequest, type Tap } from './alu';
-import { barrelStages, repeatedStages, type ShiftFill } from './shifter';
+import { barrelStages, repeatedStages, SHIFTER, type ShiftFill } from './shifter';
 
 function taps(request: AluRequest, names: Tap[]): Record<string, number | null> {
   const solution = solve(request);
@@ -152,5 +153,36 @@ describe('solve: shifts', () => {
         (0x80000001 >> count) >>> 0
       );
     }
+  });
+});
+
+describe('solve: a broken gate', () => {
+  const request: AluRequest = { kind: 'add', width: 8, a: 0x0f, b: 0x01, carryIn: 0 };
+
+  it('gives the result and the flags the broken circuit makes', () => {
+    // The carry out of bit 3 is what turns 0x0F + 1 into 0x10.
+    const broken = solve(request, { [ADDER.carry(4)]: 0 });
+    expect(solve(request).result).toBe(0x10);
+    expect(broken.result).toBe(0x00);
+    expect(tapValue(broken, 'zero')).toBe(1);
+    expect(tapValue(broken, 'halfCarry')).toBe(0);
+  });
+
+  it('breaks the one gate of a bit in AND, OR and XOR', () => {
+    const and: AluRequest = { kind: 'and', width: 8, a: 0xf0, b: 0x3c };
+    expect(solve(and, { [ADDER.sum(0)]: 1 }).result).toBe(0x31);
+  });
+
+  it('breaks a switch of a shifter', () => {
+    const shift: AluRequest = {
+      kind: 'shift',
+      width: 8,
+      value: 0b0000_0001,
+      direction: 'left',
+      fill: 'zero',
+      carryIn: 0,
+      stages: repeatedStages(1)
+    };
+    expect(solve(shift, { [SHIFTER.value(1, 7)]: 1 }).result).toBe(0b1000_0010);
   });
 });
