@@ -9,6 +9,7 @@ import { activeLines, activeTerms } from '@/core/logic/decoder';
 import { bitOf, type Bit } from '@/core/logic/gates';
 import { PC, type PcSolution } from '@/core/logic/programCounter';
 import type { ClockPhase } from '@/core/logic/register';
+import { disassemble, formatDisassembly } from '@/core/rv32/disassemble';
 import { hexOf } from './logicView';
 import type { LinkedTopic } from './topics';
 
@@ -147,8 +148,8 @@ export interface FieldRow extends WordField {
 }
 
 /**
- * The fields of the word on show: the instruction's `own` while the word is the CPU's, and once
- * a bit was changed only those the decoders read, since the others depend on what it has become.
+ * The fields of the word on show: the instruction's `own`, or only those the decoders read when
+ * the word is no instruction, since the others depend on what it would be.
  */
 export function wordFields(
   reads: readonly WordField[],
@@ -165,6 +166,22 @@ export function wordFields(
       bits: ((word >>> low) & (2 ** width - 1)).toString(2).padStart(width, '0')
     };
   });
+}
+
+/** A word typed in hex, with or without `0x`, or null when it is not up to eight hex digits. */
+export function parseWord(text: string): number | null {
+  const digits = text.replace(/[\s_]/g, '').replace(/^0x/i, '');
+  return /^[0-9a-f]{1,8}$/i.test(digits) ? parseInt(digits, 16) : null;
+}
+
+/** The word read back as the instruction it encodes, or why it is none. */
+export function readingText(word: number, { main }: ControlSolution): string {
+  const read = disassemble(word);
+  if (read) return `As assembly: ${formatDisassembly(read)}`;
+  const [kind] = activeTerms(main);
+  return kind
+    ? `The main decoder takes this for ${controlLabel(kind)}, but no RV32IM instruction has these function bits. A real CPU checks them all and refuses the word.`
+    : 'No RV32IM instruction has this opcode.';
 }
 
 /** The word with one bit turned over. */
@@ -202,10 +219,7 @@ export function bitsOf(value: number, width: number): Bit[] {
 }
 
 /** Why the page has no program counter to follow, for the word on show. */
-export function pcAbsentText(fromCpu: ControlView | null, edited: boolean): string {
-  if (edited) {
-    return 'A word you changed never ran, so there is no PC to follow. Put the CPU’s word back to see where PC went.';
-  }
+export function pcAbsentText(fromCpu: ControlView | null): string {
   if (!fromCpu) return 'Run an instruction on the RISC-V CPU to see where PC goes after it.';
   return `${fromCpu.pcNote ?? 'PC is not shown for this instruction.'} So where PC went is not worked out here.`;
 }

@@ -31,5 +31,7 @@ export type AnalyticsEvent =
   | { name: 'challenge-solved'; architecture: string; challenge: string }
   /** A gate of the logic topic's circuit was broken by hand; nothing says which. */
   | { name: 'gate-broken' }
+  /** A control line of the control topic was broken by hand; nothing says which. */
+  | { name: 'line-broken' }
   | { name: 'prediction-answered'; architecture: string; result: 'right' | 'wrong' }
   | { name: 'feedback-sent'; kind: string };

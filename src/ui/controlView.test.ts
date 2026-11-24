@@ -14,7 +14,9 @@ import {
   controlLines,
   equationText,
   inputLabel,
+  parseWord,
   pcChoiceText,
+  readingText,
   STARTING_WORD,
   unavailableText,
   withBitFlipped,
@@ -138,5 +140,37 @@ describe('pcChoiceText', () => {
     expect(text(JAL)).toContain('Jump is 1');
     expect(text(NOP)).toContain('PC takes PC + 4');
     expect(text(NOP, null)).toContain('keeps its value');
+  });
+});
+
+describe('parseWord', () => {
+  it('reads up to eight hex digits, with or without 0x', () => {
+    expect(parseWord('0x40B50533')).toBe(0x40b50533);
+    expect(parseWord(' 40b5 0533 ')).toBe(0x40b50533);
+    expect(parseWord('ffffffff')).toBe(0xffffffff);
+    expect(parseWord('13')).toBe(0x13);
+  });
+
+  it('refuses anything else', () => {
+    expect(parseWord('')).toBeNull();
+    expect(parseWord('0x')).toBeNull();
+    expect(parseWord('123456789')).toBeNull();
+    expect(parseWord('sub')).toBeNull();
+  });
+});
+
+describe('readingText', () => {
+  const read = (word: number) => readingText(word, solveControl(RV32_CONTROL, word));
+
+  it('writes an instruction as assembly', () => {
+    expect(read(0x40b50533)).toBe('As assembly: sub a0, a0, a1');
+  });
+
+  it('says when the decoders accept a word that is no instruction', () => {
+    expect(read(0xc0b50533)).toContain('takes this for OP');
+  });
+
+  it('says when the opcode is unknown', () => {
+    expect(read(0)).toBe('No RV32IM instruction has this opcode.');
   });
 });

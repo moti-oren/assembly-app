@@ -3,6 +3,7 @@ import { computed, useTemplateRef } from 'vue';
 import { bitsOf } from '@/ui/controlView';
 import type { ControlLens } from '@/ui/useControlLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
+import ControlWordEntry from './ControlWordEntry.vue';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
 
@@ -29,6 +30,7 @@ const bits = computed(() => bitsOf(props.lens.word.value, WIDTH));
         @flip="lens.flipBit($event)"
       />
     </div>
+    <ControlWordEntry :lens="lens" />
     <ol
       class="grid gap-1.5 text-xs sm:grid-cols-2 lg:grid-cols-3"
       aria-label="The fields of the word"

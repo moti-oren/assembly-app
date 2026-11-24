@@ -1,4 +1,5 @@
 import type { DecoderSolution } from '@/core/logic/decoder';
+import type { Faults } from '@/core/logic/fault';
 import type { Bit } from '@/core/logic/gates';
 
 /** One input column of a decoder's grid, with the bit it carries. */
@@ -26,6 +27,8 @@ export interface PlaneRow {
 export interface PlaneLine {
   id: string;
   value: Bit;
+  /** Whether the line is broken: its value is not what its OR gate would give. */
+  stuck: boolean;
 }
 
 /** A decoder as a grid: its AND gates down the side, its inputs and its lines across. */
@@ -35,8 +38,8 @@ export interface PlaneView {
   lines: PlaneLine[];
 }
 
-/** Lays a solved decoder out as a grid. */
-export function planeView({ shape, signals }: DecoderSolution): PlaneView {
+/** Lays a solved decoder out as a grid, with the lines named in `faults` marked as broken. */
+export function planeView({ shape, signals }: DecoderSolution, faults: Faults = {}): PlaneView {
   return {
     inputs: shape.inputs.map((id) => ({ id, value: signals[id] })),
     rows: shape.terms.map(({ id, match }) => ({
@@ -48,6 +51,6 @@ export function planeView({ shape, signals }: DecoderSolution): PlaneView {
       }),
       feeds: shape.lines.map((line) => line.terms.includes(id))
     })),
-    lines: shape.lines.map(({ id }) => ({ id, value: signals[id] }))
+    lines: shape.lines.map(({ id }) => ({ id, value: signals[id], stuck: id in faults }))
   };
 }

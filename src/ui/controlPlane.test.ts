@@ -49,8 +49,16 @@ describe('planeView', () => {
       [false, true]
     ]);
     expect(view.lines).toEqual([
-      { id: 'x', value: 0 },
-      { id: 'y', value: 1 }
+      { id: 'x', value: 0, stuck: false },
+      { id: 'y', value: 1, stuck: false }
+    ]);
+  });
+
+  it('marks the lines that are broken', () => {
+    const broken = planeView(solveDecoder(SHAPE, { a: 0, b: 1 }, { x: 1 }), { x: 1 });
+    expect(broken.lines.map((line) => [line.value, line.stuck])).toEqual([
+      [1, true],
+      [1, false]
     ]);
   });
 });

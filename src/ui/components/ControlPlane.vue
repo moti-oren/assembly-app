@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { DecoderSolution } from '@/core/logic/decoder';
+import type { Faults } from '@/core/logic/fault';
 import { planeView } from '@/ui/controlPlane';
 import { controlLabel, inputLabel } from '@/ui/controlView';
 
 const props = defineProps<{
   solution: DecoderSolution;
+  /** The lines the learner broke. */
+  faults: Faults;
   /** The bit of the word behind each input wire that comes from the word. */
   wires: Readonly<Record<string, number>>;
   /** What the grid is, for a screen reader. */
@@ -14,7 +17,7 @@ const props = defineProps<{
   rowHeading: string;
 }>();
 
-const view = computed(() => planeView(props.solution));
+const view = computed(() => planeView(props.solution, props.faults));
 </script>
 
 <!--
@@ -93,8 +96,9 @@ const view = computed(() => planeView(props.solution));
             :key="line.id"
             class="control-value"
             :class="{ 'control-divide': index === 0 }"
+            :data-stuck="line.stuck ? '' : undefined"
           >
-            {{ line.value }}
+            {{ line.value }}<span v-if="line.stuck" class="sr-only"> (stuck)</span>
           </td>
         </tr>
       </tfoot>
