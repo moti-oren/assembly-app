@@ -1,31 +1,35 @@
-<script setup lang="ts">
-import { PHONE_VIEW_LABELS, PHONE_VIEWS } from '@/ui/layoutMode';
+<script setup lang="ts" generic="View extends string">
 import { sound } from '@/ui/soundEngine';
-import { useWorkbenchView } from '@/ui/useWorkbenchView';
 
-const { view } = useWorkbenchView();
+defineProps<{
+  /** The views, in the order of their tabs. */
+  views: readonly View[];
+  labels: Record<View, string>;
+}>();
 
-function choose(wanted: (typeof PHONE_VIEWS)[number]): void {
+const view = defineModel<View>('view', { required: true });
+
+function choose(wanted: View): void {
   if (view.value !== wanted) sound.play('detent');
   view.value = wanted;
 }
 </script>
 
 <!--
-  A phone's three views of the workbench: what you write, the CPU, and what is on its bus. Flat
-  tabs on a hairline, so they do not read as a second architecture switch under the header's.
+  A phone's views of a workbench, one on show at a time. Flat tabs on a hairline, so they do not
+  read as a second switch under the header's.
 -->
 <template>
   <nav class="flex flex-none border-b bg-card" aria-label="View">
     <button
-      v-for="each in PHONE_VIEWS"
+      v-for="each in views"
       :key="each"
       type="button"
       class="view-tab"
       :aria-pressed="view === each"
       @click="choose(each)"
     >
-      {{ PHONE_VIEW_LABELS[each] }}
+      {{ labels[each] }}
     </button>
   </nav>
 </template>
