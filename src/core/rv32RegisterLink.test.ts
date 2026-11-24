@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { solveRegister, type RegisterRequest } from './logic/register';
+import { solveRegisterFile } from './logic/registerFile';
 import { hasRegisters } from './registerLink';
 import { execute } from './rv32/execute';
 import type { Instruction, Mnemonic } from './rv32/instructions';
@@ -22,7 +23,8 @@ function random(seed: number): () => number {
 
 /**
  * Runs the instruction on a real CPU, then clocks the flip-flops of every register, written or
- * not, and checks each holds what the CPU's register holds.
+ * not, and checks each holds what the CPU's register holds. The register file, where the link
+ * gives one, is clocked whole and checked the same way.
  */
 function run(instruction: Instruction, from: number | null, next: () => number) {
   const cpu = createCpuState();
@@ -40,6 +42,11 @@ function run(instruction: Instruction, from: number | null, next: () => number) 
     };
     expect(`${key}=${solveRegister(request).stored}`).toBe(`${key}=${cpu.registers[key]}`);
   });
+  if (link.file) {
+    expect(solveRegisterFile(link.file.request).stored).toEqual(
+      REGISTER_KEYS.map((key) => cpu.registers[key])
+    );
+  }
   return { link, writes };
 }
 
@@ -73,11 +80,42 @@ describe('rv32RegisterLink', () => {
     expect('unavailable' in link && link.unavailable).toContain('x0');
   });
 
+  it('gives the file of 32 registers, with rd as the address written', () => {
+    const { link } = agrees(line('addi', r('a0'), r('a1'), imm(-7)));
+    expect(link.file?.request).toMatchObject({ address: 10, write: 1, zeroWired: true });
+    expect(link.file?.request.held).toHaveLength(32);
+    expect(link.file?.names[10]).toBe('a0');
+  });
+
+  it('gives the file for a write to x0, which no register keeps', () => {
+    const { link } = agrees(line('add', r('zero'), r('a1'), r('a2')));
+    const request = link.file!.request;
+    expect(request.address).toBe(0);
+    expect(request.input).toBe((request.held[11] + request.held[12]) >>> 0);
+    expect(solveRegisterFile(request).loads).not.toContain(1);
+  });
+
+  it('knows what a jump and LUI sent to x0', () => {
+    const jump = agrees(line('jal', r('zero'), label(0)), 0).link;
+    expect(jump.file?.request).toMatchObject({ address: 0, input: 4 });
+    const upper = agrees(line('lui', r('zero'), imm(0xabcde))).link;
+    expect(upper.file?.request).toMatchObject({ address: 0, input: 0xabcde000 });
+  });
+
+  it('gives no file for a jump to x0 that was not fetched, whose link has no address', () => {
+    expect(agrees(line('jal', r('zero'), label(0))).link.file).toBeUndefined();
+  });
+
   it('has nothing to show for a branch', () => {
     const { link } = agrees(line('beq', r('a1'), r('a1'), label(0)), 0);
     expect(link).toEqual({
       unavailable:
         'BEQ wrote no register. PC, which every instruction from the program loads, is shown with the control unit.'
     });
+  });
+
+  it('gives no file for an instruction without an rd', () => {
+    const { link } = agrees(line('beq', r('a1'), r('a2'), label(0)), 0);
+    expect(link.file).toBeUndefined();
   });
 });
