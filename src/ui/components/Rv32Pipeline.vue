@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import type { Program } from '@/core/shared/program';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
@@ -16,6 +16,7 @@ import {
 import { describeDecode, describeExecute, describeFetch } from '@/ui/rv32Explain';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
 import { useRv32Pipeline } from '@/ui/useRv32Pipeline';
+import { useScrollEnd } from '@/ui/useScrollEnd';
 import InfoTip from './InfoTip.vue';
 import Rv32CycleToggle from './Rv32CycleToggle.vue';
 import Rv32PipelineOptions from './Rv32PipelineOptions.vue';
@@ -48,6 +49,7 @@ const CELL_CLASSES: Record<PipelineCell['kind'], string> = {
 const { forwarding } = useRv32Pipeline();
 
 const grid = computed(() => pipelineGrid(props.timing, ROWS));
+useScrollEnd(useTemplateRef<HTMLElement>('chart'), () => grid.value.cycles.length);
 const notes = computed(() =>
   pipelineNotes(props.timing, grid.value.from, { forwarding: forwarding.value })
 );
@@ -103,11 +105,17 @@ const detail = computed(() => {
       Nothing has run yet.
     </p>
     <template v-else-if="grid.rows.length > 0">
-      <div class="mt-2 overflow-x-auto">
+      <!-- The newest cycles are at the right: a narrow chart opens there, where it is going on. -->
+      <div ref="chart" class="mt-2 overflow-x-auto">
         <table class="border-separate border-spacing-0.5 font-mono text-2xs">
           <thead>
             <tr class="text-muted-foreground">
-              <th scope="col" class="pr-2 text-left font-sans font-normal">Cycle</th>
+              <th
+                scope="col"
+                class="sticky left-0 z-10 bg-card pr-2 text-left font-sans font-normal"
+              >
+                Cycle
+              </th>
               <th
                 v-for="cycle in grid.cycles"
                 :key="cycle"
@@ -122,7 +130,7 @@ const detail = computed(() => {
             <tr v-for="row in grid.rows" :key="row.key">
               <th
                 scope="row"
-                class="max-w-48 truncate pr-2 text-left font-normal"
+                class="sticky left-0 z-10 max-w-48 truncate bg-card pr-2 text-left font-normal"
                 :class="row.flushed ? 'text-muted-foreground line-through' : 'text-foreground'"
               >
                 <span class="text-muted-foreground">{{ row.label }}</span>
