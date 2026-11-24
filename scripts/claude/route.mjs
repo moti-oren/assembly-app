@@ -32,12 +32,12 @@ const HOT_CODE =
   /\bwatch(Effect)?\(|requestAnimationFrame|getBoundingClientRect|ResizeObserver|AudioContext|setInterval|@keyframes|\btransition\b|\banimation\b/;
 
 const isTest = (path) => /\.test\.(ts|mjs)$/.test(path);
-const isGenerated = (path) => path.startsWith('src/components/ui/');
-const isSource = (path) =>
+export const isGenerated = (path) => path.startsWith('src/components/ui/');
+export const isSource = (path) =>
   /^src\/.*\.(ts|vue|css)$/.test(path) && !isTest(path) && !isGenerated(path);
-const isCore = (path) => path.startsWith('src/core/') && isSource(path);
-const isOracle = (path) => path.startsWith('scripts/verify/');
-const isDesign = (path) =>
+export const isCore = (path) => path.startsWith('src/core/') && isSource(path);
+export const isOracle = (path) => path.startsWith('scripts/verify/');
+export const isDesign = (path) =>
   isSource(path) &&
   (/^src\/ui\/components\/.*\.vue$/.test(path) || path === 'src/App.vue' || path.endsWith('.css'));
 
@@ -53,16 +53,25 @@ const TRIGGERS = {
 
 const touches = (changes, test) => changes.some(({ path }) => test(path));
 
-function gates(changes, seed) {
-  const list = ['npm run check'];
-  if (touches(changes, isDesign)) list.push('npm run check:design');
+/** The oracles a change to these files has to pass: a core's own, and both for shared code. */
+export function oracles(paths) {
   const shared = (path) => path.startsWith('src/core/shared/') && isCore(path);
   const verifies = (folder, oracle) => (path) =>
     (path.startsWith(`src/core/${folder}/`) && isCore(path)) ||
     shared(path) ||
     (isOracle(path) && oracle.test(path));
-  if (touches(changes, verifies('rv32', /rv32/i))) list.push(`npm run verify:rv32 -- ${seed}`);
-  if (touches(changes, verifies('mos6502', /6502/))) list.push(`npm run verify:6502 -- ${seed}`);
+  const list = [];
+  if (paths.some(verifies('rv32', /rv32/i))) list.push('verify:rv32');
+  if (paths.some(verifies('mos6502', /6502/))) list.push('verify:6502');
+  return list;
+}
+
+function gates(changes, seed) {
+  const list = ['npm run check'];
+  if (touches(changes, isDesign)) list.push('npm run check:design');
+  for (const oracle of oracles(changes.map(({ path }) => path))) {
+    list.push(`npm run ${oracle} -- ${seed}`);
+  }
   if (touches(changes, (path) => BUILD_INPUTS.includes(path))) list.push('npm run build');
   return list;
 }
