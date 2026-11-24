@@ -68,14 +68,31 @@ export function registerTitle({ register, request }: RegisterWrite): string {
   return `${register}: ${request.width} flip-flops`;
 }
 
-/** What is going on at each moment of the clock cycle. */
-export const PHASE_TEXT: Record<ClockPhase, string> = {
-  before:
-    'The clock is low. The new value waits at the inputs, and the register still holds the old one.',
-  high: 'The clock has risen: at that moment every written bit took its input. Nothing else can get in until it rises again.',
-  after:
-    'The clock is low again. The register holds the new value, and will hold it through every cycle that does not write it.'
-};
+/**
+ * What is going on at a moment of the clock cycle, by which bits the write lines let in: all of
+ * them, some, or none.
+ */
+export function phaseText(phase: ClockPhase, request: RegisterRequest): string {
+  const all = allBits(request.width);
+  const enabled = request.enabled & all;
+  if (enabled === 0) {
+    if (phase === 'before')
+      return 'The clock is low, and no write line is on: whatever waits at the inputs will not get in.';
+    if (phase === 'high')
+      return 'The clock has risen, but no write line is on: every flip-flop took its own output back, and nothing changed.';
+    return 'The clock is low again. No write line was on, so the register still holds what it held.';
+  }
+  const some = enabled !== all;
+  if (phase === 'before')
+    return some
+      ? 'The clock is low. The new value waits at the inputs of the bits that are written, and the register still holds the old one.'
+      : 'The clock is low. The new value waits at the inputs, and the register still holds the old one.';
+  if (phase === 'high')
+    return 'The clock has risen: at that moment every written bit took its input. Nothing else can get in until it rises again.';
+  return some
+    ? 'The clock is low again. The written bits hold their new value and the others what they held, through every cycle that does not write them.'
+    : 'The clock is low again. The register holds the new value, and will hold it through every cycle that does not write it.';
+}
 
 /** What the clock button does next. */
 export const CLOCK_ACTION: Record<ClockPhase, string> = {

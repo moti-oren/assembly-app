@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AluRequest, ShiftRequest } from '@/core/logic/alu';
 import { repeatedStages } from '@/core/logic/shifter';
 import {
+  circuitLesson,
   circuitTitle,
   equationText,
   freeCircuit,
@@ -164,5 +165,15 @@ describe('logicSections', () => {
   it('names the flags for a circuit that follows the CPU, and for one that does not', () => {
     expect(logicSections(false, true).at(-1)?.label).toBe('Where each flag comes from');
     expect(logicSections(false, false).at(-1)?.label).toBe('What the circuit can also tell');
+  });
+});
+
+describe('circuitLesson', () => {
+  it('says the carry in adds 1 only when it is 1', () => {
+    const subtract: AluRequest = { kind: 'subtract', width: 8, a: 0xfe, b: 1, carryIn: 1 };
+    expect(circuitLesson(subtract)).toContain('the carry in adds 1');
+    const borrow = circuitLesson({ ...subtract, carryIn: 0 });
+    expect(borrow).not.toContain('the carry in adds 1');
+    expect(borrow).toContain('here it is 0');
   });
 });

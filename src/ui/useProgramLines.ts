@@ -58,8 +58,13 @@ export function useProgramLines<
    * Swaps in an edited program, moving the instruction pointer as `moveLine` says. `shifts` is
    * false for an edit that leaves every existing line where it was.
    */
-  function edit(lines: Instruction[], moveLine: (next: number) => number, shifts = true): void {
-    const next = moveLine(architecture.nextLine(state, program.value));
+  /** An edit; `moveLine` says where the next line goes, and null leaves the pointer alone. */
+  function edit(
+    lines: Instruction[],
+    moveLine: ((next: number) => number) | null,
+    shifts = true
+  ): void {
+    const next = moveLine && moveLine(architecture.nextLine(state, program.value));
     if (shifts && hasRun()) stale.value = true;
     // Any other edit ends the last move's turn, so the same move made again is said again.
     lastMove.value = null;
@@ -68,7 +73,7 @@ export function useProgramLines<
     // The line being edited may have moved or gone: the edit is dropped, the line is kept.
     editingLine.value = null;
     program.value = lines;
-    architecture.setNextLine(state, next, lines);
+    if (next !== null) architecture.setNextLine(state, next, lines);
   }
   /** The program of the last visit, started afresh: no history comes back with it. */
   function restore(): void {
@@ -161,6 +166,15 @@ export function useProgramLines<
     insertAt.value = null;
   }
 
+  /**
+   * Empties the program down to its first `kept` lines (a challenge's given lines). The CPU is
+   * left as it is, its instruction pointer included: clearing the code does not run anything.
+   */
+  function clearProgram(kept: number): void {
+    edit(program.value.slice(0, kept), null);
+    insertAt.value = null;
+  }
+
   restore();
   watch(program, (lines) => writeStoredProgram(architecture.id, lines));
 
@@ -177,6 +191,7 @@ export function useProgramLines<
     addToProgram,
     removeProgramLine,
     moveProgramLine,
-    replaceProgram
+    replaceProgram,
+    clearProgram
   };
 }

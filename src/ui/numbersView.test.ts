@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { solveNumber, type NumberRequest } from '@/core/representation/request';
 import type { ScalingRequest } from '@/core/representation/scaling';
+import { execute as run6502 } from '@/core/mos6502/execute';
+import type { Instruction as Mos6502Instruction } from '@/core/mos6502/instructions';
+import { createCpuState as mos6502Cpu } from '@/core/mos6502/state';
+import { mos6502NumberLink } from '@/core/mos6502NumberLink';
+import { hasNumbers, type NumberLink } from '@/core/numberLink';
+import { execute as runRv32 } from '@/core/rv32/execute';
+import type { Instruction as Rv32Instruction } from '@/core/rv32/instructions';
+import { createCpuState as rv32Cpu } from '@/core/rv32/state';
+import { rv32NumberLink } from '@/core/rv32NumberLink';
+import { execute as runX86 } from '@/core/x86/execute';
+import type { Instruction as X86Instruction } from '@/core/x86/instructions';
+import { createCpuState as x86Cpu } from '@/core/x86/state';
+import { x86NumberLink } from '@/core/x86NumberLink';
 import {
   bitsOf,
+  flagsBothScales,
+  lensLesson,
   disallowedWidths,
   equationText,
   freeRequest,
@@ -225,5 +240,36 @@ describe('disallowedWidths', () => {
 
   it('does not let an extension be as narrow as what it extends', () => {
     expect(disallowedWidths(freeRequest('extend', 16, null))).toEqual([8]);
+  });
+});
+
+describe('flagsBothScales', () => {
+  const both = (link: NumberLink) => hasNumbers(link) && flagsBothScales(link);
+  const x86 = (instruction: X86Instruction) => x86NumberLink(runX86(x86Cpu(), instruction));
+  const mos6502 = (instruction: Mos6502Instruction) =>
+    mos6502NumberLink(run6502(mos6502Cpu(), instruction, null, [instruction]));
+
+  it('is true only where a flag says each scale’s answer did not fit', () => {
+    const ax = { type: 'reg', name: 'ax' } as const;
+    expect(both(x86({ mnemonic: 'sub', operands: [ax, { type: 'imm', value: 3 }] }))).toBe(true);
+    expect(both(x86({ mnemonic: 'inc', operands: [ax] }))).toBe(false);
+  });
+
+  it('is false on RISC-V, which keeps no flags', () => {
+    const reg = (index: number) => ({ type: 'reg', index }) as const;
+    const sub: Rv32Instruction = { mnemonic: 'sub', operands: [reg(7), reg(5), reg(6)] };
+    expect(both(rv32NumberLink(runRv32(rv32Cpu(), sub, null, [sub])))).toBe(false);
+  });
+
+  it('tells the 6502’s SBC from its CMP', () => {
+    const imm = { type: 'imm', value: 3 } as const;
+    expect(both(mos6502({ mnemonic: 'sbc', operands: [imm] }))).toBe(true);
+    expect(both(mos6502({ mnemonic: 'cmp', operands: [imm] }))).toBe(false);
+  });
+
+  it('decides whether the lesson speaks of a flag for each scale', () => {
+    const request: NumberRequest = { kind: 'subtract', width: 32, a: 5, b: 3, extra: 0 };
+    expect(lensLesson(request, true)).toContain('a flag for each');
+    expect(lensLesson(request, false)).not.toContain('flag');
   });
 });

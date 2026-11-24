@@ -5,7 +5,7 @@ import type { Bit } from '@/core/logic/gates';
 import { REGISTER } from '@/core/logic/register';
 import { Button } from '@/components/ui/button';
 import { bitsLeftToRight, startsDigit } from '@/ui/logicLayout';
-import { CLOCK_ACTION, PHASE_TEXT } from '@/ui/storageView';
+import { CLOCK_ACTION, phaseText } from '@/ui/storageView';
 import type { StorageLens } from '@/ui/useStorageLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
@@ -107,6 +107,8 @@ function wires(name: (bit: number) => string): Bit[] {
         Start over
       </Button>
     </div>
-    <p class="max-w-prose text-sm text-pretty" aria-live="polite">{{ PHASE_TEXT[phase] }}</p>
+    <p class="max-w-prose text-sm text-pretty" aria-live="polite">
+      {{ phaseText(phase, lens.request.value) }}
+    </p>
   </div>
 </template>

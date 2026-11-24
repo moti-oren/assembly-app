@@ -4,7 +4,13 @@ import type { NumberLink } from '@/core/numberLink';
 import type { CpuMoment } from '@/ui/cpuMoment';
 import { isComparison } from '@/ui/numbersCompare';
 import { CONDITION_SETS } from '@/ui/numbersConditions';
-import { equationText, lensLesson, lensTitle, unavailableText } from '@/ui/numbersView';
+import {
+  equationText,
+  flagsBothScales,
+  lensLesson,
+  lensTitle,
+  unavailableText
+} from '@/ui/numbersView';
 import type { TopicSectionInfo } from '@/ui/topicSections';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useNumberLens } from '@/ui/useNumberLens';
@@ -90,7 +96,7 @@ const sections = computed<TopicSectionInfo[]>(() => [
     <template #stage>
       <StageSection :title="lensTitle(request)" label="The numbers">
         <template #lesson>
-          {{ lensLesson(request) }}
+          {{ lensLesson(request, flagsBothScales(lens.view.value)) }}
           Press a bit of an input to flip it.
         </template>
         <div>
@@ -135,7 +141,10 @@ const sections = computed<TopicSectionInfo[]>(() => [
         :solution="solution"
       />
 
-      <p class="max-w-prose px-4 py-(--pane-section-py) text-xs text-pretty text-muted-foreground">
+      <p
+        v-if="flagsBothScales(lens.view.value)"
+        class="max-w-prose px-4 py-(--pane-section-py) text-xs text-pretty text-muted-foreground"
+      >
         The CPU does one thing to the bits, whatever they stand for. The flags are how it leaves
         both answers for the program to pick from.
       </p>

@@ -49,7 +49,7 @@ function truth(asked: Question, record: ExecutionRecord, state: CpuState): Answe
 function why(
   asked: Question,
   record: ExecutionRecord,
-  _state: CpuState,
+  state: CpuState,
   wrong: readonly string[]
 ): string | null {
   switch (asked.kind) {
@@ -65,7 +65,7 @@ function why(
       return (
         decode(record.instruction)
           .flagsWritten.filter((flag) => wrong.includes(flag))
-          .map((flag) => `${flag}: ${flagReason(record, flag) ?? 'left as it was'}.`)
+          .map((flag) => `${flag}: ${flagReason(record, flag, state) ?? 'left as it was'}.`)
           .join(' ') || null
       );
   }
