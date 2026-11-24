@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { cellDiagram } from '@/ui/storageDiagram';
-import { PULSE_WIRE } from '@/ui/storageTiming';
+import { pressText, PULSE_WIRE, timingChart, traceTexts } from '@/ui/storageTiming';
 import { CELL_INPUTS, CELL_LESSONS, cellLabel, CELLS, UNSETTLED } from '@/ui/storageView';
 import type { StorageLens } from '@/ui/useStorageLens';
 import LogicDiagram from './LogicDiagram.vue';
@@ -20,6 +20,12 @@ const diagram = computed(() => cellDiagram(kind.value, props.lens.bit.value));
 const signals = computed(() => (free.value ? cell.value.signals.value : props.lens.signals.value));
 /** Whether the cell worked by hand never came to rest. */
 const unsettled = computed(() => free.value !== null && !cell.value.settled.value);
+const trace = computed(() => cell.value.trace.value);
+const chart = computed(() => (free.value ? timingChart(free.value, trace.value) : null));
+const told = computed(() => (free.value ? traceTexts(free.value, trace.value) : []));
+const press = computed(() =>
+  free.value ? pressText(free.value, trace.value, cell.value.pressSteps.value) : ''
+);
 const heading = computed(() =>
   free.value ? cellLabel(kind.value) : `Bit ${props.lens.bit.value} of the register`
 );
@@ -120,7 +126,7 @@ const heading = computed(() =>
       {{ unsettled ? UNSETTLED : '' }}
     </p>
 
-    <StorageTiming :cell="free" :trace="cell.trace.value" :steps="cell.pressSteps.value" />
+    <StorageTiming :chart="chart" :told="told" :press="press" />
 
     <LogicDiagram
       class="mt-3"

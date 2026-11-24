@@ -73,8 +73,8 @@ export interface RegisterSolution {
   stored: number;
 }
 
-/** The wires of a register that holds `held`, before anything has reached its gates. */
-function holding(width: number, held: number): Record<string, Bit> {
+/** The wires of flip-flops that hold `held`, before anything has reached their gates. */
+export function holding(width: number, held: number): Record<string, Bit> {
   const signals: Record<string, Bit> = {};
   for (let bit = 0; bit < width; bit++) {
     Object.assign(

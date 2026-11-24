@@ -9,6 +9,7 @@ import { equationText, registerChoices, registerTitle, unavailableText } from '@
 import { useStorageCommands } from '@/ui/useStorageCommands';
 import { useStorageFile } from '@/ui/useStorageFile';
 import { useStorageLens } from '@/ui/useStorageLens';
+import { useStorageSequence } from '@/ui/useStorageSequence';
 import { useTopic } from '@/ui/useTopic';
 import AppErrorNotice from './AppErrorNotice.vue';
 import ArchitectureSwitch from './ArchitectureSwitch.vue';
@@ -17,6 +18,7 @@ import HeaderShell from './HeaderShell.vue';
 import StorageCell from './StorageCell.vue';
 import StorageFile from './StorageFile.vue';
 import StorageRegister from './StorageRegister.vue';
+import StorageSequence from './StorageSequence.vue';
 import TopicOrigin from './TopicOrigin.vue';
 
 const props = defineProps<{
@@ -31,6 +33,7 @@ const emit = defineEmits<{
 
 const lens = useStorageLens(() => props.moment.link);
 const file = useStorageFile(() => props.moment.link);
+const sequence = useStorageSequence();
 const { topic } = useTopic();
 const paletteOpen = ref(false);
 
@@ -39,7 +42,7 @@ const page = useTemplateRef<HTMLElement>('page');
 const focusPage = (): void => page.value?.focus({ preventScroll: true });
 onMounted(focusPage);
 onActivated(focusPage);
-const commands = useStorageCommands(lens, file, () => props.moment, {
+const commands = useStorageCommands(lens, file, sequence, () => props.moment, {
   seek: (position) => emit('seek', position),
   back: () => emit('back')
 });
@@ -152,6 +155,10 @@ const written = computed(() => registerChoices(lens.fromCpu.value?.writes ?? [])
 
       <div class="border-t pt-5">
         <StorageFile :file="file" @show="showRegister" />
+      </div>
+
+      <div class="border-t pt-5">
+        <StorageSequence :sequence="sequence" @control="topic = 'control'" />
       </div>
 
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-4">

@@ -75,7 +75,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     switches (`shifter.ts`), and `alu.ts`, which solves one ALU operation gate by gate. Circuits
     with a loop in them are run until they come to rest (`feedback.ts`): the latches and the
     flip-flop (`flipFlop.ts`), a register taken through one clock cycle (`register.ts`), and a
-    file of registers whose address decoder picks the one that is written (`registerFile.ts`). A
+    file of registers whose address decoder picks the one that is written (`registerFile.ts`).
+    Flip-flops that feed one another make a shift register and a counter (`sequence.ts`). A
     circuit without a loop can be followed gate delay by gate delay as it comes to rest
     (`propagation.ts`), and any of its gates can be broken, its output stuck at 0 or at 1
     (`fault.ts`), or built from NAND gates alone (`nand.ts`). A
@@ -513,6 +514,12 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   `zero` has no gate and no flip-flops, so a write to it is lost; otherwise it is a file of eight
   registers to work by hand. Press a bit of the address or the write line to flip it, and a
   register to see its own flip-flops in the register above.
+- **Flip-flops that feed one another**, at the end of the page, is a shift register and a counter
+  of four flip-flops to work by hand. **Pulse the clock** is one tick: the shift register moves
+  every bit one place up and takes **In** in at bit 0, and the counter adds 1 while **Count** is
+  1. The rows above what the flip-flops hold show what each will take in at the next tick (and,
+  for the counter, which bits will flip), and a timing diagram follows the input, the clock and
+  every flip-flop. **The counter every CPU has: PC** opens the control topic.
 - An instruction that wrote no register (a comparison, a store, a branch) has nothing to show:
   there **Stored** is greyed and says why. So does RISC-V's `x0`, which has no flip-flops, and a
   jump, which writes only the instruction pointer: how that register is loaded on every
@@ -672,7 +679,8 @@ npm run verify:6502 # check the 6502 core against py65
     ripple-carry (`adder.ts`), מעגל הזזה שבנוי משורות של מתגים (`shifter.ts`), ו-`alu.ts`, שפותר
     פעולת ALU אחת שער אחר שער. מעגלים שיש בהם לולאה מורצים עד שהם מתייצבים (`feedback.ts`):
     הלאצ'ים והפליפ-פלופ (`flipFlop.ts`), אוגר שעובר מחזור שעון אחד (`register.ts`), וקובץ אוגרים
-    שמפענח הכתובת שלו בוחר את האוגר שנכתב (`registerFile.ts`). אחרי מעגל
+    שמפענח הכתובת שלו בוחר את האוגר שנכתב (`registerFile.ts`). פליפ-פלופים שמזינים זה את זה
+    יוצרים אוגר הזזה ומונה (`sequence.ts`). אחרי מעגל
     בלי לולאה אפשר לעקוב השהיית שער אחר השהיית שער עד שהוא מתייצב (`propagation.ts`), ואפשר
     לשבור כל שער שלו, כך שהפלט שלו תקוע על 0 או על 1 (`fault.ts`), או לבנות אותו משערי NAND בלבד
     (`nand.ts`). מפענח הוא
@@ -1060,6 +1068,11 @@ npm run verify:6502 # check the 6502 core against py65
   ככתובת, ול-`zero` אין שער ואין פליפ-פלופים, כך שכתיבה אליו אובדת; אחרת זה קובץ של שמונה אוגרים
   להפעלה ביד. לחיצה על סיבית של הכתובת או על קו הכתיבה הופכת אותה, ולחיצה על אוגר מציגה את
   הפליפ-פלופים שלו באוגר שלמעלה.
+- **Flip-flops that feed one another**, בסוף העמוד, הוא אוגר הזזה ומונה של ארבעה פליפ-פלופים
+  להפעלה ביד. **Pulse the clock** הוא תקתוק אחד: אוגר ההזזה מזיז כל סיבית מקום אחד למעלה ומכניס
+  את **In** בסיבית 0, והמונה מוסיף 1 כל עוד **Count** הוא 1. השורות שמעל מה שהפליפ-פלופים מחזיקים
+  מראות מה כל אחד ייקח בתקתוק הבא (ובמונה, אילו סיביות יתהפכו), ודיאגרמת תזמון עוקבת אחרי הכניסה,
+  השעון וכל פליפ-פלופ. **The counter every CPU has: PC** פותח את נושא הבקרה.
 - להוראה שלא כתבה אוגר (השוואה, כתיבה לזיכרון, הסתעפות) אין מה להציג: שם **Stored** אפור ומסביר
   למה. כך גם `x0` של RISC-V, שאין לו פליפ-פלופים, וקפיצה, שכותבת רק את מצביע ההוראה: האופן שבו
   האוגר הזה נטען בכל הוראה מוצג בנושא הבקרה, עבור RISC-V.
