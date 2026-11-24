@@ -68,6 +68,11 @@ export function useStorageLens(link: () => RegisterLink | null) {
     chosen.value = index;
   }
 
+  /** Puts a register from elsewhere on show, as the register file does with one of its own. */
+  function show(given: RegisterWrite): void {
+    edited.value = given;
+  }
+
   function chooseBit(index: number): void {
     chosenBit.value = index;
     cell.pick('register');
@@ -104,6 +109,7 @@ export function useStorageLens(link: () => RegisterLink | null) {
     flipBit,
     setWidth,
     chooseRegister,
+    show,
     chooseBit,
     clock,
     rewind,

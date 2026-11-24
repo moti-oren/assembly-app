@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onActivated, onMounted, ref, useTemplateRef } from 'vue';
 import { CircuitBoard, Workflow } from '@lucide/vue';
-import type { RegisterLink } from '@/core/registerLink';
+import type { RegisterLink, RegisterWrite } from '@/core/registerLink';
 import { Button } from '@/components/ui/button';
 import type { CpuMoment } from '@/ui/cpuMoment';
 import { WIDTHS } from '@/ui/logicView';
 import { equationText, registerChoices, registerTitle, unavailableText } from '@/ui/storageView';
 import { useStorageCommands } from '@/ui/useStorageCommands';
+import { useStorageFile } from '@/ui/useStorageFile';
 import { useStorageLens } from '@/ui/useStorageLens';
 import { useTopic } from '@/ui/useTopic';
 import AppErrorNotice from './AppErrorNotice.vue';
@@ -14,6 +15,7 @@ import ArchitectureSwitch from './ArchitectureSwitch.vue';
 import CommandPalette from './CommandPalette.vue';
 import HeaderShell from './HeaderShell.vue';
 import StorageCell from './StorageCell.vue';
+import StorageFile from './StorageFile.vue';
 import StorageRegister from './StorageRegister.vue';
 import TopicOrigin from './TopicOrigin.vue';
 
@@ -28,6 +30,7 @@ const emit = defineEmits<{
 }>();
 
 const lens = useStorageLens(() => props.moment.link);
+const file = useStorageFile(() => props.moment.link);
 const { topic } = useTopic();
 const paletteOpen = ref(false);
 
@@ -36,7 +39,7 @@ const page = useTemplateRef<HTMLElement>('page');
 const focusPage = (): void => page.value?.focus({ preventScroll: true });
 onMounted(focusPage);
 onActivated(focusPage);
-const commands = useStorageCommands(lens, () => props.moment, {
+const commands = useStorageCommands(lens, file, () => props.moment, {
   seek: (position) => emit('seek', position),
   back: () => emit('back')
 });
@@ -44,6 +47,13 @@ const commands = useStorageCommands(lens, () => props.moment, {
 const equation = computed(() => equationText(lens.write.value, lens.solution.value.stored));
 /** Why the CPU's last instruction has no register to show here, when it has none. */
 const unavailable = computed(() => unavailableText(props.moment.link));
+// A register picked in the file is shown where a register is: the focus follows it there.
+const registerSection = useTemplateRef<HTMLElement>('registerSection');
+function showRegister(write: RegisterWrite): void {
+  lens.show(write);
+  registerSection.value?.focus();
+}
+
 /** The registers the CPU's instruction wrote, when it wrote more than one. */
 const written = computed(() => registerChoices(lens.fromCpu.value?.writes ?? []));
 </script>
@@ -73,7 +83,12 @@ const written = computed(() => registerChoices(lens.fromCpu.value?.writes ?? [])
         @restore="lens.restore()"
       />
 
-      <section class="border-t pt-5" aria-label="The register">
+      <section
+        ref="registerSection"
+        class="border-t pt-5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        tabindex="-1"
+        :aria-label="`The register ${registerTitle(lens.write.value)}`"
+      >
         <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <h2 class="text-base font-semibold tracking-tight">
             {{ registerTitle(lens.write.value) }}
@@ -133,6 +148,10 @@ const written = computed(() => registerChoices(lens.fromCpu.value?.writes ?? [])
 
       <div class="border-t pt-5">
         <StorageCell :lens="lens" />
+      </div>
+
+      <div class="border-t pt-5">
+        <StorageFile :file="file" @show="showRegister" />
       </div>
 
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-4">
