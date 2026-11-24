@@ -65,7 +65,8 @@ export function useCpu<
     addToProgram,
     removeProgramLine,
     moveProgramLine,
-    replaceProgram
+    replaceProgram,
+    clearProgram: clearLines
   } = useProgramLines(
     architecture,
     state,
@@ -131,10 +132,13 @@ export function useCpu<
     stepProgram
   });
 
-  /** Empties the program; a challenge's given lines are not the user's to clear, and stay. */
+  /**
+   * Empties the program; a challenge's given lines are not the user's to clear, and stay. The CPU
+   * keeps its registers and history, its instruction pointer included.
+   */
   function clearProgram(): void {
     pause();
-    replaceProgram(program.value.slice(0, lockedLines.value));
+    clearLines(lockedLines.value);
   }
 
   /** Replaces the program and starts the CPU afresh, without its history. */
