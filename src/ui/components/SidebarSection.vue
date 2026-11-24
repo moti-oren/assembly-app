@@ -16,6 +16,8 @@ const props = defineProps<{
   resizable: boolean;
   /** A panel that keeps its place in the column: its header only folds it. */
   fixed?: boolean;
+  /** What its close button says, when closing does more than hide it. */
+  closeLabel?: string;
 }>();
 
 const emit = defineEmits<{
@@ -68,13 +70,13 @@ function onClick(event: MouseEvent): void {
         <button
           type="button"
           class="sidebar-close"
-          :aria-label="`Close the ${label} panel`"
+          :aria-label="closeLabel ?? `Close the ${label} panel`"
           @click.stop="emit('close')"
         >
           <X aria-hidden="true" />
         </button>
       </TooltipTrigger>
-      <TooltipContent>Close {{ label }}</TooltipContent>
+      <TooltipContent>{{ closeLabel ?? `Close ${label}` }}</TooltipContent>
     </Tooltip>
     <slot />
   </div>

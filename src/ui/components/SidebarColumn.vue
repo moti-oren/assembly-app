@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
-import { sectionStyle, type SidebarKey } from '@/ui/sidebarLayout';
+import { CLOSE_LABELS, sectionStyle, type SidebarKey } from '@/ui/sidebarLayout';
 import { useSidebarLayout } from '@/ui/useSidebarLayout';
 import { useSidebarResize } from '@/ui/useSidebarResize';
 import SidebarSection from './SidebarSection.vue';
@@ -60,6 +60,7 @@ function above(index: number): SidebarKey | null {
         :label="labels[key]"
         :collapsed="layout.isCollapsed(key)"
         :closable="closable.includes(key)"
+        :close-label="CLOSE_LABELS[key]"
         :resizable="above(index) !== null"
         @toggle="layout.toggle(key)"
         @close="emit('close', key)"

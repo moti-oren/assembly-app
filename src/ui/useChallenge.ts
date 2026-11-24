@@ -11,6 +11,7 @@ import { analytics } from './analyticsClient';
 import { sound } from './soundEngine';
 import { useChallenges } from './useChallenges';
 import type { CpuOf } from './useCpu';
+import { useReplaceGuard } from './useReplaceGuard';
 
 /** Loads a challenge's given lines into its CPU, afresh, and makes it the one worked on. */
 export function startChallenge<
@@ -20,9 +21,17 @@ export function startChallenge<
 >(cpu: CpuOf<Instruction, State, Record>, id: string): void {
   const challenge = cpu.architecture.challenges.find((each) => each.id === id);
   if (!challenge) return;
-  cpu.loadProgram(givenLines(challenge), { name: challenge.title, description: challenge.brief });
-  useChallenges().start(cpu.architecture.id, id);
-  analytics.track({ name: 'challenge-started', architecture: cpu.architecture.id, challenge: id });
+  const given = givenLines(challenge);
+  // Starting again over an attempt asks first, as any program that replaces another does.
+  useReplaceGuard().guard(cpu.program.value, given, challenge.title, () => {
+    cpu.loadProgram(given, { name: challenge.title, description: challenge.brief });
+    useChallenges().start(cpu.architecture.id, id);
+    analytics.track({
+      name: 'challenge-started',
+      architecture: cpu.architecture.id,
+      challenge: id
+    });
+  });
 }
 
 /**
