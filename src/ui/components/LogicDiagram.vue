@@ -82,7 +82,7 @@ const table = computed(() => gate.value && gateTable(gate.value, props.signals))
             </tr>
           </tbody>
         </table>
-        <slot name="gate" :gate="gate" />
+        <div v-if="$slots.gate" class="mt-3"><slot name="gate" :gate="gate" /></div>
       </div>
       <div>
         <h4 class="text-xs font-semibold">As Boolean algebra</h4>

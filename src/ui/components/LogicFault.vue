@@ -19,7 +19,7 @@ const VALUES: readonly Bit[] = [0, 1];
 
 <!-- Breaks the gate picked: its output stays at 0 or at 1, whatever its inputs are. -->
 <template>
-  <div class="mt-3">
+  <div>
     <div class="toggle-group w-max" role="group" :aria-label="`Break this gate: ${gate.name}`">
       <Button
         variant="ghost"

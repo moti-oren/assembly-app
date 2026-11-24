@@ -62,7 +62,7 @@ describe('equationText', () => {
 describe('unavailableText', () => {
   it('says why, and what the page shows instead', () => {
     expect(unavailableText({ unavailable: 'NOP wrote no register.' })).toBe(
-      'NOP wrote no register. The register below is one to try by hand.'
+      'NOP wrote no register. The register on show is one to try by hand.'
     );
   });
 

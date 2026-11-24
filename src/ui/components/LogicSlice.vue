@@ -5,8 +5,16 @@ import type { LogicLens } from '@/ui/useLogicLens';
 import LogicDiagram from './LogicDiagram.vue';
 import LogicFault from './LogicFault.vue';
 import LogicNand from './LogicNand.vue';
+import StageSection from './StageSection.vue';
 
-const props = defineProps<{ lens: LogicLens }>();
+const props = defineProps<{
+  lens: LogicLens;
+  /**
+   * With the switches of the gate picked under its truth table: on a phone, where the sidebar
+   * that holds them is another view.
+   */
+  withGateSwitches?: boolean;
+}>();
 
 const diagram = computed(() => props.lens.diagram.value);
 const isShift = computed(() => props.lens.request.value.kind === 'shift');
@@ -17,19 +25,15 @@ const heading = computed(() =>
 
 <!-- One bit of the circuit, gate by gate, with the truth table of the gate picked. -->
 <template>
-  <section aria-label="The gates of one bit">
-    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-      <h3 class="text-sm font-semibold">{{ heading }}, gate by gate</h3>
-      <p class="text-xs text-muted-foreground">
-        {{ isShift ? 'Pick a bit in any row above.' : 'Pick another bit in the row above.' }}
-      </p>
-    </div>
-    <p v-if="!diagram" class="mt-3 text-sm text-muted-foreground">
+  <StageSection :title="`${heading}, gate by gate`" label="The gates of one bit">
+    <template #aside>
+      {{ isShift ? 'Pick a bit in any row above.' : 'Pick another bit in the row above.' }}
+    </template>
+    <p v-if="!diagram" class="text-sm text-muted-foreground">
       With no rows there is nothing between the input and the result.
     </p>
     <LogicDiagram
       v-else
-      class="mt-3"
       :diagram="diagram"
       :signals="lens.shown.value.signals"
       :chosen="lens.gate.value"
@@ -38,12 +42,12 @@ const heading = computed(() =>
       :stuck="lens.faults.value"
       @choose="lens.chooseGate"
     >
-      <template #gate="{ gate }">
+      <template v-if="withGateSwitches" #gate="{ gate }">
         <LogicFault :lens="lens" :gate="gate" />
       </template>
       <template #under="{ gate }">
-        <LogicNand :lens="lens" :gate="gate" />
+        <LogicNand :lens="lens" :gate="gate" :with-switch="withGateSwitches" />
       </template>
     </LogicDiagram>
-  </section>
+  </StageSection>
 </template>

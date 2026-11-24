@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Button } from '@/components/ui/button';
 import { nandCost, nandCostText, nandDiagram, nandLabel, nandSignals } from '@/ui/logicNand';
 import type { DiagramGate } from '@/ui/logicSlice';
 import type { LogicLens } from '@/ui/useLogicLens';
 import LogicDrawing from './LogicDrawing.vue';
+import LogicNandSwitch from './LogicNandSwitch.vue';
 
 const props = defineProps<{
   lens: LogicLens;
   /** The gate picked in the drawing. */
   gate: DiagramGate;
+  /** With the switch that opens it, where no sidebar beside the drawing holds one. */
+  withSwitch?: boolean;
 }>();
 
 const open = computed(() => props.lens.nandShown.value);
@@ -28,17 +30,9 @@ const cost = computed(() =>
 
 <!-- The gate picked, built from NAND gates alone, and what that costs. -->
 <template>
-  <div v-if="diagram">
-    <Button
-      :variant="open ? 'default' : 'outline'"
-      size="sm"
-      class="pointer-coarse:h-11"
-      :aria-pressed="open"
-      @click="lens.toggleNand()"
-    >
-      As NAND gates
-    </Button>
-    <div v-if="open" class="mt-3 flex flex-col gap-3">
+  <div v-if="diagram && (withSwitch || open)" class="flex flex-col gap-3">
+    <LogicNandSwitch v-if="withSwitch" :lens="lens" />
+    <div v-if="open" class="flex flex-col gap-3">
       <div class="well overflow-x-auto rounded-lg p-3">
         <LogicDrawing
           still

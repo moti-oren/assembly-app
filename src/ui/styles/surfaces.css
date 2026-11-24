@@ -118,13 +118,14 @@
 }
 
 /*
- * A phone shows one view at a time (ViewTabs.vue): the code, the CPU, or what is on its bus.
- * The other panels stay mounted, so each keeps its place and what was typed into it. Unlayered,
- * like the drawer below, so they win over the panes' own display and position utilities.
+ * A phone shows one view at a time (ViewTabs.vue): the sidebar, or the stage, which the CPU's
+ * workbench splits in two (the CPU, and what is on its bus). The other panels stay mounted, so
+ * each keeps its place and what was typed into it. Unlayered, like the drawer below, so they win
+ * over the panes' own display and position utilities.
  */
 @media (width < 48rem) {
-  .workbench[data-view='code'] > [data-pane='stage'],
-  .workbench:not([data-view='code']) > [data-pane='sidebar'],
+  .workbench[data-shows='sidebar'] > [data-pane='stage'],
+  .workbench[data-shows='stage'] > [data-pane='sidebar'],
   .workbench[data-view='cpu'] [data-in-view='memory'],
   .workbench[data-view='memory'] [data-in-view='cpu'] {
     display: none;

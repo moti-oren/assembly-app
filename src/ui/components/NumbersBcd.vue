@@ -78,7 +78,7 @@ const text = (value: number): string => String(value).replace('-', '−');
     />
   </div>
 
-  <div class="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
+  <div class="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 @xl:grid-cols-2">
     <section
       v-for="digit in digits"
       :key="digit.place"

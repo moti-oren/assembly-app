@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import type { ArithmeticSolution } from '@/core/representation/arithmetic';
 import { compareRows, compareSummary, compareWarning } from '@/ui/numbersCompare';
 import type { ConditionSet } from '@/ui/numbersConditions';
+import StageSection from './StageSection.vue';
 
 const props = defineProps<{
   /** The jumps of the CPU on show. */
@@ -18,13 +19,10 @@ const warning = computed(() => compareWarning(rows.value));
 
 <!-- The two numbers as a program compares them: every conditional jump, and whether it goes. -->
 <template>
-  <section aria-label="Conditional jumps">
-    <h3 class="text-sm font-semibold">What a jump would make of it</h3>
-    <p class="mt-2 max-w-prose text-sm text-pretty text-muted-foreground">
-      {{ conditions.lead }}
-    </p>
+  <StageSection title="What a jump would make of it" label="Conditional jumps">
+    <template #lesson>{{ conditions.lead }}</template>
     <p
-      class="mt-2 max-w-prose text-sm text-pretty"
+      class="max-w-prose text-sm text-pretty"
       :class="{ 'font-semibold': summary.split }"
       aria-live="polite"
     >
@@ -33,7 +31,7 @@ const warning = computed(() => compareWarning(rows.value));
 
     <!-- Wider than a phone, where it scrolls sideways: what a jump does comes first for that. -->
     <div
-      class="scroll-fade-x mt-3 overflow-x-auto outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      class="scroll-fade-x overflow-x-auto outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       tabindex="0"
       role="region"
       aria-label="Conditional jumps table"
@@ -81,11 +79,11 @@ const warning = computed(() => compareWarning(rows.value));
     <div aria-live="polite">
       <p
         v-if="warning"
-        class="mt-3 max-w-prose text-xs text-pretty"
+        class="max-w-prose text-xs text-pretty"
         :class="warning.wrong ? 'text-foreground' : 'text-muted-foreground'"
       >
         {{ warning.text }}
       </p>
     </div>
-  </section>
+  </StageSection>
 </template>

@@ -137,7 +137,7 @@ export function equationText(word: number, solution: ControlSolution): string {
 /** Why the CPU's last instruction has no control unit to show, or null when it has one. */
 export function unavailableText(link: ControlLink | null): string | null {
   return link && !hasControl(link)
-    ? `${link.unavailable} The word below is one to try by hand.`
+    ? `${link.unavailable} The word on show is one to try by hand.`
     : null;
 }
 

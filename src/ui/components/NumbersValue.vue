@@ -42,7 +42,7 @@ const rows = computed(() => valueRows(props.solution.readings));
       <dd class="font-mono tabular-nums" :class="{ 'text-muted-foreground': row.none }">
         {{ row.value }}
       </dd>
-      <dd class="min-w-0 basis-full text-xs text-pretty text-muted-foreground sm:basis-auto">
+      <dd class="min-w-0 basis-full text-xs text-pretty text-muted-foreground @xl:basis-auto">
         {{ row.how }}
       </dd>
     </div>

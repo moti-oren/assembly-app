@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import { computed, onActivated, onMounted, ref, useTemplateRef } from 'vue';
-import { CircuitBoard, MemoryStick } from '@lucide/vue';
+import { computed, nextTick, useTemplateRef } from 'vue';
 import type { ControlLink } from '@/core/controlLink';
-import { Button } from '@/components/ui/button';
 import { equationText, pcAbsentText, unavailableText } from '@/ui/controlView';
 import type { CpuMoment } from '@/ui/cpuMoment';
+import { sectionKey, type TopicSectionInfo } from '@/ui/topicSections';
 import { useControlCommands } from '@/ui/useControlCommands';
 import { useControlLens } from '@/ui/useControlLens';
+import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useTopic } from '@/ui/useTopic';
-import AppErrorNotice from './AppErrorNotice.vue';
-import ArchitectureSwitch from './ArchitectureSwitch.vue';
-import CommandPalette from './CommandPalette.vue';
+import { useTopicSections } from '@/ui/useTopicSections';
+import { useTopicView } from '@/ui/useTopicView';
 import ControlEffect from './ControlEffect.vue';
+import ControlFields from './ControlFields.vue';
 import ControlLines from './ControlLines.vue';
 import ControlPc from './ControlPc.vue';
 import ControlPlane from './ControlPlane.vue';
 import ControlWord from './ControlWord.vue';
-import HeaderShell from './HeaderShell.vue';
-import TopicOrigin from './TopicOrigin.vue';
+import ControlWordEntry from './ControlWordEntry.vue';
+import StageSection from './StageSection.vue';
+import TopicWorkbench from './TopicWorkbench.vue';
 
 const props = defineProps<{
   /** The CPU on show in the CPU topic, at the instruction it ran last. */
@@ -30,161 +31,138 @@ const emit = defineEmits<{
 }>();
 
 const lens = useControlLens(() => props.moment.link);
+const mode = useLayoutMode();
 const { topic } = useTopic();
-const paletteOpen = ref(false);
+const { showControls } = useTopicView();
+const folded = useTopicSections();
 
-// The control that opened this page is gone with the page it was on: focus starts here instead.
-const page = useTemplateRef<HTMLElement>('page');
-const focusPage = (): void => page.value?.focus({ preventScroll: true });
-onMounted(focusPage);
-onActivated(focusPage);
+// The box is in the sidebar, which a narrow screen or a folded section may be hiding.
+const entry = useTemplateRef<HTMLElement>('entry');
+async function focusWord(): Promise<void> {
+  showControls();
+  folded.expand(sectionKey('control', 'word'));
+  await nextTick();
+  entry.value?.querySelector<HTMLElement>('[data-control-word]')?.focus();
+}
 const commands = useControlCommands(lens, () => props.moment, {
   seek: (position) => emit('seek', position),
   back: () => emit('back'),
-  focusWord: () => page.value?.querySelector<HTMLElement>('[data-control-word]')?.focus()
+  focusWord
 });
 
 const equation = computed(() => equationText(lens.word.value, lens.solution.value));
-/** Why the CPU's last instruction has no control unit to show here, when it has none. */
-const unavailable = computed(() => unavailableText(props.moment.link));
+
+/**
+ * The sidebar's sections. A phone shows the sidebar as a view of its own, so there the fields
+ * stay under the bits they are made of.
+ */
+const sections = computed<TopicSectionInfo[]>(() => [
+  { id: 'word', label: 'Instruction word' },
+  ...(mode.value === 'phone' ? [] : [{ id: 'fields', label: 'Fields of the word' }])
+]);
 </script>
 
 <!-- The control topic: the lines the CPU's last instruction was decoded into, and the next PC. -->
 <template>
-  <HeaderShell badge="CU" menu-label="Topics and settings" @commands="paletteOpen = true">
-    <template #context>
-      <ArchitectureSwitch />
+  <TopicWorkbench
+    topic="control"
+    badge="CU"
+    stage-label="Control unit"
+    :commands="commands"
+    :sections="sections"
+    :moment="moment"
+    :equation="equation"
+    :edited="lens.isEdited.value"
+    :from-cpu="lens.fromCpu.value !== null"
+    :unavailable="unavailableText(moment.link)"
+    :aside="null"
+    @seek="emit('seek', $event)"
+    @back="emit('back')"
+    @restore="lens.restore()"
+  >
+    <template #word>
+      <div ref="entry">
+        <ControlWordEntry :lens="lens" />
+      </div>
     </template>
-  </HeaderShell>
-  <CommandPalette v-model:open="paletteOpen" :commands="commands" />
-  <AppErrorNotice />
+    <template #fields>
+      <ControlFields :lens="lens" />
+    </template>
 
-  <main ref="page" class="logic-page outline-none" tabindex="-1" aria-label="The control unit">
-    <!-- No section is wider than the page: what is wider inside one scrolls there. -->
-    <div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-5 *:min-w-0 sm:px-6">
-      <TopicOrigin
-        :moment="moment"
-        :equation="equation"
-        :edited="lens.isEdited.value"
-        :from-cpu="lens.fromCpu.value !== null"
-        :unavailable="unavailable"
-        :aside="null"
-        @seek="emit('seek', $event)"
-        @back="emit('back')"
-        @restore="lens.restore()"
-      />
-
-      <section class="border-t pt-5" aria-label="The instruction word">
-        <h2 class="text-base font-semibold tracking-tight">The instruction, as 32 bits</h2>
-        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+    <template #stage>
+      <StageSection title="The instruction, as 32 bits" label="The instruction word">
+        <template #lesson>
           This is all the control unit gets. It reads a few of these bits and, from them alone, sets
           every line that tells the rest of the CPU what to do. Press a bit to flip it, or type
           another word in hex, and see what it becomes.
-        </p>
-        <div class="mt-3">
-          <ControlWord :lens="lens" />
-        </div>
-      </section>
+        </template>
+        <ControlWord :lens="lens" :with-fields="mode === 'phone'" />
+      </StageSection>
 
-      <section class="border-t pt-5" aria-label="The main decoder">
-        <h2 class="text-base font-semibold tracking-tight">The main decoder: what kind is it?</h2>
-        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+      <StageSection title="The main decoder: what kind is it?" label="The main decoder">
+        <template #lesson>
           Every row is one AND gate that reads the seven bits of the opcode, some of them through a
           NOT. Only the row whose pattern the word carries is on. Every column on the right is one
           OR gate: a line is 1 when the row that is on has a dot in it.
-        </p>
-        <div class="mt-3">
-          <ControlPlane
-            :solution="lens.solution.value.main"
-            :faults="lens.faults.value"
-            :wires="lens.shape.value.wires"
-            caption="The main decoder: one AND gate for each kind of instruction, and the control lines it feeds"
-            row-heading="Kind"
-          />
-        </div>
-      </section>
+        </template>
+        <ControlPlane
+          :solution="lens.solution.value.main"
+          :faults="lens.faults.value"
+          :wires="lens.shape.value.wires"
+          caption="The main decoder: one AND gate for each kind of instruction, and the control lines it feeds"
+          row-heading="Kind"
+        />
+      </StageSection>
 
-      <section class="border-t pt-5" aria-label="The ALU decoder">
-        <h2 class="text-base font-semibold tracking-tight">The ALU decoder: which operation?</h2>
-        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+      <StageSection title="The ALU decoder: which operation?" label="The ALU decoder">
+        <template #lesson>
           The opcode does not say which operation. This second decoder reads what the first one
           found, with funct3 and two bits of funct7, and sets the lines of the ALU. One of them is
           the adder’s sub line.
-        </p>
-        <div class="mt-3">
-          <ControlPlane
-            :solution="lens.solution.value.alu"
-            :faults="lens.faults.value"
-            :wires="lens.shape.value.wires"
-            caption="The ALU decoder: one AND gate for each operation, and the ALU lines it feeds"
-            row-heading="Operation"
-          />
-        </div>
-      </section>
+        </template>
+        <ControlPlane
+          :solution="lens.solution.value.alu"
+          :faults="lens.faults.value"
+          :wires="lens.shape.value.wires"
+          caption="The ALU decoder: one AND gate for each operation, and the ALU lines it feeds"
+          row-heading="Operation"
+        />
+      </StageSection>
 
-      <section class="border-t pt-5" aria-label="The control lines">
-        <h2 class="text-base font-semibold tracking-tight">What the lines tell the CPU</h2>
-        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+      <StageSection title="What the lines tell the CPU" label="The control lines">
+        <template #lesson>
           Press a line to see what it switches, and break it: a line stuck at 0 or at 1 stays there
           whatever the word says. It stays broken as the CPU steps, so you can follow a program with
           it.
-        </p>
-        <div class="mt-3">
-          <ControlLines :lens="lens" @open="topic = $event" />
-        </div>
-      </section>
+        </template>
+        <ControlLines :lens="lens" @open="topic = $event" />
+      </StageSection>
 
-      <section class="border-t pt-5" aria-label="What the instruction does">
-        <h2 class="text-base font-semibold tracking-tight">What the lines make the CPU do</h2>
-        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+      <StageSection title="What the lines make the CPU do" label="What the instruction does">
+        <template #lesson>
           The lines are all the rest of the CPU gets. Here they turn its switches, with nothing else
           knowing which instruction this is: what goes into the ALU, whether memory is used, what rd
           takes.
-        </p>
-        <div class="mt-3">
-          <ControlEffect :lens="lens" />
-        </div>
-      </section>
+        </template>
+        <ControlEffect :lens="lens" />
+      </StageSection>
 
-      <section class="border-t pt-5" aria-label="The program counter">
-        <h2 class="text-base font-semibold tracking-tight">Where PC goes next</h2>
-        <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
+      <StageSection title="Where PC goes next" label="The program counter">
+        <template #lesson>
           PC is a register like any other, loaded at the end of every instruction. Two adders work
           out the two places it could go, and the Branch and Jump lines choose between them.
+        </template>
+        <ControlPc v-if="lens.pc.value" :lens="lens" :solution="lens.pc.value" />
+        <p v-else class="max-w-prose text-sm text-pretty">
+          {{ pcAbsentText(lens.fromCpu.value) }}
         </p>
-        <div class="mt-3">
-          <ControlPc v-if="lens.pc.value" :lens="lens" :solution="lens.pc.value" />
-          <p v-else class="max-w-prose text-sm text-pretty">
-            {{ pcAbsentText(lens.fromCpu.value) }}
-          </p>
-        </div>
-      </section>
+      </StageSection>
 
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-4">
-        <p class="max-w-prose min-w-0 flex-1 basis-64 text-xs text-pretty text-muted-foreground">
-          This is the control unit of a CPU that does a whole instruction in one clock cycle. It
-          reads only the bits that tell RV32IM’s instructions apart: a real one also checks the rest
-          of funct7, and funct3 where not every value is an instruction.
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          class="max-sm:w-full pointer-coarse:h-11"
-          @click="topic = 'logic'"
-        >
-          <CircuitBoard />
-          The gates of the ALU
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          class="max-sm:w-full pointer-coarse:h-11"
-          @click="topic = 'storage'"
-        >
-          <MemoryStick />
-          The flip-flops of a register
-        </Button>
-      </div>
-    </div>
-  </main>
+      <p class="max-w-prose px-4 py-(--pane-section-py) text-xs text-pretty text-muted-foreground">
+        This is the control unit of a CPU that does a whole instruction in one clock cycle. It reads
+        only the bits that tell RV32IM’s instructions apart: a real one also checks the rest of
+        funct7, and funct3 where not every value is an instruction.
+      </p>
+    </template>
+  </TopicWorkbench>
 </template>

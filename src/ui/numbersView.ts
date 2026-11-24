@@ -1,4 +1,11 @@
-import { reads, shiftReadings, type FlagReading, type NumberView } from '@/core/numberLink';
+import {
+  hasNumbers,
+  reads,
+  shiftReadings,
+  type FlagReading,
+  type NumberLink,
+  type NumberView
+} from '@/core/numberLink';
 import { isDecimalByte, wrap, type Width } from '@/core/representation/readings';
 import { resultOf, type NumberRequest, type NumberSolution } from '@/core/representation/request';
 import { hexOf } from './logicView';
@@ -256,4 +263,11 @@ export function lensLesson(request: NumberRequest): string {
     case 'value':
       return 'A row of bits means nothing by itself: the instruction that uses it decides how it is read.';
   }
+}
+
+/** Why the CPU's last instruction has no numbers to show, when it has none. */
+export function unavailableText(link: NumberLink | null): string | null {
+  return link && !hasNumbers(link)
+    ? `${link.unavailable} The numbers on show are ones to try by hand.`
+    : null;
 }

@@ -9,12 +9,15 @@ import type { NumberLens } from '@/ui/useNumberLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
+import NumbersExtra from './NumbersExtra.vue';
 import NumbersWheel from './NumbersWheel.vue';
 
 const props = defineProps<{
   lens: NumberLens;
   request: ArithmeticRequest;
   solution: ArithmeticSolution;
+  /** With the one more coming in under the rows: where no sidebar beside them holds it. */
+  withExtra?: boolean;
 }>();
 
 // A wide row starts at its low bits, where the small numbers are.
@@ -41,7 +44,7 @@ const subtracting = computed(() => props.request.kind === 'subtract');
   ones, and each wheel has its own place where the answer stops fitting.
 -->
 <template>
-  <div class="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-6 md:grid-cols-2">
+  <div class="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-6 @xl:grid-cols-2">
     <section v-for="each in scales" :key="each.scale" :aria-label="`As ${each.scale} numbers`">
       <h3 class="text-sm font-semibold capitalize">{{ each.scale }}</h3>
       <NumbersWheel
@@ -88,15 +91,5 @@ const subtracting = computed(() => props.request.kind === 'subtract');
       :bits="bitsOf(solution.result, request.width)"
     />
   </div>
-  <label class="mt-2 flex w-fit items-center gap-2 text-sm">
-    <input
-      type="checkbox"
-      class="size-4 pointer-coarse:size-5"
-      :checked="request.extra === 1"
-      @change="lens.flipExtra()"
-    />
-    {{
-      subtracting ? 'Take one more off (a borrow coming in)' : 'Add one more (a carry coming in)'
-    }}
-  </label>
+  <NumbersExtra v-if="withExtra" class="mt-2" :lens="lens" />
 </template>

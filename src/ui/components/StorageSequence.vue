@@ -9,13 +9,13 @@ import {
   sequenceChart,
   sequencePress,
   sequenceRows,
-  SEQUENCES,
   sequenceTold,
   valueText
 } from '@/ui/storageSequence';
 import type { StorageSequence } from '@/ui/useStorageSequence';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
+import StageSection from './StageSection.vue';
 import StorageTiming from './StorageTiming.vue';
 
 const props = defineProps<{ sequence: StorageSequence }>();
@@ -46,29 +46,11 @@ const press = computed(() =>
   a counter, with what each flip-flop will take in at the next tick above what it holds.
 -->
 <template>
-  <section aria-label="Flip-flops that feed one another">
-    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <h2 class="text-base font-semibold tracking-tight">Flip-flops that feed one another</h2>
-      <div class="toggle-group" role="group" aria-label="Circuit">
-        <Button
-          v-for="choice in SEQUENCES"
-          :key="choice.id"
-          variant="ghost"
-          size="sm"
-          class="h-7 px-2.5 text-xs pointer-coarse:h-11"
-          :aria-pressed="kind === choice.id"
-          @click="sequence.pick(choice.id)"
-        >
-          {{ choice.label }}
-        </Button>
-      </div>
-    </div>
-    <p class="mt-2 max-w-prose text-sm leading-relaxed text-pretty text-muted-foreground">
-      {{ SEQUENCE_LESSONS[kind] }}
-    </p>
+  <StageSection title="Flip-flops that feed one another">
+    <template #lesson>{{ SEQUENCE_LESSONS[kind] }}</template>
 
     <div
-      class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 [--cell-height:2.25rem] [--cell:2.25rem] pointer-coarse:[--cell-height:2.75rem] pointer-coarse:[--cell:2.75rem]"
+      class="flex flex-wrap items-center gap-x-5 gap-y-2 [--cell-height:2.25rem] [--cell:2.25rem] pointer-coarse:[--cell-height:2.75rem] pointer-coarse:[--cell:2.75rem]"
       role="group"
       aria-label="The circuit’s inputs"
     >
@@ -85,7 +67,7 @@ const press = computed(() =>
           {{ sequence.inputs.value[input.signal] }}
         </button>
       </span>
-      <div class="flex gap-2 max-md:w-full">
+      <div class="flex w-full gap-2 @xl:w-auto">
         <Button
           variant="outline"
           size="sm"
@@ -108,7 +90,7 @@ const press = computed(() =>
       </div>
     </div>
 
-    <div class="logic-rows mt-2">
+    <div class="logic-rows">
       <LogicBitNumbers :width="SEQUENCE_WIDTH" />
       <LogicRow
         v-for="row in rows"
@@ -119,7 +101,7 @@ const press = computed(() =>
         :bits="row.bits"
       />
     </div>
-    <p class="mt-1 font-mono text-sm font-semibold tabular-nums">{{ valueText(signals) }}</p>
+    <p class="-mt-2 font-mono text-sm font-semibold tabular-nums">{{ valueText(signals) }}</p>
 
     <StorageTiming :chart="chart" :told="told" :press="press" />
 
@@ -127,11 +109,11 @@ const press = computed(() =>
       v-if="kind === 'counter'"
       variant="outline"
       size="sm"
-      class="mt-3 pointer-coarse:h-11"
+      class="w-max pointer-coarse:h-11"
       @click="$emit('control')"
     >
       <Workflow />
       The counter every CPU has: PC
     </Button>
-  </section>
+  </StageSection>
 </template>

@@ -4,13 +4,22 @@ import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka
 import { Button } from '@/components/ui/button';
 import BottomSheet from './BottomSheet.vue';
 
-defineProps<{
-  /**
-   * On a phone: the button is framed like the bar's other buttons, at their height, and the
-   * controls rise in a sheet instead of floating over the bar.
-   */
-  sheet?: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    /**
+     * On a phone: the button is framed like the bar's other buttons, at their height, and the
+     * controls rise in a sheet instead of floating over the bar.
+     */
+    sheet?: boolean;
+    /** What the button opens, and the sheet's heading and the line under it. */
+    label?: string;
+    description?: string;
+  }>(),
+  {
+    label: 'More controls',
+    description: 'The history, the run speed, a reset and the panels on show.'
+  }
+);
 
 /** Open while the controls are on show; one of them can close it (a reset asks to confirm). */
 const open = defineModel<boolean>('open', { default: false });
@@ -23,18 +32,14 @@ const open = defineModel<boolean>('open', { default: false });
       variant="outline"
       size="icon-sm"
       class="size-11 shrink-0 text-muted-foreground"
-      aria-label="More controls"
+      :aria-label="label"
       aria-haspopup="dialog"
       :aria-expanded="open"
       @click="open = true"
     >
       <Ellipsis />
     </Button>
-    <BottomSheet
-      v-model:open="open"
-      title="More controls"
-      description="The history, the run speed, a reset and the panels on show."
-    >
+    <BottomSheet v-model:open="open" :title="label" :description="description">
       <div class="flex flex-col gap-3 pb-1">
         <slot />
       </div>
@@ -46,7 +51,7 @@ const open = defineModel<boolean>('open', { default: false });
         variant="ghost"
         size="icon-sm"
         class="shrink-0 text-muted-foreground pointer-coarse:size-11"
-        aria-label="More controls"
+        :aria-label="label"
       >
         <Ellipsis />
       </Button>

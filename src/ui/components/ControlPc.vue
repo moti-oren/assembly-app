@@ -81,13 +81,13 @@ const SWITCHES = [
     </dl>
 
     <ul
-      class="grid grid-cols-3 gap-x-3 gap-y-1.5 sm:flex sm:flex-wrap"
+      class="grid grid-cols-3 gap-x-3 gap-y-1.5 @xl:flex @xl:flex-wrap"
       aria-label="The lines that choose the address"
     >
       <li
         v-for="each in SWITCHES"
         :key="each.signal"
-        class="flex items-center justify-between gap-1.5 text-xs text-muted-foreground sm:justify-start"
+        class="flex items-center justify-between gap-1.5 text-xs text-muted-foreground @xl:justify-start"
       >
         {{ each.label }}
         <span

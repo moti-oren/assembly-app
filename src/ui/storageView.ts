@@ -20,7 +20,7 @@ export function cellLabel(id: CellId): string {
 /** Why the CPU's last instruction has no register to show, or null when it has one or none ran. */
 export function unavailableText(link: RegisterLink | null): string | null {
   return link && !hasRegisters(link)
-    ? `${link.unavailable} The register below is one to try by hand.`
+    ? `${link.unavailable} The register on show is one to try by hand.`
     : null;
 }
 

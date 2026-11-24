@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { useLayoutMode } from '@/ui/useLayoutMode';
+import { PHONE_VIEW_LABELS, PHONE_VIEWS } from '@/ui/layoutMode';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
-import ViewTabs from './ViewTabs.vue';
+import PaneFrame from './PaneFrame.vue';
 
-const mode = useLayoutMode();
-const { view, drawerOpen } = useWorkbenchView();
+const { view } = useWorkbenchView();
 </script>
 
-<!--
-  The two panes of every workbench. Side by side on a desktop; on a tablet the sidebar is a
-  drawer over the stage, and on a phone the tabs pick which view is on show (surfaces.css).
--->
+<!-- The two panes of a CPU's workbench, with a phone's three views of them. -->
 <template>
-  <ViewTabs v-if="mode === 'phone'" />
-  <main class="workbench" :data-view="view" :data-drawer="drawerOpen ? 'open' : 'closed'">
+  <PaneFrame
+    v-model:view="view"
+    :views="PHONE_VIEWS"
+    :labels="PHONE_VIEW_LABELS"
+    sidebar-view="code"
+  >
     <slot />
-  </main>
+  </PaneFrame>
 </template>

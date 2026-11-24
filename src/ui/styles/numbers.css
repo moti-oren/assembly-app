@@ -1,15 +1,6 @@
 /* The number topic: the values of a width on a ring, and one operation as a journey round it. */
 
 @layer components {
-  /* The page of the number topic: one column that scrolls, as wide as reads well. */
-  .numbers-page {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    background: var(--page);
-  }
-
   /* The sizes of the drawing are in the units of its viewBox, which scales with it. */
   .numbers-wheel {
     display: block;
