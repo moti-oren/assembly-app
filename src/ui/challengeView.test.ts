@@ -12,6 +12,7 @@ const result = (over: Partial<ChallengeResult>): ChallengeResult => ({
   error: null,
   lines: 2,
   solved: false,
+  onlyAsGiven: false,
   ...over
 });
 
@@ -45,6 +46,11 @@ describe('outcomeText', () => {
     expect(outcomeText(result({ error: 'Too many steps' }), 3)).toBe(
       'The program stopped: Too many steps'
     );
+  });
+
+  it('says when the answer works only for the values on show', () => {
+    expect(outcomeText(result({}), 3)).toBe('2 of 3 met.');
+    expect(outcomeText(result({ onlyAsGiven: true }), 3)).toContain('has to be worked out');
   });
 });
 

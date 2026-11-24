@@ -87,6 +87,11 @@ export interface ChallengeResult {
   /** The lines the learner wrote. */
   lines: number;
   solved: boolean;
+  /**
+   * Whether every goal is met with the given lines on show (the first case), yet not with the
+   * others: an answer written down rather than worked out.
+   */
+  onlyAsGiven: boolean;
 }
 
 /** The lines every program for the challenge starts with: those of its first case. */
@@ -177,15 +182,18 @@ export function checkChallenge<Instruction extends ChallengeInstruction, State>(
   const own = givenKept ? program.slice(given.length) : program;
   const met = challenge.goals.map(() => givenKept);
   let error: string | null = null;
-  for (const each of givenKept ? challenge.cases : []) {
+  let firstMet = false;
+  (givenKept ? challenge.cases : []).forEach((each, index) => {
     const state = cpu.createState();
     each.setup?.(state);
     const stopped = runQuietly(cpu, state, [...each.given, ...own]);
     error ??= stopped?.message ?? null;
-    each.met.forEach((test, goal) => {
-      met[goal] &&= stopped === null && test(state);
+    const passed = each.met.map((test) => stopped === null && test(state));
+    if (index === 0) firstMet = passed.every(Boolean);
+    passed.forEach((ok, goal) => {
+      met[goal] &&= ok;
     });
-  }
+  });
   const goals = challenge.goals.map((label, goal) => ({ label, met: met[goal] }));
   const limits = limitVerdicts(challenge.limits ?? {}, own);
   return {
@@ -194,6 +202,8 @@ export function checkChallenge<Instruction extends ChallengeInstruction, State>(
     givenKept,
     error,
     lines: own.length,
-    solved: givenKept && [...goals, ...limits].every((verdict) => verdict.met)
+    solved: givenKept && [...goals, ...limits].every((verdict) => verdict.met),
+    // A run that stopped is its own reason, said first: not an answer written in.
+    onlyAsGiven: firstMet && error === null && goals.some((verdict) => !verdict.met)
   };
 }
