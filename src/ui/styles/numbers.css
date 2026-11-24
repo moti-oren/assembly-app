@@ -8,6 +8,8 @@
     max-width: 19rem;
     height: auto;
     margin-inline: auto;
+    /* The marks at the sides are wider than the room beside the ring: a minus must not be cut. */
+    overflow: visible;
     touch-action: none;
   }
   .wheel-ring {

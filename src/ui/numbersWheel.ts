@@ -9,6 +9,8 @@ export const WHEEL_RADIUS = 78;
 const PATH_RADIUS = WHEEL_RADIUS - 13;
 /** A journey too short to see at this width is drawn this long, in degrees. */
 const SHORTEST = 9;
+/** How far from the seam a stretched journey that fits is kept, in degrees. */
+const SEAM_GAP = 1;
 const STEP = 3;
 
 export interface Point {
@@ -96,7 +98,8 @@ function marksOf(scale: Scale, width: number): WheelMark[] {
     : [
         mark(0, '0'),
         mark(90, of(1, quarter)),
-        mark(180, `${of(1, width - 1, 1)} | ${of(-1, width - 1)}`),
+        // Clockwise, the bottom of the ring runs right to left: the top of the scale is on the right.
+        mark(180, `${of(-1, width - 1)} | ${of(1, width - 1, 1)}`),
         mark(270, of(-1, quarter))
       ];
 }
@@ -116,15 +119,27 @@ function journey(from: number, sweep: number): { path: string; head: string } {
   return { path, head: `${tip.x},${tip.y} ${inner.x},${inner.y} ${outer.x},${outer.y}` };
 }
 
+/**
+ * Where a stretched journey starts. One whose answer fits must not be drawn over the seam, since
+ * crossing it is what not fitting looks like: it is moved away from the seam as far as it needs.
+ */
+function stretchedStart(from: number, sweep: number, seamAngle: number): number {
+  const fromSeam = (from - seamAngle + 360) % 360;
+  const kept =
+    sweep < 0 ? Math.max(fromSeam, SEAM_GAP - sweep) : Math.min(fromSeam, 360 - SEAM_GAP - sweep);
+  return seamAngle + kept;
+}
+
 /** One scale's reading of an operation, as a journey round the ring of that scale. */
 export function wheelOf(solution: ScaleSolution, width: number): Wheel {
   const { scale } = solution;
-  const from = angleOf(solution.a, width);
+  const seamAngle = scale === 'unsigned' ? 0 : 180;
   const steps = solution.exact - solution.a;
   const toScale = (steps / span(width)) * 360;
   const stretched = steps !== 0 && Math.abs(toScale) < SHORTEST;
   const sweep = stretched ? Math.sign(steps) * SHORTEST : toScale;
-  const seamAngle = scale === 'unsigned' ? 0 : 180;
+  const at0 = angleOf(solution.a, width);
+  const from = stretched && solution.fits ? stretchedStart(at0, sweep, seamAngle) : at0;
   return {
     scale,
     seam: {

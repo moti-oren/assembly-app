@@ -53,14 +53,14 @@ describe('wheelOf', () => {
   it('labels the seam with the two numbers it lies between', () => {
     const { unsigned, signed } = wheels('add', 1, 1);
     expect(unsigned.marks[0].label).toBe('255 | 0');
-    expect(signed.marks[2].label).toBe('127 | −128');
+    expect(signed.marks[2].label).toBe('−128 | 127');
     expect(signed.marks[3].label).toBe('−64');
   });
 
   it('writes the marks of a 32-bit wheel as powers of two', () => {
     const { unsigned, signed } = wheels('add', 1, 1, 32);
     expect(unsigned.marks.map((mark) => mark.label)).toEqual(['2³²−1 | 0', '2³⁰', '2³¹', '3·2³⁰']);
-    expect(signed.marks[2].label).toBe('2³¹−1 | −2³¹');
+    expect(signed.marks[2].label).toBe('−2³¹ | 2³¹−1');
   });
 
   it('draws a journey too short to see longer than it is, and says so', () => {
@@ -72,5 +72,29 @@ describe('wheelOf', () => {
     const { unsigned } = wheels('add', 5, 0);
     expect(unsigned.path).toBe('');
     expect(unsigned.end).toEqual(unsigned.start);
+  });
+
+  it('writes the signed seam with the top of the scale on the right, where its values lie', () => {
+    const { signed } = wheels('add', 0x7f, 1);
+    const seam = signed.marks.find((mark) => mark.label.includes('|'))!;
+    expect(seam.label).toBe('−128 | 127');
+    // 127 lies just right of the seam, and the answer −128 just left of it.
+    expect(signed.start.x).toBeGreaterThan(WHEEL_SIZE / 2);
+    expect(signed.end.x).toBeLessThan(WHEEL_SIZE / 2);
+  });
+
+  it('keeps a short journey that fits off the seam, even when stretched', () => {
+    const { unsigned } = wheels('subtract', 5, 3, 32);
+    expect(unsigned.stretched).toBe(true);
+    expect(unsigned.seam.crossed).toBe(false);
+    // Both ends stay right of the top, where 3 and 5 are.
+    expect(unsigned.start.x).toBeGreaterThan(WHEEL_SIZE / 2);
+    expect(unsigned.end.x).toBeGreaterThan(WHEEL_SIZE / 2);
+  });
+
+  it('still draws a short journey that does not fit over the seam', () => {
+    const { unsigned } = wheels('subtract', 0, 1, 32);
+    expect(unsigned.seam.crossed).toBe(true);
+    expect(unsigned.end.x).toBeLessThan(WHEEL_SIZE / 2);
   });
 });
