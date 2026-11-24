@@ -224,8 +224,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   program stays in view under a long CPU column, and the bottom bar sits below both.
 - The page fits the screen it is on. On a tablet the right column takes the whole width, and the
   left one is a drawer that **Code**, at the top, slides over it (Esc closes it); Reset and the
-  panel buttons move behind **⋯** at the end of the bottom bar, and the header keeps the topics,
-  the CPU switch and the commands, with Share, Compare, Challenges, the examples and the settings
+  panel buttons move behind **⋯** at the end of the bottom bar, and the header keeps the CPU
+  switch and the commands, with the topics, Share, Compare, Challenges, the examples and the settings
   in its own **⋯** menu. On a phone one view shows at a
   time, chosen under the header: **Code** (the left column), **CPU**, or **Memory & I/O**. The
   strip above them always shows the last instruction and what it changed, as `CX 0000 → 000A`,
@@ -245,7 +245,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   of them. The left column is the same for all three CPUs: its order, what is collapsed, and which
   of History, Machine code and the I/O devices are on show carry over when you switch CPU, and
   are remembered between visits.
-- The gear at the top right opens **Settings**, a window over the app (on a phone it is in the
+- On a desktop a narrow column runs down the left edge, as in an editor: the five topics, each an
+  icon over its name, with a bar beside the one on show, and at its foot **Feedback** and
+  **Settings**. Below a desktop it is not shown, and all of them are in the header's **⋯** menu.
+- **Settings**, at the foot of that column, opens a window over the app (on a phone it is in the
   **⋯** menu and takes the whole screen). Its sections: **General** (sound, anonymous usage),
   **Appearance** (the theme: Light, Dark or System, which follows your device; **Reduce
   animations**), **CPU** (diagram or tables, the 8086's register bits, RISC-V's pipeline chart, its
@@ -397,8 +400,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## From an operation to its gates
 
-- **CPU**, **Logic**, **Numbers**, **Storage** and **Control** at the top of the page (in the **⋯** menu on a
-  phone) switch
+- **CPU**, **Logic**, **Numbers**, **Storage** and **Control**, down the left edge (in the header's
+  **⋯** menu below a desktop), switch
   between the topics. **Gates**, beside the result in a CPU's ALU panel, opens the logic topic on the
   operation that CPU just made; so does **Show the gates behind the last operation** in the
   command palette.
@@ -549,7 +552,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## From an instruction to its control lines
 
-- **Control**, at the top of the page, opens the control topic on the last instruction the CPU
+- **Control**, down the left edge, opens the control topic on the last instruction the CPU
   ran; so does **Control** in the cycle panel of a wide window, and **Show how the last
   instruction was decoded** in the command palette.
 - The page is laid out like the logic topic's: on the left where the instruction came from, its
@@ -606,8 +609,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## Feedback
 
-- The speech bubble at the top of the page (**Send feedback** in the **⋯** menu on a phone and in
-  the command palette) opens a short form: an idea, a problem or anything else, with an email
+- **Feedback**, at the foot of the column down the left edge (**Send feedback** in the **⋯** menu
+  below a desktop and in the command palette) opens a short form: an idea, a problem or anything else, with an email
   address only if you want an answer.
 - Sent with the message: the topic and CPU on show, the size of the screen, the theme and the
   app's version. Your program is not sent.
@@ -853,7 +856,7 @@ npm run verify:6502 # check the 6502 core against py65
   מתחת לשתיהן.
 - העמוד מתאים את עצמו למסך. בטאבלט העמודה הימנית תופסת את כל הרוחב, והשמאלית היא מגירה
   שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc סוגר אותה); Reset וכפתורי החלוניות עוברים אל
-  **⋯** שבקצה הסרגל התחתון, ובכותרת נשארים הנושאים, בורר המעבד והפקודות, כש-Share, Compare,
+  **⋯** שבקצה הסרגל התחתון, ובכותרת נשארים בורר המעבד והפקודות, כשהנושאים, Share, Compare,
   Challenges, הדוגמאות וההגדרות נמצאים בתפריט **⋯** שלה. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
   (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
   שהיא שינתה, בצורה `CX 0000 → 000A`, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. כשהשתנה
@@ -869,8 +872,11 @@ npm run verify:6502 # check the 6502 core against py65
   מקופל ומה הגובה של כל חלונית נשמרים, ופלטת הפקודות יכולה לקפל או לפתוח כל אחת מהן. העמודה
   השמאלית זהה בשלושת המעבדים: הסדר שלה, מה מקופל, ואילו מבין History, Machine code והתקני ה-I/O
   מוצגים עוברים איתך כשמחליפים מעבד, ונשמרים בין ביקורים.
-- גלגל השיניים בפינה העליונה פותח את **Settings**, חלון מעל האפליקציה (בטלפון הוא בתפריט **⋯**
-  ותופס את כל המסך). המקטעים שלו: **General** (צליל, שימוש אנונימי), **Appearance** (ערכת הנושא:
+- בדסקטופ עמודה צרה יורדת לאורך הקצה השמאלי, כמו בעורך קוד: חמשת הנושאים, כל אחד אייקון מעל שמו,
+  עם פס ליד זה שמוצג, ובתחתיתה **Feedback** ו-**Settings**. מתחת לדסקטופ היא לא מוצגת, וכולם נמצאים
+  בתפריט **⋯** של הכותרת.
+- **Settings**, בתחתית העמודה הזו, פותח חלון מעל האפליקציה (בטלפון הוא בתפריט **⋯** ותופס את כל
+  המסך). המקטעים שלו: **General** (צליל, שימוש אנונימי), **Appearance** (ערכת הנושא:
   Light, Dark או System, שעוקבת אחרי המכשיר; **Reduce animations**), **CPU** (דיאגרמה או טבלאות,
   הביטים של הרגיסטרים ב-8086, תרשים ה-pipeline, ה-forwarding וחיזוי הענפים של RISC-V; אותם מתגים נשארים גם
   בלוחות שלהם), **Running** (מהירות הריצה, שנשמרת ומשותפת לשלושת המעבדים; האם לוח ה-I/O נפתח
@@ -1003,7 +1009,8 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## מפעולה לשערים שלה
 
-- **CPU**, **Logic**, **Numbers**, **Storage** ו-**Control** בראש העמוד (בטלפון: בתפריט **⋯**) מחליפים בין
+- **CPU**, **Logic**, **Numbers**, **Storage** ו-**Control**, לאורך הקצה השמאלי (מתחת לדסקטופ: בתפריט **⋯**
+  של הכותרת), מחליפים בין
   הנושאים.
   **Gates**, ליד
   התוצאה בחלונית ה-ALU של מעבד, פותח את נושא הלוגיקה על הפעולה שאותו מעבד ביצע זה עתה; כך גם
@@ -1137,7 +1144,7 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## מהוראה לקווי הבקרה שלה
 
-- **Control**, בראש העמוד, פותח את נושא הבקרה על ההוראה האחרונה שהמעבד הריץ; כך גם **Control**
+- **Control**, לאורך הקצה השמאלי, פותח את נושא הבקרה על ההוראה האחרונה שהמעבד הריץ; כך גם **Control**
   בחלונית המחזור בחלון רחב, ו-**Show how the last instruction was decoded** בפלטת הפקודות.
 - העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיעה ההוראה, המילה שלה ב-hex (כדי להקליד
   אחרת) והשדות שהסיביות שלה מתחלקות אליהם; מימין הסיביות, שני המפענחים, הקווים, מה שהם גורמים
@@ -1187,7 +1194,8 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## משוב
 
-- בועת הדיבור בראש העמוד (**Send feedback** בתפריט **⋯** בטלפון ובלוח הפקודות) פותחת טופס קצר:
+- **Feedback**, בתחתית העמודה שלאורך הקצה השמאלי (**Send feedback** בתפריט **⋯** מתחת לדסקטופ ובלוח
+  הפקודות), פותחת טופס קצר:
   רעיון, בעיה או כל דבר אחר, עם כתובת מייל רק אם רוצים תשובה.
 - עם ההודעה נשלחים: הנושא והמעבד המוצגים, גודל המסך, ערכת הצבע וגרסת האפליקציה. התוכנית שלך
   אינה נשלחת.
