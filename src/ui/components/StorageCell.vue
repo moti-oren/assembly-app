@@ -114,6 +114,7 @@ const heading = computed(() =>
       :chosen="cell.gate.value"
       :label="heading"
       :written="!free && lens.written.value"
+      :undecided="unsettled"
       @choose="cell.chooseGate"
     />
   </StageSection>

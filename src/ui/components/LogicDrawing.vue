@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { Faults } from '@/core/logic/fault';
 import type { Signals } from '@/core/logic/gates';
+import { computed } from 'vue';
 import { polyline, type SliceDiagram } from '@/ui/logicSlice';
 import LogicGate from './LogicGate.vue';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     diagram: SliceDiagram;
     /** The value on every wire of the drawing. */
@@ -19,18 +20,29 @@ withDefaults(
     stuck?: Faults;
     /** A drawing whose gates are only looked at, not picked. */
     still?: boolean;
+    /** A circuit that never came to rest: every wire but its inputs has no value to show. */
+    undecided?: boolean;
   }>(),
-  { chosen: null, written: false, stuck: () => ({}), still: false }
+  { chosen: null, written: false, stuck: () => ({}), still: false, undecided: false }
 );
+
+/** The wires driven from outside, which keep their value while the gates cannot decide. */
+const inputs = computed(
+  () => new Set(props.diagram.terminals.filter((t) => t.side === 'in').map((t) => t.signal))
+);
+const unknown = (signal: string) => props.undecided && !inputs.value.has(signal);
 defineEmits<{ choose: [gate: number] }>();
 </script>
 
-<!-- Gates and the wires between them, ink where a 1 runs. -->
+<!--
+  Gates and the wires between them, ink where a 1 runs. Never drawn smaller than its own size:
+  a narrow screen scrolls it rather than shrink its text below what can be read.
+-->
 <template>
   <svg
     class="logic-diagram"
     :viewBox="`0 0 ${diagram.width} ${diagram.height}`"
-    :style="{ minWidth: `${diagram.width * 0.75}px`, maxWidth: `${diagram.width * 1.15}px` }"
+    :style="{ minWidth: `${diagram.width}px`, maxWidth: `${diagram.width * 1.15}px` }"
     role="group"
     :aria-label="`${label}: ${diagram.gates.length} gates`"
   >
@@ -39,7 +51,8 @@ defineEmits<{ choose: [gate: number] }>();
       :key="index"
       class="logic-wire"
       :points="polyline(wire.points)"
-      :data-on="signals[wire.signal] ? '' : undefined"
+      :data-on="signals[wire.signal] && !unknown(wire.signal) ? '' : undefined"
+      :data-unknown="unknown(wire.signal) ? '' : undefined"
     />
     <circle
       v-for="dot in diagram.dots"
@@ -76,7 +89,7 @@ defineEmits<{ choose: [gate: number] }>();
         dx="3"
         :data-tone="terminal.side === 'out' && written ? 'result' : undefined"
       >
-        {{ signals[terminal.signal] }}
+        {{ unknown(terminal.signal) ? '?' : signals[terminal.signal] }}
       </tspan>
     </text>
   </svg>
