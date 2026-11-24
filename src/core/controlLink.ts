@@ -27,6 +27,27 @@ export interface WordField {
   decoded: boolean;
 }
 
+/** What a read of memory gave: the bytes as an unsigned number, low byte first, or a fault. */
+export type MemoryRead = number | { fault: string };
+
+/** Memory as an instruction found it, for a datapath that does the instruction again. */
+export interface ControlMemory {
+  read: (address: number, size: number) => MemoryRead;
+  /** Why a store there would trap, or null when it would go through. */
+  storeFault: (address: number, size: number) => string | null;
+}
+
+/** What an instruction found when it ran: all a datapath needs to do it again from its lines. */
+export interface ControlContext {
+  /** Every register the word can name, by its number. */
+  registers: readonly number[];
+  /** The address of the instruction. */
+  here: number;
+  /** Whether it was fetched from the program, so the instruction pointer moves on. */
+  fetched: Bit;
+  memory: ControlMemory;
+}
+
 /** What the control unit made of one executed instruction. */
 export interface ControlView {
   /** The instruction as the bits the control unit reads. */
@@ -38,6 +59,8 @@ export interface ControlView {
   pc: PcRequest | null;
   /** Said about the instruction pointer: why it is not shown, or what is unusual about it. */
   pcNote: string | null;
+  /** What the instruction found, for following what its control lines make the CPU do. */
+  context: ControlContext;
 }
 
 /** An instruction with no control unit to show, and why. */

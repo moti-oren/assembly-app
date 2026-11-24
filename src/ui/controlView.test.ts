@@ -7,6 +7,7 @@ import { parseRegister } from '@/core/rv32/registers';
 import { createCpuState } from '@/core/rv32/state';
 import { RV32_CONTROL } from '@/core/rv32Control';
 import { rv32ControlLink } from '@/core/rv32ControlLink';
+import { memoryBefore } from '@/core/rv32ControlMemory';
 import { x86ControlLink } from '@/core/x86ControlLink';
 import {
   controlLabel,
@@ -28,7 +29,9 @@ const NOP: Instruction = {
 
 function view(instruction: Instruction, line: number | null = 0): ControlView {
   const program = [instruction, NOP, NOP, NOP];
-  const link = rv32ControlLink(execute(createCpuState(), instruction, line, program));
+  const cpu = createCpuState();
+  const record = execute(cpu, instruction, line, program);
+  const link = rv32ControlLink(record, memoryBefore(cpu, program, record));
   if (!hasControl(link)) throw new Error(link.unavailable);
   return link;
 }
