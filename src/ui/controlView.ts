@@ -6,6 +6,7 @@ import {
   type WordField
 } from '@/core/controlLink';
 import { activeLines, activeTerms } from '@/core/logic/decoder';
+import type { Faults } from '@/core/logic/fault';
 import { bitOf, type Bit } from '@/core/logic/gates';
 import { PC, type PcSolution } from '@/core/logic/programCounter';
 import type { ClockPhase } from '@/core/logic/register';
@@ -126,12 +127,17 @@ export function controlLines({ main, alu }: ControlSolution): LineRow[] {
 }
 
 /** The word and what the main decoder made of it: `0x00B50533 is OP: RegWrite, Sum`. */
-export function equationText(word: number, solution: ControlSolution): string {
+export function equationText(word: number, solution: ControlSolution, faults: Faults = {}): string {
   const [kind] = activeTerms(solution.main);
   const hex = hexOf(word, 32);
-  if (!kind) return `${hex} is no instruction the decoder knows`;
+  const stuck = Object.entries(faults).map(
+    ([line, value]) => `${controlLabel(line)} stuck at ${value}`
+  );
+  // A broken line is not the instruction's: it is said apart, after what the word decodes to.
+  const broken = stuck.length ? `, with ${stuck.join(' and ')}` : '';
+  if (!kind) return `${hex} is no instruction the decoder knows${broken}`;
   const on = [...activeLines(solution.main), ...activeLines(solution.alu)].map(controlLabel);
-  return `${hex} is ${controlLabel(kind)}: ${on.join(', ')}`;
+  return `${hex} is ${controlLabel(kind)}: ${on.join(', ')}${broken}`;
 }
 
 /** Why the CPU's last instruction has no control unit to show, or null when it has one. */
@@ -181,7 +187,7 @@ export function readingText(word: number, { main }: ControlSolution): string {
   const [kind] = activeTerms(main);
   return kind
     ? `The main decoder takes this for ${controlLabel(kind)}, but no RV32IM instruction has these function bits. A real CPU checks them all and refuses the word.`
-    : 'No RV32IM instruction has this opcode.';
+    : 'This CPU has no instruction with this opcode: it runs RV32IM without ECALL, EBREAK and FENCE.';
 }
 
 /** The word with one bit turned over. */

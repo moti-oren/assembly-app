@@ -122,7 +122,7 @@ const CONFLICTS: Record<PathConflict['kind'], (lines: readonly string[]) => stri
     'ResultMem sends what memory gave to rd, but MemRead is 0: memory gave nothing, taken as 0 here.',
   size: () => 'funct3 asks for an access of a size this CPU has none of: a word is taken here.',
   illegal: () =>
-    'This word is no RV32IM instruction. A real CPU checks every bit and refuses it; here the lines are followed as the decoders set them.'
+    'This word is no instruction this CPU runs. A real CPU checks every bit and refuses a word it has no instruction for; here the lines are followed as the decoders set them.'
 };
 
 /** What a working control unit would never ask for, in words. */

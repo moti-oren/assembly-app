@@ -50,7 +50,10 @@ const commands = useControlCommands(lens, () => props.moment, {
   focusWord
 });
 
-const equation = computed(() => equationText(lens.word.value, lens.solution.value));
+// The word as it decodes with every line working; a line the learner broke is said after it.
+const equation = computed(() =>
+  equationText(lens.word.value, lens.healthy.value, lens.faults.value)
+);
 
 /**
  * The sidebar's sections. A phone shows the sidebar as a view of its own, so there the fields
