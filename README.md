@@ -127,6 +127,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 - An instruction can run immediately (Enter) or be added to the program (Shift+Enter).
 - In the instruction box, the arrow keys move through the choices below it (Left/Right one at a time, Up/Down by row) and Enter picks the highlighted one. Once the box holds words or text, hold Alt to use the arrows this way; without Alt, Left and Right move between the words and through the text, and Up and Down go to the start and the end of the box. The row of keys under the box shows the ones that work at that moment.
+- An instruction can also be typed as it is written: a space or a comma picks the word typed so
+  far, so `mov ax 3`, `lw a0, 8(sp)` and `adc #$10` read as they look. A number written as an
+  operand (`#$10`, `$10,x`, `($10),y`) puts the choice written that way first.
 - Stepping or running the program folds those choices away, so the program
   below moves up and its current line stays in view. Click in the box, type, or press **Show the
   choices** to bring them back.
@@ -142,7 +145,9 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The bar has keys of its own: **F10** steps a line and **F8** runs or pauses, wherever the focus
   is; **Ctrl+Z** undoes the last instruction and **Ctrl+Shift+Z** (or Ctrl+Y) redoes it (Cmd on
   a Mac), except while a field holds text you typed, where they undo the typing. The command
-  palette shows each shortcut beside its command.
+  palette shows each shortcut beside its command. Its search also finds a command by its group
+  and by other words for it (`speed`, `dark mode`, `show stack`), and marks the choice in force,
+  such as the run speed, with a tick.
 - Each program line has **Edit** (the pencil, or the **⋯** menu on a touch screen): the line goes
   back into the instruction box, **Enter** or **Replace** puts the changed instruction in its
   place, and **Esc** or **Cancel** leaves the line as it was. The **⋯** menu also moves a line up
@@ -158,7 +163,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - With every panel of the left column open, the program keeps about six of its lines in sight,
   and opening **History** folds the builder's choices away to make room.
 - Loading an example shows its name and what it demonstrates above the program lines, until you
-  edit the program. An example that uses no device closes the I/O panel again, if a program had
+  edit the program. When it would replace a program of your own it asks first, since Undo cannot
+  bring that back; so do starting a challenge and loading a comparison task. An example that uses no device closes the I/O panel again, if a program had
   opened it.
 - After a conditional jump, the **Cycle** card says why it was taken or not, with the values it
   tested: `Not taken: JGE jumps when SF = OF, but SF is 1 and OF is 0.`
@@ -364,7 +370,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   run with other values in them too, so writing the answer down does not pass.
 - Under the list a line says where the program stands, and once it passes, how many lines it took
   against par. **Show a hint** gives a nudge, **Start over** brings the task back as it began, and
-  closing the panel (or loading an example) leaves the challenge. Solved challenges are ticked in
+  closing the panel (its button says **Leave the challenge**), or loading an example, leaves the
+  challenge. Solved challenges are ticked in
   the list with the fewest lines they took, and remembered between visits.
 
 ## Comparing the CPUs
@@ -404,7 +411,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **⋯** menu below a desktop), switch
   between the topics. **Gates**, beside the result in a CPU's ALU panel, opens the logic topic on the
   operation that CPU just made; so does **Show the gates behind the last operation** in the
-  command palette.
+  command palette. In the diagram view **Gates**, **Numbers** and **Stored** sit in the CPU
+  panel's header, and after a shift, NOT or a multiplication they stay beside the ALU too.
 - The page shows that operation as a circuit, with the CPU's own bits on its wires: a full adder
   under every bit with the carry rippling between them (a subtraction is the same adder with B
   inverted), one gate per bit for AND, OR and XOR, or a shifter whose rows of switches move the
@@ -765,6 +773,9 @@ npm run verify:6502 # check the 6502 core against py65
 
 - אפשר להריץ הוראה מיד (Enter) או להוסיף אותה לתוכנית (Shift+Enter).
 - בתיבת ההוראה, מקשי החיצים עוברים בין האפשרויות שמתחתיה (ימינה/שמאלה אחת-אחת, למעלה/למטה לפי שורות) ו-Enter בוחר את המסומנת. כשיש בתיבה מילים או טקסט, מחזיקים Alt כדי להשתמש בחיצים כך; בלי Alt, ימינה ושמאלה עוברים בין המילים ובתוך הטקסט, ולמעלה ולמטה מגיעים לתחילת התיבה ולסופה. שורת המקשים שמתחת לתיבה מציגה את המקשים שפועלים באותו רגע.
+- אפשר גם להקליד הוראה כמו שכותבים אותה: רווח או פסיק בוחרים את המילה שהוקלדה עד כה, כך ש-`mov ax 3`,
+  `lw a0, 8(sp)` ו-`adc #$10` נקראים כפי שהם נראים. מספר שנכתב כאופרנד (`#$10`, `$10,x`, `($10),y`)
+  מעמיד בראש את האפשרות שנכתבת כך.
 - הרצת התוכנית או צעד בה מקפלים את האפשרויות האלה, כך שהתוכנית שמתחת עולה למעלה
   והשורה הנוכחית שלה נשארת גלויה. לחיצה בתיבה, הקלדה או **Show the choices** מחזירות אותן.
 - האפשרויות מקובצות לפי משפחה (העברות, חשבון, לוגיקה, הזזות, קפיצות וענפים, המחסנית), כל אחת
@@ -779,7 +790,8 @@ npm run verify:6502 # check the 6502 core against py65
 - לסרגל יש מקשים משלו: **F10** מריץ שורה אחת ו-**F8** מריץ או עוצר, בכל מקום שהמיקוד נמצא בו;
   **Ctrl+Z** מבטל את ההוראה האחרונה ו-**Ctrl+Shift+Z** (או Ctrl+Y) מחזיר אותה (Cmd ב-Mac), חוץ
   מאשר כששדה מחזיק טקסט שהקלדת, ושם הם מבטלים את ההקלדה. פלטת הפקודות מציגה כל קיצור ליד
-  הפקודה שלו.
+  הפקודה שלו. החיפוש בה מוצא פקודה גם לפי הקבוצה שלה ולפי מילים אחרות לה (`speed`, `dark mode`,
+  `show stack`), ומסמן ב-✓ את הבחירה שבתוקף, כמו מהירות ההרצה.
 - לכל שורת תוכנית יש **Edit** (העיפרון, או תפריט **⋯** במסך מגע): השורה חוזרת לתיבת ההוראה,
   **Enter** או **Replace** שמים את ההוראה המתוקנת במקומה, ו-**Esc** או **Cancel** משאירים את
   השורה כמו שהייתה. תפריט **⋯** גם מזיז שורה למעלה או למטה, וכך גם Alt+Up ו-Alt+Down כשהמיקוד על
@@ -792,8 +804,9 @@ npm run verify:6502 # check the 6502 core against py65
   וההיסטוריה לא נשמרים.
 - כשכל החלוניות בעמודה השמאלית פתוחות, התוכנית שומרת כשש משורותיה גלויות, ופתיחת **History**
   מקפלת את האפשרויות של הבנאי כדי לפנות מקום.
-- טעינת דוגמה מציגה את שמה ומה היא מדגימה מעל שורות התוכנית, עד שעורכים את התוכנית. דוגמה שלא
-  משתמשת בהתקנים סוגרת שוב את חלונית ה-I/O, אם תוכנית היא שפתחה אותה.
+- טעינת דוגמה מציגה את שמה ומה היא מדגימה מעל שורות התוכנית, עד שעורכים את התוכנית. כשהיא
+  מחליפה תוכנית שכתבת היא שואלת קודם, כי Undo לא יכול להחזיר אותה; כך גם התחלת אתגר וטעינת משימת
+  השוואה. דוגמה שלא משתמשת בהתקנים סוגרת שוב את חלונית ה-I/O, אם תוכנית היא שפתחה אותה.
 - אחרי קפיצה מותנית, כרטיסיית **Cycle** אומרת למה היא נלקחה או לא, עם הערכים שנבדקו:
   `Not taken: JGE jumps when SF = OF, but SF is 1 and OF is 0.`
 - רגיסטר שההוראה האחרונה שינתה ממולא בענבר. רגיסטר שהיא כתבה אליו את הערך שכבר היה בו מוקף
@@ -975,8 +988,8 @@ npm run verify:6502 # check the 6502 core against py65
   מורצת מחדש על מעבד משלה אחרי כל עריכה, כך שהמעבד שעל המסך לא משתנה ואפשר להמשיך לצעוד בניסיון
   שלכם. משימה עם שורות נתונות מורצת גם עם ערכים אחרים בהן, כך שכתיבת התשובה ישירות לא עוברת.
 - מתחת לרשימה שורה אומרת איפה התוכנית עומדת, וכשהיא עוברת, כמה שורות היא לקחה ביחס ל-par.
-  **Show a hint** נותן רמז, **Start over** מחזיר את המשימה למצב ההתחלתי, וסגירת החלונית (או טעינת
-  דוגמה) עוזבת את האתגר. אתגרים שנפתרו מסומנים ברשימה עם מספר השורות הקטן ביותר שלקחו, ונשמרים
+  **Show a hint** נותן רמז, **Start over** מחזיר את המשימה למצב ההתחלתי, וסגירת החלונית (הכפתור
+  שלה אומר **Leave the challenge**), או טעינת דוגמה, עוזבת את האתגר. אתגרים שנפתרו מסומנים ברשימה עם מספר השורות הקטן ביותר שלקחו, ונשמרים
   בין ביקורים.
 
 ## השוואת המעבדים
@@ -1014,7 +1027,9 @@ npm run verify:6502 # check the 6502 core against py65
   הנושאים.
   **Gates**, ליד
   התוצאה בחלונית ה-ALU של מעבד, פותח את נושא הלוגיקה על הפעולה שאותו מעבד ביצע זה עתה; כך גם
-  **Show the gates behind the last operation** בפלטת הפקודות.
+  **Show the gates behind the last operation** בפלטת הפקודות. בתצוגת הדיאגרמה **Gates**,
+  **Numbers** ו-**Stored** נמצאים בכותרת של חלונית ה-CPU, ואחרי הזזה, NOT או כפל הם נשארים גם ליד
+  ה-ALU.
 - העמוד מציג את הפעולה כמעגל, עם הסיביות של המעבד עצמו על החוטים: מחבר מלא מתחת לכל סיבית,
   כשהנשא מתגלגל ביניהם (חיסור הוא אותו מחבר עם B הפוך), שער אחד לכל סיבית ב-AND, ב-OR וב-XOR, או
   מעגל הזזה ששורות המתגים שלו מזיזות את הסיביות. ה-8086 וה-6502 מזיזים מקום אחד בכל שורה;
