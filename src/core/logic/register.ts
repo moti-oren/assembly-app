@@ -54,6 +54,11 @@ export interface RegisterRequest {
   enabled: number;
 }
 
+/** A 1 for every bit of a register `width` bits wide. */
+export function allBits(width: Width): number {
+  return width === 32 ? 0xffffffff : 2 ** width - 1;
+}
+
 /** The moments of a clock cycle: the clock low, then high, then low again. */
 export const CLOCK_PHASES = ['before', 'high', 'after'] as const;
 export type ClockPhase = (typeof CLOCK_PHASES)[number];
