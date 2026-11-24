@@ -1,20 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { pressText, timingChart, traceTexts, type Sample } from '@/ui/storageTiming';
-import type { FreeCellId } from '@/ui/storageView';
+import type { TimingChart } from '@/ui/storageTiming';
 
-const props = defineProps<{
-  /** The cell worked by hand, or null while there is none: the diagram is then left out. */
-  cell: FreeCellId | null;
-  /** The cell after each change made by hand, the newest last. */
-  trace: readonly Sample[];
-  /** How many of those the last press added. */
-  steps: number;
+defineProps<{
+  /** The waves to draw, or null while there is nothing worked by hand: the diagram is left out. */
+  chart: TimingChart | null;
+  /** Every step so far in words, the oldest first. */
+  told: readonly string[];
+  /** What the last press did, in words. */
+  press: string;
 }>();
-
-const chart = computed(() => (props.cell ? timingChart(props.cell, props.trace) : null));
-const told = computed(() => (props.cell ? traceTexts(props.cell, props.trace) : []));
-const press = computed(() => (props.cell ? pressText(props.cell, props.trace, props.steps) : ''));
 </script>
 
 <!-- A cell's wires through time: a wave per wire, and a step for every change made by hand. -->

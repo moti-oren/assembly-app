@@ -11,7 +11,8 @@ export interface Sample {
 /** How many changes the diagram keeps: the oldest is dropped, so it always fits a phone. */
 export const TRACE_LENGTH = 16;
 
-interface RowSpec {
+/** One wire a timing diagram follows. */
+export interface RowSpec {
   signal: string;
   label: string;
   /** Whether the learner sets this wire; the others are what the gates make of it. */
@@ -115,8 +116,15 @@ function risesOf(signal: string, trace: readonly Sample[]): number[] {
 
 /** The drawing of a cell's trace: a wave per wire, a step per change the learner made. */
 export function timingChart(cell: FreeCellId, trace: readonly Sample[]): TimingChart {
-  const specs = TIMING_ROWS[cell];
-  const edge = EDGE_WIRE[cell];
+  return chartOf(TIMING_ROWS[cell], EDGE_WIRE[cell] ?? null, trace);
+}
+
+/** The drawing of any trace: a wave for each of `specs`, and a mark where `edge` rose. */
+export function chartOf(
+  specs: readonly RowSpec[],
+  edge: string | null,
+  trace: readonly Sample[]
+): TimingChart {
   return {
     width: LABEL + TRACE_LENGTH * STEP + VALUE,
     height: specs.length * ROW,
