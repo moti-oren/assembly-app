@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { sliceDiagram, sliceHeading } from '@/ui/logicSlice';
+import { sliceHeading } from '@/ui/logicSlice';
 import type { LogicLens } from '@/ui/useLogicLens';
 import LogicDiagram from './LogicDiagram.vue';
+import LogicFault from './LogicFault.vue';
 
 const props = defineProps<{ lens: LogicLens }>();
 
-const diagram = computed(() =>
-  sliceDiagram(props.lens.shown.value, props.lens.bit.value, props.lens.stage.value)
-);
+const diagram = computed(() => props.lens.diagram.value);
 const isShift = computed(() => props.lens.request.value.kind === 'shift');
 const heading = computed(() =>
   sliceHeading(props.lens.shown.value, props.lens.bit.value, props.lens.stage.value)
@@ -35,7 +34,12 @@ const heading = computed(() =>
       :chosen="lens.gate.value"
       :label="heading"
       :written="lens.asRun.value"
+      :stuck="lens.faults.value"
       @choose="lens.chooseGate"
-    />
+    >
+      <template #gate="{ gate }">
+        <LogicFault :lens="lens" :gate="gate" />
+      </template>
+    </LogicDiagram>
   </section>
 </template>

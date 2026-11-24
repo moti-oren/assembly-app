@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import type { Faults } from '@/core/logic/fault';
 import type { Signals } from '@/core/logic/gates';
-import { gateTable, polyline, type SliceDiagram } from '@/ui/logicSlice';
+import { gateTable, polyline, type DiagramGate, type SliceDiagram } from '@/ui/logicSlice';
 import LogicGate from './LogicGate.vue';
 
-const props = defineProps<{
-  diagram: SliceDiagram;
-  /** The value on every wire of the drawing. */
-  signals: Signals;
-  /** The gate whose truth table is on show, by its place in the drawing. */
-  chosen: number;
-  /** What the drawing is of, for a screen reader. */
-  label: string;
-  /** Whether the outputs are something a CPU wrote: colour marks a write, and only a real one. */
-  written: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    diagram: SliceDiagram;
+    /** The value on every wire of the drawing. */
+    signals: Signals;
+    /** The gate whose truth table is on show, by its place in the drawing. */
+    chosen: number;
+    /** What the drawing is of, for a screen reader. */
+    label: string;
+    /** Whether the outputs are something a CPU wrote: colour marks a write, and only a real one. */
+    written: boolean;
+    /** The gates that are broken, by the signal each drives. */
+    stuck?: Faults;
+  }>(),
+  { stuck: () => ({}) }
+);
 defineEmits<{ choose: [gate: number] }>();
+defineSlots<{
+  /** What else there is to say or do about the gate picked, under its truth table. */
+  gate?: (props: { gate: DiagramGate }) => unknown;
+}>();
 
 const gate = computed(() => props.diagram.gates[props.chosen] ?? null);
 const table = computed(() => gate.value && gateTable(gate.value, props.signals));
@@ -56,6 +66,7 @@ const table = computed(() => gate.value && gateTable(gate.value, props.signals))
           :y="each.y"
           :name="each.name"
           :chosen="index === chosen"
+          :stuck="stuck[each.id] ?? null"
           @choose="$emit('choose', index)"
         />
         <text
@@ -112,6 +123,7 @@ const table = computed(() => gate.value && gateTable(gate.value, props.signals))
             </tr>
           </tbody>
         </table>
+        <slot name="gate" :gate="gate" />
       </div>
       <div>
         <h4 class="text-xs font-semibold">As Boolean algebra</h4>

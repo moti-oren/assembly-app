@@ -22,6 +22,8 @@ const props = withDefaults(
     mode?: 'flip' | 'lowest' | 'choose' | 'static';
     /** For every bit, whether it will change again before the circuit is at rest. */
     pending?: readonly boolean[] | null;
+    /** For every bit, whether a broken gate made it the wrong value. */
+    wrong?: readonly boolean[] | null;
     /** The bit picked, in a row whose bits are picked. */
     chosen?: number | null;
     lead?: EndBit | null;
@@ -33,6 +35,7 @@ const props = withDefaults(
     tone: 'plain',
     mode: 'static',
     pending: null,
+    wrong: null,
     chosen: null,
     lead: null,
     tail: null,
@@ -49,7 +52,8 @@ function isButton(bit: number): boolean {
 /** What a screen reader hears for one bit of the row. */
 function describe(bit: number): string {
   const unsettled = props.pending?.[bit] ? ', not settled yet' : '';
-  return `${props.name}, bit ${bit}: ${props.bits[bit]}${unsettled}`;
+  const mistaken = props.wrong?.[bit] ? ', wrong' : '';
+  return `${props.name}, bit ${bit}: ${props.bits[bit]}${unsettled}${mistaken}`;
 }
 
 function press(bit: number): void {
@@ -91,6 +95,7 @@ function press(bit: number): void {
         :data-tone="tone"
         :data-on="bits[bit] ? '' : undefined"
         :data-pending="pending?.[bit] ? '' : undefined"
+        :data-wrong="wrong?.[bit] ? '' : undefined"
         :data-chosen="mode === 'choose' && chosen === bit ? '' : undefined"
         :style="{ '--bit': bit }"
         :aria-pressed="mode === 'choose' ? chosen === bit : bits[bit] === 1"
@@ -105,6 +110,7 @@ function press(bit: number): void {
         :data-tone="tone"
         :data-on="bits[bit] ? '' : undefined"
         :data-pending="pending?.[bit] ? '' : undefined"
+        :data-wrong="wrong?.[bit] ? '' : undefined"
         :style="{ '--bit': bit }"
         role="img"
         :aria-label="describe(bit)"

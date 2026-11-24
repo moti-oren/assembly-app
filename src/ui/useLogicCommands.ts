@@ -37,6 +37,7 @@ export function useLogicCommands(
         run: () => lens.setWidth(each)
       })),
       ...timeCommands(lens),
+      ...faultCommands(lens),
       ...app.value
     ];
   });
@@ -71,5 +72,41 @@ function timeCommands(lens: LogicLens): PaletteCommand[] {
       run: time.rewind
     },
     longest
+  ];
+}
+
+/** Breaking and mending the gate picked in the drawing of one bit. */
+function faultCommands(lens: LogicLens): PaletteCommand[] {
+  const group = 'Faults';
+  const gate = lens.chosenGate.value;
+  const repairAll = {
+    group,
+    label: 'Repair every gate',
+    disabled: lens.faultCount.value === 0,
+    run: lens.repairAll
+  };
+  if (!gate) return [repairAll];
+  const stuck = lens.faults.value[gate.id];
+  const name = `${gate.kind.toUpperCase()} gate picked`;
+  return [
+    {
+      group,
+      label: `Break the ${name}: stuck at 0`,
+      disabled: stuck === 0,
+      run: () => lens.stickGate(gate.id, 0)
+    },
+    {
+      group,
+      label: `Break the ${name}: stuck at 1`,
+      disabled: stuck === 1,
+      run: () => lens.stickGate(gate.id, 1)
+    },
+    {
+      group,
+      label: `Repair the ${name}`,
+      disabled: stuck === undefined,
+      run: () => lens.repairGate(gate.id)
+    },
+    repairAll
   ];
 }

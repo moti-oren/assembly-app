@@ -29,5 +29,7 @@ export type AnalyticsEvent =
   /** A challenge was started, or its program first met every goal; only its id is sent. */
   | { name: 'challenge-started'; architecture: string; challenge: string }
   | { name: 'challenge-solved'; architecture: string; challenge: string }
+  /** A gate of the logic topic's circuit was broken by hand; nothing says which. */
+  | { name: 'gate-broken' }
   | { name: 'prediction-answered'; architecture: string; result: 'right' | 'wrong' }
   | { name: 'feedback-sent'; kind: string };

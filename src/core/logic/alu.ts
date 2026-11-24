@@ -1,4 +1,5 @@
 import { ADDER, rippleAdder } from './adder';
+import { withStuck, type Faults } from './fault';
 import {
   bitOf,
   evaluate,
@@ -211,9 +212,13 @@ function build(request: AluRequest): Built {
   }
 }
 
-/** Builds the circuit for the operation and runs the request's values through it. */
-export function solve(request: AluRequest): AluSolution {
-  const { circuit, inputs, resultSignal, taps } = build(request);
+/**
+ * Builds the circuit for the operation and runs the request's values through it. A gate named in
+ * `faults` is broken: the solution holds the broken circuit, and what it makes of the values.
+ */
+export function solve(request: AluRequest, faults: Faults = {}): AluSolution {
+  const { circuit: built, inputs, resultSignal, taps } = build(request);
+  const circuit = withStuck(built, faults);
   const signals = evaluate(circuit, inputs);
   return {
     request,

@@ -13,8 +13,9 @@ const props = defineProps<{
 }>();
 defineEmits<{ seek: [position: number]; back: [] }>();
 
+// The operation is what a working circuit makes of it: a broken gate is the circuit's own affair.
 const equation = computed(() =>
-  equationText(props.lens.request.value, props.lens.solution.value.result)
+  equationText(props.lens.request.value, props.lens.healthy.value.result)
 );
 /** Why the CPU's last instruction has no circuit here, when it has none. */
 const unavailable = computed(() => {

@@ -101,6 +101,7 @@ function carryEnd(value: Bit, label = 'the carry: the last bit pushed out') {
           tailed
           :tone="index === view.stages.length - 1 && lens.written.value ? 'result' : 'plain'"
           :bits="view.stages[index].after"
+          :wrong="index === view.stages.length - 1 ? lens.wrong.value : null"
           :chosen="lens.stage.value === index ? lens.bit.value : null"
           :lead="view.left ? carryEnd(view.stages[index].carryAfter) : null"
           :tail="view.left ? null : carryEnd(view.stages[index].carryAfter)"

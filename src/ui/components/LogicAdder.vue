@@ -110,7 +110,8 @@ const sumReady = computed(
             type="button"
             class="logic-unit"
             :aria-pressed="lens.bit.value === bit"
-            :aria-label="`The full adder of bit ${bit}: show its gates`"
+            :data-stuck="lens.broken.value?.[bit] ? '' : undefined"
+            :aria-label="`The full adder of bit ${bit}${lens.broken.value?.[bit] ? ', with a broken gate' : ''}: show its gates`"
             @click="lens.choose(bit)"
           >
             +
@@ -124,6 +125,7 @@ const sumReady = computed(
         :tone="lens.written.value ? 'result' : 'plain'"
         :bits="bits.sum"
         :pending="unsettled.sum"
+        :wrong="lens.wrong.value"
       />
       <!-- When each bit of the result is ready: a staircase where a carry had to climb. -->
       <div v-if="sumReady" class="logic-row text-2xs text-tertiary-foreground" data-compact>
