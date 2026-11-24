@@ -1,5 +1,5 @@
-import type { ExecutionRecord } from '@/core/mos6502/executionContext';
-import { FLAG_NAMES, type FlagName } from '@/core/mos6502/state';
+import type { AluTrace, ExecutionRecord } from '@/core/mos6502/executionContext';
+import { FLAG_NAMES, type CpuState, type FlagName } from '@/core/mos6502/state';
 import { byteHex, wordHex } from './mos6502Explain';
 
 /** What the ALU computed, written as a sum. */
@@ -122,48 +122,107 @@ const SET_DIRECTLY: Partial<Record<string, { flags: readonly FlagName[]; text: s
   rti: { flags: FLAG_NAMES, text: 'RTI pulled P from the stack' }
 };
 
-/** Why the last instruction left `flag` as it is, or null when it did not set it. */
-export function flagReason(record: ExecutionRecord, flag: FlagName): string | null {
-  const direct = SET_DIRECTLY[record.instruction.mnemonic];
-  if (direct) return direct.flags.includes(flag) ? direct.text : null;
-  const { alu } = record;
-  if (!alu) return null;
+/** Instructions that copy a byte into a register and set N and Z from it, without the ALU. */
+const LOADED: Partial<Record<string, 'a' | 'x' | 'y'>> = {
+  lda: 'a',
+  ldx: 'x',
+  ldy: 'y',
+  tax: 'x',
+  tay: 'y',
+  txa: 'a',
+  tya: 'a',
+  tsx: 'x',
+  pla: 'a'
+};
+
+/** N and Z of a load or a transfer, read from the byte it put in the register. */
+function loadedReason(flag: FlagName, register: 'a' | 'x' | 'y', value: number): string | null {
+  const byte = `${byteHex(value)}, the byte now in ${register.toUpperCase()},`;
+  if (flag === 'N') return `bit 7 of ${byte} is ${value >> 7}`;
+  if (flag === 'Z') return `${byte} is ${value === 0 ? '' : 'not '}zero`;
+  return null;
+}
+
+/** The binary sum or difference, which the NMOS 6502 takes some flags from in decimal mode. */
+function binaryOf(alu: AluTrace): string {
+  const b = alu.operation === 'subtract' ? alu.b ^ 0xff : alu.b;
+  return byteHex((alu.a + b + Number(alu.carryIn)) & 0xff);
+}
+
+/** N, V and Z of ADC and SBC in decimal mode, which do not come from the digits in A. */
+function decimalReason(alu: AluTrace, flag: 'N' | 'V' | 'Z'): string {
+  const binary = binaryOf(alu);
+  if (alu.operation === 'subtract')
+    return `in decimal mode SBC takes N, V and Z from the binary difference ${binary}, not from the digits`;
+  if (flag === 'Z') return `in decimal mode the NMOS 6502 takes Z from the binary sum ${binary}`;
+  return `in decimal mode the NMOS 6502 takes ${flag} from the sum before its high digit is adjusted`;
+}
+
+function carryReason(alu: AluTrace): string | null {
+  const { result } = alu;
+  switch (alu.operation) {
+    case 'compare':
+      return `${byteHex(alu.a)} ${result.carry ? '≥' : '<'} ${byteHex(alu.b)} (unsigned)`;
+    case 'subtract':
+      return result.carry ? 'no borrow was needed' : 'a borrow was needed';
+    case 'shift':
+      return `the bit shifted out was ${Number(result.carry)}`;
+    case 'add':
+      if (alu.decimal)
+        return result.carry ? 'the decimal sum passed 99' : 'the decimal sum fit in two digits';
+      return result.carry ? 'the sum carried out of bit 7' : 'the sum fit in 8 bits';
+    default:
+      return null;
+  }
+}
+
+function overflowReason(alu: AluTrace): string | null {
+  if (alu.operation === 'bit') return `bit 6 of the byte is ${Number(alu.result.overflow)}`;
+  if (alu.operation !== 'add' && alu.operation !== 'subtract') return null;
+  if (alu.decimal) return decimalReason(alu, 'V');
+  return alu.result.overflow
+    ? 'as signed numbers the result does not fit: it overflowed'
+    : 'as signed numbers the result fits';
+}
+
+function aluReason(alu: AluTrace, flag: FlagName): string | null {
   const { result } = alu;
   const value = byteHex(result.result);
+  const decimal = alu.decimal && (alu.operation === 'add' || alu.operation === 'subtract');
   switch (flag) {
     case 'N':
       if (alu.operation === 'bit') return `bit 7 of the byte is ${Number(result.negative)}`;
-      if (alu.decimal)
-        return `in decimal mode the NMOS 6502 takes N from the sum before its high digit is adjusted`;
+      if (decimal) return decimalReason(alu, 'N');
       return `bit 7 of ${value} is ${Number(result.negative)}`;
     case 'Z':
       if (alu.operation === 'bit')
         return `A AND the byte is ${value}${result.zero ? ': zero' : ''}`;
-      if (alu.decimal && alu.operation === 'add')
-        return `in decimal mode the NMOS 6502 takes Z from the binary sum, not from ${value}`;
+      if (decimal) return decimalReason(alu, 'Z');
       return result.zero ? `the result ${value} is zero` : `the result ${value} is not zero`;
     case 'C':
-      if (alu.operation === 'compare')
-        return result.carry
-          ? `${byteHex(alu.a)} ≥ ${byteHex(alu.b)} (unsigned)`
-          : `${byteHex(alu.a)} < ${byteHex(alu.b)} (unsigned)`;
-      if (alu.operation === 'subtract')
-        return result.carry ? 'no borrow was needed' : 'a borrow was needed';
-      if (alu.operation === 'shift') return `the bit shifted out was ${Number(result.carry)}`;
-      if (alu.operation === 'add')
-        return result.carry ? 'the sum carried out of bit 7' : 'the sum fit in 8 bits';
-      return null;
+      return carryReason(alu);
     case 'V':
-      if (alu.operation === 'bit') return `bit 6 of the byte is ${Number(result.overflow)}`;
-      if (alu.operation !== 'add' && alu.operation !== 'subtract') return null;
-      if (alu.decimal)
-        return 'in decimal mode the NMOS 6502 takes V from the sum before its high digit is adjusted';
-      return result.overflow
-        ? 'as signed numbers the result does not fit: it overflowed'
-        : 'as signed numbers the result fits';
+      return overflowReason(alu);
     default:
       return null;
   }
+}
+
+/**
+ * Why the last instruction left `flag` as it is, or null when it did not set it. `after` is the
+ * CPU right after it, which holds the byte a load or a transfer set N and Z from.
+ */
+export function flagReason(
+  record: ExecutionRecord,
+  flag: FlagName,
+  after: CpuState
+): string | null {
+  const { mnemonic } = record.instruction;
+  const direct = SET_DIRECTLY[mnemonic];
+  if (direct) return direct.flags.includes(flag) ? direct.text : null;
+  const loaded = LOADED[mnemonic];
+  if (loaded) return loadedReason(flag, loaded, after.registers[loaded]);
+  return record.alu && aluReason(record.alu, flag);
 }
 
 /** The equation on one line: `$19 + $01 + 1 (C) = $1B`, `$20 − $01 − 1 (borrow) = $1E`. */

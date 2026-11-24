@@ -25,7 +25,7 @@ const reasons = computed(() => {
   const record = props.record;
   if (!record) return [];
   return FLAG_NAMES.flatMap((flag) => {
-    const reason = flagReason(record, flag);
+    const reason = flagReason(record, flag, props.state);
     if (!reason) return [];
     const was = (record.before.flags & flagBit(flag)) !== 0;
     return [{ flag, outcome: describeFlag(flag, was, isSet(flag)), reason }];
