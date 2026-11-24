@@ -31,6 +31,15 @@ export function useNumbersCommands(
         disabled: kind === choice.id,
         run: () => lens.pick(choice.id)
       })),
+      {
+        group: 'Numbers',
+        label:
+          lens.byteOrder.value === 'little'
+            ? 'Show the value’s bytes high byte first'
+            : 'Show the value’s bytes low byte first',
+        disabled: kind !== 'value' || lens.width.value === 8,
+        run: () => lens.setByteOrder(lens.byteOrder.value === 'little' ? 'big' : 'little')
+      },
       ...WIDTHS.map((each) => ({
         group: 'Numbers',
         label: `Make the numbers ${each} bits wide`,

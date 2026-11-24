@@ -470,6 +470,11 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **Subtract**, **Shift** (with its direction, its fill and how many places), **Extend**,
   **Decimal** and **One value** (a row of bits read as hex, unsigned, signed, ASCII and decimal
   digits) and the width can be picked freely.
+- Under **One value**, **In memory** sets a 16 or 32 bit value out as the bytes it takes up, the
+  lowest address first: low byte first, as the 8086 and RISC-V store it and the 6502 keeps its
+  addresses, or high byte first to compare. Each byte says which bits it holds, and a line below says what the same
+  bytes would be read as in the other order. **Show the value's bytes high byte first** in the
+  command palette flips it too.
 - Bitwise logic, rotates, multiplication and division are not shown as numbers: there
   **Numbers** is greyed and says why.
 
@@ -1007,6 +1012,11 @@ npm run verify:6502 # check the 6502 core against py65
   מה התשובה הייתה (**What if**). המעבד אינו משתנה. אפשר לבחור באופן חופשי בין **Add**,
   **Subtract**, **Shift** (עם הכיוון, המילוי ומספר המקומות), **Extend**, **Decimal** ו-**One
   value** (שורת סיביות שנקראת כהקסה, ללא סימן, עם סימן, ASCII וספרות עשרוניות), וגם את הרוחב.
+- תחת **One value**, **In memory** פורש ערך של 16 או 32 סיביות לבתים שהוא תופס, מהכתובת הנמוכה:
+  הבית הנמוך ראשון, כפי שה-8086 ו-RISC-V שומרים אותו וה-6502 שומר את הכתובות שלו, או הבית
+  הגבוה ראשון להשוואה. כל בית
+  אומר אילו סיביות הוא מחזיק, ושורה מתחת אומרת מה אותם בתים היו נקראים בסדר ההפוך. גם **Show the
+  value's bytes high byte first** בפלטת הפקודות הופך אותו.
 - פעולות לוגיות על סיביות, סיבובים, כפל וחילוק אינם מוצגים כמספרים: שם **Numbers** אפור ומסביר
   למה.
 

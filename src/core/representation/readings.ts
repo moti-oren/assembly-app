@@ -1,4 +1,5 @@
 import { formatBits } from '../shared/numbers';
+import { bytesOf } from './bytes';
 
 export type Width = 8 | 16 | 32;
 
@@ -60,14 +61,6 @@ export interface ValueReadings {
   characters: (string | null)[];
   /** Each byte as two decimal digits, high byte first; null where a digit is past 9. */
   decimal: (number | null)[];
-}
-
-function bytesOf(bits: number, width: Width): number[] {
-  const bytes: number[] = [];
-  for (let shift = width - 8; shift >= 0; shift -= 8) {
-    bytes.push(Math.floor(bits / span(shift)) % 0x100);
-  }
-  return bytes;
 }
 
 export function readValue(value: number, width: Width): ValueReadings {

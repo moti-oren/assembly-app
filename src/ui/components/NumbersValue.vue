@@ -7,6 +7,7 @@ import type { NumberLens } from '@/ui/useNumberLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
+import NumbersBytes from './NumbersBytes.vue';
 
 const props = defineProps<{
   lens: NumberLens;
@@ -46,4 +47,11 @@ const rows = computed(() => valueRows(props.solution.readings));
       </dd>
     </div>
   </dl>
+  <NumbersBytes
+    :order="lens.byteOrder.value"
+    @update:order="lens.setByteOrder($event)"
+    class="mt-5"
+    :value="request.bits"
+    :width="request.width"
+  />
 </template>
