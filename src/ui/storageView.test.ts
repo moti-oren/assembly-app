@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { written } from '@/core/registerLink';
 import {
+  phaseText,
   cellLabel,
   equationText,
   freeWrite,
@@ -90,5 +91,23 @@ describe('cellLabel', () => {
 describe('registerTitle', () => {
   it('counts the flip-flops', () => {
     expect(registerTitle(written('a0', 32, 0, 1))).toBe('a0: 32 flip-flops');
+  });
+});
+
+describe('phaseText', () => {
+  const request = { width: 8, held: 0x33, input: 0xa5, enabled: 0xff } as const;
+
+  it('says the new value is held only when a write line let it in', () => {
+    expect(phaseText('after', request)).toContain('holds the new value');
+    const none = phaseText('after', { ...request, enabled: 0 });
+    expect(none).not.toContain('new value');
+    expect(none).toContain('still holds what it held');
+    expect(phaseText('high', { ...request, enabled: 0 })).toContain('nothing changed');
+  });
+
+  it('says which bits were written when only some were', () => {
+    expect(phaseText('after', { ...request, enabled: 0x0f })).toContain(
+      'the others what they held'
+    );
   });
 });
