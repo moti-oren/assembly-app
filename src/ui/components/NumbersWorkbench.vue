@@ -21,6 +21,7 @@ import NumbersBcd from './NumbersBcd.vue';
 import NumbersCompare from './NumbersCompare.vue';
 import NumbersExtension from './NumbersExtension.vue';
 import NumbersFlags from './NumbersFlags.vue';
+import NumbersShift from './NumbersShift.vue';
 import NumbersValue from './NumbersValue.vue';
 import TopicOrigin from './TopicOrigin.vue';
 
@@ -99,7 +100,7 @@ const unavailable = computed(() => {
         <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <h2 class="text-base font-semibold tracking-tight">{{ lensTitle(request) }}</h2>
           <div class="flex max-w-full flex-wrap items-center gap-2">
-            <!-- Five choices are wider than a phone: there the row scrolls sideways. -->
+            <!-- Six choices are wider than a phone: there the row scrolls sideways. -->
             <div class="scroll-fade-x flex max-w-full overflow-x-auto p-px">
               <div class="toggle-group w-max shrink-0" role="group" aria-label="What to show">
                 <Button
@@ -156,6 +157,12 @@ const unavailable = computed(() => {
           />
           <NumbersBcd
             v-else-if="request.kind === 'bcd' && 'digits' in solution"
+            :lens="lens"
+            :request="request"
+            :solution="solution"
+          />
+          <NumbersShift
+            v-else-if="request.kind === 'shift' && 'scales' in solution"
             :lens="lens"
             :request="request"
             :solution="solution"

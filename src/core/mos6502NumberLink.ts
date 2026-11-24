@@ -1,6 +1,13 @@
 import type { AluTrace, ExecutionRecord } from './mos6502/executionContext';
 import type { Mnemonic } from './mos6502/instructions';
-import { reads, type FlagReading, type NumberLink, type NumberView } from './numberLink';
+import {
+  reads,
+  shiftReadings,
+  type FlagReading,
+  type NumberLink,
+  type NumberView
+} from './numberLink';
+import type { ScalingRequest } from './representation/scaling';
 
 const WIDTH = 8;
 
@@ -69,6 +76,39 @@ function step(alu: AluTrace, mnemonic: Mnemonic): NumberView {
   };
 }
 
+const SCALINGS: Partial<Record<Mnemonic, ScalingRequest['direction']>> = {
+  asl: 'left',
+  lsr: 'right'
+};
+
+/** ASL doubles and LSR halves, one place; the 6502 has no shift that keeps the sign. */
+function scaling(alu: AluTrace, mnemonic: Mnemonic): NumberLink {
+  const direction = SCALINGS[mnemonic];
+  if (!direction) {
+    return {
+      unavailable: `${mnemonic.toUpperCase()} brings C into the emptied place: it carries a longer number on, and by itself is not a multiplication or a division.`
+    };
+  }
+  const request: ScalingRequest = {
+    kind: 'shift',
+    width: WIDTH,
+    value: alu.a,
+    direction,
+    fill: 'zero',
+    count: 1
+  };
+  return {
+    request,
+    flags: shiftReadings(request, { carry: 'C', zero: 'Z', negative: 'N' }),
+    resultKept: true,
+    comparable: false,
+    note:
+      direction === 'left'
+        ? 'No V is worked out: nothing says when the signed answer did not fit.'
+        : 'LSR fills with a zero, so it halves the unsigned number only.'
+  };
+}
+
 function computed(alu: AluTrace, mnemonic: Mnemonic): NumberLink {
   const name = mnemonic.toUpperCase();
   switch (alu.operation) {
@@ -91,7 +131,7 @@ function computed(alu: AluTrace, mnemonic: Mnemonic): NumberLink {
         unavailable: `${name} works on each bit by itself: the bits are not read as one number.`
       };
     case 'shift':
-      return { unavailable: `${name} moves the bits along; that is not shown as numbers yet.` };
+      return scaling(alu, mnemonic);
   }
 }
 

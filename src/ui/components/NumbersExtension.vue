@@ -3,7 +3,7 @@ import { computed, useTemplateRef } from 'vue';
 import type { ExtensionRequest, ExtensionSolution } from '@/core/representation/extension';
 import { Button } from '@/components/ui/button';
 import { bitsLeftToRight, startsDigit } from '@/ui/logicLayout';
-import { bitsOf } from '@/ui/numbersView';
+import { bitsOf, numberText as text } from '@/ui/numbersView';
 import type { NumberLens } from '@/ui/useNumberLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
@@ -24,7 +24,6 @@ const NARROW = [8, 16] as const;
 
 const narrow = computed(() => bitsOf(props.solution.value, props.request.from));
 const wide = computed(() => bitsOf(props.solution.result, props.request.to));
-const text = (value: number): string => value.toLocaleString('en-US').replace('-', '−');
 
 /** The two scales, before and after: the one the extension keeps is the same on both sides. */
 const scales = computed(() => {

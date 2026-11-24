@@ -18,6 +18,8 @@ function question({ scale, verdict }: FlagReading): string {
       return `the ${scale} answer does not fit`;
     case 'below':
       return `A is less than B on the ${scale} scale`;
+    case 'remainder':
+      return 'a 1 was pushed out: the halving left one over';
     case 'zero':
       return 'the result is zero';
     case 'negative':

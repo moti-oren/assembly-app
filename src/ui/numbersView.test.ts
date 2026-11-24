@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { solveNumber, type NumberRequest } from '@/core/representation/request';
+import type { ScalingRequest } from '@/core/representation/scaling';
 import {
   bitsOf,
   equationText,
@@ -136,5 +137,65 @@ describe('bitsOf', () => {
   it('lists the bits from bit 0', () => {
     expect(bitsOf(0b0110, 4)).toEqual([0, 1, 1, 0]);
     expect(bitsOf(0x80000000, 32)[31]).toBe(1);
+  });
+});
+
+describe('the shift lens', () => {
+  const shift: ScalingRequest = {
+    kind: 'shift',
+    width: 8,
+    value: 0x7f,
+    direction: 'left',
+    fill: 'zero',
+    count: 1
+  };
+
+  it('starts as one place to the left, from the value on show', () => {
+    expect(freeRequest('shift', 8, null)).toEqual(shift);
+    expect(
+      freeRequest('shift', 16, { kind: 'add', width: 16, a: 0x1234, b: 1, extra: 0 })
+    ).toMatchObject({
+      value: 0x1234
+    });
+  });
+
+  it('keeps its direction, fill and places across a change of width', () => {
+    const wide = { ...shift, width: 32, direction: 'right', fill: 'sign', count: 20 } as const;
+    expect(freeRequest('shift', 8, wide)).toMatchObject({
+      direction: 'right',
+      fill: 'sign',
+      count: 8
+    });
+  });
+
+  it('notes the carry and the overflow after one place only', () => {
+    const names = (request: ScalingRequest) => freeView(request).flags.map((flag) => flag.flag);
+    expect(names(shift)).toEqual(['Carry', 'Overflow', 'Zero', 'Negative']);
+    expect(names({ ...shift, direction: 'right' })).toEqual(['Carry', 'Zero', 'Negative']);
+    expect(names({ ...shift, count: 2 })).toEqual(['Zero', 'Negative']);
+  });
+
+  it('is another operation once its direction, fill or places change', () => {
+    expect(sameOperation(shift, { ...shift, value: 3 })).toBe(true);
+    expect(sameOperation(shift, { ...shift, count: 2 })).toBe(false);
+    expect(sameOperation(shift, { ...shift, direction: 'right' })).toBe(false);
+    expect(
+      sameOperation(
+        { ...shift, direction: 'right' },
+        { ...shift, direction: 'right', fill: 'sign' }
+      )
+    ).toBe(false);
+  });
+
+  it('flips a bit of its value', () => {
+    expect(withBitFlipped(shift, 'a', 7)).toMatchObject({ value: 0xff });
+  });
+
+  it('writes the shift on one line', () => {
+    const text = (request: ScalingRequest) => equationText(request, solveNumber(request));
+    expect(text(shift)).toBe('0x7F << 1 = 0xFE');
+    expect(text({ ...shift, value: 0xf9, direction: 'right', fill: 'sign' })).toBe(
+      '0xF9 >> 1 = 0xFC, copying the top bit'
+    );
   });
 });

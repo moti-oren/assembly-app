@@ -118,6 +118,37 @@ describe('rv32NumberLink', () => {
     expect(resultOf(solution)).toBe(4);
   });
 
+  it.each(['sll', 'srl', 'sra'] as const)('%s: the numbers give the CPU’s result', (mnemonic) => {
+    const next = random(mnemonic.charCodeAt(1) * 41 + mnemonic.charCodeAt(2));
+    for (let i = 0; i < 150; i++) {
+      // The count is any 32 bits: only its low five are used.
+      const { cpu, solution, link } = run(
+        line(mnemonic, r('a0'), r('a1'), r('a2')),
+        next(),
+        next()
+      );
+      expect(link.request).toMatchObject({ kind: 'shift' });
+      expect(resultOf(solution)).toBe(readRegister(cpu, A0));
+    }
+  });
+
+  it.each(['slli', 'srli', 'srai'] as const)(
+    '%s: the numbers give the CPU’s result',
+    (mnemonic) => {
+      const next = random(mnemonic.charCodeAt(1) * 59 + mnemonic.charCodeAt(2));
+      for (let i = 0; i < 150; i++) {
+        const places = next() % 32;
+        const { cpu, solution, link } = run(
+          line(mnemonic, r('a0'), r('a1'), imm(places)),
+          next(),
+          0
+        );
+        expect(link.request).toMatchObject({ kind: 'shift', count: places });
+        expect(resultOf(solution)).toBe(readRegister(cpu, A0));
+      }
+    }
+  );
+
   it('has nothing to show for bitwise logic, a multiplication or an upper immediate', () => {
     const cpu = createCpuState();
     const link = (instruction: Instruction) =>

@@ -120,12 +120,71 @@ describe('x86NumberLink', () => {
     }
   });
 
-  it('has nothing to show for bitwise logic, a shift, a multiplication or a move', () => {
+  it.each(['shl', 'shr', 'sar'] as const)(
+    '%s: the numbers give the CPU’s result and flags',
+    (mnemonic) => {
+      const next = random(mnemonic.charCodeAt(1) * 613 + mnemonic.charCodeAt(2));
+      for (let i = 0; i < 150; i++) {
+        for (const size of SIZES) {
+          const cpu = createCpuState();
+          writeRegister(cpu, size.first, next() % size.limit);
+          setFlag(cpu, 'CF', next() % 2 === 1);
+          setFlag(cpu, 'OF', next() % 2 === 1);
+          // One place comes up often, where CF and OF mean something; so do counts past the width.
+          const count = i % 3 === 0 ? 1 : 1 + (next() % 20);
+          writeRegister(cpu, 'cl', count);
+          const places = count === 1 && i % 2 === 0 ? imm(1) : reg('cl');
+          const record = execute(cpu, { mnemonic, operands: [reg(size.first), places] });
+          const link = x86NumberLink(record);
+          if (!hasNumbers(link)) throw new Error(link.unavailable);
+          const solution = solveNumber(link.request);
+          expect(resultOf(solution), `${mnemonic} by ${count}`).toBe(readRegister(cpu, size.first));
+          for (const [flag, value] of Object.entries(flagAnswers(link, solution))) {
+            expect(`${flag}=${value}`).toBe(`${flag}=${Number(getFlag(cpu, flag as FlagName))}`);
+          }
+        }
+      }
+    }
+  );
+
+  it('reads CF and OF as questions about the numbers after one place only', () => {
+    const flagsOf = (mnemonic: Mnemonic, count: number) => {
+      const cpu = createCpuState();
+      writeRegister(cpu, 'cl', count);
+      const link = x86NumberLink(execute(cpu, { mnemonic, operands: [reg('ax'), reg('cl')] }));
+      if (!hasNumbers(link)) throw new Error(link.unavailable);
+      return link.flags.map((reading) => `${reading.flag} ${reading.verdict}`);
+    };
+    expect(flagsOf('shl', 1)).toEqual(['CF outside', 'OF outside', 'ZF zero', 'SF negative']);
+    expect(flagsOf('sar', 1)).toEqual(['CF remainder', 'ZF zero', 'SF negative']);
+    expect(flagsOf('shl', 3)).toEqual(['ZF zero', 'SF negative']);
+  });
+
+  it('has nothing to show for a shift by no places, which changes no flag', () => {
+    const cpu = createCpuState();
+    writeRegister(cpu, 'cl', 0);
+    const link = x86NumberLink(execute(cpu, { mnemonic: 'shl', operands: [reg('ax'), reg('cl')] }));
+    expect(link).toHaveProperty('unavailable');
+  });
+
+  it('names the carry of a halving on the scale of its fill', () => {
+    const scaleOf = (mnemonic: Mnemonic) => {
+      const link = x86NumberLink(
+        execute(createCpuState(), { mnemonic, operands: [reg('ax'), imm(1)] })
+      );
+      return hasNumbers(link) && link.flags[0].scale;
+    };
+    expect(scaleOf('shr')).toBe('unsigned');
+    expect(scaleOf('sar')).toBe('signed');
+  });
+
+  it('has nothing to show for bitwise logic, a rotate, a multiplication or a move', () => {
     const cpu = createCpuState();
     const run = (mnemonic: Mnemonic, ...operands: Operand[]) =>
       x86NumberLink(execute(cpu, { mnemonic, operands }));
     expect(run('and', reg('ax'), imm(1))).toHaveProperty('unavailable');
-    expect(run('shl', reg('ax'), imm(1))).toHaveProperty('unavailable');
+    expect(run('rol', reg('ax'), imm(1))).toHaveProperty('unavailable');
+    expect(run('rcr', reg('ax'), imm(1))).toHaveProperty('unavailable');
     expect(run('mul', reg('bx'))).toHaveProperty('unavailable');
     expect(run('mov', reg('ax'), imm(1))).toHaveProperty('unavailable');
   });
