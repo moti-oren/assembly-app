@@ -74,7 +74,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     evaluated (`gates.ts`), a ripple-carry adder (`adder.ts`), a shifter built from rows of
     switches (`shifter.ts`), and `alu.ts`, which solves one ALU operation gate by gate. Circuits
     with a loop in them are run until they come to rest (`feedback.ts`): the latches and the
-    flip-flop (`flipFlop.ts`), and a register taken through one clock cycle (`register.ts`). A
+    flip-flop (`flipFlop.ts`), a register taken through one clock cycle (`register.ts`), and a
+    file of registers whose address decoder picks the one that is written (`registerFile.ts`). A
     circuit without a loop can be followed gate delay by gate delay as it comes to rest
     (`propagation.ts`), and any of its gates can be broken, its output stuck at 0 or at 1
     (`fault.ts`), or built from NAND gates alone (`nand.ts`). A
@@ -97,7 +98,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
     the link into the storage topic. Each turns an executed instruction into the registers it
     wrote: what each held, what was written, and which of its flip-flops were written. Their
     tests run real instructions and check that the flip-flops of every register, written or not,
-    end up holding what the CPU holds.
+    end up holding what the CPU holds. RISC-V's also gives the whole register file, with `rd` as
+    the address written.
   - `controlLink.ts` and `rv32ControlLink.ts`, `x86ControlLink.ts`, `mos6502ControlLink.ts`: the
     link into the control topic. RISC-V's turns an executed instruction into its 32-bit word, the
     two decoders that read it (`rv32Control.ts`: nine kinds of instruction, and the ALU's
@@ -504,6 +506,13 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **Clear** starts the diagram again.
 - Press a bit of the input or of the write line to flip it and see what the register would have
   held (**What if**). The CPU is not changed. The width can be changed too.
+- **Many registers**, below the cell, is the register file: every register with its address, what
+  it holds and its load line. A decoder (an AND gate per register) turns the address and the write
+  line into the one load line that is on, and the clock they all share writes that register
+  alone. After a RISC-V instruction it is the CPU's 32 registers with `rd` as the address, and
+  `zero` has no gate and no flip-flops, so a write to it is lost; otherwise it is a file of eight
+  registers to work by hand. Press a bit of the address or the write line to flip it, and a
+  register to see its own flip-flops in the register above.
 - An instruction that wrote no register (a comparison, a store, a branch) has nothing to show:
   there **Stored** is greyed and says why. So does RISC-V's `x0`, which has no flip-flops, and a
   jump, which writes only the instruction pointer: how that register is loaded on every
@@ -662,7 +671,8 @@ npm run verify:6502 # check the 6502 core against py65
   - `logic/`: לוגיקה ספרתית, שאינה מכירה אף מעבד: שערים ומעגלים שמחושבים באמת (`gates.ts`), מחבר
     ripple-carry (`adder.ts`), מעגל הזזה שבנוי משורות של מתגים (`shifter.ts`), ו-`alu.ts`, שפותר
     פעולת ALU אחת שער אחר שער. מעגלים שיש בהם לולאה מורצים עד שהם מתייצבים (`feedback.ts`):
-    הלאצ'ים והפליפ-פלופ (`flipFlop.ts`), ואוגר שעובר מחזור שעון אחד (`register.ts`). אחרי מעגל
+    הלאצ'ים והפליפ-פלופ (`flipFlop.ts`), אוגר שעובר מחזור שעון אחד (`register.ts`), וקובץ אוגרים
+    שמפענח הכתובת שלו בוחר את האוגר שנכתב (`registerFile.ts`). אחרי מעגל
     בלי לולאה אפשר לעקוב השהיית שער אחר השהיית שער עד שהוא מתייצב (`propagation.ts`), ואפשר
     לשבור כל שער שלו, כך שהפלט שלו תקוע על 0 או על 1 (`fault.ts`), או לבנות אותו משערי NAND בלבד
     (`nand.ts`). מפענח הוא
@@ -680,7 +690,8 @@ npm run verify:6502 # check the 6502 core against py65
   - `registerLink.ts` ו-`x86RegisterLink.ts`, `rv32RegisterLink.ts`, `mos6502RegisterLink.ts`:
     הקישור אל נושא האחסון. כל אחד הופך הוראה שבוצעה לאוגרים שהיא כתבה: מה כל אחד החזיק, מה נכתב,
     ואילו מהפליפ-פלופים שלו נכתבו. הבדיקות שלהם מריצות הוראות אמיתיות ובודקות שהפליפ-פלופים של
-    כל אוגר, בין שנכתב ובין שלא, מחזיקים בסוף את מה שהמעבד מחזיק.
+    כל אוגר, בין שנכתב ובין שלא, מחזיקים בסוף את מה שהמעבד מחזיק. המקשר של RISC-V נותן גם את
+    קובץ האוגרים כולו, עם `rd` ככתובת שנכתבת.
   - `controlLink.ts` ו-`rv32ControlLink.ts`, `x86ControlLink.ts`, `mos6502ControlLink.ts`: הקישור
     אל נושא הבקרה. זה של RISC-V הופך הוראה שבוצעה למילה של 32 סיביות, לשני המפענחים שקוראים אותה
     (`rv32Control.ts`: תשעה סוגי הוראות, והפעולות של ה-ALU) ולמה שקובע את ה-PC הבא; שני האחרים
@@ -1043,6 +1054,12 @@ npm run verify:6502 # check the 6502 core against py65
   השעון בלחיצה אחת, ו-**Clear** מתחיל את הדיאגרמה מחדש.
 - לחיצה על סיבית של הכניסה או של קו הכתיבה הופכת אותה ומראה מה האוגר היה מחזיק (**What if**).
   המעבד אינו משתנה. אפשר לשנות גם את הרוחב.
+- **Many registers**, מתחת לתא, הוא קובץ האוגרים: כל אוגר עם הכתובת שלו, מה שהוא מחזיק וקו
+  הטעינה שלו. מפענח (שער AND לכל אוגר) הופך את הכתובת ואת קו הכתיבה לקו הטעינה היחיד שדולק,
+  והשעון המשותף לכולם כותב רק את האוגר הזה. אחרי הוראה של RISC-V אלה 32 האוגרים של המעבד עם `rd`
+  ככתובת, ול-`zero` אין שער ואין פליפ-פלופים, כך שכתיבה אליו אובדת; אחרת זה קובץ של שמונה אוגרים
+  להפעלה ביד. לחיצה על סיבית של הכתובת או על קו הכתיבה הופכת אותה, ולחיצה על אוגר מציגה את
+  הפליפ-פלופים שלו באוגר שלמעלה.
 - להוראה שלא כתבה אוגר (השוואה, כתיבה לזיכרון, הסתעפות) אין מה להציג: שם **Stored** אפור ומסביר
   למה. כך גם `x0` של RISC-V, שאין לו פליפ-פלופים, וקפיצה, שכותבת רק את מצביע ההוראה: האופן שבו
   האוגר הזה נטען בכל הוראה מוצג בנושא הבקרה, עבור RISC-V.
