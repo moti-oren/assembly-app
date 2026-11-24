@@ -21,7 +21,7 @@ const { showControls } = useTopicView();
 <!--
   Where the sidebar is not in sight (a phone on the drawing, a tablet with its drawer closed),
   this keeps the operation on show there, at the height of the CPU's result strip. A tap goes
-  to the controls. A phone's header has no topic tabs, so the way back to the CPU is here.
+  to the controls. A phone has no activity bar, so the way back to the CPU is here.
 -->
 <template>
   <div

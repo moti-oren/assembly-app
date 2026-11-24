@@ -1,10 +1,15 @@
-/** The topics the app teaches, in the order the header lists them. */
+/** The topics the app teaches, in the order the activity bar lists them. */
 export const TOPIC_CHOICES = [
-  { id: 'cpu', label: 'CPU', name: 'the CPU' },
-  { id: 'logic', label: 'Logic', name: 'digital logic' },
-  { id: 'numbers', label: 'Numbers', name: 'number representation' },
-  { id: 'storage', label: 'Storage', name: 'how a value is kept' },
-  { id: 'control', label: 'Control', name: 'the control unit' }
+  { id: 'cpu', label: 'CPU', name: 'the CPU', title: 'The CPU' },
+  { id: 'logic', label: 'Logic', name: 'digital logic', title: 'Digital logic' },
+  {
+    id: 'numbers',
+    label: 'Numbers',
+    name: 'number representation',
+    title: 'Number representation'
+  },
+  { id: 'storage', label: 'Storage', name: 'how a value is kept', title: 'How a value is kept' },
+  { id: 'control', label: 'Control', name: 'the control unit', title: 'The control unit' }
 ] as const;
 
 export type TopicId = (typeof TOPIC_CHOICES)[number]['id'];

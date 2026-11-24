@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="View extends string">
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
+import ActivityBar from './ActivityBar.vue';
 import ViewTabs from './ViewTabs.vue';
 
 const props = defineProps<{
@@ -19,18 +20,22 @@ const { drawerOpen } = useWorkbenchView();
 </script>
 
 <!--
-  The two panes of a workbench, the CPU's or a topic's. Side by side on a desktop; on a tablet
+  The two panes of a workbench, the CPU's or a topic's, with the activity bar beside them on a
+  desktop, between the header and the bar under the page. Side by side on a desktop; on a tablet
   the sidebar is a drawer over the stage, and on a phone the tabs pick which view is on show
   (surfaces.css).
 -->
 <template>
   <ViewTabs v-if="mode === 'phone'" v-model:view="view" :views="views" :labels="labels" />
-  <main
-    class="workbench"
-    :data-view="view"
-    :data-shows="view === props.sidebarView ? 'sidebar' : 'stage'"
-    :data-drawer="drawerOpen ? 'open' : 'closed'"
-  >
-    <slot />
-  </main>
+  <div class="workbench-frame">
+    <ActivityBar v-if="mode === 'desktop'" />
+    <main
+      class="workbench"
+      :data-view="view"
+      :data-shows="view === props.sidebarView ? 'sidebar' : 'stage'"
+      :data-drawer="drawerOpen ? 'open' : 'closed'"
+    >
+      <slot />
+    </main>
+  </div>
 </template>

@@ -8,6 +8,7 @@ import { sectionKey, SOURCE_SECTION, type TopicSectionInfo } from '@/ui/topicSec
 import type { LinkedTopic } from '@/ui/topics';
 import { TOPIC_WAYS } from '@/ui/topicWays';
 import { useLayoutMode } from '@/ui/useLayoutMode';
+import { useTopicTabFocus } from '@/ui/useTopicTabFocus';
 import { TOPIC_VIEWS, useTopicView } from '@/ui/useTopicView';
 import { useTopicViewCommands } from '@/ui/useTopicViewCommands';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
@@ -50,6 +51,7 @@ const mode = useLayoutMode();
 const { view } = useTopicView();
 const { drawerOpen } = useWorkbenchView();
 const paletteOpen = ref(false);
+const tabFocus = useTopicTabFocus();
 
 const viewLabels = computed(() => ({ controls: 'Controls', stage: props.stageLabel }));
 const viewCommands = useTopicViewCommands(
@@ -65,6 +67,8 @@ function focusStage(): void {
   // A control that outlived the change of page, such as a topic tab, keeps the focus it has.
   const held = document.activeElement;
   if (held && held !== document.body) return;
+  // The activity bar's button of this topic is about to take it.
+  if (tabFocus.pending()) return;
   stage.value?.focus({ preventScroll: true });
 }
 onMounted(focusStage);

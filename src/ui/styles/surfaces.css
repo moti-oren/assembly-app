@@ -13,6 +13,13 @@
     padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
     background: var(--page);
   }
+  /* The activity bar and the two panes, between the header and the bar under the page. */
+  .workbench-frame {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
   .workbench {
     position: relative;
     display: grid;
@@ -42,8 +49,11 @@
   /* Side by side, each pane scrolls on its own, so the program stays put under a long stage. */
   @media (width >= 64rem) {
     .workbench {
-      /* No narrower stage than the CPU diagrams need to stay laid out as a drawing. */
-      grid-template-columns: clamp(22rem, 30vw, 31rem) minmax(0, 1fr);
+      /*
+       * No narrower stage than the CPU diagrams need to stay laid out as a drawing: at 64rem,
+       * with the activity bar beside it, that leaves the sidebar 20rem.
+       */
+      grid-template-columns: clamp(20rem, 30vw, 31rem) minmax(0, 1fr);
     }
     .workbench-pane[data-pane='sidebar'] {
       border-right: 1px solid var(--border);

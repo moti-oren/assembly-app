@@ -163,40 +163,64 @@
   }
 
   /*
-   * The topics in the header (TopicSwitch.vue): the same flat tabs, as tall as the bar, each as
-   * wide as its name. The bar of ink under the one on show lies over the header's hairline.
+   * The activity bar (ActivityBar.vue), VS Code style: a narrow column of the header's surface
+   * down the left edge, each topic an icon over its name. The one on show has a bar of ink down
+   * its left edge.
    */
-  .topic-tab {
+  .activity-bar {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: 3.5rem;
+    border-right: 1px solid var(--border);
+    padding-block: 0.25rem;
+    background: var(--card);
+  }
+  .activity-item {
     position: relative;
-    padding-inline: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    height: 3.25rem;
     color: var(--muted-foreground);
-    font-size: 0.8125rem;
+    font-size: var(--text-3xs);
     font-weight: 500;
+    line-height: 1;
     outline: none;
     transition: color 150ms;
   }
-  .topic-tab::after {
+  .activity-item svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .activity-item::before {
     content: '';
     position: absolute;
-    inset-inline: 0.5rem;
-    bottom: -1px;
-    height: 2px;
-    border-radius: 2px 2px 0 0;
+    inset-block: 0;
+    left: 0;
+    width: 2px;
     background: transparent;
     transition: background-color 150ms;
   }
-  .topic-tab:hover,
-  .topic-tab[aria-pressed='true'] {
+  .activity-item:hover,
+  .activity-item[aria-current='page'] {
     color: var(--foreground);
   }
-  .topic-tab[aria-pressed='true'] {
+  .activity-item[aria-current='page'] {
     font-weight: 600;
   }
-  .topic-tab[aria-pressed='true']::after {
+  .activity-item[aria-current='page']::before {
     background: var(--foreground);
   }
-  .topic-tab:focus-visible {
-    box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--ring) 60%, transparent);
+  /* The only sign of the focus here, so at full strength: 3:1 against the bar in both themes. */
+  .activity-item:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--ring);
+  }
+  :root[data-motion='reduced'] .activity-item,
+  :root[data-motion='reduced'] .activity-item::before {
+    transition: none;
   }
 
   :root[data-motion='reduced'] .segmented::before {
