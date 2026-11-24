@@ -183,7 +183,9 @@ export function circuitLesson(request: AluRequest): string {
     case 'add':
       return 'One full adder per bit. Each adds its two bits and the carry from the bit to its right, and hands its own carry to the left: the carry ripples through.';
     case 'subtract':
-      return 'The same adder subtracts: every bit of B is inverted on its way in and the carry in adds 1, which makes A + (−B) in two’s complement.';
+      return request.carryIn
+        ? 'The same adder subtracts: every bit of B is inverted on its way in and the carry in adds 1, which makes A + (−B) in two’s complement.'
+        : 'The same adder subtracts: every bit of B is inverted on its way in, which makes A + (−B) − 1 in two’s complement. The carry in would add the 1 back, and here it is 0: that is the borrow, taken off.';
     case 'shift':
       return request.stages.length > 0 && request.stages.every((stage) => stage.distance === 1)
         ? 'Each row is a line of switches that moves every bit one place. The bit that falls off the end goes to the carry.'
