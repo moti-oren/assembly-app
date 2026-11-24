@@ -253,12 +253,22 @@ export function lensTitle(request: NumberRequest): string {
   }
 }
 
-/** One or two sentences on what the lens teaches. */
-export function lensLesson(request: NumberRequest): string {
+/**
+ * Whether the CPU left a flag saying the answer did not fit on each scale, unsigned and signed.
+ * RISC-V keeps no flags, and some instructions leave one as it was (INC and DEC keep the carry).
+ */
+export function flagsBothScales(view: NumberView): boolean {
+  const fits = view.flags.filter((reading) => reading.verdict === 'outside');
+  const scales = new Set(fits.map((reading) => reading.scale));
+  return scales.has('unsigned') && scales.has('signed');
+}
+
+/** One or two sentences on what the lens teaches; `bothFlags` from `flagsBothScales`. */
+export function lensLesson(request: NumberRequest, bothFlags: boolean): string {
   switch (request.kind) {
     case 'add':
     case 'subtract':
-      return 'The bits do not say whether they are signed. Each wheel reads the same bits on one scale: a step past the end of a wheel is where that scale’s answer stops fitting, and the CPU keeps a flag for each.';
+      return `The bits do not say whether they are signed. Each wheel reads the same bits on one scale: a step past the end of a wheel is where that scale’s answer stops fitting${bothFlags ? ', and the CPU keeps a flag for each' : ''}.`;
     case 'extend':
       return 'A narrow value has to fill a wider register. Copying its top bit into the new places keeps the signed number; filling them with zeros keeps the unsigned one.';
     case 'bcd':
