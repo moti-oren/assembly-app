@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import {
-  Binary,
-  ChevronLeft,
-  ChevronRight,
-  CircuitBoard,
-  MemoryStick,
-  RotateCcw,
-  Workflow
-} from '@lucide/vue';
+import { ChevronLeft, ChevronRight, RotateCcw } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuMoment } from '@/ui/cpuMoment';
@@ -16,6 +8,7 @@ import type { LinkedTopic } from '@/ui/topics';
 import type { TopicWay } from '@/ui/topicWays';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useTopic } from '@/ui/useTopic';
+import TopicIcon from './TopicIcon.vue';
 import TransportMore from './TransportMore.vue';
 
 defineProps<{
@@ -37,13 +30,6 @@ defineSlots<{
   /** Those a narrow bar keeps behind its More button, over the ways on; `close` shuts it. */
   more?: (props: { close: () => void }) => unknown;
 }>();
-
-const ICONS: Record<LinkedTopic, typeof Binary> = {
-  logic: CircuitBoard,
-  numbers: Binary,
-  storage: MemoryStick,
-  control: Workflow
-};
 
 const mode = useLayoutMode();
 const { topic } = useTopic();
@@ -152,7 +138,7 @@ function goFromMore(to: LinkedTopic): void {
               :aria-label="`${way.name}: ${way.label}`"
               @click="topic = way.to"
             >
-              <component :is="ICONS[way.to]" />
+              <TopicIcon :topic="way.to" />
               <span class="hidden xl:inline">{{ way.name }}</span>
             </Button>
           </TooltipTrigger>
@@ -175,7 +161,7 @@ function goFromMore(to: LinkedTopic): void {
           class="justify-start pointer-coarse:h-11"
           @click="goFromMore(way.to)"
         >
-          <component :is="ICONS[way.to]" />
+          <TopicIcon :topic="way.to" />
           {{ way.label }}
         </Button>
       </TransportMore>

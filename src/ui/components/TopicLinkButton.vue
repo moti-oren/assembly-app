@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Binary, CircuitBoard, MemoryStick, Workflow } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { LinkedTopic } from '@/ui/topics';
 import { useTopic } from '@/ui/useTopic';
 import TapTooltip from './TapTooltip.vue';
+import TopicIcon from './TopicIcon.vue';
 
 defineProps<{
   /** The topic the instruction on show is opened in. */
@@ -18,28 +18,24 @@ const { showCircuit, showNumbers, showStorage, showControl } = useTopic();
 const LINKS = {
   logic: {
     label: 'Gates',
-    icon: CircuitBoard,
     open: showCircuit,
     title: 'show the gates that worked this out',
     none: 'No gates to show'
   },
   numbers: {
     label: 'Numbers',
-    icon: Binary,
     open: showNumbers,
     title: 'show what this means as numbers',
     none: 'No numbers to show'
   },
   storage: {
     label: 'Stored',
-    icon: MemoryStick,
     open: showStorage,
     title: 'show the flip-flops that keep what was written',
     none: 'No register to show'
   },
   control: {
     label: 'Control',
-    icon: Workflow,
     open: showControl,
     title: 'show the control lines this instruction was decoded into',
     none: 'No control unit to show'
@@ -60,7 +56,7 @@ const LINKS = {
     :aria-label="`${LINKS[topic].label}: ${LINKS[topic].title}`"
     @click="LINKS[topic].open()"
   >
-    <component :is="LINKS[topic].icon" />
+    <TopicIcon :topic="topic" />
     {{ LINKS[topic].label }}
   </Button>
   <TapTooltip v-else v-slot="{ toggle }">
@@ -73,7 +69,7 @@ const LINKS = {
         :aria-label="`${LINKS[topic].label}. ${LINKS[topic].none}: ${unavailable}`"
         @click="toggle"
       >
-        <component :is="LINKS[topic].icon" />
+        <TopicIcon :topic="topic" />
         {{ LINKS[topic].label }}
       </Button>
     </TooltipTrigger>
