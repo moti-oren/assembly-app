@@ -447,6 +447,12 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **What each flag says** gives every flag as a question about the numbers. The 6502's C after a
   subtraction works backwards (1 means no borrow); RISC-V has no flags, so `slt`, `sltu` and the
   branches compare on the scale their name picks.
+- Under a difference, **What a jump would make of it** lists the conditional jumps of the CPU on
+  show (the 8086's `ja`, `jb`, `jg`, `jl` and the rest, RISC-V's branches, the 6502's branches
+  after `cmp`): the question each asks, the two numbers on its own scale, the flags it goes by,
+  and whether it is taken. When the scales put the numbers in opposite orders the page says so.
+  The 6502's `bmi` and `bpl` are marked where they go against the numbers: it has no signed
+  comparison.
 - A RISC-V `lb`, `lh`, `lbu` or `lhu` is shown as an extension: the byte or half word above the
   32 bits it becomes, the new bits all copies of its top bit or all zeros, and which of the two
   numbers that keeps.
@@ -974,6 +980,11 @@ npm run verify:6502 # check the 6502 core against py65
 - **What each flag says** מציג כל דגל כשאלה על המספרים. ה-C של ה-6502 אחרי חיסור עובד הפוך (1
   פירושו שלא היה שאל); ל-RISC-V אין דגלים, ולכן `slt`, `sltu` וההסתעפויות משוות בסולם שהשם שלהן
   בוחר.
+- מתחת להפרש, **What a jump would make of it** מפרט את הקפיצות המותנות של המעבד שעל המסך
+  (`ja`, `jb`, `jg`, `jl` והשאר ב-8086, ההסתעפויות של RISC-V, וההסתעפויות של ה-6502 אחרי `cmp`):
+  השאלה שכל אחת שואלת, שני המספרים בסולם שלה, הדגלים שלפיהם היא מחליטה, והאם היא נלקחת. כששני
+  הסולמות מסדרים את המספרים בסדר הפוך, הדף אומר זאת. `bmi` ו-`bpl` של ה-6502 מסומנות כשהן
+  הולכות נגד המספרים: אין לו השוואה עם סימן.
 - `lb`, `lh`, `lbu` או `lhu` של RISC-V מוצגות כהרחבה: הבית או חצי המילה מעל 32 הסיביות שהם
   נעשים, הסיביות החדשות כולן העתקים של הסיבית העליונה או כולן אפסים, ואיזה משני המספרים זה שומר.
 - `adc` או `sbc` של ה-6502 במצב עשרוני, שאין להם שערים להציג, מוצגים כאן ספרה אחר ספרה: כל חצי
