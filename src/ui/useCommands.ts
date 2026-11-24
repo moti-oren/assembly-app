@@ -265,7 +265,8 @@ export function useCommands(
     ...RUN_SPEED_NAMES.map((name) => ({
       group: 'Run speed',
       label: SPEED_LABELS[name],
-      disabled: speed.value === name,
+      keywords: 'speed fast slow run',
+      current: speed.value === name,
       run: () => {
         speed.value = name;
       }
@@ -306,6 +307,8 @@ export function useCommands(
     ...cpu.architecture.examples.map((example, index) => ({
       group: 'Examples',
       label: `Load "${example.name}"`,
+      // A dialog may ask first; the palette must not take focus back from it.
+      moves: 'focus' as const,
       run: () => cpu.loadExample(index)
     })),
     {
