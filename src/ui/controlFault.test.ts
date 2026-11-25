@@ -47,7 +47,9 @@ describe('faultNote', () => {
   });
 
   it('says what stops when a line is held at 0', () => {
-    expect(faultNote(row(ADD, { regWrite: 0 }, 'regWrite'))).toContain('no longer holds that rd');
+    expect(faultNote(row(ADD, { regWrite: 0 }, 'regWrite'))).toContain(
+      'so this no longer happens: rd'
+    );
   });
 
   it('says what starts when a line is held at 1', () => {

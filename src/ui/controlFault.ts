@@ -40,7 +40,7 @@ export function faultNote({ label, does, stuck, healthy }: FaultRow): string {
   }
   return stuck
     ? `${label} is stuck at 1 though the decoder asks for 0, so now ${does}.`
-    : `${label} is stuck at 0 though the decoder asks for 1, so it no longer holds that ${does}.`;
+    : `${label} is stuck at 0 though the decoder asks for 1, so this no longer happens: ${does}.`;
 }
 
 /** The broken lines and how far they reach, or null when every line works. */

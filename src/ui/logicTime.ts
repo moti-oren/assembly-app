@@ -107,6 +107,7 @@ export function timeSummary(step: number, last: number, worst: number): TimeSumm
     note:
       last === worst
         ? `${took} That is the longest this adder can take, and a clock has to wait that long every time.`
-        : `${took} A carry can keep this adder busy for ${worst}, and a clock has to wait that long every time.`
+        : // `worst` is the deepest path through the gates, which no single pair of values may take.
+          `${took} The deepest path through its gates is ${worst} delays, so a clock has to allow for that every time.`
   };
 }

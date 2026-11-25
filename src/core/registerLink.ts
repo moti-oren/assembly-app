@@ -66,6 +66,6 @@ export const NOT_KEPT = 'What this instruction left in the registers was not kep
  */
 export function nothingWritten(name: string, pointer: string, flags: string | null): string {
   return flags
-    ? `${name} wrote no register but ${flags}. The flags, and ${pointer}, which every instruction loads, are not shown here yet.`
-    : `${name} wrote no register. ${pointer}, which every instruction loads, is not shown here yet.`;
+    ? `${name} wrote none of the registers shown here. ${flags}, and ${pointer}, which every instruction loads, are not shown here yet.`
+    : `${name} wrote none of the registers shown here. ${pointer}, which every instruction loads, is not shown here yet.`;
 }

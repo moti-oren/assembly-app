@@ -91,7 +91,7 @@ describe('x86RegisterLink', () => {
     const { link } = agrees(line('cmp', reg('ax'), reg('bx')));
     expect(link).toEqual({
       unavailable:
-        'CMP wrote no register but FLAGS. The flags, and IP, which every instruction loads, are not shown here yet.'
+        'CMP wrote none of the registers shown here. FLAGS, and IP, which every instruction loads, are not shown here yet.'
     });
   });
 
@@ -99,11 +99,11 @@ describe('x86RegisterLink', () => {
     const { link } = agrees(line('jmp', label(0)), 0);
     expect(link).toEqual({
       unavailable:
-        'JMP wrote no register. IP, which every instruction loads, is not shown here yet.'
+        'JMP wrote none of the registers shown here. IP, which every instruction loads, is not shown here yet.'
     });
     expect(agrees(line('nop'), 0).link).toEqual({
       unavailable:
-        'NOP wrote no register. IP, which every instruction loads, is not shown here yet.'
+        'NOP wrote none of the registers shown here. IP, which every instruction loads, is not shown here yet.'
     });
   });
 
