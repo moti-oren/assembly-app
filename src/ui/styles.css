@@ -230,7 +230,8 @@
   --tooltip-foreground: #ffffff;
   --tooltip-border: transparent;
   --disabled: #f2f4f7;
-  --disabled-foreground: #98a2b3;
+  /* About 4.3:1 on its fill, as the dark theme's is: a word that is off must still be read. */
+  --disabled-foreground: #667085;
   --disabled-border: #e4e7ec;
   /* The tag of a pipeline stage (IF, ID, EX, MEM, WB): one neutral chip for all five. */
   --stage-chip: #f2f4f7;
