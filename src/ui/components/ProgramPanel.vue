@@ -16,6 +16,7 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CodePlace, LineCode } from '@/ui/programCode';
+import { usePreferences } from '@/ui/usePreferences';
 import { lineMoveOf, rowAfterRemove } from '@/ui/programKeys';
 import { canMove, moveRefusal } from '@/ui/programLock';
 import type { ProgramSource } from '@/ui/useProgramLines';
@@ -83,6 +84,8 @@ const list = ref<HTMLElement | null>(null);
 /** Where the IP marker sits inside the list; it slides there instead of jumping. */
 const marker = ref<{ top: number; height: number } | null>(null);
 
+const { calm } = usePreferences();
+
 function placeMarker(): void {
   const lines = list.value;
   const row = lines?.querySelector<HTMLElement>(
@@ -96,10 +99,12 @@ function placeMarker(): void {
   marker.value = { top: row.offsetTop, height: row.offsetHeight };
 
   const bottom = row.offsetTop + row.offsetHeight;
+  // With fewer animations asked for, the list jumps to the line instead of sliding there.
+  const behavior = calm.value ? 'auto' : 'smooth';
   if (row.offsetTop < lines.scrollTop) {
-    lines.scrollTo({ top: row.offsetTop - 4, behavior: 'smooth' });
+    lines.scrollTo({ top: row.offsetTop - 4, behavior });
   } else if (bottom > lines.scrollTop + lines.clientHeight) {
-    lines.scrollTo({ top: bottom - lines.clientHeight + 4, behavior: 'smooth' });
+    lines.scrollTo({ top: bottom - lines.clientHeight + 4, behavior });
   }
 }
 
@@ -317,8 +322,8 @@ function machineCode(index: number): string {
                     :class="code[index].problem ? 'text-destructive' : 'text-muted-foreground'"
                     :aria-label="
                       code[index].problem
-                        ? `${machineCode(index)}: ${code[index].problem}`
-                        : undefined
+                        ? `Take apart ${machineCode(index)}: ${code[index].problem}`
+                        : `Take apart the machine code of ${formatLabel(index)}, ${machineCode(index)}`
                     "
                     @click="emit('inspect', index)"
                   >

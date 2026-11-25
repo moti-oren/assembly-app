@@ -106,6 +106,7 @@ defineExpose({ focus });
                 ? 'border border-dashed border-foreground/40 bg-transparent shadow-none'
                 : ''
             ]"
+            :aria-label="`Remove ${token.label}${index < tokens.length - 1 ? ' and the words after it' : ''}`"
             @click.stop="emit('truncate', index)"
           >
             {{ token.label }}
