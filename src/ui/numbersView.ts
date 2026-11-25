@@ -37,6 +37,14 @@ export function widthAllowed(request: NumberRequest, width: Width): boolean {
   return request.kind !== 'extend' || width > 8;
 }
 
+/** Why a width picker has widths it will not take, in words; null where it takes them all. */
+export function widthReason(request: NumberRequest): string | null {
+  if (request.kind === 'bcd') return 'Packed decimal is one byte: two digits in 8 bits.';
+  return request.kind === 'extend'
+    ? 'An extension ends wider than the 8 bits it starts from.'
+    : null;
+}
+
 /** The widths a request cannot be made: what a width picker shows as off. */
 export function disallowedWidths(request: NumberRequest): Width[] {
   return WIDTHS.filter((width) => !widthAllowed(request, width));
@@ -81,9 +89,13 @@ export function freeRequest(lens: LensId, width: Width, from: NumberRequest | nu
     case 'extend': {
       const to = width === 8 ? 16 : width;
       const narrow = from?.kind === 'extend' && from.from < to ? from.from : 8;
+      // A value whose top bit is 0 extends the same both ways: one that shows the difference
+      // starts the lens, unless it came from an extension already.
+      const top = 2 ** (narrow - 1);
+      const carried = wrap(from ? given.a : top, narrow);
       return {
         kind: 'extend',
-        value: wrap(from ? given.a : 0x80, narrow),
+        value: from?.kind === 'extend' || carried >= top ? carried : top,
         from: narrow,
         to,
         signed: from?.kind === 'extend' ? from.signed : true
