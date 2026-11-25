@@ -82,7 +82,16 @@ function bytesAt(memory: Uint8Array, start: number, count: number): string {
   return [...memory.slice(start, start + count)].map((byte) => hex(byte, 2)).join(' ');
 }
 
-const leds = (state: { io: { out: Uint8Array } }) => `LEDs = $${hex(state.io.out[PORTS.leds], 2)}`;
+/** Each CPU's own way of writing hex digits, as its programs and panels write them. */
+const X86_HEX = (digits: string) => `${digits}h`;
+const RV32_HEX = (digits: string) => `0x${digits}`;
+const MOS6502_HEX = (digits: string) => `$${digits}`;
+
+/** The LEDs' byte, written in a CPU's hex. */
+const leds =
+  (style: (digits: string) => string) =>
+  (state: { io: { out: Uint8Array } }): string =>
+    `LEDs = ${style(hex(state.io.out[PORTS.leds], 2))}`;
 
 // prettier-ignore
 export const COMPARISON_TASKS: readonly ComparisonTask[] = [
@@ -98,8 +107,8 @@ export const COMPARISON_TASKS: readonly ComparisonTask[] = [
     id: 'wide-add',
     name: 'Add $1234 and $00FF',
     lesson: 'A 16-bit sum is one ADD on the 8086 and on RISC-V, whose registers are 16 and 32 bits wide. The 6502 adds a byte at a time: the low bytes first, then the high bytes with the carry from the first ADC. RISC-V needs LUI to build $1234, which does not fit in ADDI\'s 12 bits.',
-    x86: { program: [x86.line('mov', x86.reg('ax'), x86.imm(0x1234)), x86.line('add', x86.reg('ax'), x86.imm(0x00ff))], result: (s) => `AX = $${hex(s.registers.ax, 4)}` },
-    rv32: { program: [...loadImmediate(A0, 0x1234), rv.line('addi', rv.reg(A0), rv.reg(A0), rv.imm(0xff))], result: (s) => `a0 = $${hex(readRv32(s, A0), 4)}` },
+    x86: { program: [x86.line('mov', x86.reg('ax'), x86.imm(0x1234)), x86.line('add', x86.reg('ax'), x86.imm(0x00ff))], result: (s) => `AX = ${X86_HEX(hex(s.registers.ax, 4))}` },
+    rv32: { program: [...loadImmediate(A0, 0x1234), rv.line('addi', rv.reg(A0), rv.reg(A0), rv.imm(0xff))], result: (s) => `a0 = ${RV32_HEX(hex(readRv32(s, A0), 4))}` },
     mos6502: { program: example(MOS6502.examples, 'Add 16-bit numbers'), result: (s) => `$01:$00 = $${hex(s.memory[1], 2)}${hex(s.memory[0], 2)}` }
   },
   {
@@ -120,7 +129,7 @@ export const COMPARISON_TASKS: readonly ComparisonTask[] = [
     },
     rv32: {
       program: [rv.line('lui', rv.reg(A0), rv.imm(0x10)), rv.line('addi', rv.reg(T1), rv.reg(ZERO), rv.imm(0x2a)), rv.line('addi', rv.reg(T0), rv.reg(ZERO), rv.imm(8)), rv.line('sb', rv.reg(T1), { type: 'mem', base: A0, offset: 0 }), rv.line('addi', rv.reg(A0), rv.reg(A0), rv.imm(1)), rv.line('addi', rv.reg(T0), rv.reg(T0), rv.imm(-1)), rv.line('bne', rv.reg(T0), rv.reg(ZERO), { type: 'label', target: 3 })],
-      result: (s) => `$00010000 = ${bytesAt(s.memory, 0x10000, 8)}`
+      result: (s) => `0x00010000 = ${bytesAt(s.memory, 0x10000, 8)}`
     },
     mos6502: {
       program: [m65('ldx', { type: 'imm', value: 0 }), m65('lda', { type: 'imm', value: 0x2a }), m65('sta', { type: 'abs', address: 0x0300, index: 'x' }), m65('inx'), m65('cpx', { type: 'imm', value: 8 }), m65('bne', { type: 'label', target: 2 })],
@@ -139,8 +148,8 @@ export const COMPARISON_TASKS: readonly ComparisonTask[] = [
     id: 'light',
     name: 'Light the LEDs one at a time',
     lesson: 'The 8086 reaches the LEDs through a port of their own, with OUT. RISC-V and the 6502 have no I/O instructions: the LEDs are an address in memory, written with SB or STA. The 6502 needs no counter: after eight shifts ASL pushes the bit out into C, A becomes 0, and BNE falls through.',
-    x86: { program: example(X86.examples, 'Running light'), result: leds },
-    rv32: { program: example(RV32.examples, 'Running light'), result: leds },
-    mos6502: { program: example(MOS6502.examples, 'Running light'), result: leds }
+    x86: { program: example(X86.examples, 'Running light'), result: leds(X86_HEX) },
+    rv32: { program: example(RV32.examples, 'Running light'), result: leds(RV32_HEX) },
+    mos6502: { program: example(MOS6502.examples, 'Running light'), result: leds(MOS6502_HEX) }
   }
 ];
