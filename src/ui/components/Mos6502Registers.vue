@@ -9,6 +9,7 @@ import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { mos6502RegisterChange } from '@/ui/architectureDiffs';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import { unavailableIn } from '@/ui/topicLinks';
+import ChangedSwatch from './ChangedSwatch.vue';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -75,7 +76,7 @@ const pcMove = computed(() => change('pc'));
       <CardTitle role="heading" aria-level="2">Registers</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
-          <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
+          <ChangedSwatch />
           changed by the last instruction
         </span>
         <TopicLinkButton v-if="stored" topic="storage" :unavailable="unavailableIn(stored)" />

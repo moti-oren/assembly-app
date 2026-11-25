@@ -25,6 +25,7 @@ import { x86RegisterChange } from '@/ui/architectureDiffs';
 import { wasWritten } from '@/ui/describe';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import { unavailableIn } from '@/ui/topicLinks';
+import ChangedSwatch from './ChangedSwatch.vue';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -69,12 +70,7 @@ function change(name: RegisterName): ValueChange | null {
       <CardTitle role="heading" aria-level="2">Registers</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
-          <!-- A digit on the tint, as a changed value is drawn: the tint alone is too faint. -->
-          <span
-            class="inline-grid h-4 place-items-center rounded-xs bg-changed px-0.5 font-mono text-2xs font-semibold text-changed-foreground"
-            aria-hidden="true"
-            >0</span
-          >
+          <ChangedSwatch />
           changed by the last instruction
         </span>
         <span class="hidden items-center gap-1.5 md:flex">
