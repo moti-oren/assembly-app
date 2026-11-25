@@ -93,7 +93,8 @@
     place-items: center;
     width: calc(var(--cell) - 0.375rem);
     height: calc(var(--cell) - 0.375rem);
-    border: 1px solid var(--input);
+    /* A control's outline is a line that can be seen, not a hairline. */
+    border: 1px solid var(--wire);
     border-radius: var(--radius-md);
     background: transparent;
     color: var(--tertiary-foreground);
@@ -171,7 +172,8 @@
     place-items: center;
     width: calc(var(--cell) - 0.625rem);
     height: calc(var(--cell) - 0.375rem);
-    border: 1px solid var(--input);
+    /* A control's outline is a line that can be seen, not a hairline. */
+    border: 1px solid var(--wire);
     border-radius: var(--radius-sm);
     background: var(--inset);
     color: var(--muted-foreground);
@@ -188,7 +190,7 @@
     background: var(--foreground);
     color: var(--background);
   }
-  /* The carry handed from one adder to the next: a wire to the left, bright when it carries a 1. */
+  /* The carry handed from one adder to the next: a wire to the left, dark when it carries a 1. */
   .logic-carry {
     position: absolute;
     top: 50%;
@@ -196,14 +198,12 @@
     width: 0.625rem;
     height: 0;
     border-top: 2px solid var(--wire);
-    opacity: 0.45;
   }
   .logic-cell[data-digit-start] > .logic-carry {
     width: calc(0.625rem + var(--cell) / 4);
   }
   .logic-carry[data-on] {
     border-top-color: var(--foreground);
-    opacity: 1;
   }
 
   /* A carry ripples: each bit settles a moment after the one to its right. */

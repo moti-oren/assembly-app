@@ -184,7 +184,7 @@ function muxSlice(shape: ShifterShape, stage: number, bit: number): SliceDiagram
       terminal(result, 'out', 284, 50, 'out')
     ],
     dots: [],
-    expressions: ['out = on ? the moved bit : the bit that stays']
+    expressions: ['out = on·move + on′·stay']
   };
 }
 

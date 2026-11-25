@@ -43,7 +43,8 @@ function wires(name: (bit: number) => string): Bit[] {
       @flip="lens.flipBit('b', $event)"
     />
     <div class="logic-row">
-      <div class="logic-label">Gates</div>
+      <!-- The gate's name beside its symbol: & is AND, ≥1 is OR, =1 is XOR. -->
+      <div class="logic-label">{{ gateName }}</div>
       <div class="logic-cell" />
       <div
         v-for="bit in bitsLeftToRight(width)"
@@ -56,6 +57,7 @@ function wires(name: (bit: number) => string): Bit[] {
           class="logic-unit"
           :aria-pressed="lens.bit.value === bit"
           :data-stuck="lens.broken.value?.[bit] ? '' : undefined"
+          :title="`${gateName} gate`"
           :aria-label="`The ${gateName} gate of bit ${bit}${lens.broken.value?.[bit] ? ', broken' : ''}: show it`"
           @click="lens.choose(bit)"
         >
