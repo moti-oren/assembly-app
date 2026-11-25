@@ -2,7 +2,7 @@
 import type { RegisterLink } from '@/core/registerLink';
 import { rv32AluLink } from '@/core/rv32AluLink';
 import { rv32NumberLink } from '@/core/rv32NumberLink';
-import { computed } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import { formatHex32 } from '@/core/rv32/bits';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
@@ -12,12 +12,16 @@ import { rv32RegisterChange } from '@/ui/architectureDiffs';
 import { datapathView } from '@/ui/rv32Datapath';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import { REGISTER_GROUPS, ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/ui/rv32View';
+import { useGridKeys } from '@/ui/useGridKeys';
 import type { PendingInstruction } from '@/ui/usePhaseStepping';
+import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import ChangeMark from './ChangeMark.vue';
 import CpuCanvas from './CpuCanvas.vue';
 import DatapathStage from './DatapathStage.vue';
 import DiagramWire from './DiagramWire.vue';
 import RollingDigits from './RollingDigits.vue';
+import TapTooltip from './TapTooltip.vue';
+import ValueDiff from './ValueDiff.vue';
 
 const props = defineProps<{
   state: CpuState;
@@ -33,6 +37,20 @@ const props = defineProps<{
   /** Where the last instruction's write leads in the storage topic. */
   stored: RegisterLink | null;
 }>();
+
+// The 32 names are one stop for Tab, in the order drawn; the arrows move between them, so any
+// register's role can be read from the keyboard without 32 stops on the way to the stages.
+const ORDER = new Map(
+  REGISTER_GROUPS.flatMap((group) => group.rows).map((row, at) => [row.key, at])
+);
+const names = useGridKeys(
+  useTemplateRef<HTMLElement>('registerFile'),
+  () => ({ rows: 32, columns: 1 }),
+  {
+    point: () => {},
+    unpoint: () => {}
+  }
+);
 
 const aluLink = computed(() => props.record && rv32AluLink(props.record));
 const numberLink = computed(() => props.record && rv32NumberLink(props.record));
@@ -89,7 +107,12 @@ function change(index: number): ValueChange | null {
           The register file: 32 registers with two read ports (rs1, rs2) and one write port (rd),
           set out by what the calling convention uses each for rather than by number.
         -->
-        <section class="chip-block rounded-lg border px-3 py-2" aria-label="Register file">
+        <section
+          ref="registerFile"
+          class="chip-block rounded-lg border px-3 py-2"
+          aria-label="Register file: the arrows move between the registers' names"
+          @keydown="names.onKey"
+        >
           <h3 class="unit-title">Register file <span>x0–x31</span></h3>
           <div class="grid gap-x-6 gap-y-2 font-mono text-xs @min-[44rem]:grid-cols-2">
             <div v-for="group in REGISTER_GROUPS" :key="group.role">
@@ -104,14 +127,32 @@ function change(index: number): ValueChange | null {
                 <div
                   v-for="row in group.rows"
                   :key="row.key"
-                  class="flex h-5 items-center gap-1.5 rounded-sm px-1 whitespace-nowrap"
+                  class="flex h-5 items-center gap-1.5 rounded-sm px-1 whitespace-nowrap pointer-coarse:h-8"
                   :class="{
                     'bg-pointer/15': use(row.index) === 'read',
                     'bg-written/20': use(row.index) === 'write'
                   }"
-                  :title="`x${row.index}`"
                 >
-                  <span class="w-8 font-semibold">{{ row.abi }}</span>
+                  <!--
+                    Its name tells what the register is for, and what the last instruction did to
+                    it: on focus, hover or a tap.
+                  -->
+                  <TapTooltip v-slot="{ toggle }">
+                    <TooltipTrigger as-child>
+                      <span
+                        :tabindex="names.stop.value === ORDER.get(row.key) ? 0 : -1"
+                        :data-cell="ORDER.get(row.key)"
+                        class="w-8 cursor-help rounded-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:inline-flex pointer-coarse:min-h-8 pointer-coarse:items-center"
+                        @focus="names.onCellFocus(ORDER.get(row.key)!, 0)"
+                        @click="toggle"
+                        >{{ row.abi }}</span
+                      >
+                    </TooltipTrigger>
+                    <TooltipContent class="flex-col items-start" side="top">
+                      <p>{{ row.abi }} is x{{ row.index }}. {{ ROLE_DESCRIPTIONS[group.role] }}.</p>
+                      <ValueDiff :change="change(row.index)" />
+                    </TooltipContent>
+                  </TapTooltip>
                   <ChangeMark
                     :on="changed(row.key)"
                     :written="change(row.index)?.unchanged"
