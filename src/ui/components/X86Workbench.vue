@@ -97,6 +97,7 @@ const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = 
 );
 const { running } = controls;
 
+const challenge = useChallenge(cpu);
 const {
   panels,
   commands,
@@ -125,7 +126,8 @@ const {
       run: () => {
         registerBits.value = !registerBits.value;
       }
-    }
+    },
+    ...challenge.commands.value
   ],
   soundOf: (record) => x86Sounds(record, state),
   page
@@ -133,7 +135,6 @@ const {
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, x86Stack);
-const challenge = useChallenge(cpu);
 const { open: challengesOpen } = useChallenges();
 
 const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, inspectedLine, {
@@ -189,7 +190,9 @@ followBuilder(draft);
           :challenge="challenge.challenge.value"
           :result="challenge.result.value"
           :given="challenge.given.value"
+          :next="challenge.next.value"
           @restart="challenge.restart"
+          @next="challenge.startNext"
           @list="challengesOpen = true"
         />
       </template>

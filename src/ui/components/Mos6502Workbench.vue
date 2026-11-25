@@ -92,6 +92,7 @@ const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = 
 );
 const { running } = controls;
 
+const challenge = useChallenge(cpu);
 const {
   panels,
   commands,
@@ -108,6 +109,7 @@ const {
   confirmReset,
   clearProgram
 } = useWorkbench(controls, {
+  commands: () => challenge.commands.value,
   aluLink: mos6502AluLink,
   numberLink: mos6502NumberLink,
   registerLink: mos6502RegisterLink,
@@ -119,7 +121,6 @@ const {
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, mos6502Stack);
-const challenge = useChallenge(cpu);
 const { open: challengesOpen } = useChallenges();
 
 const memoryPlaces = mos6502MemoryPlaces(state);
@@ -181,7 +182,9 @@ followBuilder(draft);
           :challenge="challenge.challenge.value"
           :result="challenge.result.value"
           :given="challenge.given.value"
+          :next="challenge.next.value"
           @restart="challenge.restart"
+          @next="challenge.startNext"
           @list="challengesOpen = true"
         />
       </template>

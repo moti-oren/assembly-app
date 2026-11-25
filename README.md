@@ -370,7 +370,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   on show is never touched and you can still step through your attempt. A task with given lines is
   run with other values in them too, so writing the answer down does not pass.
 - Under the list a line says where the program stands, and once it passes, how many lines it took
-  against par. **Show a hint** gives a nudge, **Start over** brings the task back as it began, and
+  against par, with **Next challenge** to go on to the one after it. **Show a hint** gives a nudge, **Start over** brings the task back as it began, and
   closing the panel (its button says **Leave the challenge**), or loading an example, leaves the
   challenge. Solved challenges are ticked in
   the list with the fewest lines they took, and remembered between visits.
@@ -993,7 +993,7 @@ npm run verify:6502 # check the 6502 core against py65
   מורצת מחדש על מעבד משלה אחרי כל עריכה, כך שהמעבד שעל המסך לא משתנה ואפשר להמשיך לצעוד בניסיון
   שלכם. משימה עם שורות נתונות מורצת גם עם ערכים אחרים בהן, כך שכתיבת התשובה ישירות לא עוברת.
 - מתחת לרשימה שורה אומרת איפה התוכנית עומדת, וכשהיא עוברת, כמה שורות היא לקחה ביחס ל-par.
-  **Show a hint** נותן רמז, **Start over** מחזיר את המשימה למצב ההתחלתי, וסגירת החלונית (הכפתור
+  כשהתוכנית עוברת, **Next challenge** עובר לאתגר הבא. **Show a hint** נותן רמז, **Start over** מחזיר את המשימה למצב ההתחלתי, וסגירת החלונית (הכפתור
   שלה אומר **Leave the challenge**), או טעינת דוגמה, עוזבת את האתגר. אתגרים שנפתרו מסומנים ברשימה עם מספר השורות הקטן ביותר שלקחו, ונשמרים
   בין ביקורים.
 

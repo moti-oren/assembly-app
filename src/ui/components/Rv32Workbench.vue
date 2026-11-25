@@ -98,6 +98,7 @@ const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = 
 );
 const { running } = controls;
 
+const challenge = useChallenge(cpu);
 const {
   panels,
   commands,
@@ -122,13 +123,12 @@ const {
   usesDevices: rv32UsesDevices,
   // The timing is the chart's own, worked out once for both.
   soundOf: () => rv32Sounds(history.value, state, pipeline.shown.value ? timing.value : null),
-  commands: pipeline.commands,
+  commands: () => [...pipeline.commands(), ...challenge.commands.value],
   page
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, rv32Stack);
-const challenge = useChallenge(cpu);
 const { open: challengesOpen } = useChallenges();
 const { shown: pipelineShown } = pipeline;
 
@@ -195,7 +195,9 @@ followBuilder(draft);
           :challenge="challenge.challenge.value"
           :result="challenge.result.value"
           :given="challenge.given.value"
+          :next="challenge.next.value"
           @restart="challenge.restart"
+          @next="challenge.startNext"
           @list="challengesOpen = true"
         />
       </template>
