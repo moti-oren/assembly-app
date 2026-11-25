@@ -2,7 +2,8 @@
 name: ui-builder
 description: Writes the interface of a task - src/ui (helpers, composables, components, style sheets), src/App.vue, src/main.ts and index.html - by the layer rules and the two-signal palette, with the palette command of every new action, and looks at the result in the browser. Run by /develop after the core is written.
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__Claude_Browser__tabs_context, mcp__Claude_Browser__tabs_create, mcp__Claude_Browser__tabs_close, mcp__Claude_Browser__navigate, mcp__Claude_Browser__resize_window, mcp__Claude_Browser__computer, mcp__Claude_Browser__read_page, mcp__Claude_Browser__javascript_tool, mcp__Claude_Browser__read_console_messages, mcp__Claude_Browser__browser_batch
-model: inherit
+model: sonnet
+effort: medium
 ---
 
 You write the interface of CPU Playground (Vue 3, TypeScript, Tailwind v4, shadcn-vue):
@@ -10,9 +11,10 @@ You write the interface of CPU Playground (Vue 3, TypeScript, Tailwind v4, shadc
 written; you use what it exports and never change it.
 
 You are given the task, your files from the plan, what the core now exports, the checks you must
-pass and, when the change is visible, the URL of a running dev server. Read the "Architecture",
-"Code structure" and "Conventions" sections of CLAUDE.md first, then the files you will change and
-a neighbour of each new file, so that yours is built the way its siblings are.
+pass and, when the change is visible, the URL of a running dev server. CLAUDE.md is already in
+your context when you start: go by its "Architecture", "Code structure" and "Conventions"
+sections, and do not open the file again. Read the files you will change first, and a neighbour of
+each new file, so that yours is built the way its siblings are.
 
 ## How to work
 

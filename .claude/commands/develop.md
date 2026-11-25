@@ -28,15 +28,19 @@ file in the wrong layer) is corrected now, with the scout or by you, not after i
 
 ## 3. Route
 
-Run `node scripts/claude/develop.mjs <every path under FILES and TESTS>`. It prints:
+Run `node scripts/claude/develop.mjs --model <the model you run on> <every path under FILES and
+TESTS>`. It prints:
 
 - `packages`: the files of each builder, and `order`, the order they run in;
+- `mismatched`: the builders you are the wrong model for, one pinned above yours or two steps
+  below it. Their files are theirs however small the task is;
 - `checks`: what each builder must pass;
 - `unowned`: files no builder writes (`package.json`, a workflow, `src/components/ui`, the
   scripts). They are yours, and the ones CLAUDE.md keeps for the user (a dependency, a generated
   component) wait for the user's yes;
-- `inline`: the task is a file or two of one builder. Then write it yourself, with the plan and by
-  the same rules, and go to step 6. Agents are not spent on a small change.
+- `inline`: the task is a file or two of one builder, and your model suits it. Then write it
+  yourself, with the plan and by the same rules, and go to step 6. Agents are not spent on a small
+  change.
 
 Do not second-guess the routing: if it looks wrong, say so in the report and fix `develop.mjs`
 (it has tests) in a separate change.
@@ -44,7 +48,8 @@ Do not second-guess the routing: if it looks wrong, say so in the report and fix
 ## 4. Build
 
 Run the builders in `order`, one at a time, each with the Agent tool (`subagent_type` is its
-name). Never two writers at once: the interface is written against what the core exports.
+name). Never two writers at once: the interface is written against what the core exports. Pass no
+model and no effort: each agent's file pins its own.
 
 Give each builder: the task, its own lines of `FILES`, `REUSE` and `TESTS`, the user's answers to
 the decisions, and its `checks`. `ui-builder` also takes the `EXPORTS` that `core-builder`
