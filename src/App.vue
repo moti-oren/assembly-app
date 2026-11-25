@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onMounted, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onMounted, watch } from 'vue';
 import { MOS6502 } from '@/core/mos6502/architecture';
 import { formatInstruction as formatMos6502 } from '@/core/mos6502/instructions';
 import { mos6502AluLink } from '@/core/mos6502AluLink';
@@ -104,11 +104,16 @@ const shownChallenges = computed(
     ]
 );
 
+/** The focus goes to a challenge's panel once it starts, where its task and goals are read. */
+function focusChallenge(): void {
+  void nextTick(() => document.querySelector<HTMLElement>('[data-challenge-panel]')?.focus());
+}
+
 /** Starts a challenge on the CPU on show, from the list. */
 function beginChallenge(id: string): void {
-  if (architecture.value === 'x86') startChallenge(x86, id);
-  else if (architecture.value === 'rv32') startChallenge(rv32, id);
-  else startChallenge(mos6502, id);
+  if (architecture.value === 'x86') startChallenge(x86, id, focusChallenge);
+  else if (architecture.value === 'rv32') startChallenge(rv32, id, focusChallenge);
+  else startChallenge(mos6502, id, focusChallenge);
   topic.value = 'cpu';
   challengesOpen.value = false;
   // Its panel is in the sidebar, which may be folded, behind a drawer or another view.

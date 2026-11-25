@@ -1,4 +1,9 @@
-import { explainAddress, type AddressBreakdown, type OffsetBreakdown } from '@/core/x86/address';
+import {
+  explainAddress,
+  formatPhysical,
+  type AddressBreakdown,
+  type OffsetBreakdown
+} from '@/core/x86/address';
 import { formatHex } from '@/core/shared/numbers';
 import type { SegmentRegister } from '@/core/x86/registers';
 import { physicalAddress, type CpuState } from '@/core/x86/state';
@@ -68,4 +73,23 @@ export function offsetNote(parts: OffsetBreakdown | null): string | null {
   if (parts.displacement === 0) return `offset = ${base}`;
   const sum = `offset = ${base} ${formatHex(parts.baseValue, 16)}h + ${formatHex(parts.displacement, 16)}h`;
   return parts.wrapped ? `${sum}, wraps at 64K` : sum;
+}
+
+/**
+ * A byte of the table as a screen reader hears it: its offset, the physical address it is at,
+ * its value, and whether the last instruction wrote it, which the table shows only by colour.
+ */
+export function byteLabel(
+  offset: number,
+  physical: number,
+  value: number,
+  written: { unchanged: boolean } | null
+): string {
+  const at = `${formatHex(offset, 16)}, physical ${formatPhysical(physical)}h`;
+  const state = written
+    ? written.unchanged
+      ? ', written by the last instruction with the value it held'
+      : ', written by the last instruction'
+    : '';
+  return `${at}: ${formatHex(value, 8)}${state}`;
 }

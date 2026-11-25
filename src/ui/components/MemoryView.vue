@@ -2,6 +2,7 @@
 import { computed, ref, useId } from 'vue';
 import { columnGap, MEMORY_ROWS, rowStart } from '@/ui/memoryColumns';
 import { useMemoryColumns } from '@/ui/useMemoryColumns';
+import { useGridKeys } from '@/ui/useGridKeys';
 import { Layers } from '@lucide/vue';
 import { formatPhysical } from '@/core/x86/address';
 import { printable } from '@/core/shared/devices';
@@ -12,7 +13,7 @@ import type { CpuState } from '@/core/x86/state';
 import { describeMemoryAccess } from '@/ui/describe';
 import { warmth as byteWarmth } from '@/ui/memoryHeat';
 import { writtenByte, type ByteChange } from '@/ui/stepDiff';
-import { segmentRows, workedAddress } from '@/ui/x86MemoryView';
+import { byteLabel, segmentRows, workedAddress } from '@/ui/x86MemoryView';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -73,6 +74,16 @@ const lastAccess = computed(() => {
 
 /** Offset of the byte under the mouse, in the segment on show. */
 const pointed = ref<number | null>(null);
+
+// The bytes are a grid for the keyboard too: the byte with the focus is pointed at.
+const grid = useGridKeys(well, () => ({ rows: rows.value.length, columns: columns.value }), {
+  point: (row, column) => {
+    pointed.value = (rows.value[row].offset + column) & 0xffff;
+  },
+  unpoint: () => {
+    pointed.value = null;
+  }
+});
 
 /** The address being worked out: the pointed byte, or else the last instruction's access. */
 const worked = computed(() =>
@@ -201,7 +212,11 @@ function reveal(jump: () => void): void {
         </p>
 
         <div ref="well" class="overflow-auto px-2.5 py-1.5 max-sm:px-1.5">
-          <table class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl">
+          <table
+            class="w-full font-mono text-xs whitespace-nowrap min-[100rem]:max-w-4xl"
+            role="grid"
+            aria-label="Memory, a byte in each cell: the arrows move between them"
+          >
             <thead>
               <tr class="text-muted-foreground">
                 <th class="py-1 pr-3 text-left font-normal max-sm:pr-1.5">offset</th>
@@ -219,24 +234,35 @@ function reveal(jump: () => void): void {
                 <th class="py-1 pl-3 text-left font-normal">ascii</th>
               </tr>
             </thead>
-            <tbody @mouseleave="pointed = null">
-              <tr v-for="row in rows" :key="row.offset">
+            <tbody @mouseleave="grid.onLeave" @focusout="grid.onLeave" @keydown="grid.onKey">
+              <tr v-for="(row, rowIndex) in rows" :key="row.offset">
                 <th class="py-0.5 pr-3 text-left font-normal text-muted-foreground max-sm:pr-1.5">
                   {{ formatHex(row.offset, 16) }}
                 </th>
                 <td
                   v-for="(byte, column) in row.bytes"
                   :key="byte.address"
-                  class="px-0.5 py-0.5 text-center"
+                  class="rounded-xs px-0.5 py-0.5 text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   :class="{
                     'pl-3': columnGap(column) === 'wide',
                     'pl-2': columnGap(column) === 'narrow'
                   }"
+                  :data-cell="rowIndex * columns + column"
+                  :tabindex="grid.stop.value === rowIndex * columns + column ? 0 : -1"
+                  :aria-label="
+                    byteLabel(
+                      (row.offset + column) & 0xffff,
+                      byte.address,
+                      byte.value,
+                      writtenByte(writes, byte.address)
+                    )
+                  "
                   :title="
                     writes.has(byte.address)
                       ? undefined
                       : `Physical ${formatPhysical(byte.address)}h = ${byte.value}`
                   "
+                  @focus="grid.onCellFocus(rowIndex, column)"
                   @mouseenter="pointed = (row.offset + column) & 0xffff"
                 >
                   <WriteTip

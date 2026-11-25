@@ -114,7 +114,7 @@ function flip(bit: number): void {
             >
           </h3>
           <div
-            class="flex gap-1.5 pointer-coarse:gap-5 max-sm:grid max-sm:grid-cols-8 max-sm:justify-items-center max-sm:gap-0 max-sm:pointer-coarse:gap-0"
+            class="flex gap-1.5 pointer-coarse:gap-6 max-sm:grid max-sm:grid-cols-8 max-sm:justify-items-center max-sm:gap-0 max-sm:pointer-coarse:gap-0"
           >
             <Tooltip v-for="bit in BITS" :key="bit">
               <TooltipTrigger as-child>

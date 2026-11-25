@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from 'vue';
+import { computed, nextTick, useTemplateRef } from 'vue';
 import { CLOSE_LABELS, sectionStyle, type SidebarKey } from '@/ui/sidebarLayout';
 import { useSidebarLayout } from '@/ui/useSidebarLayout';
 import { useSidebarResize } from '@/ui/useSidebarResize';
@@ -35,6 +35,19 @@ const resize = useSidebarResize(
 
 const open = computed(() => props.keys.filter((key) => !layout.isCollapsed(key)));
 
+/**
+ * Closes a panel. Its buttons go with it, so the focus goes to the header of the panel that took
+ * its place, or of the one above when it was the last: never to the page behind.
+ */
+function close(key: SidebarKey): void {
+  const index = props.keys.indexOf(key);
+  emit('close', key);
+  void nextTick(() => {
+    const toggles = column.value?.$el.querySelectorAll<HTMLElement>('.sidebar-toggle') ?? [];
+    toggles[Math.min(index, toggles.length - 1)]?.focus();
+  });
+}
+
 /** The panel above card `index`, when both are open, so the line between them can move. */
 function above(index: number): SidebarKey | null {
   const key = props.keys[index - 1];
@@ -65,7 +78,7 @@ function above(index: number): SidebarKey | null {
         :close-label="CLOSE_LABELS[key]"
         :resizable="above(index) !== null"
         @toggle="layout.toggle(key)"
-        @close="emit('close', key)"
+        @close="close(key)"
         @resize-start="resize.start($event, open, above(index)!, key)"
         @resize-key="resize.onKey($event, open, above(index)!, key)"
       >
