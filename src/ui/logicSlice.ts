@@ -37,6 +37,11 @@ export interface DiagramTerminal {
   x: number;
   y: number;
   side: 'in' | 'out';
+  /**
+   * An output that goes on into the next part of the circuit, as a carry goes to the next bit:
+   * no register keeps it, so it is never coloured as a write.
+   */
+  passedOn: boolean;
 }
 
 /** One bit of a circuit drawn gate by gate. */
@@ -108,7 +113,7 @@ function adderSlice(bit: number): SliceDiagram {
       terminal(ADDER.sub, 'sub', IN, 132, 'in'),
       terminal(carryIn, 'Cin', IN, 230, 'in'),
       terminal(ADDER.sum(bit), `S${bit}`, out, 58, 'out'),
-      terminal(ADDER.carry(bit + 1), 'Cout', out, 178, 'out')
+      terminal(ADDER.carry(bit + 1), 'Cout', out, 178, 'out', true)
     ],
     dots: [
       { signal: a, x: 186, y: 42 },
@@ -210,9 +215,10 @@ export function terminal(
   label: string,
   x: number,
   y: number,
-  side: 'in' | 'out'
+  side: 'in' | 'out',
+  passedOn = false
 ): DiagramTerminal {
-  return { signal, label, x, y, side };
+  return { signal, label, x, y, side, passedOn };
 }
 
 /** One bit of the solved circuit, gate by gate; `stage` picks the row of a shifter. */

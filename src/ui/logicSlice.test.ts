@@ -30,6 +30,9 @@ describe('sliceDiagram', () => {
       'or'
     ]);
     expect(diagram.terminals.map((terminal) => terminal.label)).toContain('A3');
+    // The carry out goes on to the next bit: only the sum is what the CPU keeps.
+    const passed = diagram.terminals.filter((terminal) => terminal.passedOn);
+    expect(passed.map((terminal) => terminal.label)).toEqual(['Cout']);
   });
 
   it('draws the gates of the same bit the circuit works out', () => {
