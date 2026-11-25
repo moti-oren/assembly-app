@@ -37,3 +37,16 @@ export function rowUnits(width: number): number {
 export function bitsLeftToRight(width: number): number[] {
   return Array.from({ length: width }, (_, column) => width - 1 - column);
 }
+
+/**
+ * A row of bits as one thing to hear, the top bit first in groups of four, as it is drawn: a
+ * screen reader that met every bit by itself would hear 32 images for one number.
+ */
+export function rowSaid(name: string, bits: readonly number[]): string {
+  const groups: string[] = [];
+  for (const bit of bitsLeftToRight(bits.length)) {
+    if (groups.length === 0 || startsDigit(bits.length, bit)) groups.push('');
+    groups[groups.length - 1] += String(bits[bit]);
+  }
+  return `${name}: ${groups.join(' ')}`;
+}

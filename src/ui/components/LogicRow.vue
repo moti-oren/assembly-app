@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { Bit } from '@/core/logic/gates';
-import { bitsLeftToRight, startsDigit } from '@/ui/logicLayout';
+import { bitsLeftToRight, rowSaid, startsDigit } from '@/ui/logicLayout';
 
 /** A bit shown beside the row: the carry out on the left, or a bit that fell off the right. */
 interface EndBit {
@@ -61,6 +62,20 @@ function describe(bit: number): string {
   return `${props.name}, bit ${bit}: ${props.bits[bit]}${unsettled}${mistaken}`;
 }
 
+/**
+ * A row only read, with nothing on it to tell bit by bit (an end bit, a bit not settled, wrong
+ * or plain), is heard as one value.
+ */
+const heardWhole = computed(
+  () =>
+    props.mode === 'static' &&
+    !props.lead &&
+    !props.tail &&
+    !props.pending?.some(Boolean) &&
+    !props.wrong?.some(Boolean) &&
+    !props.plain?.some(Boolean)
+);
+
 function press(bit: number): void {
   if (props.mode === 'choose') emit('choose', bit);
   else emit('flip', bit);
@@ -69,8 +84,12 @@ function press(bit: number): void {
 
 <!-- One row of the circuit: a name, then a bit in every column, the top bit on the left. -->
 <template>
-  <div class="logic-row">
-    <div class="logic-label">{{ label }}</div>
+  <div
+    class="logic-row"
+    :role="heardWhole ? 'img' : undefined"
+    :aria-label="heardWhole ? rowSaid(name, bits) : undefined"
+  >
+    <div class="logic-label" :aria-hidden="heardWhole || undefined">{{ label }}</div>
     <div class="logic-cell">
       <span
         v-if="lead"
@@ -117,8 +136,8 @@ function press(bit: number): void {
         :data-pending="pending?.[bit] ? '' : undefined"
         :data-wrong="wrong?.[bit] ? '' : undefined"
         :style="{ '--bit': bit }"
-        role="img"
-        :aria-label="describe(bit)"
+        :role="heardWhole ? undefined : 'img'"
+        :aria-label="heardWhole ? undefined : describe(bit)"
       >
         {{ bits[bit] }}
       </span>
