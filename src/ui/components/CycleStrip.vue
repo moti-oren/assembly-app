@@ -13,6 +13,11 @@ const props = defineProps<{
   detail: string | null;
   /** How the cycle works on this CPU, behind the info button. */
   intro: string;
+  /**
+   * A note after a phase's name, where this CPU's own stages split it: RISC-V's execute phase is
+   * its EX, MEM and WB. Only on a wide screen: narrower, the row has no room, and the intro says it.
+   */
+  notes?: Partial<Record<CyclePhase, string>>;
 }>();
 
 /** True once the phase on show is at or past the one at `index`. */
@@ -103,7 +108,12 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
               >{{ index + 1 }}</span
             >
             <!-- A phone has room to name one phase: the one on show. The others keep their number. -->
-            <span :class="{ 'max-sm:sr-only': phase !== active }">{{ PHASE_LABELS[phase] }}</span>
+            <span :class="{ 'max-sm:sr-only': phase !== active }"
+              >{{ PHASE_LABELS[phase]
+              }}<span v-if="notes?.[phase]" class="font-normal max-xl:hidden">
+                ({{ notes[phase] }})</span
+              ></span
+            >
             <span v-if="phase !== active && reached(index + 1)" class="sr-only">(done)</span>
           </span>
         </li>
@@ -115,8 +125,9 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         >{{ instruction ?? 'idle' }}</span
       >
       <!--
-        The way into another topic, where there is room for it beside the instruction: the header
-        has the topics at every width.
+        The way into another topic, where there is room for it beside the instruction: with an
+        architecture's own controls in the row too, only on a wide screen. RISC-V also has it in
+        its CPU panel's header, at every width.
       -->
       <span
         v-if="$slots.link"
@@ -133,7 +144,7 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       every CPU and in the pipeline's chart, so the line under this card stays put between them.
     -->
     <details
-      class="group mt-2.5 text-code leading-5 text-muted-foreground max-sm:mt-1.5"
+      class="group relative mt-2.5 text-code leading-5 text-muted-foreground max-sm:mt-1.5"
       @toggle="open = ($event.target as HTMLDetailsElement).open"
     >
       <summary
@@ -147,6 +158,17 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       >
         {{ detail ?? 'Nothing has run yet.' }}
       </summary>
+      <!--
+        Over the end of the last line, so the card keeps its height: the text goes on, and a
+        press on it shows the rest. Clicks go through it to the text. Its background is the
+        pane's the card sits on (--pane), which in the dark theme is not the card colour.
+      -->
+      <span
+        v-if="truncated && !open"
+        class="pointer-events-none absolute right-0 bottom-0 bg-(--pane) pl-1 font-sans text-xs font-medium text-foreground"
+        aria-hidden="true"
+        >… more</span
+      >
     </details>
     <p class="sr-only" aria-live="polite">{{ said ?? '' }}</p>
   </div>

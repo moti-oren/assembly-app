@@ -38,11 +38,20 @@ const detail = computed(() => {
 });
 
 const INTRO =
-  'Every instruction is fetched, decoded, then executed. A RISC-V instruction is always one 4-byte word, so PC moves on by 4. Use the Fetch button below to walk a line through the three phases.';
+  'Every instruction is fetched, decoded, then executed. A RISC-V instruction is always one 4-byte word, so PC moves on by 4. Use the Fetch button below to walk a line through the three phases. The diagram splits execute into the stages of the five-stage design: EX (the ALU), MEM (memory) and WB (write back), which happen together here.';
+
+/** Execute is three of the diagram's five stages: said where the two would seem to disagree. */
+const NOTES = { execute: 'EX, MEM, WB' };
 </script>
 
 <template>
-  <CycleStrip :active="active" :instruction="instruction" :detail="detail" :intro="INTRO">
+  <CycleStrip
+    :active="active"
+    :instruction="instruction"
+    :detail="detail"
+    :intro="INTRO"
+    :notes="NOTES"
+  >
     <template v-if="controlUnavailable !== undefined" #link>
       <TopicLinkButton topic="control" :unavailable="controlUnavailable" />
     </template>
