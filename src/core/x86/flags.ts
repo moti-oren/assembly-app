@@ -40,9 +40,12 @@ export const FLAG_INFO: Record<FlagName, { label: string; description: string }>
   AF: { label: 'Aux carry', description: 'Carry out of bit 3 (used for BCD arithmetic)' },
   ZF: { label: 'Zero', description: 'The result is zero' },
   SF: { label: 'Sign', description: 'The top bit of the result is 1 (negative as signed)' },
-  TF: { label: 'Trap', description: 'Single-step mode' },
-  IF: { label: 'Interrupt', description: 'Maskable interrupts are enabled' },
-  DF: { label: 'Direction', description: 'String instructions count down' },
+  TF: {
+    label: 'Trap',
+    description: 'When 1, the CPU raises interrupt 1 after every instruction (single step)'
+  },
+  IF: { label: 'Interrupt', description: 'When 1, maskable interrupts are let in' },
+  DF: { label: 'Direction', description: 'When 1, string instructions count down' },
   OF: {
     label: 'Overflow',
     description: 'Signed overflow: the result does not fit as a signed number'

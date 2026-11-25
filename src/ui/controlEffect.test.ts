@@ -34,6 +34,25 @@ const textOf = (rows: ReturnType<typeof effectRows>, id: string) =>
   rows.find((row) => row.id === id)!;
 
 describe('effectRows', () => {
+  it('says the ALU’s inputs are not used where rd takes the immediate', () => {
+    const lui: Instruction = {
+      mnemonic: 'lui',
+      operands: [reg('t0'), { type: 'imm', value: 0x12 }]
+    };
+    const { whole } = outcomes(lui, {});
+    expect(textOf(effectRows(whole, null), 'a').text).toContain('nothing uses the ALU’s result');
+    expect(textOf(effectRows(outcomes(ADD, {}).whole, null), 'a').text).not.toContain('nothing');
+  });
+
+  it('says a signed byte load copies its top bit up', () => {
+    const lb: Instruction = {
+      mnemonic: 'lb',
+      operands: [reg('a0'), { type: 'mem', base: parseRegister('a1')!, offset: 7 }]
+    };
+    const { whole } = outcomes(lb, {});
+    expect(textOf(effectRows(whole, null), 'rd').text).not.toContain('copied up');
+  });
+
   it('says what every part did', () => {
     const { whole } = outcomes(ADD, {});
     const rows = effectRows(whole, null);

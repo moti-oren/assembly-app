@@ -59,7 +59,7 @@ export function rv32RegisterLink(record: ExecutionRecord, after: Snapshot | null
   if (writes.length > 0) return { writes, note: null, ...(file && { file }) };
   if (decode(record.instruction).rd !== ZERO) {
     return {
-      unavailable: `${name} wrote no register. PC, which every instruction from the program loads, is shown with the control unit.`
+      unavailable: `${name} wrote none of the registers shown here. PC, which every instruction from the program loads, is shown with the control unit.`
     };
   }
   return {

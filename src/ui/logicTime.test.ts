@@ -132,7 +132,9 @@ describe('timeSummary', () => {
   });
 
   it('compares a change at rest with the longest the adder can take', () => {
-    expect(timeSummary(18, 18, 20).note).toMatch(/after 18 gate delays.*busy for 20/);
+    expect(timeSummary(18, 18, 20).note).toMatch(
+      /after 18 gate delays.*deepest path through its gates is 20 delays/
+    );
     expect(timeSummary(20, 20, 20).note).toMatch(/longest this adder can take/);
     expect(timeSummary(1, 1, 20).note).toMatch(/after 1 gate delay\./);
   });

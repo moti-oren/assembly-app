@@ -24,7 +24,7 @@ describe('the cycle in words', () => {
 
   it('reads the opcode at PC, and moves PC past the whole instruction', () => {
     expect(describeFetch(1, program)).toBe(
-      'PC is $0602, where L1 starts. The CPU reads the opcode there, $9D: STA in the absolute,X mode, 3 bytes in all, so PC moves on to $0605.'
+      'PC is $0602, where L1 starts. The CPU reads the opcode there, $9D: STA in the absolute,X mode, 3 bytes in all, so PC will move on to $0605: the registers on show change once the instruction has run.'
     );
   });
 

@@ -136,8 +136,8 @@ function returnFocus(event: Event): void {
         />
 
         <p class="text-xs text-muted-foreground">
-          Sent with it: the topic and CPU on show, the screen size, the theme and the app's version.
-          Your program is not sent.
+          Sent with it: the topic and CPU on show, the layout (phone, tablet or desktop), the theme
+          and the app's version. Your program is not sent.
         </p>
 
         <p v-if="status === 'failed'" role="alert" class="text-sm text-destructive">

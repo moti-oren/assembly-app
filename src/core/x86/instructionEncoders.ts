@@ -193,7 +193,8 @@ const encodeMov: Encoder = (c) => {
   if (second?.type === 'imm' || second?.type === 'label') {
     const note =
       second.type === 'label'
-        ? `The offset of ${formatLabel(second.target)} in the code, low byte first`
+        ? // The CPU here runs lines, not bytes: what it puts in memory is the line's number.
+          `The offset of ${formatLabel(second.target)} in the code, low byte first; the CPU here stores the line number, ${second.target}, instead`
         : 'The immediate, low byte first';
     const value = truncate(numericValue(second, place), size);
     if (first?.type === 'reg') {

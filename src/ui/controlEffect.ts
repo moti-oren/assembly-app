@@ -56,10 +56,15 @@ const SOURCES: Record<RegisterWrite['from'], string> = {
   immediate: 'the immediate'
 };
 
-function writeText({ write, trap }: PathOutcome): string {
+function writeText({ write, trap, loaded }: PathOutcome): string {
   if (trap) return 'nothing is written: the CPU trapped';
   if (!write) return 'nothing is written';
-  const value = `${hex(write.value)}, ${SOURCES[write.from]}`;
+  // A signed load of a byte or a half fills the bits above it with copies of its top bit.
+  const widened =
+    write.from === 'memory' && loaded?.value != null && loaded.value !== write.value
+      ? ', with its top bit copied up'
+      : '';
+  const value = `${hex(write.value)}, ${SOURCES[write.from]}${widened}`;
   return write.index === 0
     ? `${value}, is sent to x0, which is wired to 0 and keeps nothing`
     : `${formatRegister(write.index)} takes ${value}`;
@@ -67,10 +72,21 @@ function writeText({ write, trap }: PathOutcome): string {
 
 /** What each part of the datapath did, as one line of text for each. */
 function effectTexts(outcome: PathOutcome): Omit<EffectRow, 'instead'>[] {
-  const { a, b, result, pc, taken } = outcome;
+  const { a, b, result, pc, taken, write, loaded, stored, trap } = outcome;
+  // The ALU's inputs are wired whatever the instruction: say so where rd takes something else
+  // (LUI's immediate, JAL's link) and nothing else reads the ALU.
+  const unused =
+    (write?.from === 'immediate' || write?.from === 'link') &&
+    !loaded &&
+    !stored &&
+    !pc.branch &&
+    !pc.jumpComputed;
+  const input = (side: AluInput) =>
+    `${inputText(side, outcome)}${unused ? ': on the wires all the same, though nothing uses the ALU’s result' : ''}`;
+  const next = hex(solvePc(pc).register.stored);
   return [
-    { id: 'a', label: 'ALU input A', text: inputText(a, outcome) },
-    { id: 'b', label: 'ALU input B', text: inputText(b, outcome) },
+    { id: 'a', label: 'ALU input A', text: input(a) },
+    { id: 'b', label: 'ALU input B', text: input(b) },
     {
       id: 'result',
       label: 'ALU result',
@@ -81,7 +97,11 @@ function effectTexts(outcome: PathOutcome): Omit<EffectRow, 'instead'>[] {
       : []),
     { id: 'memory', label: 'Memory', text: memoryText(outcome) },
     { id: 'rd', label: 'Register', text: writeText(outcome) },
-    { id: 'pc', label: 'PC', text: `goes to ${hex(solvePc(pc).register.stored)}` }
+    {
+      id: 'pc',
+      label: 'PC',
+      text: trap ? `would go to ${next}, but the CPU trapped` : `goes to ${next}`
+    }
   ];
 }
 

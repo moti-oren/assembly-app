@@ -24,7 +24,7 @@ function codeAddress(address: number, lineCount: number): string {
 
 export function describeFetch(line: number, program: Program<Instruction>): string {
   const word = line < program.length ? hex(wordAt(program, line)) : 'nothing';
-  return `PC is ${hex(addressOfLine(line))}, where ${formatLabel(line)} starts. The CPU reads the 4-byte word there, ${word}, and PC moves on to ${hex(addressOfLine(line + 1))} before anything runs.`;
+  return `PC is ${hex(addressOfLine(line))}, where ${formatLabel(line)} starts. The CPU reads the 4-byte word there, ${word}, and PC will move on to ${hex(addressOfLine(line + 1))}: the registers on show change once the instruction has run.`;
 }
 
 const SIZE_NAMES = { 1: 'byte', 2: 'half-word', 4: 'word' } as const;
@@ -168,16 +168,23 @@ export function aluEquation(record: ExecutionRecord): AluEquation | null {
   if (!alu) return null;
   const { category, rd } = decode(instruction);
   const { symbol, note } = OPERATORS[alu.operation];
-  let destination = rd !== null ? `into ${formatRegister(rd)}` : '';
+  // x0 has no flip-flops: what is sent to it is lost, and it still reads 0.
+  let destination =
+    rd === 0 ? 'thrown away: zero always reads 0' : rd !== null ? `into ${formatRegister(rd)}` : '';
   if (category === 'load' || category === 'store') destination = 'the address';
   if (instruction.mnemonic === 'jalr') destination = 'the jump target';
+  // RISC-V defines dividing by zero rather than trapping on it: the result is all ones, or A.
+  const byZero =
+    (alu.operation.startsWith('div') || alu.operation.startsWith('rem')) && alu.b === 0;
   return {
     left: hex(alu.a),
     operator: symbol,
     right: hex(alu.b),
     result: hex(alu.result),
     destination,
-    note: note ?? null
+    note: byZero
+      ? `${note ?? 'divides'}; dividing by zero does not trap, RISC-V defines the answer`
+      : (note ?? null)
   };
 }
 

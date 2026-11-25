@@ -29,7 +29,7 @@ export const BYTE_REGISTER_LOCATION: Record<
 export const REGISTER_DESCRIPTIONS: Record<WordRegister, string> = {
   ax: 'Accumulator: implicit operand of MUL/DIV',
   bx: 'Base: can address memory ([bx])',
-  cx: 'Counter: CL holds the shift/rotate count',
+  cx: 'Counter: LOOP and REP count CX down, and CL holds the shift/rotate count',
   dx: 'Data: high word of MUL/DIV results',
   si: 'Source index',
   di: 'Destination index',

@@ -148,11 +148,15 @@ export class Run {
     return result;
   }
 
-  /** Jumps to an address, which must be where a program line starts, or the end of the program. */
-  jump(address: number): void {
+  /**
+   * Jumps to an address, which must be where a program line starts, or the end of the program.
+   * `from` says where an address read from memory came from, so the error can name it.
+   */
+  jump(address: number, from?: string): void {
     if (lineAt(this.program, address) === null) {
+      const start = from ? `${from}, and no` : 'No';
       throw new CpuError(
-        `No program line starts at $${hex(address, 4)}. The code runs from $0600, one line after another; a jump has to land on the first byte of a line.`
+        `${start} program line starts at $${hex(address, 4)}. The code runs from $0600, one line after another; a jump has to land on the first byte of a line.`
       );
     }
     this.state.registers.pc = address;

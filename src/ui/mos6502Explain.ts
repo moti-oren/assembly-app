@@ -31,7 +31,7 @@ export function describeFetch(line: number, program: Program<Instruction>): stri
   const address = addressOfLine(program, line);
   if (line >= program.length) return `PC is ${wordHex(address)}, past the last line.`;
   const decoded = decode(program[line]);
-  return `PC is ${wordHex(address)}, where ${formatLabel(line)} starts. The CPU reads the opcode there, ${byteHex(codeByte(program, address))}: ${decoded.mnemonic.toUpperCase()} in the ${decoded.modeName} mode, ${decoded.size} byte${decoded.size === 1 ? '' : 's'} in all, so PC moves on to ${wordHex(address + decoded.size)}.`;
+  return `PC is ${wordHex(address)}, where ${formatLabel(line)} starts. The CPU reads the opcode there, ${byteHex(codeByte(program, address))}: ${decoded.mnemonic.toUpperCase()} in the ${decoded.modeName} mode, ${decoded.size} byte${decoded.size === 1 ? '' : 's'} in all, so PC will move on to ${wordHex(address + decoded.size)}: the registers on show change once the instruction has run.`;
 }
 
 export function describeDecode(instruction: Instruction): string {

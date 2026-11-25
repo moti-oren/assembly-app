@@ -50,7 +50,7 @@ const LINES: Record<string, LineText> = {
   aluSum: { label: 'Sum', does: 'the result is the adder’s output', topic: 'logic' },
   aluSub: {
     label: 'Sub',
-    does: 'the adder’s sub line: B is inverted and a 1 is carried in',
+    does: 'the adder subtracts: B is inverted and a 1 is carried in',
     topic: 'logic'
   },
   aluAnd: { label: 'And', does: 'the result is an AND gate per bit', topic: 'logic' },

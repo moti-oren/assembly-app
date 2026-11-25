@@ -596,7 +596,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   leaves PC alone unless it jumps.
 - Press a bit of the word to flip it and see what the decoders make of it (**What if**): bit 30
   turns ADD into SUB, and an opcode no instruction has turns every line off. Or type any word in
-  hex in the box under the bits and press **Decode** (**Type an instruction word** in the command
+  hex in the **Instruction word** box of the sidebar and press **Decode** (**Type an instruction word** in the command
   palette): the page reads it back as assembly, or says that a real CPU would refuse it. The CPU
   is not changed: a changed word is followed as if it stood in place of the CPU's instruction.
 - This is RISC-V's control unit. The 8086 decodes with microcode and the 6502 with a table read
@@ -620,8 +620,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - **Feedback**, at the foot of the column down the left edge (**Send feedback** in the **⋯** menu
   below a desktop and in the command palette) opens a short form: an idea, a problem or anything else, with an email
   address only if you want an answer.
-- Sent with the message: the topic and CPU on show, the size of the screen, the theme and the
-  app's version. Your program is not sent.
+- Sent with the message: the topic and CPU on show, the layout (phone, tablet or desktop), the
+  theme and the app's version. Your program is not sent.
 - Where it goes is set at build time by `VITE_FEEDBACK_ENDPOINT` (a form service that takes a
   JSON `POST`, in `.env.production`). A build without it offers no feedback; `npm run dev` shows
   the form and prints the message to the console instead of sending it.
@@ -1189,7 +1189,7 @@ npm run verify:6502 # check the 6502 core against py65
   הכתובת שנבחרה. הוראה שהורצה לבדה, ולא נשלפה מהתוכנית, משאירה את PC במקומו אלא אם היא קופצת.
 - לחיצה על סיבית של המילה הופכת אותה ומראה מה המפענחים עושים ממנה (**What if**): סיבית 30 הופכת
   ADD ל-SUB, ו-opcode שאין לאף הוראה מכבה את כל הקווים. אפשר גם להקליד כל מילה ב-hex בתיבה
-  שמתחת לסיביות וללחוץ **Decode** (**Type an instruction word** בפלטת הפקודות): העמוד קורא אותה
+  **Instruction word** שבסרגל הצד וללחוץ **Decode** (**Type an instruction word** בפלטת הפקודות): העמוד קורא אותה
   חזרה כאסמבלי, או אומר שמעבד אמיתי היה דוחה אותה. המעבד אינו משתנה: מילה ששונתה מוצגת כאילו
   עמדה במקום ההוראה של המעבד.
 - זוהי יחידת הבקרה של RISC-V. ה-8086 מפענח בעזרת מיקרוקוד וה-6502 בעזרת טבלה שנקראת מחדש בכל
@@ -1212,7 +1212,7 @@ npm run verify:6502 # check the 6502 core against py65
 - **Feedback**, בתחתית העמודה שלאורך הקצה השמאלי (**Send feedback** בתפריט **⋯** מתחת לדסקטופ ובלוח
   הפקודות), פותחת טופס קצר:
   רעיון, בעיה או כל דבר אחר, עם כתובת מייל רק אם רוצים תשובה.
-- עם ההודעה נשלחים: הנושא והמעבד המוצגים, גודל המסך, ערכת הצבע וגרסת האפליקציה. התוכנית שלך
+- עם ההודעה נשלחים: הנושא והמעבד המוצגים, סוג הפריסה (טלפון, טאבלט או מחשב), ערכת הצבע וגרסת האפליקציה. התוכנית שלך
   אינה נשלחת.
 - היעד נקבע בזמן הבנייה במשתנה `VITE_FEEDBACK_ENDPOINT` (שירות טפסים שמקבל `POST` של JSON,
   ב-`.env.production`). בנייה בלעדיו אינה מציעה משוב; `npm run dev` מציג את הטופס ומדפיס את

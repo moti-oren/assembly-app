@@ -110,8 +110,17 @@ describe('rv32RegisterLink', () => {
     const { link } = agrees(line('beq', r('a1'), r('a1'), label(0)), 0);
     expect(link).toEqual({
       unavailable:
-        'BEQ wrote no register. PC, which every instruction from the program loads, is shown with the control unit.'
+        'BEQ wrote none of the registers shown here. PC, which every instruction from the program loads, is shown with the control unit.'
     });
+  });
+
+  it('does not say a store wrote only PC: it wrote memory too', () => {
+    const store = line('sw', r('a0'), { type: 'mem', base: parseRegister('sp')!, offset: -4 });
+    const { link } = agrees(store, 0);
+    expect(link).toHaveProperty('unavailable');
+    expect((link as { unavailable: string }).unavailable).toMatch(
+      /^SW wrote none of the registers shown here/
+    );
   });
 
   it('gives no file for an instruction without an rd', () => {

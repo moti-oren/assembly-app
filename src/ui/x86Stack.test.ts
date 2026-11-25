@@ -77,4 +77,11 @@ describe('x86Stack', () => {
     expect(view.entries).toHaveLength(16);
     expect(view.hidden).toBe(4);
   });
+
+  it('says the stack wrapped when more was taken off than was put on', () => {
+    const view = stackAfter([line('pop', reg('ax'))], 1);
+    expect(view.entries).toEqual([]);
+    expect(view.hidden).toBe(0);
+    expect(view.note).toContain('wrapped round to 0000');
+  });
 });

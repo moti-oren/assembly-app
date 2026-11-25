@@ -227,5 +227,8 @@ export function pipelineSummary(timing: PipelineTiming): string | null {
     branches > 0
       ? ` · ${branches - mispredicted} of ${plural(branches, 'branch')} guessed right`
       : '';
-  return `${plural(cycles, 'cycle')} = ${parts.join(' + ')} · ${cpi} cycles per instruction${guessed}`;
+  // A jump or a wrong guess at the very end costs nothing yet: no instruction waits behind it.
+  const last = [...timing.rows].reverse().find((row) => row.flushedBy === null);
+  const pending = last?.flushes ? ' · +2 more for the next instruction, if there were one' : '';
+  return `${plural(cycles, 'cycle')} = ${parts.join(' + ')} · ${cpi} cycles per instruction${guessed}${pending}`;
 }

@@ -75,11 +75,11 @@ describe('mos6502RegisterLink', () => {
     const { link } = agrees(line('sec'));
     expect(link).toEqual({
       unavailable:
-        'SEC wrote no register but P. The flags, and PC, which every instruction loads, are not shown here yet.'
+        'SEC wrote none of the registers shown here. P, and PC, which every instruction loads, are not shown here yet.'
     });
     expect(agrees(line('jmp', label(0)), 0).link).toEqual({
       unavailable:
-        'JMP wrote no register. PC, which every instruction loads, is not shown here yet.'
+        'JMP wrote none of the registers shown here. PC, which every instruction loads, is not shown here yet.'
     });
   });
 

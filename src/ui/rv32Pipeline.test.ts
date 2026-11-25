@@ -151,6 +151,13 @@ describe('pipelineSummary', () => {
     );
   });
 
+  it('says what a jump at the very end will cost the next instruction', () => {
+    expect(pipelineSummary(timing([li(T0, 1), branchTo(0)]))).toContain(
+      '+2 more for the next instruction, if there were one'
+    );
+    expect(pipelineSummary(timing([li(T0, 1), li(T1, 2)]))).not.toContain('+2 more');
+  });
+
   it('has nothing to say before anything has run', () => {
     expect(pipelineSummary(timing([]))).toBeNull();
   });
