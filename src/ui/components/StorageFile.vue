@@ -68,7 +68,8 @@ function open(index: number): void {
       Every register sees the same value at its inputs and the same clock. What picks the one that
       takes it is its write line, and a decoder turns that on: an AND gate per register, which reads
       the address and whether the instruction writes at all. Press a bit of the address, or the
-      write line, to flip it.
+      write line, to flip it. Its clock is the file's own: the register above is a circuit of its
+      own with another, so each is stepped by itself.
     </template>
 
     <div class="logic-rows">
