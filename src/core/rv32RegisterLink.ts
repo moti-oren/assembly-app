@@ -1,10 +1,11 @@
 import { NOT_KEPT, written, type RegisterFileView, type RegisterLink } from './registerLink';
 import { decode } from './rv32/decode';
+import { encodeAt } from './rv32/encode';
 import type { ExecutionRecord } from './rv32/execute';
 import { formatRegister } from './rv32/operands';
 import { u32 } from './rv32/bits';
 import { REGISTER_KEYS, ZERO } from './rv32/registers';
-import { INSTRUCTION_SIZE, type CpuState } from './rv32/state';
+import { addressOfLine, INSTRUCTION_SIZE, type CpuState } from './rv32/state';
 
 type Snapshot = Pick<CpuState, 'registers'>;
 
@@ -27,23 +28,30 @@ function sent(record: ExecutionRecord, after: Snapshot, rd: number): number | nu
   return null;
 }
 
-/** The 32 registers as the instruction found them, with rd as the address it wrote to. */
+/**
+ * The 32 registers as the instruction found them, with rd as the address it wrote to. One with
+ * no rd (a store, a branch) still meets the file, with its write line off: the decoder reads
+ * bits 11 to 7 of its word as an address all the same, and the input carries what the ALU made.
+ */
 function fileOf(record: ExecutionRecord, after: Snapshot): RegisterFileView | undefined {
   const { rd } = decode(record.instruction);
-  if (rd === null) return undefined;
-  const input = sent(record, after, rd);
-  if (input === null) return undefined;
-  return {
+  const held = REGISTER_KEYS.map((key) => record.before.registers[key]);
+  const file = (input: number, address: number, write: 0 | 1): RegisterFileView => ({
     names: NAMES,
-    request: {
-      width: 32,
-      held: REGISTER_KEYS.map((key) => record.before.registers[key]),
-      input,
-      address: rd,
-      write: 1,
-      zeroWired: true
-    }
-  };
+    request: { width: 32, held, input, address, write, zeroWired: true }
+  });
+  if (rd === null) {
+    // Encoded where it ran from, as the control topic encodes it: a branch's bits 11 to 7 are
+    // part of its distance.
+    const here = record.line === null ? record.before.registers.pc : addressOfLine(record.line);
+    const { word } = encodeAt(record.instruction, here);
+    // A store's ALU worked out its address; a branch's took rs2 from rs1 to compare them.
+    const { alu, comparison } = record;
+    const made = alu ? alu.result : comparison ? comparison.a - comparison.b : 0;
+    return file(u32(made), (word >>> 7) & 0x1f, 0);
+  }
+  const input = sent(record, after, rd);
+  return input === null ? undefined : file(input, rd, 1);
 }
 
 /** The registers an executed RISC-V instruction wrote, or why there is none to show. */
@@ -59,7 +67,8 @@ export function rv32RegisterLink(record: ExecutionRecord, after: Snapshot | null
   if (writes.length > 0) return { writes, note: null, ...(file && { file }) };
   if (decode(record.instruction).rd !== ZERO) {
     return {
-      unavailable: `${name} wrote none of the registers shown here. PC, which every instruction from the program loads, is shown with the control unit.`
+      unavailable: `${name} wrote none of the registers shown here. PC, which every instruction from the program loads, is shown with the control unit.`,
+      ...(file && { file })
     };
   }
   return {

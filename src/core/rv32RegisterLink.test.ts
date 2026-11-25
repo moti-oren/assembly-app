@@ -106,9 +106,9 @@ describe('rv32RegisterLink', () => {
     expect(agrees(line('jal', r('zero'), label(0))).link.file).toBeUndefined();
   });
 
-  it('has nothing to show for a branch', () => {
+  it('has no register written to show for a branch', () => {
     const { link } = agrees(line('beq', r('a1'), r('a1'), label(0)), 0);
-    expect(link).toEqual({
+    expect(link).toMatchObject({
       unavailable:
         'BEQ wrote none of the registers shown here. PC, which every instruction from the program loads, is shown with the control unit.'
     });
@@ -123,8 +123,40 @@ describe('rv32RegisterLink', () => {
     );
   });
 
-  it('gives no file for an instruction without an rd', () => {
+  it('gives the file with its write line off for an instruction without an rd', () => {
     const { link } = agrees(line('beq', r('a1'), r('a2'), label(0)), 0);
-    expect(link.file).toBeUndefined();
+    expect(link.file?.request).toMatchObject({ width: 32, write: 0 });
+    const store = line('sw', r('a0'), { type: 'mem', base: parseRegister('sp')!, offset: -4 });
+    // The address the decoder sees is bits 11 to 7 of the word: there, a store's immediate.
+    expect(agrees(store, 0).link.file?.request).toMatchObject({ write: 0, address: 28 });
+  });
+
+  it('puts what the ALU of a branch made, rs1 − rs2, on the input it does not write', () => {
+    const cpu = createCpuState();
+    writeRegister(cpu, parseRegister('a1')!, 5);
+    writeRegister(cpu, parseRegister('a2')!, 3);
+    const branch = line('beq', r('a1'), r('a2'), label(0));
+    const record = execute(cpu, branch, 0, [branch]);
+    expect(rv32RegisterLink(record, snapshot(cpu)).file?.request.input).toBe(2);
+  });
+
+  it('reads the address from the word as it is encoded where the branch ran', () => {
+    // At line 3 (address 12), a branch back to L0 is -12 away, 0x1FF4 in 13 bits. Bits 11 to 8
+    // of the word are its bits 4 to 1 (0b1010) and bit 7 its bit 11 (1): 0b10101. Encoded at
+    // address 0 instead, the distance and the field would be 0.
+    const branch = line('beq', r('a1'), r('a2'), label(0));
+    const program = [line('nop'), line('nop'), line('nop'), branch];
+    const cpu = createCpuState();
+    const record = execute(cpu, branch, 3, program);
+    expect(rv32RegisterLink(record, snapshot(cpu)).file?.request.address).toBe(21);
+  });
+
+  it('wraps a difference below 0, as the 32 bits of the ALU do', () => {
+    const cpu = createCpuState();
+    writeRegister(cpu, parseRegister('a1')!, 3);
+    writeRegister(cpu, parseRegister('a2')!, 5);
+    const branch = line('bltu', r('a1'), r('a2'), label(0));
+    const record = execute(cpu, branch, 0, [branch]);
+    expect(rv32RegisterLink(record, snapshot(cpu)).file?.request.input).toBe(0xfffffffe);
   });
 });
