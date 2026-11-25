@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { nextTick, ref, useTemplateRef, watch } from 'vue';
-import { useResizeObserver } from '@vueuse/core';
+import { nextTick, ref, toRef, useTemplateRef, watch } from 'vue';
+import { refDebounced, useResizeObserver } from '@vueuse/core';
 import { CYCLE_PHASES, type CyclePhase } from '@/core/shared/cycle';
 import InfoTip from './InfoTip.vue';
 
@@ -21,6 +21,14 @@ function reached(index: number): boolean {
 }
 
 const summary = useTemplateRef<HTMLElement>('summary');
+/**
+ * What is read out: the text once it has stayed for a moment. A run changes it several times a
+ * second, and reading every line would bury the screen reader.
+ */
+const said = refDebounced(
+  toRef(() => props.detail),
+  700
+);
 const open = ref(false);
 /** Whether the text is cut off at three lines; only then is there anything to open. */
 const truncated = ref(false);
@@ -137,8 +145,9 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
         ]"
         @click="onSummaryClick"
       >
-        <span aria-live="polite">{{ detail ?? 'Nothing has run yet.' }}</span>
+        {{ detail ?? 'Nothing has run yet.' }}
       </summary>
     </details>
+    <p class="sr-only" aria-live="polite">{{ said ?? '' }}</p>
   </div>
 </template>
