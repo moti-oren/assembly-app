@@ -22,6 +22,8 @@ import {
   disallowedWidths,
   widthReason,
   equationText,
+  operandsText,
+  flagsTitle,
   freeRequest,
   freeView,
   sameOperation,
@@ -298,5 +300,36 @@ describe('bcdExtraFrom', () => {
     expect(bcdExtraFrom('tens', true)).toBe('carried from the ones');
     expect(bcdExtraFrom('tens', false)).toBe('borrowed by the ones');
     expect(bcdExtraFrom('ones', false)).toBe('the borrow coming in');
+  });
+});
+
+describe('a request made by hand on a CPU', () => {
+  const difference: NumberRequest = { kind: 'subtract', width: 8, a: 1, b: 2, extra: 0 };
+
+  it('goes by the flags of the CPU on show', () => {
+    expect(freeView(difference, 'mos6502').flags.map((flag) => flag.flag)).toEqual([
+      'C',
+      'V',
+      'Z',
+      'N'
+    ]);
+    expect(freeView(difference, 'x86').flags[0].flag).toBe('CF');
+    expect(freeView(difference, 'rv32').flags).toEqual([]);
+  });
+
+  it('titles the section by what the CPU keeps', () => {
+    expect(flagsTitle(freeView(difference, 'rv32'), false, 'RISC-V')).toBe(
+      'What the instruction decides'
+    );
+    expect(flagsTitle(freeView(difference, 'mos6502'), false, '6502')).toBe(
+      'What the 6502 would note'
+    );
+    expect(flagsTitle(freeView(difference, 'x86'), true, '8086')).toBe('What each flag says');
+  });
+
+  it('says what A and B are only while the operation is the CPU own', () => {
+    const view = { ...freeView(difference, 'mos6502'), operands: { a: 'X', b: '#$05' } };
+    expect(operandsText(view, true)).toBe('A is X and B is #$05, as the instruction wrote them.');
+    expect(operandsText(view, false)).toBeNull();
   });
 });

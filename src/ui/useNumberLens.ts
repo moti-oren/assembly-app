@@ -14,6 +14,7 @@ import {
   type LensId,
   type OperandKey
 } from './numbersView';
+import { usePreferences } from './usePreferences';
 
 /** What the page shows before any CPU has given it an operation. */
 const STARTING = freeRequest('add', 8, null);
@@ -24,6 +25,8 @@ const STARTING = freeRequest('add', 8, null);
  * never touched.
  */
 export function useNumberLens(link: () => NumberLink | null) {
+  /** The CPU on show: a request made by hand goes by its flags' names. */
+  const { architecture } = usePreferences();
   /** The CPU's operation, when its last instruction has one to show. */
   const fromCpu = computed<NumberView | null>(() => {
     const given = link();
@@ -47,7 +50,7 @@ export function useNumberLens(link: () => NumberLink | null) {
   const view = computed<NumberView>(() =>
     fromCpu.value && followsCpu.value
       ? { ...fromCpu.value, request: request.value }
-      : freeView(request.value)
+      : freeView(request.value, architecture.value)
   );
   const solution = computed(() => solveNumber(request.value));
   const width = computed(() => widthOf(request.value));

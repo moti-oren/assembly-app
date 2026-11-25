@@ -7,6 +7,7 @@ import { CONDITION_SETS } from '@/ui/numbersConditions';
 import {
   equationText,
   flagsBothScales,
+  flagsTitle,
   lensLesson,
   lensTitle,
   unavailableText
@@ -56,7 +57,7 @@ const sections = computed<TopicSectionInfo[]>(() => [
     ? [
         {
           id: 'flags',
-          label: lens.followsCpu.value ? 'What each flag says' : 'What a CPU would note'
+          label: flagsTitle(lens.view.value, lens.followsCpu.value, props.moment.cpu)
         }
       ]
     : [])

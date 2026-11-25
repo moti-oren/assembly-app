@@ -4,7 +4,7 @@ import { refDebounced } from '@vueuse/core';
 import type { ArithmeticRequest, ArithmeticSolution } from '@/core/representation/arithmetic';
 import type { Scale } from '@/core/representation/readings';
 import { scaleSummary, scalesSaid } from '@/ui/numbersFlags';
-import { bitsOf } from '@/ui/numbersView';
+import { bitsOf, operandsText } from '@/ui/numbersView';
 import { wheelOf } from '@/ui/numbersWheel';
 import type { NumberLens } from '@/ui/useNumberLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
@@ -25,6 +25,7 @@ const props = defineProps<{
 useScrollEnd(useTemplateRef<HTMLElement>('rows'), () => props.request.width);
 
 const SCALES: readonly Scale[] = ['unsigned', 'signed'];
+const named = computed(() => operandsText(props.lens.view.value, props.lens.followsCpu.value));
 
 const scales = computed(() =>
   SCALES.map((scale) => {
@@ -103,5 +104,6 @@ const said = refDebounced(
       :bits="bitsOf(solution.result, request.width)"
     />
   </div>
+  <p v-if="named" class="mt-1 text-xs text-muted-foreground">{{ named }}</p>
   <NumbersExtra v-if="withExtra" class="mt-2" :lens="lens" />
 </template>
