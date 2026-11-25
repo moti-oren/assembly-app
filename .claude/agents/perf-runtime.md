@@ -4,6 +4,7 @@ description: Reviews changes to the run loop, reactive state, layout measurement
 tools: Read, Grep, Glob
 model: sonnet
 effort: medium
+omitClaudeMd: true
 ---
 
 You review a change to CPU Playground for what it costs while a program runs. The demanding case
@@ -11,7 +12,7 @@ is Run program at the fastest speed: `useProgramRun.ts` steps the CPU on a timer
 updates reactive state (`useCpu.ts`, `useCpuHistory.ts`), the panels re-render, the diagram draws
 its data flow (`useDataFlow.ts` measures elements), and `useSoundEffects.ts` plays one pulse per
 line through `soundEngine.ts`. That must hold 60 frames per second and must not grow memory over a
-long run. Two facts from CLAUDE.md matter here: memory and port bytes live in `Uint8Array`s that
+long run. Two facts about this code matter here: memory and port bytes live in `Uint8Array`s that
 Vue does not track, so the UI depends on `memoryVersion` / `ioVersion`; and every workbench stays
 mounted after it is first shown, hidden panels included.
 

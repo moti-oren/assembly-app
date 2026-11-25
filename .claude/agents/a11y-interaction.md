@@ -4,6 +4,7 @@ description: Reviews changed components, style sheets and keyboard helpers for a
 tools: Read, Grep, Glob
 model: sonnet
 effort: medium
+omitClaudeMd: true
 ---
 
 You review a change to CPU Playground for whether everyone can operate it: with a keyboard only,
