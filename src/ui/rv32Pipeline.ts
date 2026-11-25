@@ -101,13 +101,19 @@ export interface PipelineGrid {
   forwards: boolean;
 }
 
+/** A row's line; one run from the builder came from no line, as the history says. */
 function labelOf(row: PipelineRow): string {
-  return row.line === null ? '' : formatLabel(row.line);
+  if (row.line !== null) return formatLabel(row.line);
+  return row.step === null ? '' : 'direct';
 }
 
-/** The last `size` rows, as a grid with a column per cycle. */
+/**
+ * The last `size` rows, as a grid with a column per cycle. A window that would open on rows a
+ * jump flushed reaches back to the jump, so they are not shown without what struck them out.
+ */
 export function pipelineGrid(timing: PipelineTiming, size: number): PipelineGrid {
-  const start = Math.max(0, timing.rows.length - size);
+  let start = Math.max(0, timing.rows.length - size);
+  while (start > 0 && timing.rows[start].flushedBy !== null) start--;
   const shown = timing.rows.slice(start);
   if (shown.length === 0) return { from: start, cycles: [], rows: [], forwards: false };
   const first = Math.min(...shown.map((row) => row.cycles[0].cycle));

@@ -60,6 +60,24 @@ describe('pipelineGrid', () => {
     expect(grid.rows[2].cells[2]).toEqual({ stage: 'IF', kind: 'flushed' });
   });
 
+  it('opens a short window at the jump, not at the rows it flushed', () => {
+    // Four rows: the branch, the two it flushed, and the line it went to.
+    const program = [branchTo(3), li(T0, 1), li(T0, 2), li(T0, 3)];
+    const grid = pipelineGrid(timing(program), 2);
+    expect(grid.rows[0].text).toBe('beq zero, zero, L3');
+    expect(grid.rows.map((row) => row.flushed)).toEqual([false, true, true, false]);
+  });
+
+  it('labels an instruction run from the builder as direct', () => {
+    const state = RV32.createState();
+    const record = RV32.execute(state, li(T0, 1), null, []);
+    const grid = pipelineGrid(
+      pipelineTiming([record], [], { forwarding: true, predictor: 'not-taken' }),
+      4
+    );
+    expect(grid.rows[0].label).toBe('direct');
+  });
+
   it('marks where a branch decides with whether it was guessed right', () => {
     const ex = (predictor: PredictorKind) =>
       pipelineGrid(timing([branchTo(2), li(T0, 1)], true, predictor), 10).rows[0].cells[2];

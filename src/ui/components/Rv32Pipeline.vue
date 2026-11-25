@@ -147,7 +147,9 @@ const detail = computed(() => {
                 :class="[
                   cell ? CELL_CLASSES[cell.kind] : '',
                   cell?.kind === 'run' && row.newest && 'stage-chip-active',
-                  { 'inset-ring-2 inset-ring-pointer': cell?.forwarded || cell?.source }
+                  { 'inset-ring-2 inset-ring-pointer': cell?.forwarded || cell?.source },
+                  // Room for EX and its mark inside the ring a forwarded EX also gets.
+                  { 'min-w-11': cell?.guess }
                 ]"
                 :title="cellTitle(cell)"
               >
