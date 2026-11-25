@@ -93,7 +93,8 @@ export function aluEquation(record: ExecutionRecord): AluEquation | null {
         carry: null,
         result,
         destination,
-        note: mnemonic.startsWith('ro') ? `C goes in (was ${alu.carryIn ? 1 : 0})` : null
+        // Said inside brackets after the destination: no brackets of its own.
+        note: mnemonic.startsWith('ro') ? `the old C, ${alu.carryIn ? 1 : 0}, goes in` : null
       };
     case 'step':
       return {

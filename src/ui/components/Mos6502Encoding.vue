@@ -25,7 +25,7 @@ const summary = computed(() => {
   if (!props.shown) return null;
   const { address, encoding } = props.shown.assembled;
   const count = `${encoding.bytes.length} byte${encoding.bytes.length === 1 ? '' : 's'}`;
-  return `${count} at $${formatHex(address, 16)}, ${props.shown.where} · cycles: ${encoding.cycles}`;
+  return `${count} at $${formatHex(address, 16)}, ${props.shown.where} · ${encoding.cycles} clock cycles`;
 });
 </script>
 
