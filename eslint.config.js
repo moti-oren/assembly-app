@@ -10,7 +10,8 @@ const CORE_STAYS_FRAMEWORK_FREE = {
 };
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'src/components/ui'] },
+  // .claude/worktrees holds the checkouts of other Claude sessions: whole copies of this repository.
+  { ignores: ['dist', 'node_modules', 'src/components/ui', '.claude/worktrees'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
