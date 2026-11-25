@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import type { BcdRequest, BcdSolution } from '@/core/representation/bcd';
 import { Button } from '@/components/ui/button';
 import { formatBits } from '@/core/shared/numbers';
-import { bitsOf } from '@/ui/numbersView';
+import { bitsOf, bcdExtraFrom } from '@/ui/numbersView';
 import type { NumberLens } from '@/ui/useNumberLens';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
@@ -88,7 +88,12 @@ const text = (value: number): string => String(value).replace('-', '−');
       <h3 class="text-xs font-semibold text-muted-foreground capitalize">{{ digit.place }}</h3>
       <p class="mt-1 font-mono text-sm tabular-nums">
         {{ digit.a }} {{ sign }} {{ digit.b }}
-        <template v-if="digit.extra"> {{ sign }} 1</template>
+        <template v-if="digit.extra">
+          {{ sign }} 1
+          <span class="font-sans text-xs text-muted-foreground"
+            >({{ bcdExtraFrom(digit.place, adding) }})</span
+          >
+        </template>
         = <span class="font-semibold">{{ text(digit.raw) }}</span>
         <span class="text-muted-foreground"> ({{ nibble(digit.raw) }})</span>
       </p>
@@ -109,14 +114,12 @@ const text = (value: number): string => String(value).replace('-', '−');
   <p v-if="solution.decimal" class="mt-3 font-mono text-sm tabular-nums" aria-live="polite">
     {{ solution.decimal.a }} {{ sign }} {{ solution.decimal.b }}
     <template v-if="request.extra"> {{ sign }} 1</template>
-    = {{ text(solution.decimal.exact) }}
-    <span class="font-sans text-muted-foreground">
-      {{
-        solution.out
-          ? `: does not fit in 0 to 99, so the digits read ${solution.decimal.shown}`
-          : ': fits in 0 to 99'
-      }}
-    </span>
+    = {{ text(solution.decimal.exact)
+    }}<span class="font-sans text-muted-foreground">{{
+      solution.out
+        ? `: does not fit in 0 to 99, so the digits read ${solution.decimal.shown}`
+        : ': fits in 0 to 99'
+    }}</span>
   </p>
   <p v-else class="mt-3 text-sm text-pretty">
     One of the bytes has a half past 9, so it is not a decimal number. The CPU still works digit by

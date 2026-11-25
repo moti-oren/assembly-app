@@ -298,3 +298,12 @@ export function unavailableText(link: NumberLink | null): string | null {
     ? `${link.unavailable} The numbers on show are ones to try by hand.`
     : null;
 }
+
+/**
+ * Where a decimal digit's one more comes from: the tens get it from the ones, the ones from the
+ * carry (or the borrow) coming into the byte.
+ */
+export function bcdExtraFrom(place: 'ones' | 'tens', adding: boolean): string {
+  if (place === 'tens') return adding ? 'carried from the ones' : 'borrowed by the ones';
+  return adding ? 'the carry coming in' : 'the borrow coming in';
+}

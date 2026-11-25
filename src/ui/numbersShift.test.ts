@@ -51,9 +51,9 @@ describe('shiftSummary', () => {
       sum: '21 × 4 = 84',
       agrees: true,
       lead: null,
-      verdict: 'fits in 0 to 255'
+      verdict: 'Fits in 0 to 255.'
     });
-    expect(signed.verdict).toBe('fits in −128 to 127');
+    expect(signed.verdict).toBe('Fits in −128 to 127.');
   });
 
   it('says where a doubling stops fitting, and what the bits read then', () => {
@@ -63,7 +63,7 @@ describe('shiftSummary', () => {
       sum: '253 × 2 = 506',
       agrees: false,
       lead: 'Does not fit.',
-      verdict: 'not in 0 to 255: the bits read 250'
+      verdict: 'The range is 0 to 255: the bits read 250.'
     });
   });
 
@@ -73,7 +73,7 @@ describe('shiftSummary', () => {
       sum: '−7 ÷ 2 = −4, 1 left over',
       agrees: true,
       lead: null,
-      verdict: 'the bits read −4, rounded down'
+      verdict: 'The bits read −4, rounded down.'
     });
   });
 
@@ -83,12 +83,12 @@ describe('shiftSummary', () => {
     expect(zeros.signed).toMatchObject({
       agrees: false,
       lead: 'Not this scale’s halving.',
-      verdict: 'the bits read 124: zeros came in at the top, which halves the unsigned number only'
+      verdict: 'The bits read 124: zeros came in at the top, which halves the unsigned number only.'
     });
     const copies = summaries(request(0xf8, 'right', 1, 'sign'));
-    expect(copies.signed).toMatchObject({ sum: '−8 ÷ 2 = −4', verdict: 'the bits read −4' });
+    expect(copies.signed).toMatchObject({ sum: '−8 ÷ 2 = −4', verdict: 'The bits read −4.' });
     expect(copies.unsigned.verdict).toBe(
-      'the bits read 252: copies of the top bit came in, which halves the signed number only'
+      'The bits read 252: copies of the top bit came in, which halves the signed number only.'
     );
   });
 

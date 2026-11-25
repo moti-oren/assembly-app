@@ -18,6 +18,7 @@ import {
   bitsOf,
   flagsBothScales,
   lensLesson,
+  bcdExtraFrom,
   disallowedWidths,
   widthReason,
   equationText,
@@ -289,5 +290,13 @@ describe('flagsBothScales', () => {
     const request: NumberRequest = { kind: 'subtract', width: 32, a: 5, b: 3, extra: 0 };
     expect(lensLesson(request, true)).toContain('a flag for each');
     expect(lensLesson(request, false)).not.toContain('flag');
+  });
+});
+
+describe('bcdExtraFrom', () => {
+  it('says where the one more of a digit comes from', () => {
+    expect(bcdExtraFrom('tens', true)).toBe('carried from the ones');
+    expect(bcdExtraFrom('tens', false)).toBe('borrowed by the ones');
+    expect(bcdExtraFrom('ones', false)).toBe('the borrow coming in');
   });
 });
