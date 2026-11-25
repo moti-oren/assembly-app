@@ -13,6 +13,7 @@ import {
   registerOf
 } from '@/ui/storageFile';
 import { CLOCK_ACTION } from '@/ui/storageView';
+import { useHexStyle } from '@/ui/useHexStyle';
 import type { StorageFile } from '@/ui/useStorageFile';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
@@ -29,8 +30,15 @@ const solution = computed(() => props.file.solution.value);
 const phase = computed(() => props.file.phase.value);
 const clockHigh = computed(() => phase.value === 'high');
 const address = computed(() => addressBits(request.value));
+const hexStyle = useHexStyle();
 const rows = computed(() =>
-  fileRows(props.file.view.value, solution.value, phase.value, props.file.asRun.value)
+  fileRows(
+    props.file.view.value,
+    solution.value,
+    phase.value,
+    props.file.asRun.value,
+    hexStyle.value
+  )
 );
 
 const TONES = {
@@ -101,7 +109,7 @@ function open(index: number): void {
       <span class="flex items-center gap-2 text-xs font-medium">
         Value to write
         <span class="font-mono text-code tabular-nums">{{
-          hexOf(request.input, request.width)
+          hexOf(request.input, request.width, hexStyle)
         }}</span>
       </span>
     </div>

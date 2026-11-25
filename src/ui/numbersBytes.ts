@@ -1,5 +1,6 @@
 import { misread, storedBytes, type ByteOrder } from '@/core/representation/bytes';
 import { wrap, type Width } from '@/core/representation/readings';
+import { PREFIXED, type HexStyle } from './hexNotation';
 import { hexOf } from './logicView';
 import { numberText } from './numbersView';
 
@@ -44,10 +45,10 @@ export function orderLesson(order: ByteOrder): string {
 }
 
 /** What becomes of a stored value when a program reads its bytes in the other order. */
-export function misreadText(value: number, width: Width): string {
+export function misreadText(value: number, width: Width, style: HexStyle = PREFIXED): string {
   const bits = wrap(value, width);
   const other = misread(bits, width);
   return other === bits
     ? 'These bytes read the same in either order.'
-    : `Read in the other order, the same bytes are ${hexOf(other, width)}: ${numberText(other)} and not ${numberText(bits)}.`;
+    : `Read in the other order, the same bytes are ${hexOf(other, width, style)}: ${numberText(other)} and not ${numberText(bits)}.`;
 }

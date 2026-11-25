@@ -11,6 +11,7 @@ import {
   logicSections,
   unavailableText
 } from '@/ui/logicView';
+import { useHexStyle } from '@/ui/useHexStyle';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useLogicCommands } from '@/ui/useLogicCommands';
 import { useLogicLens } from '@/ui/useLogicLens';
@@ -45,7 +46,10 @@ const commands = useLogicCommands(lens, () => props.moment, {
 });
 
 // The operation is what a working circuit makes of it: a broken gate is the circuit's own affair.
-const equation = computed(() => equationText(lens.request.value, lens.healthy.value.result));
+const hexStyle = useHexStyle();
+const equation = computed(() =>
+  equationText(lens.request.value, lens.healthy.value.result, hexStyle.value)
+);
 const sections = computed(() => logicSections(mode.value === 'phone', lens.followsCpu.value));
 </script>
 

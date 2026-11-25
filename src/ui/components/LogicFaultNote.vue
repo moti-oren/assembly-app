@@ -3,13 +3,20 @@ import { computed, nextTick, useTemplateRef } from 'vue';
 import { Wrench } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { faultSummary } from '@/ui/logicFault';
+import { useHexStyle } from '@/ui/useHexStyle';
 import type { LogicLens } from '@/ui/useLogicLens';
 
 const props = defineProps<{ lens: LogicLens }>();
+const hexStyle = useHexStyle();
 
 const summary = computed(() =>
   props.lens.faultCount.value > 0
-    ? faultSummary(props.lens.healthy.value, props.lens.solution.value, props.lens.faultCount.value)
+    ? faultSummary(
+        props.lens.healthy.value,
+        props.lens.solution.value,
+        props.lens.faultCount.value,
+        hexStyle.value
+      )
     : null
 );
 

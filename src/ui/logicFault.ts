@@ -1,6 +1,7 @@
 import { tapValue, type AluSolution, type Tap } from '@/core/logic/alu';
 import type { Faults } from '@/core/logic/fault';
 import { gateOutput, type Bit, type Signals } from '@/core/logic/gates';
+import { PREFIXED, type HexStyle } from './hexNotation';
 import { sliceDiagram, type DiagramGate } from './logicSlice';
 import { hexOf } from './logicView';
 
@@ -53,15 +54,17 @@ export interface FaultSummary {
 export function faultSummary(
   healthy: AluSolution,
   broken: AluSolution,
-  count: number
+  count: number,
+  style: HexStyle = PREFIXED
 ): FaultSummary {
   const { width } = healthy.request;
+  const hex = (value: number) => hexOf(value, width, style);
   const wrong = wrongBits(healthy, broken).filter(Boolean).length;
   return {
     broken: count === 1 ? 'One gate is broken.' : `${count} gates are broken.`,
     effect:
       wrong > 0
-        ? `The circuit answers ${hexOf(broken.result, width)}; working, it would answer ${hexOf(healthy.result, width)}. ${wrong === 1 ? 'One bit is' : `${wrong} bits are`} wrong.`
+        ? `The circuit answers ${hex(broken.result)}; working, it would answer ${hex(healthy.result)}. ${wrong === 1 ? 'One bit is' : `${wrong} bits are`} wrong.`
         : flagsDiffer(healthy, broken)
           ? 'The result is still right, but a wire a flag is read from is not.'
           : 'These inputs hide it: the result and every flag come out right. Change an input to catch it.'

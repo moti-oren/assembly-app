@@ -4,6 +4,7 @@ import type { ByteOrder } from '@/core/representation/bytes';
 import type { Width } from '@/core/representation/readings';
 import { Button } from '@/components/ui/button';
 import { BYTE_ORDERS, byteCells, misreadText, orderLesson } from '@/ui/numbersBytes';
+import { useHexStyle } from '@/ui/useHexStyle';
 
 const props = defineProps<{
   value: number;
@@ -11,6 +12,7 @@ const props = defineProps<{
 }>();
 /** Which end of the value is at the lowest address. */
 const order = defineModel<ByteOrder>('order', { required: true });
+const hexStyle = useHexStyle();
 
 const cells = computed(() => byteCells(props.value, props.width, order.value));
 </script>
@@ -57,7 +59,7 @@ const cells = computed(() => byteCells(props.value, props.width, order.value));
         </li>
       </ol>
       <p class="mt-3 max-w-prose text-sm text-pretty">
-        {{ misreadText(value, width) }}
+        {{ misreadText(value, width, hexStyle) }}
       </p>
     </template>
   </section>

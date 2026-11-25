@@ -2,6 +2,7 @@ import { hasCircuit, resultTaps, tap, type AluCircuit, type AluLink } from '@/co
 import type { AluRequest, ShiftRequest, Width } from '@/core/logic/alu';
 import type { Bit } from '@/core/logic/gates';
 import { barrelStages } from '@/core/logic/shifter';
+import { PREFIXED, type HexStyle } from './hexNotation';
 import type { TopicSectionInfo } from './topicSections';
 
 export const WIDTHS: readonly Width[] = [8, 16, 32];
@@ -132,11 +133,14 @@ export function withStageFlipped(request: ShiftRequest, index: number): ShiftReq
   };
 }
 
-export function hexOf(value: number, width: Width): string {
-  return `0x${value
-    .toString(16)
-    .toUpperCase()
-    .padStart(width / 4, '0')}`;
+/** A value in hex, a digit for every four bits of its width, written in `style`. */
+export function hexOf(value: number, width: number, style: HexStyle = PREFIXED): string {
+  return style(
+    value
+      .toString(16)
+      .toUpperCase()
+      .padStart(width / 4, '0')
+  );
 }
 
 const LOGIC_NAMES = { and: 'AND', or: 'OR', xor: 'XOR' } as const;
@@ -154,14 +158,19 @@ export function shiftCount(request: ShiftRequest): number {
 }
 
 /** The operation on one line: `0x7FFF + 0x0001 = 0x8000`. */
-export function equationText(request: AluRequest, result: number): string {
+export function equationText(
+  request: AluRequest,
+  result: number,
+  style: HexStyle = PREFIXED
+): string {
   const { width } = request;
-  const equals = `= ${hexOf(result, width)}`;
+  const hex = (value: number) => hexOf(value, width, style);
+  const equals = `= ${hex(result)}`;
   if (request.kind === 'shift') {
-    return `${hexOf(request.value, width)} ${shiftSymbol(request)} ${shiftCount(request)} ${equals}`;
+    return `${hex(request.value)} ${shiftSymbol(request)} ${shiftCount(request)} ${equals}`;
   }
-  const a = hexOf(request.a, width);
-  const b = hexOf(request.b, width);
+  const a = hex(request.a);
+  const b = hex(request.b);
   switch (request.kind) {
     case 'add':
       return `${a} + ${b}${request.carryIn ? ' + 1' : ''} ${equals}`;

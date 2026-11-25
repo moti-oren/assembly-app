@@ -3,6 +3,7 @@ import { computed, useTemplateRef } from 'vue';
 import type { ValueRequest, ValueSolution } from '@/core/representation/request';
 import { bitsOf } from '@/ui/numbersView';
 import { valueRows } from '@/ui/numbersValue';
+import { useHexStyle } from '@/ui/useHexStyle';
 import type { NumberLens } from '@/ui/useNumberLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
@@ -17,7 +18,8 @@ const props = defineProps<{
 
 useScrollEnd(useTemplateRef<HTMLElement>('rows'), () => props.request.width);
 
-const rows = computed(() => valueRows(props.solution.readings));
+const hexStyle = useHexStyle();
+const rows = computed(() => valueRows(props.solution.readings, hexStyle.value));
 </script>
 
 <!-- One row of bits, and everything it can be taken to mean. -->

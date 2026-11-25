@@ -1,6 +1,7 @@
 import type { Width } from '@/core/logic/alu';
 import { allBits, type ClockPhase, type RegisterRequest } from '@/core/logic/register';
 import { hasRegisters, written, type RegisterLink, type RegisterWrite } from '@/core/registerLink';
+import { PREFIXED, type HexStyle } from './hexNotation';
 import { hexOf } from './logicView';
 
 /** The memory cells the storage topic builds up, the simplest first. */
@@ -72,11 +73,15 @@ export function withBitFlipped(
   return { ...request, [row]: (request[row] ^ (2 ** bit)) >>> 0 };
 }
 
-/** The cycle on one line: `AX: 0x1234 → 0x12FF`. */
-export function equationText({ register, part, request }: RegisterWrite, stored: number): string {
+/** The cycle on one line: `AX: 1234h → 12FFh`, in the CPU’s own hex. */
+export function equationText(
+  { register, part, request }: RegisterWrite,
+  stored: number,
+  style: HexStyle = PREFIXED
+): string {
   const { width, held } = request;
   const only = part ? ` (only ${part} is written)` : '';
-  return `${register}: ${hexOf(held, width)} → ${hexOf(stored, width)}${only}`;
+  return `${register}: ${hexOf(held, width, style)} → ${hexOf(stored, width, style)}${only}`;
 }
 
 export function registerTitle({ register, request }: RegisterWrite): string {
