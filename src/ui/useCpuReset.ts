@@ -33,8 +33,13 @@ export function useCpuReset<Instruction, Record extends ExecutionRecord>(
 
   function start(run: boolean): void {
     runsAfter = run;
-    if (!asksFirst.value || nothingToLose()) confirmReset();
-    else resetAsked.value = true;
+    if (!asksFirst.value || nothingToLose()) {
+      confirmReset();
+      return;
+    }
+    // A run kept going behind the question would change what it is asked about.
+    cpu.pause();
+    resetAsked.value = true;
   }
 
   /** Resets, asking first when the history would be lost, unless the user chose not to be asked. */
