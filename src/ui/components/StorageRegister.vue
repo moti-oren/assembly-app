@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
-import { ArrowDown, ArrowUp, RotateCcw } from '@lucide/vue';
+import { ArrowDown, ArrowUp, Rewind } from '@lucide/vue';
 import type { Bit } from '@/core/logic/gates';
 import { REGISTER } from '@/core/logic/register';
 import { Button } from '@/components/ui/button';
@@ -92,6 +92,7 @@ function wires(name: (bit: number) => string): Bit[] {
           aria-hidden="true"
           >{{ clockHigh ? 1 : 0 }}</span
         >
+        <span class="sr-only">is {{ clockHigh ? 'high, 1' : 'low, 0' }}</span>
       </span>
       <!--
         It stays in place, and can keep the focus, when there is nothing to go back to: a button
@@ -104,12 +105,13 @@ function wires(name: (bit: number) => string): Bit[] {
         :aria-disabled="phase === 'before'"
         @click="lens.rewind()"
       >
-        <RotateCcw />
-        Start over
+        <Rewind />
+        Rewind the clock
       </Button>
     </div>
     <p class="max-w-prose text-sm text-pretty" aria-live="polite">
       {{ phaseText(phase, lens.request.value) }}
+      <template v-if="lens.rewritten.value"> {{ lens.rewritten.value }}</template>
     </p>
   </div>
 </template>

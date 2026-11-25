@@ -17,7 +17,7 @@ function registerCommands(lens: StorageLens): PaletteCommand[] {
     { group: 'Register', label: CLOCK_ACTION[phase], run: lens.clock },
     {
       group: 'Register',
-      label: 'Start the clock cycle over',
+      label: 'Rewind the clock',
       disabled: phase === 'before',
       run: lens.rewind
     },

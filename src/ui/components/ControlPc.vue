@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
-import { ArrowDown, ArrowUp, RotateCcw } from '@lucide/vue';
+import { ArrowDown, ArrowUp, Rewind } from '@lucide/vue';
 import { PC, type PcSolution } from '@/core/logic/programCounter';
 import { heldAt } from '@/core/logic/register';
 import { Button } from '@/components/ui/button';
@@ -119,6 +119,7 @@ const SWITCHES = [
           aria-hidden="true"
           >{{ clockHigh ? 1 : 0 }}</span
         >
+        <span class="sr-only">is {{ clockHigh ? 'high, 1' : 'low, 0' }}</span>
       </span>
       <!-- It stays in place, and can keep the focus, when there is nothing to go back to. -->
       <Button
@@ -128,8 +129,8 @@ const SWITCHES = [
         :aria-disabled="phase === 'before'"
         @click="lens.rewind()"
       >
-        <RotateCcw />
-        Start over
+        <Rewind />
+        Rewind the clock
       </Button>
     </div>
     <p class="max-w-prose text-sm text-pretty" aria-live="polite">

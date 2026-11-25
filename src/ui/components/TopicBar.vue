@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { ChevronLeft, ChevronRight, RotateCcw } from '@lucide/vue';
+import { ChevronLeft, ChevronRight, Undo2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { CpuMoment } from '@/ui/cpuMoment';
@@ -107,14 +107,12 @@ function goFromMore(to: LinkedTopic): void {
               size="sm"
               class="text-muted-foreground pointer-coarse:h-11 pointer-coarse:min-w-11"
               :class="OFF_CLASS"
-              :aria-label="
-                fromCpu ? 'Reset: put back the CPU’s values' : 'Reset: put back the starting values'
-              "
+              :aria-label="fromCpu ? 'Put back the CPU’s values' : 'Put back the starting values'"
               :aria-disabled="!edited"
               @click="edited && $emit('restore')"
             >
-              <RotateCcw />
-              <span class="hidden xl:inline">Reset</span>
+              <Undo2 />
+              <span class="hidden xl:inline">Put back</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>

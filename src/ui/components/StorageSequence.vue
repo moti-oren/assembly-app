@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { RotateCcw, Workflow } from '@lucide/vue';
+import { Eraser, Workflow } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   SEQUENCE_INPUT,
@@ -84,8 +84,8 @@ const press = computed(() =>
           :aria-disabled="trace.length < 2"
           @click="sequence.reset()"
         >
-          <RotateCcw />
-          Start over
+          <Eraser />
+          Clear
         </Button>
       </div>
     </div>

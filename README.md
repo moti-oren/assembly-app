@@ -448,7 +448,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   subtraction is the inverse of the carry out; the 6502's C is the carry out itself; RISC-V has
   no flags, so a branch or `slt` reads one wire of a subtraction.
 - Press a bit of an input to flip it and see what the circuit would have made (**What if**). The
-  CPU is not changed; **Reset**, in the bar, puts its bits back. The operation and the width can be
+  CPU is not changed; **Put back**, in the bar, puts its bits back. The operation and the width can be
   changed too, to try a circuit freely.
 - The arrows in the bar step to the operation before or after this one in the CPU's history, and
   the **CPU** tab returns to the CPU at the instruction on show (on a phone, the arrow with the
@@ -490,7 +490,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   by digit: each half of the byte summed in binary, and put right by 6 where it is past 9.
 - The page is laid out like the logic topic's: on the left where the operation came from, what
   to show and how wide, one more coming in, and the flags; on the right the numbers; and under
-  both a bar with the steps through the CPU's history, **Reset** and the way on to **Logic**.
+  both a bar with the steps through the CPU's history, **Put back** and the way on to **Logic**.
   On a tablet the left side is the **Controls** drawer, and on a phone **Controls** and
   **Numbers** are two views.
 - Press a bit to flip it, or drag the blue dot round a wheel (the arrow keys move it too), and
@@ -514,13 +514,13 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The page is laid out like the logic topic's: on the left where the register came from and
   which circuit each part shows (the register written and its width, the memory cell, the
   shift register or the counter); on the right the circuits; and under both a bar with the
-  steps through the CPU's history and **Reset**. Every circuit keeps its own clock button
+  steps through the CPU's history and **Put back**. Every circuit keeps its own clock button
   beside its wires, since each has a clock of its own. On a tablet the left side is the
   **Controls** drawer, and on a phone **Controls** and **Flip-flops** are two views.
 - The register is shown as rows of bits: the value waiting at its inputs, a write line for every
   bit, a flip-flop under every column, and what the flip-flops hold. The page opens before the
   clock edge, with the old value still held. **Raise the clock** loads the new one; **Lower the
-  clock** finishes the cycle, and **Start over** starts it again.
+  clock** finishes the cycle, and **Rewind the clock** starts it again.
 - A bit whose write line is 0 keeps its value whatever waits at its input. On the 8086 a write to
   AL turns on only the low eight write lines of AX: AL and AH are halves of one register, not
   registers of their own. An instruction that wrote several registers (`xchg`, `mul`, `pop`)
@@ -566,7 +566,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - The page is laid out like the logic topic's: on the left where the instruction came from, its
   word in hex (to type another) and the fields its bits fall into; on the right the bits, the
   two decoders, the lines, what they make the CPU do and PC; and under both a bar with the steps
-  through the CPU's history, **Reset** and the ways on to **Logic** and **Storage**. On a tablet
+  through the CPU's history, **Put back** and the ways on to **Logic** and **Storage**. On a tablet
   the left side is the **Controls** drawer; on a phone **Controls** and **Control unit** are two
   views, and the fields stay under the bits.
 - The instruction is shown as the control unit gets it: 32 bits, with the fields they fall into.
@@ -1062,7 +1062,7 @@ npm run verify:6502 # check the 6502 core against py65
   ההיפוך של הנשא היוצא; ה-C של ה-6502 הוא הנשא היוצא עצמו; ל-RISC-V אין דגלים, ולכן הסתעפות או
   `slt` קוראות חוט אחד של חיסור.
 - לחיצה על סיבית של קלט הופכת אותה ומראה מה המעגל היה מחשב (**What if**). המעבד אינו משתנה;
-  **Reset**, בסרגל, מחזיר את הסיביות שלו. אפשר לשנות גם את הפעולה ואת הרוחב, ולנסות מעגל באופן
+  **Put back**, בסרגל, מחזיר את הסיביות שלו. אפשר לשנות גם את הפעולה ואת הרוחב, ולנסות מעגל באופן
   חופשי.
 - החצים שבסרגל עוברים לפעולה שלפני זו או אחריה בהיסטוריה של המעבד, והלשונית **CPU** חוזרת למעבד
   בהוראה המוצגת (בטלפון: החץ עם שם המעבד מעל העמוד).
@@ -1097,7 +1097,7 @@ npm run verify:6502 # check the 6502 core against py65
 - `adc` או `sbc` של ה-6502 במצב עשרוני, שאין להם שערים להציג, מוצגים כאן ספרה אחר ספרה: כל חצי
   של הבית מסוכם בבינארי, ומתוקן ב-6 כשהוא עובר את 9.
 - העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיעה הפעולה, מה להציג ובאיזה רוחב, האחד
-  הנוסף שנכנס, והדגלים; מימין המספרים; ומתחת לשניהם סרגל עם הצעדים בהיסטוריה של המעבד, **Reset**
+  הנוסף שנכנס, והדגלים; מימין המספרים; ומתחת לשניהם סרגל עם הצעדים בהיסטוריה של המעבד, **Put back**
   והמעבר ל-**Logic**. בטאבלט הצד השמאלי הוא המגירה **Controls**, ובטלפון **Controls** ו-**Numbers**
   הן שתי תצוגות.
 - לחיצה על סיבית הופכת אותה, וגרירה של הנקודה הכחולה סביב גלגל מזיזה אותה (גם מקשי החצים), ומראות
@@ -1118,12 +1118,12 @@ npm run verify:6502 # check the 6502 core against py65
   גם **Show how the last register written is kept** בפלטת הפקודות.
 - העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיע האוגר ואיזה מעגל כל חלק מציג (האוגר
   שנכתב והרוחב שלו, תא הזיכרון, אוגר ההזזה או המונה); מימין המעגלים; ומתחת לשניהם סרגל עם הצעדים
-  בהיסטוריה של המעבד ו-**Reset**. כל מעגל שומר את כפתור השעון שלו ליד החוטים שלו, כי לכל אחד שעון
+  בהיסטוריה של המעבד ו-**Put back**. כל מעגל שומר את כפתור השעון שלו ליד החוטים שלו, כי לכל אחד שעון
   משלו. בטאבלט הצד השמאלי הוא המגירה **Controls**, ובטלפון **Controls** ו-**Flip-flops** הן שתי
   תצוגות.
 - האוגר מוצג כשורות של סיביות: הערך שמחכה על הכניסות, קו כתיבה לכל סיבית, פליפ-פלופ מתחת לכל
   עמודה, ומה שהפליפ-פלופים מחזיקים. העמוד נפתח לפני קצה השעון, כשהערך הישן עדיין מוחזק. **Raise
-  the clock** טוען את הערך החדש; **Lower the clock** מסיים את המחזור, ו-**Start over** מתחיל
+  the clock** טוען את הערך החדש; **Lower the clock** מסיים את המחזור, ו-**Rewind the clock** מתחיל
   אותו מחדש.
 - סיבית שקו הכתיבה שלה 0 שומרת את ערכה, לא משנה מה מחכה על הכניסה שלה. ב-8086, כתיבה ל-AL מדליקה
   רק את שמונת קווי הכתיבה הנמוכים של AX: AL ו-AH הם חצאים של אוגר אחד, לא אוגרים משל עצמם. הוראה
@@ -1163,7 +1163,7 @@ npm run verify:6502 # check the 6502 core against py65
   בחלונית המחזור בחלון רחב, ו-**Show how the last instruction was decoded** בפלטת הפקודות.
 - העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיעה ההוראה, המילה שלה ב-hex (כדי להקליד
   אחרת) והשדות שהסיביות שלה מתחלקות אליהם; מימין הסיביות, שני המפענחים, הקווים, מה שהם גורמים
-  למעבד לעשות ו-PC; ומתחת לשניהם סרגל עם הצעדים בהיסטוריה של המעבד, **Reset** והמעברים ל-**Logic**
+  למעבד לעשות ו-PC; ומתחת לשניהם סרגל עם הצעדים בהיסטוריה של המעבד, **Put back** והמעברים ל-**Logic**
   ול-**Storage**. בטאבלט הצד השמאלי הוא המגירה **Controls**; בטלפון **Controls** ו-**Control
   unit** הן שתי תצוגות, והשדות נשארים מתחת לסיביות.
 - ההוראה מוצגת כפי שיחידת הבקרה מקבלת אותה: 32 סיביות, עם השדות שהן מתחלקות אליהם. השדות שמפענח
