@@ -5,7 +5,7 @@ import { wordAt } from '@/core/rv32/encode';
 import type { Instruction } from '@/core/rv32/instructions';
 import { createCpuState, DATA_BASE, DEVICE_BASE, RAM_SIZE } from '@/core/rv32/state';
 import { memoryRows } from './flatMemory';
-import { byteAt, REGISTER_GROUPS } from './rv32View';
+import { byteAt, REGISTER_GROUPS, signedText } from './rv32View';
 
 const program: Instruction[] = [
   {
@@ -54,5 +54,12 @@ describe('memoryRows', () => {
     const rows = memoryRows((address) => byteAt(state, program, address), DATA_BASE + 0x13, 2);
     expect(rows.map((row) => row[0].address)).toEqual([DATA_BASE + 0x10, DATA_BASE + 0x20]);
     expect(rows[0].length).toBe(16);
+  });
+});
+
+describe('signedText', () => {
+  it('reads a register as signed, with a true minus sign', () => {
+    expect(signedText(0xffffffff)).toBe('−1');
+    expect(signedText(5)).toBe('5');
   });
 });

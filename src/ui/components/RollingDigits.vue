@@ -44,7 +44,8 @@ function transitionName(place: number): string {
 </script>
 
 <template>
-  <span class="sr-only">{{ text }}</span><span aria-hidden="true"
+  <!-- A true minus sign is drawn; a screen reader is more sure to say the plain one. -->
+  <span class="sr-only">{{ text.replace('−', '-') }}</span><span aria-hidden="true"
     ><span
       v-for="cell in cells"
       :key="cell.place"
