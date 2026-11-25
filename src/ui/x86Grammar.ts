@@ -21,7 +21,13 @@ import {
   type Operand
 } from '@/core/x86/operands';
 import { isByteRegister, isSegmentRegister } from '@/core/x86/registers';
-import type { BuilderOption, DraftContext, DraftToken, InstructionGrammar } from './builderGrammar';
+import {
+  END_OF_PROGRAM,
+  type BuilderOption,
+  type DraftContext,
+  type DraftToken,
+  type InstructionGrammar
+} from './builderGrammar';
 
 /** The instruction builder's state: what has been chosen so far, and what is being typed. */
 export interface BuilderDraft {
@@ -152,7 +158,7 @@ function lineOptions(mnemonic: Mnemonic, programLines: readonly string[]): X86Op
     key: `label${target}`,
     label: formatLabel(target),
     group,
-    hint: programLines[target] ?? 'end of program',
+    hint: programLines[target] ?? END_OF_PROGRAM,
     matchesNumber: (value: number) => value === target,
     action: { kind: 'operand', operand: { type: 'label', target } }
   }));
@@ -183,11 +189,16 @@ function memoryOptions(sizes: OperandChoices['memory']): X86Option[] {
 
 function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): X86Option[] {
   const choices = operandChoices(mnemonic, draft.operands);
+  const lines = choices.label ? lineOptions(mnemonic, draft.programLines) : [];
+  // A jump's operand is a line; MOV's can be one too, but a register is what it usually wants,
+  // so there the lines come last and Enter does not pick L0.
+  const linesFirst = choices.registers.length === 0;
   return [
     ...numberOptions(choices, draft.typed),
-    ...(choices.label ? lineOptions(mnemonic, draft.programLines) : []),
+    ...(linesFirst ? lines : []),
     ...registerOptions(choices.registers),
-    ...memoryOptions(choices.memory)
+    ...memoryOptions(choices.memory),
+    ...(linesFirst ? [] : lines)
   ];
 }
 

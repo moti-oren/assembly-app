@@ -49,9 +49,11 @@ export function useBuilderOptions<Action, Instruction>(
   const orderedOptions = computed(() => groups.value.flatMap(([, options]) => options));
   /** Index into `orderedOptions` of the option the arrow keys moved to; Enter picks it. */
   const selectedIndex = ref(0);
-  // A new list of options (typing, or a word chosen) starts again from the first one.
+  // A new list of options (typing, or a word chosen) starts again from the first one, and the
+  // option a finger or pointer was on belongs to the old list: its words are no longer true.
   watch(visibleOptions, () => {
     selectedIndex.value = 0;
+    hovered.value = null;
   });
 
   /** The option Enter would pick. */
@@ -68,7 +70,10 @@ export function useBuilderOptions<Action, Instruction>(
   const preview = computed<{ label: string; text: string } | null>(() => {
     const described = grammar.describe(chosen.value);
     const typing = filter.value.trim() !== '';
-    const option = hovered.value ?? (described === null || typing ? enterOption.value : null);
+    // Once the arrows have moved, the option they are on is what is being looked at.
+    const arrowed = selectedIndex.value !== 0;
+    const option =
+      hovered.value ?? (described === null || typing || arrowed ? enterOption.value : null);
     if (option?.hint) return { label: option.label, text: option.hint };
     return described;
   });

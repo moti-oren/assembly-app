@@ -1,5 +1,11 @@
 import { parseNumber } from '@/core/shared/numbers';
 
+/**
+ * What the line after the last one is: the end of the program, which moves on as lines are
+ * added, so a jump to it lands after the last line whenever it runs.
+ */
+export const END_OF_PROGRAM = 'the end of the program, wherever it is when this runs';
+
 /** One choice the builder offers for the next word of an instruction. */
 export interface BuilderOption<Action> {
   key: string;
