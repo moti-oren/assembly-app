@@ -16,6 +16,7 @@ import {
 } from '@/ui/rv32View';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import { unavailableIn } from '@/ui/topicLinks';
+import ChangedSwatch from './ChangedSwatch.vue';
 import ChangeMark from './ChangeMark.vue';
 import CpuViewToggle from './CpuViewToggle.vue';
 import RollingDigits from './RollingDigits.vue';
@@ -58,7 +59,7 @@ const pcMove = computed(
       <CardTitle role="heading" aria-level="2">Registers</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
-          <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
+          <ChangedSwatch />
           changed by the last instruction
         </span>
         <TopicLinkButton v-if="stored" topic="storage" :unavailable="unavailableIn(stored)" />
@@ -66,6 +67,11 @@ const pcMove = computed(
       </CardAction>
     </CardHeader>
     <CardContent class="@container">
+      <!-- What the four columns are, once for every group. -->
+      <p class="mb-2 text-2xs text-muted-foreground">
+        Each row: the name, the number, the value in hex, and the value as a signed number. A tinted
+        value was changed by the last instruction.
+      </p>
       <!-- 31 registers alike to the hardware, grouped as the calling convention uses them. -->
       <div class="grid gap-x-6 gap-y-3 font-mono text-code @min-[34rem]:grid-cols-2">
         <section

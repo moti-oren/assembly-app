@@ -42,6 +42,39 @@ describe('the cycle in words', () => {
     );
   });
 
+  describe('names the part of AX..DX that changed', () => {
+    /** Runs `instruction` with AX set to `ax` first, and says what it changed. */
+    const changedBy = (instruction: Instruction, ax: number) => {
+      const state = createCpuState();
+      state.registers.ax = ax;
+      const record = execute(state, instruction);
+      return describeExecute(record, state).replace('Ran directly (not from the program). ', '');
+    };
+
+    it('says the byte an instruction wrote, and not a half it only read', () => {
+      expect(changedBy(line('mov', reg('al'), imm(5)), 0)).toBe('It changed AL.');
+      expect(changedBy(line('mov', reg('al'), reg('ah')), 0x1200)).toBe('It changed AL.');
+      // Port 0 reads 0, so AL loses its 0xFF.
+      expect(changedBy(line('in', reg('al'), reg('dx')), 0x12ff)).toBe('It changed AL.');
+      expect(changedBy(line('add', reg('ah'), reg('al')), 0x0102)).toBe(
+        'It changed AH and the flags.'
+      );
+    });
+
+    it('says the word where the instruction names it, or changed both bytes', () => {
+      expect(changedBy(line('mov', reg('ax'), imm(5)), 0)).toBe('It changed AX.');
+      expect(changedBy(line('mul', reg('ah')), 0x1010)).toBe('It changed AX and the flags.');
+    });
+
+    it('says both halves where the instruction names both', () => {
+      expect(changedBy(line('xchg', reg('al'), reg('ah')), 0x1234)).toBe('It changed AL and AH.');
+      const state = createCpuState();
+      Object.assign(state.registers, { ax: 0x1200, bx: 0x0034 });
+      const record = execute(state, line('xchg', reg('ah'), reg('bl')));
+      expect(describeExecute(record, state)).toContain('It changed AH and BL.');
+    });
+  });
+
   it('says an instruction from the builder ran directly', () => {
     const state = createCpuState();
     const record = execute(state, line('mov', reg('ax'), imm(5)));

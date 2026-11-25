@@ -91,9 +91,9 @@ export const INSTRUCTIONS = {
   lda: { category: 'load', description: 'A = the operand', modes: aluModes(0xa9, 0xa5, 0xb5, 0xad, 0xbd, 0xb9, 0xa1, 0xb1) },
   ldx: { category: 'load', description: 'X = the operand', modes: { imm: op(0xa2, 2), zp: op(0xa6, 3), zpy: op(0xb6, 4), abs: op(0xae, 4), aby: op(0xbe, 4, true) } },
   ldy: { category: 'load', description: 'Y = the operand', modes: { imm: op(0xa0, 2), zp: op(0xa4, 3), zpx: op(0xb4, 4), abs: op(0xac, 4), abx: op(0xbc, 4, true) } },
-  sta: { category: 'load', description: 'The operand = A', modes: { zp: op(0x85, 3), zpx: op(0x95, 4), abs: op(0x8d, 4), abx: op(0x9d, 5), aby: op(0x99, 5), izx: op(0x81, 6), izy: op(0x91, 6) } },
-  stx: { category: 'load', description: 'The operand = X', modes: { zp: op(0x86, 3), zpy: op(0x96, 4), abs: op(0x8e, 4) } },
-  sty: { category: 'load', description: 'The operand = Y', modes: { zp: op(0x84, 3), zpx: op(0x94, 4), abs: op(0x8c, 4) } },
+  sta: { category: 'load', description: 'Memory = A', modes: { zp: op(0x85, 3), zpx: op(0x95, 4), abs: op(0x8d, 4), abx: op(0x9d, 5), aby: op(0x99, 5), izx: op(0x81, 6), izy: op(0x91, 6) } },
+  stx: { category: 'load', description: 'Memory = X', modes: { zp: op(0x86, 3), zpy: op(0x96, 4), abs: op(0x8e, 4) } },
+  sty: { category: 'load', description: 'Memory = Y', modes: { zp: op(0x84, 3), zpx: op(0x94, 4), abs: op(0x8c, 4) } },
 
   tax: { category: 'transfer', description: 'X = A', modes: implied(0xaa) },
   tay: { category: 'transfer', description: 'Y = A', modes: implied(0xa8) },

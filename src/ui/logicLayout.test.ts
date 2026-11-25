@@ -4,6 +4,7 @@ import {
   columnCentre,
   columnOf,
   COLUMN_UNITS,
+  rowSaid,
   rowUnits,
   startsDigit
 } from './logicLayout';
@@ -27,5 +28,12 @@ describe('logicLayout', () => {
     expect(columnCentre(8, 3)).toBe(4 * COLUMN_UNITS + 1 + COLUMN_UNITS / 2);
     expect(rowUnits(8)).toBe(8 * COLUMN_UNITS + 1);
     expect(rowUnits(32)).toBe(32 * COLUMN_UNITS + 7);
+  });
+});
+
+describe('rowSaid', () => {
+  it('reads a row top bit first, in groups of four', () => {
+    // Bit 0 first in the array: 0b0110_0001.
+    expect(rowSaid('PC', [1, 0, 0, 0, 0, 1, 1, 0])).toBe('PC: 0110 0001');
   });
 });

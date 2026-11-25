@@ -219,7 +219,7 @@ export function unavailableText(link: AluLink | null): string | null {
 export function logicSections(phone: boolean, followsCpu: boolean): TopicSectionInfo[] {
   return [
     { id: 'circuit', label: 'Circuit' },
-    ...(phone ? [] : [{ id: 'gate', label: 'The gate picked' }]),
+    ...(phone ? [] : [{ id: 'gate', label: 'Gate picked' }]),
     {
       id: 'flags',
       label: followsCpu ? 'Where each flag comes from' : 'What the circuit can also tell'

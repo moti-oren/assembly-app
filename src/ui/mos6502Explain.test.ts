@@ -30,7 +30,7 @@ describe('the cycle in words', () => {
 
   it('decodes the mode, the registers and the cycles', () => {
     expect(describeDecode(program[1])).toBe(
-      'Load & store, absolute,X: The operand = A. It reads A and X. It will write a byte to memory. It takes 5 clock cycles.'
+      'Load & store, absolute,X: Memory = A. It reads A and X. It will write a byte to memory. It takes 5 clock cycles.'
     );
     expect(describeDecode(line('lda', { type: 'izy', address: 0x10 }))).toContain(
       'It takes 5 clock cycles, one more if indexing crosses a page.'

@@ -17,8 +17,10 @@
     z-index: 100;
     display: grid;
     place-items: center;
-    /* It is only a picture: clicks and keys reach the app beneath from the first frame. */
-    pointer-events: none;
+    /*
+     * It takes the first press, which ends it (splash.ts): a click must not land on a page that
+     * cannot be seen yet. Once it starts to leave, presses reach the page again.
+     */
     /* Should the app never mount, the page does not stay hidden behind it. */
     animation: splash-expire 300ms 8s forwards;
   }

@@ -31,7 +31,7 @@ const warning = computed(() => compareWarning(rows.value));
 
     <!-- Wider than a phone, where it scrolls sideways: what a jump does comes first for that. -->
     <div
-      class="scroll-fade-x overflow-x-auto outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      class="scroll-fade-x max-w-prose overflow-x-auto outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       tabindex="0"
       role="region"
       aria-label="Conditional jumps table"
@@ -43,7 +43,7 @@ const warning = computed(() => compareWarning(rows.value));
         <thead>
           <tr class="border-b text-left text-xs text-muted-foreground">
             <th scope="col" class="px-1.5 py-1.5 font-medium">Jump</th>
-            <th scope="col" class="px-1.5 py-1.5 font-medium">Now it</th>
+            <th scope="col" class="px-1.5 py-1.5 font-medium">For these numbers</th>
             <th scope="col" class="px-1.5 py-1.5 font-medium">Asks</th>
             <th scope="col" class="px-1.5 py-1.5 font-medium">Numbers</th>
             <th scope="col" class="px-1.5 py-1.5 font-medium">Goes by</th>

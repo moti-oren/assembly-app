@@ -80,11 +80,14 @@ function settingsFromMenu(): void {
       <slot name="context" />
 
       <div class="ml-auto flex items-center gap-1">
+        <!-- A page's own actions come first: Commands stays at the right end on every page. -->
+        <slot v-if="!compact" name="actions" />
         <!-- Below a desktop it is an icon like the menu beside it: two buttons of one kind. -->
         <Button
           :variant="compact ? 'ghost' : 'outline'"
           :size="compact ? 'icon-sm' : 'sm'"
-          class="mr-1 max-sm:mr-0 md:text-muted-foreground pointer-coarse:h-11 pointer-coarse:min-w-11"
+          class="md:text-muted-foreground pointer-coarse:h-11 pointer-coarse:min-w-11"
+          :class="compact ? 'mr-1 max-sm:mr-0' : 'ml-1'"
           aria-label="Commands"
           aria-keyshortcuts="Control+K Meta+K"
           @click="$emit('commands')"
@@ -97,13 +100,11 @@ function settingsFromMenu(): void {
           </template>
         </Button>
 
-        <slot v-if="!compact" name="actions" />
-
         <!--
           Below a desktop there is room for one menu: a sheet with the topics, the page's own
           actions, feedback and the settings, which a desktop has in its activity bar.
         -->
-        <template v-else>
+        <template v-if="compact">
           <Button
             variant="ghost"
             size="icon-sm"

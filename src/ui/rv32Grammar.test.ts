@@ -26,10 +26,13 @@ describe('RV32_GRAMMAR', () => {
   it('offers the registers by their ABI names, grouped by role', () => {
     const options = RV32_GRAMMAR.options([addi], none);
     expect(options.length).toBe(32);
-    expect(options[10]).toMatchObject({
-      label: 'a0',
+    expect(options.find((option) => option.label === 'a0')).toMatchObject({
       group: 'Arguments and return values (a0–a7)'
     });
+    // In the order of the registers panel: the arguments before the temporaries.
+    const labels = options.map((option) => option.label);
+    expect(labels.slice(0, 6)).toEqual(['zero', 'ra', 'sp', 'gp', 'tp', 'a0']);
+    expect(labels.indexOf('a7')).toBeLessThan(labels.indexOf('t0'));
   });
 
   it('offers a typed immediate only when it fits', () => {

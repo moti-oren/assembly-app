@@ -99,7 +99,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   io: 'Input & output',
   control: 'Jumps & calls',
   interrupt: 'Interrupts',
-  flags: 'Flag control'
+  flags: 'Flags & processor'
 };
 
 export interface InstructionSpec {

@@ -44,6 +44,16 @@ describe('aluEquation', () => {
   });
 });
 
+describe('a rotate', () => {
+  it('says which C went in', () => {
+    const acc: Operand = { type: 'acc' };
+    const rol = runAll(line('sec'), line('lda', imm(0x80)), line('rol', acc)).record;
+    expect(aluEquation(rol)?.note).toBe('the old C, 1, goes in');
+    const ror = runAll(line('clc'), line('lda', imm(0x01)), line('ror', acc)).record;
+    expect(aluEquation(ror)?.note).toBe('the old C, 0, goes in');
+  });
+});
+
 describe('flagReason', () => {
   it('explains C after a compare, unsigned', () => {
     const { state, record } = runAll(line('lda', imm(5)), line('cmp', imm(3)));

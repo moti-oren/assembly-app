@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,8 +11,9 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { clearStoredData } from '@/ui/storedData';
+import { clearStoredData, markCleared } from '@/ui/storedData';
 import { usePanelOrder } from '@/ui/usePanelOrder';
+import { useSettings } from '@/ui/useSettings';
 import { useSidebarLayout } from '@/ui/useSidebarLayout';
 import SettingsRow from './SettingsRow.vue';
 
@@ -20,6 +21,15 @@ const panelOrder = usePanelOrder();
 const sidebar = useSidebarLayout();
 const layoutIsDefault = computed(() => panelOrder.isDefault.value && sidebar.isDefault.value);
 const clearAsked = ref(false);
+const { justCleared } = useSettings();
+// A status region is heard when its text changes, not with the text it is mounted with: the
+// dialog opens holding the region empty, and the words come once it is there.
+const clearedSaid = ref(false);
+onMounted(() => {
+  setTimeout(() => {
+    clearedSaid.value = justCleared.value;
+  }, 300);
+});
 
 function resetLayout(): void {
   panelOrder.reset();
@@ -29,14 +39,17 @@ function resetLayout(): void {
 /** The page starts again from nothing: what is in memory would be written back otherwise. */
 function clearEverything(): void {
   clearStoredData(localStorage);
+  markCleared(sessionStorage);
   location.reload();
 }
 </script>
 
 <template>
   <!-- The button says what it does, so it keeps its own name, not the row's. -->
+  <!-- A phone has no sidebar to lay out: its views are one at a time. -->
   <SettingsRow
     v-slot="{ named }"
+    class="max-md:hidden"
     label="Panel layout"
     :description="
       layoutIsDefault
@@ -69,6 +82,12 @@ function clearEverything(): void {
       Clear everything…
     </Button>
   </SettingsRow>
+  <!-- Said once, in the page that Clear everything loaded: a reload alone shows nothing done. -->
+  <p role="status" class="text-sm text-pretty">
+    <template v-if="clearedSaid"
+      >Everything was cleared: the programs, the settings and the layout start afresh.</template
+    >
+  </p>
 
   <AlertDialog v-model:open="clearAsked">
     <AlertDialogContent>

@@ -1,18 +1,31 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
-import { ArrowDown, ArrowUp, Rewind } from '@lucide/vue';
+import { ArrowDown, ArrowRight, ArrowUp, Rewind } from '@lucide/vue';
 import { PC, type PcSolution } from '@/core/logic/programCounter';
 import { heldAt } from '@/core/logic/register';
 import { Button } from '@/components/ui/button';
-import { bitsOf, pcChoiceText, pcPhaseText } from '@/ui/controlView';
+import { bitsOf, pcChoiceText, pcClockAction, pcPhaseText } from '@/ui/controlView';
 import { hexOf } from '@/ui/logicView';
-import { CLOCK_ACTION } from '@/ui/storageView';
 import type { ControlLens } from '@/ui/useControlLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
 import LogicRow from './LogicRow.vue';
 
-const props = defineProps<{ lens: ControlLens; solution: PcSolution }>();
+const props = defineProps<{
+  lens: ControlLens;
+  solution: PcSolution;
+  /** The CPU's next instruction with a control unit to show, if there is one. */
+  next: number | null;
+}>();
+const emit = defineEmits<{ next: [position: number] }>();
+
+const action = computed(() =>
+  pcClockAction(props.lens.phase.value, props.next, props.lens.asRun.value)
+);
+function press(): void {
+  if (action.value.kind === 'clock') props.lens.clock();
+  else if (action.value.kind === 'next' && props.next !== null) emit('next', props.next);
+}
 
 const WIDTH = 32;
 
@@ -106,10 +119,17 @@ const SWITCHES = [
     </p>
 
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="lens.clock()">
-        <ArrowDown v-if="clockHigh" />
+      <Button
+        variant="outline"
+        size="sm"
+        class="aria-disabled:cursor-default aria-disabled:text-tertiary-foreground pointer-coarse:h-11"
+        :aria-disabled="action.kind === 'done' ? 'true' : undefined"
+        @click="press"
+      >
+        <ArrowRight v-if="action.kind !== 'clock'" />
+        <ArrowDown v-else-if="clockHigh" />
         <ArrowUp v-else />
-        {{ CLOCK_ACTION[phase] }}
+        {{ action.label }}
       </Button>
       <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
         Clock

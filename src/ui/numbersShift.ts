@@ -68,22 +68,22 @@ export function shiftSummary(scale: ScaleScaling, request: ScalingRequest): Shif
   const range = `${numberText(scale.range.min)} to ${numberText(scale.range.max)}`;
   if (request.direction === 'left') {
     return scale.fits
-      ? { sum, agrees: true, lead: null, verdict: `fits in ${range}` }
+      ? { sum, agrees: true, lead: null, verdict: `Fits in ${range}.` }
       : {
           sum,
           agrees: false,
           lead: 'Does not fit.',
-          verdict: `not in ${range}: the bits read ${shown}`
+          verdict: `The range is ${range}: the bits read ${shown}.`
         };
   }
   if (scale.agrees) {
     const rounded = scale.remainder ? ', rounded down' : '';
-    return { sum, agrees: true, lead: null, verdict: `the bits read ${shown}${rounded}` };
+    return { sum, agrees: true, lead: null, verdict: `The bits read ${shown}${rounded}.` };
   }
   return {
     sum,
     agrees: false,
     lead: 'Not this scale’s halving.',
-    verdict: `the bits read ${shown}: ${WRONG_FILL[request.fill]}`
+    verdict: `The bits read ${shown}: ${WRONG_FILL[request.fill]}.`
   };
 }

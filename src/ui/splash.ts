@@ -121,7 +121,14 @@ export function dismissSplash(): void {
     splash?.remove();
     return;
   }
+  let left = false;
   const leave = (): void => {
+    if (left) return;
+    left = true;
+    removeEventListener('pointerdown', skip, true);
+    removeEventListener('keydown', skip, true);
+    // What is behind it can be seen and pressed again as it goes.
+    splash.style.pointerEvents = 'none';
     const target = document.querySelector<HTMLElement>('[data-splash-target]');
     const landable = target !== null && isLandable(target.getBoundingClientRect());
     const playing = landable ? morph(splash, chip, target) : fade(splash, chip);
@@ -132,6 +139,12 @@ export function dismissSplash(): void {
     void Promise.allSettled(playing.map((animation) => animation.finished)).then(finish);
     setTimeout(finish, STUCK_MS);
   };
+  // The first press or key ends it at once: whoever is ready need not wait for the picture.
+  function skip(): void {
+    leave();
+  }
+  addEventListener('pointerdown', skip, true);
+  addEventListener('keydown', skip, true);
   // Counted once the lid's animation has really started, which may be a long frame away. A hidden
   // tab starts it when shown; a cancelled one (its ready rejected) still lets the splash leave.
   const lid = splash.querySelector('.splash-lid')?.getAnimations()[0];

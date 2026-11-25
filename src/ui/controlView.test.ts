@@ -10,6 +10,7 @@ import { rv32ControlLink } from '@/core/rv32ControlLink';
 import { memoryBefore } from '@/core/rv32ControlMemory';
 import { x86ControlLink } from '@/core/x86ControlLink';
 import {
+  pcClockAction,
   controlLabel,
   controlLines,
   equationText,
@@ -212,5 +213,18 @@ describe('fieldMarks', () => {
     expect(at(12)).toMatchObject({ label: null, start: false, end: true });
     expect(at(6).label).toBe('opcode');
     expect(at(20)).toMatchObject({ label: null, start: false, end: false, decoded: false });
+  });
+});
+
+describe('pcClockAction', () => {
+  it('moves the clock through its cycle, then goes on or says it is done', () => {
+    expect(pcClockAction('before', 3, true)).toEqual({ kind: 'clock', label: 'Raise the clock' });
+    expect(pcClockAction('high', 3, true).label).toBe('Lower the clock');
+    expect(pcClockAction('after', 3, true)).toEqual({
+      kind: 'next',
+      label: 'Step to the next instruction'
+    });
+    expect(pcClockAction('after', null, true).kind).toBe('done');
+    expect(pcClockAction('after', 3, false).kind).toBe('done');
   });
 });

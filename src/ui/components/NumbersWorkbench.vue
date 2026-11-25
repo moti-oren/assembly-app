@@ -51,7 +51,7 @@ const equation = computed(() => equationText(request.value, solution.value));
 
 /** The sidebar's sections. A value by itself, or one made wider, sets no flag: no section. */
 const sections = computed<TopicSectionInfo[]>(() => [
-  { id: 'numbers', label: 'Numbers' },
+  { id: 'numbers', label: 'What to show' },
   ...(lens.view.value.flags.length > 0 || lens.view.value.note
     ? [
         {

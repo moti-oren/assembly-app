@@ -430,7 +430,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   each bit of the result settles at. A flipped bit starts from the wires as they were, so only
   what it reaches moves; **Longest carry** loads the values that keep the adder busy longest.
   The same actions are in the command palette, under **Gate delays**.
-- **Break a gate**: in **The gate picked** on the left (on a phone, under the truth table of
+- **Break a gate**: in **Gate picked** on the left (on a phone, under the truth table of
   the gate you pressed), **Stuck at 0** or **Stuck at 1** holds its output at that value whatever its inputs are. A line above the circuit sets the
   broken circuit's answer beside the working one's, the wrong bits of the result are underlined,
   and the flags follow the broken wires. Often nothing is wrong at all: the inputs hide a fault
@@ -1045,7 +1045,7 @@ npm run verify:6502 # check the 6502 core against py65
   ביניהן; סיבית מקווקוות עוד תשתנה, ו-**ready at** מציין באיזו השהיה כל סיבית של התוצאה מתייצבת.
   סיבית שהופכים מתחילה מהחוטים כפי שהיו, כך שזז רק מה שהיא מגיעה אליו; **Longest carry** טוען את
   הערכים שמעסיקים את המחבר הכי הרבה זמן. אותן פעולות נמצאות גם בפלטת הפקודות, תחת **Gate delays**.
-- **שבירת שער**: ב-**The gate picked** משמאל (בטלפון: מתחת לטבלת האמת של השער שלחצתם עליו),
+- **שבירת שער**: ב-**Gate picked** משמאל (בטלפון: מתחת לטבלת האמת של השער שלחצתם עליו),
   **Stuck at 0** או **Stuck at 1** מחזיקים
   את הפלט שלו על הערך הזה, יהיו הקלטים אשר יהיו. שורה מעל המעגל מציבה את התשובה של המעגל השבור
   ליד התשובה של מעגל תקין, הסיביות השגויות בתוצאה מסומנות בקו תחתון, והדגלים הולכים אחרי החוטים

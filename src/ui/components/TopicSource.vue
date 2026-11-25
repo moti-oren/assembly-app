@@ -29,8 +29,16 @@ const mode = useLayoutMode();
           moment.instruction
         }}</span>
       </template>
-      <span v-else>Nothing has run on the {{ moment.cpu }} yet: these are values to try.</span>
+      <span v-else>Nothing has run yet on the {{ moment.cpu }} CPU: these are values to try.</span>
     </p>
+    <!-- An instruction that raised an error left no record: this page cannot show it. Said as
+         it happens, for a step taken from this page. -->
+    <div role="status">
+      <p v-if="moment.stopped" class="max-w-prose text-xs text-pretty">
+        The next instruction stopped with an error, and has nothing to show here:
+        {{ moment.stopped }}
+      </p>
+    </div>
     <!-- Said before the operation, so nobody takes the one below for this instruction's own. -->
     <p v-if="unavailable" class="max-w-prose text-xs text-pretty">
       {{ unavailable }}

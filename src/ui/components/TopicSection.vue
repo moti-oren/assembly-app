@@ -28,7 +28,8 @@ const sections = useTopicSections();
           <h2>{{ label }}</h2>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <!-- It scrolls when the section is short, and a browser then makes it a tab stop: named. -->
+      <CardContent role="group" :aria-label="label">
         <slot />
       </CardContent>
     </Card>

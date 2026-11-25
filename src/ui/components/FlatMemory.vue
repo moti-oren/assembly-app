@@ -288,12 +288,14 @@ function reveal(jump: () => void): void {
                       :style="{ backgroundColor: warmth(byte.address) }"
                       :class="{
                         'byte-pointed': pointed === byte.address,
-                        'font-semibold': heat.get(byte.address) === 0 || accessed(byte.address),
+                        // Bold is the machine code's: the last access has its line and its colour.
+                        'font-semibold': heat.get(byte.address) === 0,
                         underline: accessed(byte.address),
                         'byte-zero': byte.value === 0 && byte.region === 'ram'
                       }"
                     >
                       <RollingDigits :text="formatHex(byte.value, 8)" />
+                      <span v-if="accessed(byte.address)" class="sr-only">(the last access)</span>
                     </ChangeMark>
                   </WriteTip>
                 </td>

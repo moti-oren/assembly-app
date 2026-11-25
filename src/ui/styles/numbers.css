@@ -11,6 +11,12 @@
     /* The marks at the sides are wider than the room beside the ring: a minus must not be cut. */
     overflow: visible;
   }
+  /* A wide stage gives the two wheels room to be read without leaning in. */
+  @container (min-width: 64rem) {
+    .numbers-wheel {
+      max-width: 26rem;
+    }
+  }
   .wheel-ring {
     fill: none;
     stroke: var(--wire);
