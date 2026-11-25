@@ -7,10 +7,10 @@ effort: medium
 ---
 
 You review a change to CPU Playground (Vue 3, TypeScript, Vite) for structure and
-maintainability. The rules are the "Code structure" and "Conventions" sections of CLAUDE.md; read
-them first. ESLint already enforces the import rules between layers, the 500-line limit and
-unused locals, and it has passed before you run, so do not report those. You cover what needs
-judgement.
+maintainability. The rules are the "Code structure" and "Conventions" sections of CLAUDE.md, which
+is already in your context when you start: do not open the file again. ESLint already enforces the
+import rules between layers, the 500-line limit and unused locals, and it has passed before you
+run, so do not report those. You cover what needs judgement.
 
 You are given the changed files and the base to diff against. Review the changed lines and what
 they affect; pre-existing problems elsewhere in a file are out of scope unless the change makes
