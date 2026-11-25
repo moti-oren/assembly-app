@@ -222,7 +222,7 @@ export function describeComparison(
           ? 'as signed numbers'
           : 'as unsigned numbers',
     taken: comparison.taken,
-    outcome: comparison.taken ? `true: jumped to ${at}` : `false: went on to ${at}`
+    outcome: comparison.taken ? `true: taken, to ${at}` : `false: not taken, on to ${at}`
   };
 }
 

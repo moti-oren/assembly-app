@@ -72,7 +72,8 @@ function flagValues(flags: readonly string[], on: readonly string[]): string {
   return list(flags.map((flag) => `${flag} = ${on.includes(flag) ? 1 : 0}`));
 }
 
-const moved = (taken: boolean): string => (taken ? 'it jumped' : 'it fell through');
+/** A jump is taken or not taken, the words the Cycle card uses too. */
+const moved = (taken: boolean): string => (taken ? 'it was taken' : 'it was not taken');
 
 /** Checks an answer against the truth. The two are of the question's kind. */
 export function grade(
@@ -86,7 +87,7 @@ export function grade(
     return {
       correct: answer.taken === truth.taken,
       actual: moved(truth.taken),
-      said: answer.taken ? 'it would jump' : 'it would fall through',
+      said: answer.taken ? 'taken' : 'not taken',
       why
     };
   }
@@ -113,7 +114,7 @@ export function grade(
 export function promptOf(question: Question): string {
   switch (question.kind) {
     case 'branch':
-      return 'Will it jump?';
+      return 'Taken or not taken?';
     case 'value':
       return `What will ${question.register} hold?`;
     case 'flags':

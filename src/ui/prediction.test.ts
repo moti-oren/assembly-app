@@ -63,7 +63,7 @@ describe('grade', () => {
     const not: Answer = { kind: 'branch', taken: false };
     expect(grade(branch, taken, taken, 'why', format)).toMatchObject({ correct: true, why: 'why' });
     expect(verdict(grade(branch, taken, not, null, format))).toBe(
-      'Not quite: it fell through; you said it would jump.'
+      'Not quite: it was not taken; you said taken.'
     );
   });
 
