@@ -34,12 +34,15 @@ export function useStorageSequence() {
     pressSteps.value = 1;
   }
 
-  /** Every flip-flop back at 0, the inputs at 0, and the timing diagram empty. */
+  /**
+   * Every flip-flop back at 0, the clock low and the timing diagram empty. The circuit's own input
+   * starts at 1, so the first tick does something: a 1 comes in, or the count goes up.
+   */
   function reset(): void {
     trace.value = [];
     ticks.value = 0;
     apply(
-      { [SEQUENCE.clock]: 0, [SEQUENCE_INPUT[kind.value].signal]: 0 },
+      { [SEQUENCE.clock]: 0, [SEQUENCE_INPUT[kind.value].signal]: 1 },
       holding(SEQUENCE_WIDTH, 0)
     );
   }
