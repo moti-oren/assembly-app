@@ -83,17 +83,22 @@ watch(
       variant="outline"
       size="sm"
       class="quiet-disabled justify-start pointer-coarse:h-11 disabled:opacity-100"
-      :class="compact ? 'h-11 w-25 gap-1.5 px-2.5' : 'w-34'"
+      :class="
+        compact ? (ended ? 'size-11 justify-center p-0' : 'h-11 w-25 gap-1.5 px-2.5') : 'w-34'
+      "
       :aria-label="nextPhase.spoken"
       :disabled="finished"
       @click="emit('phase')"
     >
-      <Footprints v-if="!compact" />
-      <span v-if="compact" class="text-muted-foreground tabular-nums">{{ nextPhase.place }}</span>
-      {{ nextPhase.name }}
-      <span v-if="!compact" class="text-muted-foreground tabular-nums"
-        >· {{ nextPhase.place }}</span
-      >
+      <!-- Once the program has ended a narrow bar gives its room to Run again: a phase is an icon. -->
+      <Footprints v-if="!compact || ended" />
+      <template v-if="!(compact && ended)">
+        <span v-if="compact" class="text-muted-foreground tabular-nums">{{ nextPhase.place }}</span>
+        {{ nextPhase.name }}
+        <span v-if="!compact" class="text-muted-foreground tabular-nums"
+          >· {{ nextPhase.place }}</span
+        >
+      </template>
     </Button>
   </DisabledReason>
   <!-- One button for Run and Pause: it changes its face, so the focus on it is never lost. -->
