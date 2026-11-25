@@ -11,6 +11,7 @@ import {
   logicSections,
   operationOf,
   sameCircuit,
+  sameGates,
   shiftCount,
   unavailableText,
   withBitFlipped,
@@ -92,6 +93,14 @@ describe('sameCircuit', () => {
     expect(sameCircuit(add, { ...add, width: 8 })).toBe(false);
     expect(sameCircuit(shift, { ...shift, direction: 'right' })).toBe(false);
     expect(sameCircuit(shift, { ...shift, stages: repeatedStages(3) })).toBe(false);
+  });
+});
+
+describe('sameGates', () => {
+  it('takes a subtraction for the adder it runs on, and nothing else', () => {
+    expect(sameGates(add, { ...add, kind: 'subtract' })).toBe(true);
+    expect(sameGates(add, { kind: 'and', width: 16, a: 0, b: 0 })).toBe(false);
+    expect(sameGates(add, { ...add, kind: 'subtract', width: 8 })).toBe(false);
   });
 });
 
