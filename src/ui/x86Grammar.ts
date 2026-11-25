@@ -14,8 +14,7 @@ import { fitsIn, formatHex, type Size } from '@/core/shared/numbers';
 import { formatLabel } from '@/core/shared/program';
 import {
   MEMORY_BASES,
-  formatImmediate,
-  formatOperand,
+  formatOperandOf,
   memorySegment,
   type MemoryBase,
   type Operand
@@ -119,21 +118,26 @@ function memoryAddressOptions(size: Size, typed: number | null): X86Option[] {
   return options;
 }
 
-/** The number in the base its label does not use: the label of 5 is `5`, of 65 it is `0x41`. */
-function otherBase(value: number, size: Size): string {
-  return formatImmediate(value).startsWith('0x') ? String(value) : `${formatHex(value, size)}h`;
+/** The number in the base its label does not use: the label of 65 is `65`, its hint 0041h. */
+function otherBase(label: string, value: number, size: Size): string {
+  return label.startsWith('0x') ? String(value) : `${formatHex(value, size)}h`;
 }
 
-/** A typed number that fits the immediate, and the count of 1 that shifts take. */
-function numberOptions(choices: OperandChoices, typed: number | null): X86Option[] {
+/** A typed number that fits the immediate, written as the instruction will write it. */
+function numberOptions(
+  mnemonic: Mnemonic,
+  choices: OperandChoices,
+  typed: number | null
+): X86Option[] {
   const options: X86Option[] = [];
   if (choices.immediate !== null && typed !== null && fitsIn(typed, choices.immediate)) {
     const size = choices.immediate;
+    const label = formatOperandOf(mnemonic, { type: 'imm', value: typed });
     options.push({
       key: 'imm',
-      label: formatImmediate(typed),
+      label,
       group: `A number (${size} bits)`,
-      hint: `= ${otherBase(typed, size)}, ${size}-bit immediate`,
+      hint: `= ${otherBase(label, typed, size)}, ${size}-bit immediate`,
       matchesNumber: anyNumber,
       action: { kind: 'operand', operand: { type: 'imm', value: typed } }
     });
@@ -194,7 +198,7 @@ function operandOptions(mnemonic: Mnemonic, draft: BuilderDraft): X86Option[] {
   // so there the lines come last and Enter does not pick L0.
   const linesFirst = choices.registers.length === 0;
   return [
-    ...numberOptions(choices, draft.typed),
+    ...numberOptions(mnemonic, choices, draft.typed),
     ...(linesFirst ? lines : []),
     ...registerOptions(choices.registers),
     ...memoryOptions(choices.memory),
@@ -265,12 +269,16 @@ const NO_CONTEXT: DraftContext = { typed: null, programLines: [] };
 function tokensOf(chosen: readonly OptionAction[]): DraftToken[] {
   const tokens: DraftToken[] = [];
   let memory: { at: number; size: Size } | null = null;
+  let mnemonic = '';
   for (const [at, action] of chosen.entries()) {
     if (action.kind === 'prefix') tokens.push({ label: action.prefix, head: true, keep: at });
-    if (action.kind === 'mnemonic') tokens.push({ label: action.mnemonic, head: true, keep: at });
+    if (action.kind === 'mnemonic') {
+      mnemonic = action.mnemonic;
+      tokens.push({ label: action.mnemonic, head: true, keep: at });
+    }
     if (action.kind === 'memory') memory = { at, size: action.size };
     if (action.kind === 'operand') {
-      tokens.push({ label: formatOperand(action.operand), keep: memory?.at ?? at });
+      tokens.push({ label: formatOperandOf(mnemonic, action.operand), keep: memory?.at ?? at });
       memory = null;
     }
   }

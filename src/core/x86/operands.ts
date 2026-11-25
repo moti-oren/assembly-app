@@ -1,4 +1,4 @@
-import { fitsIn, formatHex, type Size } from '../shared/numbers';
+import { codeText, fitsIn, formatHex, immediateText, type Size } from '../shared/numbers';
 import { formatLabel } from '../shared/program';
 import {
   isByteRegister,
@@ -135,12 +135,8 @@ export function effectiveAddress(
   return physicalAddress(segment, effectiveOffset(state, operand));
 }
 
-export function formatImmediate(value: number): string {
-  // Small and negative values read best in decimal, everything else in hex.
-  if (value < 10) {
-    return String(value);
-  }
-  return `0x${value.toString(16).toUpperCase()}`;
+function formatImmediate(value: number): string {
+  return immediateText(value);
 }
 
 export function formatOperand(operand: Operand): string {
@@ -163,4 +159,17 @@ export function formatOperand(operand: Operand): string {
     case 'label':
       return formatLabel(operand.target);
   }
+}
+
+/** The instructions whose number is a code or an address, not an amount: a vector, a port. */
+const CODE_NUMBERS = new Set(['int', 'in', 'out']);
+
+/**
+ * An operand as its instruction writes it: an interrupt's number and a port in hex, as every
+ * listing (and the devices panel) writes them; any other number as an amount.
+ */
+export function formatOperandOf(mnemonic: string, operand: Operand): string {
+  return CODE_NUMBERS.has(mnemonic) && operand.type === 'imm'
+    ? codeText(operand.value)
+    : formatOperand(operand);
 }

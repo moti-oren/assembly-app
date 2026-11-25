@@ -72,7 +72,7 @@ describe('RV32_GRAMMAR', () => {
   });
 
   it('accepts any 32-bit value for LI', () => {
-    expect(labels([li, reg(10)], { ...none, typed: 0xdeadbeef })).toEqual(['0xdeadbeef']);
+    expect(labels([li, reg(10)], { ...none, typed: 0xdeadbeef })).toEqual(['0xDEADBEEF']);
   });
 
   it('describes a real instruction with its format', () => {

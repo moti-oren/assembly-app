@@ -31,7 +31,7 @@ describe('li', () => {
 
   it('is LUI alone when the low 12 bits are 0', () => {
     expect(text(loadImmediate(10, 0x10000000))).toEqual(['lui a0, 0x10000']);
-    expect(text(loadImmediate(10, -4096))).toEqual(['lui a0, 0xfffff']);
+    expect(text(loadImmediate(10, -4096))).toEqual(['lui a0, 0xFFFFF']);
   });
 
   it('always leaves exactly the value asked for', () => {

@@ -88,3 +88,24 @@ export function formatBinary(value: number, size: Size): string {
   const bits = truncate(value, size).toString(2).padStart(size, '0');
   return bits.replace(/(.{4})(?=.)/g, '$1 ');
 }
+
+/** A number written in hex as an instruction writes it: `0x1F`, in capitals. */
+export function hexLiteral(value: number): string {
+  return `0x${value.toString(16).toUpperCase()}`;
+}
+
+/**
+ * An instruction's number as it reads best: up to 255 (and below 0) in decimal, as it is mostly
+ * typed, larger in hex.
+ */
+export function immediateText(value: number): string {
+  return value < 256 ? String(value) : hexLiteral(value);
+}
+
+/**
+ * A number that stands for bits or a code rather than an amount (an interrupt's, LUI's upper
+ * bits): in hex from 10 up, as every listing writes it.
+ */
+export function codeText(value: number): string {
+  return value < 10 ? String(value) : hexLiteral(value);
+}

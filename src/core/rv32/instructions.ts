@@ -1,3 +1,4 @@
+import { codeText } from '../shared/numbers';
 import { formatOperand, matchesKind, type Operand, type OperandKind } from './operands';
 
 /**
@@ -129,6 +130,14 @@ export function isValid({ mnemonic, operands }: Instruction): boolean {
   );
 }
 
+/** LUI's and AUIPC's number is the top 20 bits of a word: read in hex, as its bits are. */
+const UPPER_IMMEDIATE = new Set<Mnemonic>(['lui', 'auipc']);
+
 export function formatInstruction({ mnemonic, operands }: Instruction): string {
-  return operands.length ? `${mnemonic} ${operands.map(formatOperand).join(', ')}` : mnemonic;
+  const written = operands.map((operand) =>
+    UPPER_IMMEDIATE.has(mnemonic) && operand.type === 'imm'
+      ? codeText(operand.value)
+      : formatOperand(operand)
+  );
+  return written.length ? `${mnemonic} ${written.join(', ')}` : mnemonic;
 }

@@ -10,7 +10,7 @@ import {
   type Mnemonic
 } from './instructions';
 import type { Size } from '../shared/numbers';
-import { formatOperand, memorySegment, type OperandKind } from './operands';
+import { formatOperandOf, memorySegment, type OperandKind } from './operands';
 import { WORD_REGISTERS, wordOf, type WordRegister } from './registers';
 
 export const OPERAND_KIND_LABELS: Record<OperandKind, string> = {
@@ -253,7 +253,7 @@ export function decode(instruction: Instruction): Decoded {
     description: prefix ? `${REPEAT_PREFIXES[prefix]}: ${spec.description}` : spec.description,
     size,
     operands: operands.map((operand, index) => ({
-      text: formatOperand(operand),
+      text: formatOperandOf(mnemonic, operand),
       kind: form[index],
       role: operandRoles[index]
     })),
