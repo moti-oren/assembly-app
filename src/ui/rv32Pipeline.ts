@@ -45,10 +45,10 @@ export function isPredictor(value: unknown): value is PredictorKind {
 }
 
 export const PREDICTOR_COMMANDS: Record<PredictorKind, string> = {
-  'not-taken': 'Predict branches in the pipeline: never taken',
-  taken: 'Predict branches in the pipeline: always taken',
-  'one-bit': 'Predict branches in the pipeline: 1 bit, what each did last',
-  'two-bit': 'Predict branches in the pipeline: 2 bits, what each mostly did'
+  'not-taken': 'Branch predictor: never taken',
+  taken: 'Branch predictor: always taken',
+  'one-bit': 'Branch predictor: 1 bit, what each did last',
+  'two-bit': 'Branch predictor: 2 bits, what each mostly did'
 };
 
 /** A cycle in a stage: doing its work, waiting there, or on an instruction that was flushed. */
@@ -196,7 +196,8 @@ export function pipelineNotes(
     const flush = flushNote(row);
     if (flush) notes.push(flush);
   });
-  return notes;
+  // Two rows can come to the same sentence: it is said once.
+  return [...new Set(notes)];
 }
 
 const did = (taken: boolean) => (taken ? 'taken' : 'not taken');

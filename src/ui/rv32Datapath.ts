@@ -103,7 +103,9 @@ function executed(
   return {
     execute: equation
       ? {
-          use: 'write',
+          // Orange only where the ALU's result is written to a register; an address it worked
+          // out for a load or a store is read on, not kept, and a result for x0 is thrown away.
+          use: decoded.writeBack === 'alu' && written !== undefined ? 'write' : 'read',
           text: `${equation.left} ${equation.operator} ${equation.right} = ${equation.result}`
         }
       : comparison
@@ -121,7 +123,8 @@ function executed(
     nextPc: comparison
       ? {
           use: comparison.taken ? 'write' : 'read',
-          text: `${comparison.left} ${comparison.operator} ${comparison.right}: ${comparison.outcome}`
+          // A question and its answer: `t0 (0) ≠ zero (0)? No: on to …` read as one claim.
+          text: `${comparison.left} ${comparison.operator} ${comparison.right}? ${comparison.taken ? 'Yes: jumps to' : 'No: on to'} ${at}`
         }
       : { use: decoded.nextPc === 'jump' ? 'write' : 'read', text: `PC = ${at}` }
   };

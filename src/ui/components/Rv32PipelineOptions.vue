@@ -56,13 +56,16 @@ function setPredictor(value: unknown): void {
       :title="PREDICTOR_INFO[predictor]"
     >
       <SelectValue>
-        <span class="text-muted-foreground">Branches</span>
+        <span class="text-muted-foreground">Predictor</span>
         {{ predictorLabel(predictor) }}
       </SelectValue>
     </SelectTrigger>
     <SelectContent>
       <SelectItem v-for="option in PREDICTOR_OPTIONS" :key="option.value" :value="option.value">
-        {{ option.label }}
+        <span class="flex flex-col">
+          {{ option.label }}
+          <span class="text-xs text-muted-foreground">{{ PREDICTOR_INFO[option.value] }}</span>
+        </span>
       </SelectItem>
     </SelectContent>
   </Select>

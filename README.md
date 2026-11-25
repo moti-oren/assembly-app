@@ -310,7 +310,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   up to five at once, cycle by cycle. A dashed cell is a cycle spent waiting: an instruction that
   needs a value a load has not brought yet waits one cycle in ID. A branch or jump changes PC in
   EX, two cycles after it was fetched, so what is fetched behind it until then is a guess; when
-  the guess is wrong, the two instructions fetched behind it are struck out (flushed). **Branches**
+  the guess is wrong, the two instructions fetched behind it are struck out (flushed). **Predictor**
   picks how a conditional branch is guessed: **Not taken** (the next lines are fetched), **Taken**
   (its target is), **1 bit** (what this branch did last time) or **2 bits** (what it mostly did:
   once the guess is sure, one wrong guess does not change it). A ✓ on a branch's EX is a guess that was right, a ✗ one
@@ -937,7 +937,7 @@ npm run verify:6502 # check the 6502 core against py65
   כפי שה-pipeline הקלאסי בן חמשת השלבים היה מריץ אותן, IF, ID, EX, MEM ו-WB, עד חמש בבת אחת, מחזור
   אחר מחזור. משבצת מקווקוות היא מחזור של המתנה: הוראה שצריכה ערך שטעינה עוד לא הביאה מחכה מחזור
   אחד ב-ID. ענף או קפיצה משנים את PC ב-EX, שני מחזורים אחרי שנשלפו, ולכן מה שנשלף אחריהם עד אז הוא ניחוש;
-  כשהניחוש שגוי, שתי ההוראות שנשלפו אחריהם מסומנות בקו (flush). **Branches** בוחר איך מנחשים ענף
+  כשהניחוש שגוי, שתי ההוראות שנשלפו אחריהם מסומנות בקו (flush). **Predictor** בוחר איך מנחשים ענף
   מותנה: **Not taken** (נשלפות השורות הבאות), **Taken** (נשלף היעד שלו), **1 bit** (מה שהענף הזה
   עשה בפעם הקודמת) או **2 bits** (מה שעשה ברוב הפעמים: כשהניחוש כבר בטוח, ניחוש שגוי אחד לא משנה אותו). ✓ על
   ה-EX של ענף הוא ניחוש נכון, ✗ ניחוש שעלה ב-flush; הריצו לולאה תחת כל אחד כדי לראות כמה היא
