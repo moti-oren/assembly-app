@@ -11,7 +11,7 @@ import type { CpuState } from '@/core/mos6502/state';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { MOS6502_DEVICE_ACCESS } from '@/ui/deviceAccess';
-import { MOS6502_CODE_PLACE, mos6502LineCode } from '@/ui/programCode';
+import { MOS6502_CODE_PLACE, SHORT_LINE_ADDRESS, mos6502LineCode } from '@/ui/programCode';
 import { memoryAccessOf } from '@/ui/mos6502Access';
 import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
@@ -210,6 +210,7 @@ followBuilder(draft);
           :format="formatInstruction"
           :code="assembled.lines.map(mos6502LineCode)"
           :code-place="MOS6502_CODE_PLACE"
+          :line-address="SHORT_LINE_ADDRESS"
           :ip="nextLine"
           :last-line="lastRecord?.line ?? null"
           :finished="finished"

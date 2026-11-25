@@ -10,7 +10,7 @@ import { DATA_BASE, type CpuState } from '@/core/rv32/state';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { RV32_DEVICE_ACCESS } from '@/ui/deviceAccess';
-import { RV32_CODE_PLACE, rv32LineCode } from '@/ui/programCode';
+import { RV32_CODE_PLACE, SHORT_LINE_ADDRESS, rv32LineCode } from '@/ui/programCode';
 import { describeAccess } from '@/ui/rv32Explain';
 import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
 import { byteAt, rv32MemoryPlaces, RV32_ADDRESSES } from '@/ui/rv32View';
@@ -223,6 +223,7 @@ followBuilder(draft);
           :format="formatInstruction"
           :code="assembled.lines.map(rv32LineCode)"
           :code-place="RV32_CODE_PLACE"
+          :line-address="SHORT_LINE_ADDRESS"
           :ip="nextLine"
           :last-line="lastRecord?.line ?? null"
           :finished="finished"

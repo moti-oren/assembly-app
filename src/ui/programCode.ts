@@ -33,3 +33,9 @@ export function mos6502LineCode(line: Mos6502Line): LineCode {
 }
 
 export const MOS6502_CODE_PLACE: CodePlace = (address) => `address $${formatHex(address, 16)}`;
+
+/**
+ * A line's address in memory, written short as the program panel shows it beside the label. Four
+ * hex digits hold any of them: the 6502's addresses are 16 bits, and RISC-V's code starts at 0.
+ */
+export const SHORT_LINE_ADDRESS: CodePlace = (address) => formatHex(address, 16);

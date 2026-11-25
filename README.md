@@ -285,7 +285,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   `s0`–`s11`). `x0` always reads 0, and writes to it are thrown away.
 - PC is a real address. Every instruction is 4 bytes, so line `Ln` is at address `4n`. `jal` puts
   the address of the next instruction in its register (`ra` for a call), and `ret` is
-  `jalr zero, 0(ra)`.
+  `jalr zero, 0(ra)`. The Program panel writes each line's address beside its label.
 - Memory is one flat space of 32-bit addresses: 1MB of RAM from `0x00000000`, with the program's
   code at its start, and the devices from `0x10000000`. The code can be read (it is its machine
   code) but a store into it is an error: the program cannot change itself. An access that is not
@@ -342,9 +342,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   under the box says what the highlighted one means and how many cycles it takes. A shift also
   offers `a`, and a branch, JMP or JSR offers the program's lines.
 - PC is a real address, and an instruction is 1 to 3 bytes, so each line's address depends on the
-  lines before it. The code starts at `$0600`, the zero page is `$0000`–`$00FF`, the stack is page
-  `$01`, the devices are at `$D000` (LEDs `$D010`, switches `$D011`, digits `$D012` and `$D013`,
-  terminal `$D020`), and the BRK vector is at `$FFFE`.
+  lines before it; the Program panel writes it beside the line's label. The code starts at `$0600`,
+  the zero page is `$0000`–`$00FF`, the stack is page `$01`, the devices are at `$D000` (LEDs
+  `$D010`, switches `$D011`, digits `$D012` and `$D013`, terminal `$D020`), and the BRK vector is at
+  `$FFFE`.
 - The CPU diagram shows the registers and the flags, the ALU's sum, the **address unit** (how the
   addressing mode formed the address: `$02F0 + X ($20) = $0310`, or the pointer read from the zero
   page) and the cycles the instruction took, the extra one for crossing a page or taking a branch
@@ -919,7 +920,8 @@ npm run verify:6502 # check the 6502 core against py65
 - 32 רגיסטרים, `x0` עד `x31`, שמוצגים בשמות ה-ABI שלהם (`zero`, `ra`, `sp`, `a0`–`a7`,
   `t0`–`t6`, `s0`–`s11`). `x0` תמיד קורא 0, וכתיבה אליו נזרקת.
 - PC הוא כתובת אמיתית. כל הוראה היא 4 בתים, ולכן שורה `Ln` נמצאת בכתובת `4n`. `jal` שם ברגיסטר
-  שלו את הכתובת של ההוראה הבאה (`ra` בקריאה לפונקציה), ו-`ret` הוא `jalr zero, 0(ra)`.
+  שלו את הכתובת של ההוראה הבאה (`ra` בקריאה לפונקציה), ו-`ret` הוא `jalr zero, 0(ra)`. חלונית
+  התוכנית כותבת את הכתובת של כל שורה ליד התווית שלה.
 - הזיכרון הוא מרחב אחד שטוח של כתובות של 32 סיביות: 1MB של RAM החל מ-`0x00000000`, כשהקוד של
   התוכנית בתחילתו, וההתקנים החל מ-`0x10000000`. אפשר לקרוא את הקוד (זה קוד המכונה שלו), אבל כתיבה
   לתוכו היא שגיאה: התוכנית לא יכולה לשנות את עצמה. גם גישה שאינה מיושרת לגודל שלה, או לכתובת שאין
@@ -968,7 +970,8 @@ npm run verify:6502 # check the 6502 core against py65
   `#$10`, `$10`, `$10,x`, `$0010`, `$0010,x`, `($10,x)`, `($10),y` וכן הלאה. השורה שמתחת לתיבה
   אומרת מה המסומנת אומרת וכמה מחזורי שעון היא לוקחת. הזזה מציעה גם `a`, וענף, JMP או JSR מציעים
   את שורות התוכנית.
-- PC הוא כתובת אמיתית, והוראה היא 1 עד 3 בתים, ולכן הכתובת של כל שורה תלויה בשורות שלפניה. הקוד
+- PC הוא כתובת אמיתית, והוראה היא 1 עד 3 בתים, ולכן הכתובת של כל שורה תלויה בשורות שלפניה; חלונית
+  התוכנית כותבת אותה ליד התווית של השורה. הקוד
   מתחיל ב-`$0600`, ה-zero page הוא `$0000`–`$00FF`, המחסנית היא עמוד `$01`, ההתקנים ב-`$D000`
   (נורות `$D010`, מתגים `$D011`, ספרות `$D012` ו-`$D013`, מסוף `$D020`), והווקטור של BRK ב-`$FFFE`.
 - דיאגרמת ה-CPU מציגה את הרגיסטרים והדגלים, את החישוב ב-ALU, את **יחידת הכתובת** (איך שיטת
