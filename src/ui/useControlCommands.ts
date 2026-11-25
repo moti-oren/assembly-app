@@ -51,7 +51,7 @@ export function useControlCommands(
       },
       {
         group: 'Program counter',
-        label: 'Start the clock cycle over',
+        label: 'Rewind the clock',
         disabled: !counted || phase === 'before',
         run: lens.rewind
       },

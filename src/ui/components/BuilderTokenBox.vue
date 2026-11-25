@@ -37,6 +37,9 @@ const ARROWS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 /** Esc clears; the arrows move within the box, or with Alt (or an empty box) through the choices. */
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape') {
+    // Esc that cleared something is used up; on an empty box it is left to the page (a tablet's
+    // drawer closes on it).
+    if (props.tokens.length > 0 || filter.value !== '') event.preventDefault();
     emit('clear');
     return;
   }

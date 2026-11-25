@@ -114,7 +114,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
   {
     name: 'Switches, digits and terminal',
     description:
-      'LDA reads the switches at $D011; STA copies them to the LEDs and a digit, then prints HI',
+      'LDA reads the switches at $D011; STA copies them to the LEDs and a digit, then prints HI. Set a switch in the I/O panel first: with all off, the LEDs stay dark',
     program: [
       line('lda', device(PORTS.switches)),
       line('sta', device(PORTS.leds)),

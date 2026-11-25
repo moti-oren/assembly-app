@@ -21,6 +21,9 @@ describe('givenNote', () => {
     expect(givenNote(0)).toBeNull();
     expect(givenNote(1)).toBe('L0 is given, and locked: write under it.');
     expect(givenNote(2)).toBe('L0 to L1 are given, and locked: write under them.');
+    expect(givenNote(1, true)).toBe(
+      'L0 is given, and locked: write under it. The limits count only the lines you write.'
+    );
   });
 });
 

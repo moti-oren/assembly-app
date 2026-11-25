@@ -62,7 +62,14 @@ export function scaleSummary(
     sum: `${text(solution.a)} ${sign} ${second}${carried} = ${text(solution.exact)}`,
     fits: solution.fits,
     verdict: solution.fits
-      ? `fits in ${range}`
-      : `outside ${range}: the bits read ${text(solution.shown)}`
+      ? `Fits in ${range}.`
+      : `Does not fit in ${range}: the bits read ${text(solution.shown)}.`
   };
+}
+
+/** Both scales' readings as one thing to say, for a screen reader when an input changes. */
+export function scalesSaid(scales: readonly { scale: string; summary: ScaleSummary }[]): string {
+  return scales
+    .map(({ scale, summary }) => `${scale}: ${summary.sum}. ${summary.verdict}`)
+    .join(' ');
 }

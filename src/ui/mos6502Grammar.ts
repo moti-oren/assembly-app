@@ -12,7 +12,13 @@ import {
   type Opcode
 } from '@/core/mos6502/instructions';
 import { formatOperand, hex, MODE_NAMES, type Mode, type Operand } from '@/core/mos6502/operands';
-import type { BuilderOption, DraftContext, DraftToken, InstructionGrammar } from './builderGrammar';
+import {
+  END_OF_PROGRAM,
+  type BuilderOption,
+  type DraftContext,
+  type DraftToken,
+  type InstructionGrammar
+} from './builderGrammar';
 
 /** What choosing an option adds to a 6502 instruction: the mnemonic, then at most one operand. */
 export type Mos6502Action =
@@ -135,6 +141,8 @@ function numberOptions(mnemonic: Mnemonic, typed: number): Option[] {
   const { modes } = getSpec(mnemonic);
   // JMP's absolute mode is its line: a number there could land between two lines.
   const offered = (mode: Mode) => modes[mode] && !(mode === 'abs' && takesLine(mnemonic));
+  // A number is never JMP's target itself, only where it reads one: say so beside it.
+  const through = mnemonic === 'jmp' ? '. To jump to a line, pick one of L0, L1, … instead' : '';
   return NUMBER_MODES.filter(({ mode, fits }) => offered(mode) && fits(typed)).map(
     ({ mode, operand, meaning }) => {
       const chosen = operand(typed);
@@ -143,7 +151,7 @@ function numberOptions(mnemonic: Mnemonic, typed: number): Option[] {
         label: formatOperand(chosen),
         group: `${MODE_NAMES[mode][0].toUpperCase()}${MODE_NAMES[mode].slice(1)}`,
         // The cycles first: a long meaning is what gets cut on a narrow line, not the count.
-        hint: `${cycles(modes[mode]!)} · ${meaning(typed)}`,
+        hint: `${cycles(modes[mode]!)} · ${meaning(typed)}${through}`,
         matchesNumber: () => true,
         action: { kind: 'operand', operand: chosen }
       };
@@ -156,7 +164,7 @@ function lineOptions(mnemonic: Mnemonic, programLines: readonly string[]): Optio
     key: `label${target}`,
     label: formatLabel(target),
     group: isBranch(mnemonic) ? 'Branch to program line' : 'Jump to program line',
-    hint: programLines[target] ?? 'end of program',
+    hint: programLines[target] ?? END_OF_PROGRAM,
     matchesNumber: (value: number) => value === target,
     action: { kind: 'operand', operand: { type: 'label', target } }
   }));

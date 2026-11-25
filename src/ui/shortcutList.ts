@@ -16,6 +16,7 @@ export function shortcutList(apple: boolean): Shortcut[] {
     { label: 'Run or pause the program', keys: transport.run },
     { label: 'Undo the last step', keys: transport.undo },
     { label: 'Redo it', keys: transport.redo },
+    { label: 'Redo it, the other way', keys: apple ? ['⌘', 'Y'] : ['Ctrl', 'Y'] },
     { label: 'Open the commands', keys: apple ? ['⌘', 'K'] : ['Ctrl', 'K'] },
     { label: 'Run the instruction', keys: ['Enter'], where: 'In the instruction builder' },
     {
@@ -25,6 +26,13 @@ export function shortcutList(apple: boolean): Shortcut[] {
     },
     { label: 'Check your guess', keys: ['Enter'], where: "In a question's answer box" },
     { label: 'Skip the question', keys: ['Esc'], where: 'In a question before a step' },
-    { label: 'Move a panel', keys: ['Alt', '↑ ↓'], where: "On a sidebar panel's handle" }
+    { label: 'Move a panel', keys: ['Alt', '↑ ↓'], where: "On a sidebar panel's handle" },
+    {
+      label: 'Move a panel to the top or the bottom',
+      keys: ['Alt', 'Home End'],
+      where: "On a sidebar panel's handle"
+    },
+    { label: 'Resize a panel', keys: ['↑ ↓'], where: 'On the line under a sidebar panel' },
+    { label: 'Move a line of the program', keys: ['Alt', '↑ ↓'], where: 'On a program line' }
   ];
 }

@@ -63,7 +63,7 @@ describe('shiftSummary', () => {
       sum: '253 × 2 = 506',
       agrees: false,
       lead: 'Does not fit.',
-      verdict: 'outside 0 to 255: the bits read 250'
+      verdict: 'not in 0 to 255: the bits read 250'
     });
   });
 

@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { mos6502AluLink } from '@/core/mos6502AluLink';
 import { aluEquation, equationText } from '@/ui/mos6502Alu';
 import { mos6502NumberLink } from '@/core/mos6502NumberLink';
-import { cyclesBreakdown } from '@/ui/mos6502Explain';
+import { addressSteps, cyclesBreakdown } from '@/ui/mos6502Explain';
 import OperationLinks from './OperationLinks.vue';
 
 const props = defineProps<{
@@ -35,6 +35,13 @@ const text = computed(() => equation.value && equationText(equation.value));
         </span>
         <span v-else class="ml-auto font-sans text-xs text-muted-foreground">
           The ALU was not used.
+        </span>
+        <!-- How the operand's address was formed, as the diagram's address unit says it. -->
+        <span
+          v-if="record.addressing"
+          class="w-full text-right font-sans text-xs text-muted-foreground"
+        >
+          Address: <span class="font-mono">{{ addressSteps(record.addressing) }}</span>
         </span>
         <span class="w-full text-right font-sans text-xs text-muted-foreground">
           {{ cyclesBreakdown(record) }}

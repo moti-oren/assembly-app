@@ -4,7 +4,7 @@ import { writePort } from '@/core/shared/state';
 import { codeByte } from '@/core/mos6502/encode';
 import type { Instruction } from '@/core/mos6502/instructions';
 import { CODE_BASE, createCpuState, DEVICE_BASE } from '@/core/mos6502/state';
-import { byteAt, mos6502MemoryPlaces } from './mos6502View';
+import { byteAt, mos6502MemoryPlaces, pByteText } from './mos6502View';
 
 const program: Instruction[] = [{ mnemonic: 'lda', operands: [{ type: 'imm', value: 0x42 }] }];
 
@@ -32,5 +32,12 @@ describe('mos6502MemoryPlaces', () => {
     state.registers.sp = 0xfb;
     const stack = mos6502MemoryPlaces(state).find((place) => place.stack)!;
     expect(stack.start()).toBe(0x01fc);
+  });
+});
+
+describe('pByteText', () => {
+  it('reads bit 5 as 1, whatever is kept', () => {
+    expect(pByteText(0x00)).toBe('$20');
+    expect(pByteText(0xc3)).toBe('$E3');
   });
 });

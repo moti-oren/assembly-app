@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { written } from '@/core/registerLink';
 import {
+  cpuWriteIndex,
+  keptBits,
+  rewrittenText,
   phaseText,
   cellLabel,
   equationText,
@@ -109,5 +112,51 @@ describe('phaseText', () => {
     expect(phaseText('after', { ...request, enabled: 0x0f })).toContain(
       'the others what they held'
     );
+  });
+});
+
+describe('keptBits', () => {
+  it('marks the bits whose write line is off, bit 0 first', () => {
+    expect(keptBits({ width: 8, held: 0, input: 0, enabled: 0x0f })).toEqual([
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]);
+  });
+});
+
+describe('cpuWriteIndex', () => {
+  const ax = written('AX', 16, 0x1234, 0x5678, 0xffff);
+  const bx = written('BX', 16, 0, 1, 0xffff);
+
+  it('finds the write a register picked elsewhere is, values and all', () => {
+    expect(cpuWriteIndex([ax, bx], written('BX', 16, 0, 1, 0xffff))).toBe(1);
+  });
+
+  it('is -1 for another register, or the same one with a value changed', () => {
+    expect(cpuWriteIndex([ax], written('CX', 16, 0x1234, 0x5678, 0xffff))).toBe(-1);
+    expect(cpuWriteIndex([ax], written('AX', 16, 0x1234, 0x5679, 0xffff))).toBe(-1);
+  });
+});
+
+describe('rewrittenText', () => {
+  // MOV AL, 5 with AX = 0x1234: the inputs carry 0x1205, and only the low write lines are on.
+  const request = { width: 16 as const, held: 0x1234, input: 0x1205, enabled: 0xffff };
+
+  it('says that a bit the CPU did not write is written with what it held', () => {
+    expect(rewrittenText({ ...request, enabled: 0x80ff }, 0x00ff)).toMatch(
+      /^Bit 15 is written too, with the 0 it already held/
+    );
+    expect(rewrittenText(request, 0x00ff)).toMatch(/^Bits 8 to 15 are written too/);
+  });
+
+  it('is null where no line was added, or an added bit changes', () => {
+    expect(rewrittenText({ ...request, enabled: 0x00ff }, 0x00ff)).toBeNull();
+    expect(rewrittenText({ ...request, input: 0x9205, enabled: 0x80ff }, 0x00ff)).toBeNull();
   });
 });

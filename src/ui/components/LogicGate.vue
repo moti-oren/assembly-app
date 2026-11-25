@@ -9,6 +9,8 @@ defineProps<{
   /** What the gate works out, for a screen reader. */
   name: string;
   chosen: boolean;
+  /** What the gate puts out, for a screen reader; null where the circuit could not decide. */
+  output?: Bit | null;
   /** The value a broken gate's output is stuck at; null for a gate that works. */
   stuck?: Bit | null;
   /** A gate that is only drawn: pressing it shows nothing more. */
@@ -38,7 +40,7 @@ const SHAPES: Record<GateKind, string> = {
     :transform="`translate(${x} ${y})`"
     :aria-pressed="still ? undefined : chosen"
     :data-stuck="stuck != null ? '' : undefined"
-    :aria-label="`${kind.toUpperCase()} gate: ${name}${stuck != null ? `, broken: stuck at ${stuck}` : ''}`"
+    :aria-label="`${kind.toUpperCase()} gate: ${name}${output != null ? `, puts out ${output}` : ''}${stuck != null ? `, broken: stuck at ${stuck}` : ''}`"
     @click="$emit('choose')"
     @keydown.enter.prevent="$emit('choose')"
     @keydown.space.prevent="$emit('choose')"

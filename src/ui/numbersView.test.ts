@@ -19,6 +19,7 @@ import {
   flagsBothScales,
   lensLesson,
   disallowedWidths,
+  widthReason,
   equationText,
   freeRequest,
   freeView,
@@ -53,6 +54,15 @@ describe('freeRequest', () => {
 
   it('extends to at least 16 bits, from fewer bits than that', () => {
     expect(freeRequest('extend', 8, sum)).toMatchObject({ kind: 'extend', from: 8, to: 16 });
+  });
+
+  it('extends a value whose top bit is 1, where the two fills differ', () => {
+    expect(freeRequest('extend', 8, sum)).toMatchObject({ value: 0x80 });
+    expect(freeRequest('extend', 8, { ...sum, a: 0xf0 })).toMatchObject({ value: 0xf0 });
+    expect(freeRequest('extend', 8, null)).toMatchObject({ value: 0x80 });
+  });
+
+  it('extends from fewer bits than its width, keeping what an extension held', () => {
     const fromWord: NumberRequest = {
       kind: 'extend',
       value: 0x8000,
@@ -226,6 +236,14 @@ describe('unavailableText', () => {
 
   it('has nothing to say before an instruction ran', () => {
     expect(unavailableText(null)).toBeNull();
+  });
+});
+
+describe('widthReason', () => {
+  it('says why only where a width is off', () => {
+    expect(widthReason(freeRequest('bcd', 8, null))).toMatch(/one byte/);
+    expect(widthReason(freeRequest('extend', 16, null))).toMatch(/wider than the 8 bits/);
+    expect(widthReason(freeRequest('add', 16, null))).toBeNull();
   });
 });
 

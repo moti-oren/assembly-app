@@ -13,6 +13,8 @@ const props = defineProps<{
   asking: Asking | null;
   /** The last answer, until another instruction runs. */
   last: Answered | null;
+  /** The last question was skipped, and its instruction ran. */
+  skipped: boolean;
   tally: Tally;
 }>();
 
@@ -36,7 +38,7 @@ usePredictionFocus(bar, () => props.asking);
     ref="bar"
     class="prediction-bar"
     :class="
-      asking || last
+      asking || last || skipped
         ? 'flex flex-none flex-wrap items-center gap-x-3 gap-y-2 border-t bg-card px-4 py-2 text-sm'
         : 'sr-only'
     "
@@ -82,6 +84,16 @@ usePredictionFocus(bar, () => props.asking);
         <span class="font-medium">{{ verdict(last.outcome) }}</span>
         <span v-if="last.outcome.why" class="text-muted-foreground">{{ last.outcome.why }}</span>
         <span class="text-xs text-muted-foreground tabular-nums max-md:basis-full md:ml-auto">
+          {{ tallyText(tally) }}
+        </span>
+      </template>
+      <!-- A skip is counted nowhere, but the tally so far stays in sight. -->
+      <template v-else-if="!asking && skipped">
+        <span class="font-medium">Skipped</span>
+        <span
+          v-if="tally.asked > 0"
+          class="text-xs text-muted-foreground tabular-nums max-md:basis-full md:ml-auto"
+        >
           {{ tallyText(tally) }}
         </span>
       </template>

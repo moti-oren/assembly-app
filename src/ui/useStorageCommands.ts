@@ -17,7 +17,7 @@ function registerCommands(lens: StorageLens): PaletteCommand[] {
     { group: 'Register', label: CLOCK_ACTION[phase], run: lens.clock },
     {
       group: 'Register',
-      label: 'Start the clock cycle over',
+      label: 'Rewind the clock',
       disabled: phase === 'before',
       run: lens.rewind
     },
@@ -74,7 +74,7 @@ function fileCommands(file: StorageFile): PaletteCommand[] {
     },
     {
       group: 'Register file',
-      label: 'Start the register file’s clock cycle over',
+      label: 'Rewind the register file’s clock',
       disabled: phase === 'before',
       run: file.rewind
     },
@@ -116,7 +116,7 @@ function sequenceCommands(sequence: StorageSequence): PaletteCommand[] {
     },
     {
       group,
-      label: `Start the ${name} over`,
+      label: `Clear the ${name}`,
       disabled: sequence.trace.value.length < 2,
       run: sequence.reset
     }

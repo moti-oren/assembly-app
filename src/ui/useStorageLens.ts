@@ -7,7 +7,14 @@ import {
   type RegisterView,
   type RegisterWrite
 } from '@/core/registerLink';
-import { freeWrite, NEXT_PHASE, withBitFlipped, type RegisterRow } from './storageView';
+import {
+  cpuWriteIndex,
+  freeWrite,
+  NEXT_PHASE,
+  rewrittenText,
+  withBitFlipped,
+  type RegisterRow
+} from './storageView';
 import { useStorageCell } from './useStorageCell';
 
 /** What the page shows before any CPU has given it a register. */
@@ -50,6 +57,13 @@ export function useStorageLens(link: () => RegisterLink | null) {
   /** Whether the register holds what the CPU wrote: colour marks a write, and only a real one. */
   const written = computed(() => asRun.value && phase.value !== 'before');
 
+  /** What the write lines the learner turned on do, where the CPU's were off. */
+  const rewritten = computed(() =>
+    edited.value && cpuWrite.value
+      ? rewrittenText(request.value, cpuWrite.value.request.enabled)
+      : null
+  );
+
   const chosenBit = ref(0);
   /** The bit shown gate by gate, kept inside the register as its width changes. */
   const bit = computed(() => Math.min(chosenBit.value, request.value.width - 1));
@@ -75,9 +89,14 @@ export function useStorageLens(link: () => RegisterLink | null) {
     chosen.value = index;
   }
 
-  /** Puts a register from elsewhere on show, as the register file does with one of its own. */
+  /**
+   * Puts a register from elsewhere on show, as the register file does with one of its own. One
+   * the CPU wrote, as it wrote it, is shown as the CPU's and not as a "what if".
+   */
   function show(given: RegisterWrite): void {
-    edited.value = given;
+    const index = fromCpu.value ? cpuWriteIndex(fromCpu.value.writes, given) : -1;
+    if (index >= 0) chooseRegister(index);
+    else edited.value = given;
   }
 
   function chooseBit(index: number): void {
@@ -111,6 +130,7 @@ export function useStorageLens(link: () => RegisterLink | null) {
     isEdited: computed(() => edited.value !== null),
     asRun,
     written,
+    rewritten,
     bit,
     cell,
     flipBit,

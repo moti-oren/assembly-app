@@ -29,6 +29,12 @@ export interface ProgramSource {
  * says how many lines at the top of a program are not the user's to change (a challenge's given
  * lines): they are not edited, moved or removed, and nothing is put above or between them.
  */
+/** What a program that came back from the last visit is told as: only its lines were kept. */
+const RESTORED: ProgramSource = {
+  name: 'Your program from last time',
+  description: 'Only its lines were kept: the registers, memory and history start afresh.'
+};
+
 export function useProgramLines<
   Instruction extends ProgramInstruction,
   State extends CpuState,
@@ -81,6 +87,8 @@ export function useProgramLines<
     if (lines.length === 0) return;
     program.value = lines;
     architecture.setNextLine(state, 0, lines);
+    // Said above the lines, as an example's name is, until the program is edited.
+    source.value = RESTORED;
   }
 
   /** How many lines at the top of the program are locked. */

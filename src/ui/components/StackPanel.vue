@@ -77,7 +77,7 @@ const emit = defineEmits<{
               :key="entry.key"
               :class="{ 'text-muted-foreground': entry.popped }"
             >
-              <td class="font-mono text-xs text-pointer">
+              <td class="font-mono text-xs text-muted-foreground">
                 <template v-if="entry.top">
                   <span aria-hidden="true">SP▸</span>
                   <span class="sr-only">Top of the stack</span>

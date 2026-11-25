@@ -14,7 +14,7 @@ defineProps<{ lens: ControlLens }>();
       v-for="field in lens.fields.value"
       :key="`${field.label}-${field.high}`"
       class="rounded-md border px-3 py-2"
-      :class="field.decoded ? 'border-foreground/40' : 'border-dashed text-muted-foreground'"
+      :class="field.decoded ? 'border-wire' : 'border-dashed border-wire text-muted-foreground'"
     >
       <p class="flex flex-wrap items-baseline gap-x-2">
         <span class="font-mono font-semibold text-foreground">{{ field.label }}</span>

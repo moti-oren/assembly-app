@@ -35,6 +35,21 @@ export type FreeCellId = Exclude<CellId, 'register'>;
 /** A row of the register the learner can change a bit of. */
 export type RegisterRow = 'input' | 'enabled';
 
+/**
+ * Which of the CPU's writes `given` is, register and values alike; -1 when it is none of them,
+ * a register the instruction did not write or one with something changed.
+ */
+export function cpuWriteIndex(writes: readonly RegisterWrite[], given: RegisterWrite): number {
+  const same = (one: RegisterRequest, other: RegisterRequest) =>
+    one.width === other.width &&
+    one.held === other.held &&
+    one.input === other.input &&
+    one.enabled === other.enabled;
+  return writes.findIndex(
+    (write) => write.register === given.register && same(write.request, given.request)
+  );
+}
+
 /** A register no CPU wrote, keeping the values of `from` as far as they fit. */
 export function freeWrite(width: Width, from: RegisterRequest | null): RegisterWrite {
   const all = allBits(width);
@@ -66,6 +81,28 @@ export function equationText({ register, part, request }: RegisterWrite, stored:
 
 export function registerTitle({ register, request }: RegisterWrite): string {
   return `${register}: ${request.width} flip-flops`;
+}
+
+/**
+ * What a write line the learner turned on does, where the CPU's did not: the instruction sent
+ * the whole register to its inputs, so a bit it did not write waits there with the value it
+ * already holds, and writing it changes nothing. Null where no such bit is written.
+ */
+export function rewrittenText(request: RegisterRequest, cpuEnabled: number): string | null {
+  const bits = Array.from({ length: request.width }, (_, bit) => bit).filter((bit) => {
+    const mask = 2 ** bit;
+    const added = (request.enabled & mask) !== 0 && (cpuEnabled & mask) === 0;
+    return added && (request.input & mask) === (request.held & mask);
+  });
+  if (bits.length === 0) return null;
+  const first = bits[0];
+  const last = bits[bits.length - 1];
+  const range = last - first === bits.length - 1 ? `${first} to ${last}` : bits.join(', ');
+  const which =
+    bits.length === 1
+      ? `Bit ${first} is written too, with the ${(request.held >>> first) & 1} it already held`
+      : `Bits ${range} are written too, with what they already held`;
+  return `${which}: the inputs carry the whole register as the instruction left it, so writing the bits it did not write changes nothing.`;
 }
 
 /**
@@ -135,3 +172,8 @@ export const CELL_INPUTS: Record<FreeCellId, readonly { signal: string; label: s
 
 export const UNSETTLED =
   'The latch cannot decide. Both inputs were let go at the same moment, so each gate waits for the other and they flip for ever; a real one falls to 0 or to 1 by chance. Press S or R to give it a bit again.';
+
+/** For each bit, bit 0 first, whether its write line is off: those bits keep what they held. */
+export function keptBits({ width, enabled }: RegisterRequest): boolean[] {
+  return Array.from({ length: width }, (_, bit) => ((enabled >>> bit) & 1) === 0);
+}

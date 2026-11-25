@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { END_OF_PROGRAM } from './builderGrammar';
 import { X86 } from '@/core/x86/architecture';
 import {
   builderOptions,
@@ -50,7 +51,7 @@ describe('builderOptions', () => {
   it('offers every program line as a jump target, and the end of the program', () => {
     const options = builderOptions({ ...empty, mnemonic: 'jmp', programLines: ['nop', 'nop'] });
     expect(options.map((option) => option.label)).toEqual(['L0', 'L1', 'L2']);
-    expect(options[2].hint).toBe('end of program');
+    expect(options[2].hint).toBe(END_OF_PROGRAM);
     expect(options[0].group).toBe('Jump to program line');
   });
 
@@ -159,5 +160,15 @@ describe('parse', () => {
         expect(X86_GRAMMAR.hasMore(words)).toBe(false);
       }
     }
+  });
+});
+
+describe('operand order', () => {
+  it('offers registers before program lines where a register is wanted', () => {
+    const ax = { type: 'reg', name: 'ax' } as const;
+    const after = labels({ mnemonic: 'mov', operands: [ax], programLines: ['nop', 'nop'] });
+    expect(after[0]).not.toMatch(/^L\d/);
+    expect(after.at(-1)).toMatch(/^L\d/);
+    expect(labels({ mnemonic: 'jmp', programLines: ['nop'] })[0]).toBe('L0');
   });
 });

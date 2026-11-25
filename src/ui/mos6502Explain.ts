@@ -44,7 +44,7 @@ export function describeDecode(instruction: Instruction): string {
     decoded.memory.write && 'It will write a byte to memory.',
     decoded.writes.length > 0 && `It writes ${list(names(decoded.writes))}.`,
     decoded.flagsWritten.length > 0 && `It sets ${list(decoded.flagsWritten)}.`,
-    `It takes ${decoded.cycles} cycles${opcodeOf(instruction)?.pageCross ? ', one more if indexing crosses a page' : ''}${decoded.nextPc === 'branch' ? ', more if it branches' : ''}.`
+    `It takes ${decoded.cycles} clock cycles${opcodeOf(instruction)?.pageCross ? ', one more if indexing crosses a page' : ''}${decoded.nextPc === 'branch' ? ', more if it branches' : ''}.`
   ]
     .filter(Boolean)
     .join(' ');
@@ -61,8 +61,8 @@ export function cyclesBreakdown(record: ExecutionRecord): string {
     branch === 2 && '2 for taking the branch into another page'
   ].filter((extra): extra is string => typeof extra === 'string');
   return extras.length
-    ? `${record.cycles} cycles: ${base}, plus ${list(extras)}`
-    : `${record.cycles} cycles`;
+    ? `${record.cycles} clock cycles: ${base}, plus ${list(extras)}`
+    : `${record.cycles} clock cycles`;
 }
 
 /** Why a branch was taken or not; null for any other instruction. */

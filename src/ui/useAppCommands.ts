@@ -1,4 +1,5 @@
 import { computed, type ComputedRef } from 'vue';
+import { ARCHITECTURE_CHOICES } from './architectures';
 import type { PaletteCommand } from './paletteCommand';
 import { TOPIC_CHOICES } from './topics';
 import { useFeedback } from './useFeedback';
@@ -9,6 +10,7 @@ import { useTopic } from './useTopic';
 /** The palette commands every topic offers: another topic, the preferences, the settings and feedback. */
 export function useAppCommands(): ComputedRef<PaletteCommand[]> {
   const {
+    architecture,
     theme,
     isDark,
     soundOn,
@@ -37,11 +39,23 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
   return computed<PaletteCommand[]>(() => [
     ...TOPIC_CHOICES.filter((choice) => choice.id !== topic.value).map((choice) => ({
       group: 'Topics',
-      label: `Go to ${choice.name}`,
+      // The word the activity bar shows, so the same topic is called one thing; its long name is
+      // still found.
+      label: `Go to ${choice.label}`,
+      keywords: choice.name,
       // The other topic's page takes focus; the palette must not take it back as it closes.
       moves: 'focus' as const,
       run: () => {
         topic.value = choice.id;
+      }
+    })),
+    // Every topic follows the CPU chosen in the header, so any page can change it.
+    ...ARCHITECTURE_CHOICES.filter((choice) => choice.id !== architecture.value).map((choice) => ({
+      group: 'CPU',
+      label: `Switch to ${choice.label}`,
+      keywords: 'architecture processor',
+      run: () => {
+        architecture.value = choice.id;
       }
     })),
     {

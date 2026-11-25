@@ -17,6 +17,8 @@ defineProps<{
   pending: SharedProgram | null;
   /** Why the link that was opened gave no program. */
   problem: ShareProblem | null;
+  /** How many lines the program it would replace holds. */
+  replacedLines: number;
 }>();
 // The dialog closes itself on either answer, so `accept` names its program: by the time it is
 // heard, `dismiss` may already have cleared the one that waited.
@@ -36,8 +38,9 @@ const emit = defineEmits<{ accept: [shared: SharedProgram]; dismiss: [] }>();
           This link holds a program for the {{ architectureLabel(pending.id) }} ({{
             pending.program.length
           }}
-          {{ pending.program.length === 1 ? 'line' : 'lines' }}). Opening it replaces the program
-          you have there now, and resets that CPU. This can't be undone.
+          {{ pending.program.length === 1 ? 'line' : 'lines' }}). Opening it replaces your
+          {{ architectureLabel(pending.id) }} program ({{ replacedLines }}
+          {{ replacedLines === 1 ? 'line' : 'lines' }}), and resets that CPU. This can't be undone.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>

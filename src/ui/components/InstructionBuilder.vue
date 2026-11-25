@@ -9,6 +9,7 @@ import { keyHints } from '@/ui/builderKeys';
 import { sound } from '@/ui/soundEngine';
 import { isApple } from '@/ui/platform';
 import { useOptionArrows } from '@/ui/useBuilderArrows';
+import { useBuilderError } from '@/ui/useBuilderError';
 import { useBuilderOptions } from '@/ui/useBuilderOptions';
 import { useInstructionDraft } from '@/ui/useInstructionDraft';
 import BuilderActions from './BuilderActions.vue';
@@ -58,6 +59,9 @@ watch(filter, (text) => {
   choose(finished.option);
   filter.value = finished.rest;
 });
+
+// An error is about the instruction that failed: once another is being written, it goes.
+const shownError = useBuilderError(() => props.error, [filter, () => tokens.value.length]);
 
 const onOptionArrow = useOptionArrows({
   card: () => card.value?.$el ?? null,
@@ -284,9 +288,9 @@ function onEnter(event: KeyboardEvent): void {
         </button>
       </div>
 
-      <Alert v-if="error" variant="destructive" role="alert">
+      <Alert v-if="shownError" variant="destructive" role="alert">
         <CircleAlert />
-        <AlertDescription class="text-destructive">{{ error }}</AlertDescription>
+        <AlertDescription class="text-destructive">{{ shownError }}</AlertDescription>
       </Alert>
 
       <BuilderOptions

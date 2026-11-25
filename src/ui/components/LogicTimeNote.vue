@@ -10,10 +10,11 @@ const note = computed(() => {
   return on.value ? timeSummary(step.value, last.value, worst.value).note : '';
 });
 
-// While the delays play only where they stop is read out, not every delay on the way.
+// While the delays play only where they stop is read out, not every delay on the way, and what
+// was said before the play is taken back: "at rest" would no longer be true.
 const said = ref('');
 watchEffect(() => {
-  if (!props.lens.time.playing.value) said.value = note.value;
+  said.value = props.lens.time.playing.value ? '' : note.value;
 });
 </script>
 

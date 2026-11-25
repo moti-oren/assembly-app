@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ArrowDown, ArrowUp, RotateCcw, Undo2 } from '@lucide/vue';
+import { ArrowDown, ArrowUp, Rewind, Undo2 } from '@lucide/vue';
 import type { RegisterWrite } from '@/core/registerLink';
 import { Button } from '@/components/ui/button';
 import { hexOf } from '@/ui/logicView';
@@ -143,12 +143,12 @@ function open(index: number): void {
         <ArrowUp v-else />
         {{ CLOCK_ACTION[phase] }}
       </Button>
-      <span
-        class="flex items-center gap-1.5 text-xs text-muted-foreground [--cell:1.875rem]"
-        aria-hidden="true"
-      >
+      <span class="flex items-center gap-1.5 text-xs text-muted-foreground [--cell:1.875rem]">
         Clock
-        <span class="logic-bit" :data-on="clockHigh ? '' : undefined">{{ clockHigh ? 1 : 0 }}</span>
+        <span class="logic-bit" :data-on="clockHigh ? '' : undefined" aria-hidden="true">{{
+          clockHigh ? 1 : 0
+        }}</span>
+        <span class="sr-only">is {{ clockHigh ? 'high, 1' : 'low, 0' }}</span>
       </span>
       <!-- It stays in place, and can keep the focus, when there is nothing to go back to. -->
       <Button
@@ -158,8 +158,8 @@ function open(index: number): void {
         :aria-disabled="phase === 'before'"
         @click="file.rewind()"
       >
-        <RotateCcw />
-        Start over
+        <Rewind />
+        Rewind the clock
       </Button>
     </div>
     <p class="max-w-prose text-sm text-pretty" aria-live="polite">

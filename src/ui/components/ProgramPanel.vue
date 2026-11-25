@@ -184,7 +184,7 @@ function onListKeydown(event: KeyboardEvent): void {
 }
 
 const ROW =
-  'group relative col-span-full grid h-7 pointer-coarse:h-11 grid-cols-subgrid items-center pr-1 pl-2';
+  'group relative col-span-full grid h-7 pointer-coarse:h-auto pointer-coarse:min-h-11 grid-cols-subgrid items-center pr-1 pl-2';
 
 function machineCode(index: number): string {
   return formatBytes(props.code[index].bytes);
@@ -243,14 +243,15 @@ function machineCode(index: number): string {
       </div>
       <p class="sr-only" aria-live="polite">{{ moved }}</p>
       <!--
-        The instruction's column takes the width of the longest line before the machine code gets
-        any: a narrow panel drops the bytes, which have a panel of their own, not the line.
+        The instruction's column takes the width of its lines, up to 28 characters: a longer line is
+        cut (its title gives it whole), so one long line does not push every line's bytes out. A
+        narrow panel drops the bytes, which have a panel of their own, before it cuts a line.
       -->
       <ol
         ref="list"
         tabindex="-1"
         data-fill
-        class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_auto_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
+        class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_fit-content(28ch)_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
         @keydown.capture="onListKeydown"
       >
@@ -298,8 +299,9 @@ function machineCode(index: number): string {
               "
               >{{ formatLabel(index) }}{{ targets.has(index) ? ':' : '' }}</span
             >
+            <!-- A finger cannot hover for the title: on a touch screen a long line wraps instead. -->
             <span
-              class="truncate"
+              class="truncate pointer-coarse:whitespace-normal pointer-coarse:break-words"
               :class="{ 'font-semibold': lastLine === index }"
               :title="format(instruction)"
               ><span :data-loc="`line:${index}`">{{ format(instruction) }}</span></span

@@ -6,6 +6,7 @@ import { faultRows, faultSummary, lineName } from '@/ui/controlFault';
 import type { LinkedTopic } from '@/ui/topics';
 import type { ControlLens } from '@/ui/useControlLens';
 import ControlFault from './ControlFault.vue';
+import DisabledReason from './DisabledReason.vue';
 
 const props = defineProps<{ lens: ControlLens }>();
 defineEmits<{ open: [topic: LinkedTopic] }>();
@@ -25,9 +26,12 @@ const picked = computed(
 );
 const summary = computed(() => faultSummary(rows.value));
 
+const OFF_REASON =
+  'That page shows what the CPU ran: put back its word, with every line working, to go there.';
+
 const LINKS: Partial<Record<LinkedTopic, { label: string; icon: typeof CircuitBoard }>> = {
   logic: { label: 'Gates', icon: CircuitBoard },
-  storage: { label: 'Stored', icon: MemoryStick }
+  storage: { label: 'Storage', icon: MemoryStick }
 };
 
 // The switch is drawn after every line: the keyboard goes to it, not through the lines between.
@@ -102,18 +106,27 @@ async function repairAll(): Promise<void> {
           {{ row.label }} = 1<span v-if="row.stuck !== null" class="font-normal"> stuck</span>
         </button>
         <span class="text-sm text-pretty">{{ row.does }}</span>
-        <!-- The other topic shows the CPU's instruction, so the way there is for that word only. -->
-        <Button
-          v-if="row.topic && row.link && lens.asRun.value"
-          variant="outline"
-          size="sm"
-          class="h-7 gap-1.5 px-2 text-xs pointer-coarse:h-11"
-          :aria-label="`${row.link.label}: show what ${row.label} switches`"
-          @click="$emit('open', row.topic)"
+        <!--
+          The other topic shows the CPU's instruction, so the way there is for that word only:
+          after a change it stays, off, and says why.
+        -->
+        <DisabledReason
+          v-if="row.topic && row.link"
+          :reason="lens.asRun.value ? null : OFF_REASON"
+          :label="`${row.link.label}: show what ${row.label} switches`"
         >
-          <component :is="row.link.icon" />
-          {{ row.link.label }}
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            class="h-7 gap-1.5 px-2 text-xs pointer-coarse:h-11"
+            :disabled="!lens.asRun.value"
+            :aria-label="`${row.link.label}: show what ${row.label} switches`"
+            @click="$emit('open', row.topic)"
+          >
+            <component :is="row.link.icon" />
+            {{ row.link.label }}
+          </Button>
+        </DisabledReason>
       </li>
     </ul>
 

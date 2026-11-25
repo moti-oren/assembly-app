@@ -71,6 +71,7 @@ defineEmits<{ choose: [gate: number] }>();
       :y="each.y"
       :name="each.name"
       :chosen="index === chosen"
+      :output="unknown(each.id) ? null : (signals[each.id] ?? null)"
       :stuck="stuck[each.id] ?? null"
       :still="still"
       @choose="$emit('choose', index)"

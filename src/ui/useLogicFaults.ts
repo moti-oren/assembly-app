@@ -4,21 +4,22 @@ import type { Faults } from '@/core/logic/fault';
 import type { Bit } from '@/core/logic/gates';
 import { analytics } from './analyticsClient';
 import { brokenBits, withFault, withoutFault, wrongBits } from './logicFault';
-import { sameCircuit } from './logicView';
+import { sameGates } from './logicView';
 
 const NONE: Faults = {};
 
 /**
  * The gates the learner broke in the circuit of the logic topic. They stay broken while the
- * circuit stays the same one, whatever values run through it, so a fault can be followed from
- * one instruction of the CPU to the next. Another circuit has other gates, and starts whole.
+ * circuit stays on the same gates, whatever values run through it (an addition and a subtraction
+ * share the adder's), so a fault can be followed from one instruction of the CPU to the next.
+ * Another circuit has other gates, and starts whole.
  * `beforeChange` runs before a gate breaks or is mended.
  */
 export function useLogicFaults(request: Readonly<Ref<AluRequest>>, beforeChange: () => void) {
   /** The faults, with the circuit whose gates they name. */
   const kept = shallowRef<{ of: AluRequest; faults: Faults } | null>(null);
   const faults = computed<Faults>(() =>
-    kept.value && sameCircuit(kept.value.of, request.value) ? kept.value.faults : NONE
+    kept.value && sameGates(kept.value.of, request.value) ? kept.value.faults : NONE
   );
   const count = computed(() => Object.keys(faults.value).length);
   const any = computed(() => count.value > 0);

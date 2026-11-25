@@ -56,6 +56,8 @@ const parsedOffset = computed(() => parseNumber(`0x${offsetText.value.replace(/^
 const startOffset = computed(() => rowStart((parsedOffset.value ?? 0) & 0xffff, columns.value));
 /** Text that is not a hex number shows the rows from 0000, and the box says it was not understood. */
 const offsetInvalid = computed(() => offsetText.value.trim() !== '' && parsedOffset.value === null);
+/** An offset past FFFF wraps round inside the segment, as the 8086 wraps it: said, not silent. */
+const offsetWrapped = computed(() => (parsedOffset.value ?? 0) > 0xffff);
 const offsetErrorId = useId();
 
 const rows = computed(() => {
@@ -171,8 +173,8 @@ function reveal(jump: () => void): void {
             <Input
               v-model="offsetText"
               class="h-7 w-28 pl-13 font-mono text-sm max-md:w-full pointer-coarse:h-11"
-              :aria-invalid="offsetInvalid || undefined"
-              :aria-describedby="offsetInvalid ? offsetErrorId : undefined"
+              :aria-invalid="offsetInvalid || offsetWrapped || undefined"
+              :aria-describedby="offsetInvalid || offsetWrapped ? offsetErrorId : undefined"
               maxlength="6"
               autocomplete="off"
               autocapitalize="characters"
@@ -180,6 +182,14 @@ function reveal(jump: () => void): void {
               spellcheck="false"
               aria-label="Offset (hex)"
             />
+            <!-- Always there, so the message is heard as it appears, while typing goes on. -->
+            <span class="sr-only" role="status">{{
+              offsetInvalid
+                ? 'Not a hex offset: showing 0000.'
+                : offsetWrapped
+                  ? `Past FFFF: showing ${formatHex(startOffset, 16)}.`
+                  : ''
+            }}</span>
           </div>
         </div>
         <Button
@@ -204,6 +214,9 @@ function reveal(jump: () => void): void {
         >
           <span v-if="offsetInvalid" :id="offsetErrorId" class="font-sans text-destructive">
             “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
+          </span>
+          <span v-else-if="offsetWrapped" :id="offsetErrorId" class="font-sans text-destructive">
+            {{ offsetText }} is past FFFF: showing {{ formatHex(startOffset, 16) }}.
           </span>
           <AddressSum v-else-if="worked" :worked="worked" @show="showLastAccess" />
           <span v-else class="font-sans text-tertiary-foreground">

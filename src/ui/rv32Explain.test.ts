@@ -117,9 +117,9 @@ describe('describeComparison', () => {
     const state = cpu({ a0: 0xffffffff, a1: 1 });
     const record = execute(state, program[0], 0, program);
     expect(describeComparison(record, state, program)).toEqual({
-      left: 'a0 = 4294967295',
+      left: 'a0 (4294967295)',
       operator: '<',
-      right: 'a1 = 1',
+      right: 'a1 (1)',
       how: 'as unsigned numbers',
       taken: false,
       outcome: 'false: went on to 0x00000004 (L1)'

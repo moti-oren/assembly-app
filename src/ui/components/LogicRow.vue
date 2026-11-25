@@ -22,6 +22,8 @@ const props = withDefaults(
     mode?: 'flip' | 'lowest' | 'choose' | 'static';
     /** For every bit, whether it will change again before the circuit is at rest. */
     pending?: readonly boolean[] | null;
+    /** Bits drawn plain whatever the row's tone, bit 0 first: those not written, for one. */
+    plain?: readonly boolean[] | null;
     /** For every bit, whether a broken gate made it the wrong value. */
     wrong?: readonly boolean[] | null;
     /** The bit picked, in a row whose bits are picked. */
@@ -35,6 +37,7 @@ const props = withDefaults(
     tone: 'plain',
     mode: 'static',
     pending: null,
+    plain: null,
     wrong: null,
     chosen: null,
     lead: null,
@@ -48,6 +51,8 @@ const emit = defineEmits<{ flip: [bit: number]; choose: [bit: number] }>();
 function isButton(bit: number): boolean {
   return props.mode === 'flip' || props.mode === 'choose' || (props.mode === 'lowest' && bit === 0);
 }
+
+const toneOf = (bit: number) => (props.plain?.[bit] ? 'plain' : props.tone);
 
 /** What a screen reader hears for one bit of the row. */
 function describe(bit: number): string {
@@ -92,7 +97,7 @@ function press(bit: number): void {
         v-if="isButton(bit)"
         type="button"
         class="logic-bit"
-        :data-tone="tone"
+        :data-tone="toneOf(bit)"
         :data-on="bits[bit] ? '' : undefined"
         :data-pending="pending?.[bit] ? '' : undefined"
         :data-wrong="wrong?.[bit] ? '' : undefined"
@@ -107,7 +112,7 @@ function press(bit: number): void {
       <span
         v-else
         class="logic-bit"
-        :data-tone="tone"
+        :data-tone="toneOf(bit)"
         :data-on="bits[bit] ? '' : undefined"
         :data-pending="pending?.[bit] ? '' : undefined"
         :data-wrong="wrong?.[bit] ? '' : undefined"

@@ -85,7 +85,7 @@ const layout = useLayoutMode();
 const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
 
 const page = useWorkbenchPage(() => lastRecord.value?.access != null);
-const { asking, last, tally, answer, skip, followBuilder, controls } = usePrediction(
+const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = usePrediction(
   cpu,
   mos6502Predictor,
   { clearBuilder: page.clearBuilder }
@@ -302,7 +302,14 @@ followBuilder(draft);
     </StageColumn>
   </WorkbenchPanes>
 
-  <PredictionBar :asking="asking" :last="last" :tally="tally" @answer="answer" @skip="skip" />
+  <PredictionBar
+    :asking="asking"
+    :last="last"
+    :skipped="skipped"
+    :tally="tally"
+    @answer="answer"
+    @skip="skip"
+  />
   <TransportBar
     v-model:speed="speed"
     v-model:history-shown="historyShown"

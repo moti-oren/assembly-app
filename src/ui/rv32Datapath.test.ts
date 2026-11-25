@@ -87,7 +87,7 @@ describe('datapathView', () => {
     const view = datapathView({ state, program, record, pending: null });
     expect(view.nextPc).toEqual({
       use: 'write',
-      text: 'a0 = 0 = zero = 0: true: jumped to 0x00000000 (L0)'
+      text: 'a0 (0) = zero (0)? Yes: jumps to 0x00000000 (L0)'
     });
   });
 });
@@ -100,5 +100,25 @@ describe('a branch in EXECUTE', () => {
     const view = datapathView({ state, program: [beq], record, pending: null });
     expect(view.execute.use).toBe('read');
     expect(view.execute.text).toContain('−');
+  });
+});
+
+describe('colour in EXECUTE', () => {
+  it('is orange only where the ALU writes a register, not for an address', () => {
+    const state = createCpuState();
+    writeRegister(state, parseRegister('s0')!, DATA_BASE);
+    const sw = line('sw', r('a0'), at(4, 's0'));
+    const record = execute(state, sw, 0, [sw]);
+    expect(datapathView({ state, program: [sw], record, pending: null }).execute.use).toBe('read');
+    const add = line('addi', r('a0'), r('a1'), imm(2));
+    const added = execute(state, add, 0, [add]);
+    expect(datapathView({ state, program: [add], record: added, pending: null }).execute.use).toBe(
+      'write'
+    );
+    const nop = line('addi', r('zero'), r('zero'), imm(0));
+    const discarded = execute(state, nop, 0, [nop]);
+    expect(
+      datapathView({ state, program: [nop], record: discarded, pending: null }).execute.use
+    ).toBe('read');
   });
 });

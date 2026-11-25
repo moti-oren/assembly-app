@@ -27,6 +27,8 @@ export interface SharedProgramHooks {
 export function useSharedProgram(hooks: SharedProgramHooks) {
   const pending = ref<SharedProgram | null>(null);
   const problem = ref<ShareProblem | null>(null);
+  /** How many lines the program a pending link would replace holds, for the question. */
+  const replacedLines = ref(0);
 
   function openShared(shared: SharedProgram): void {
     hooks.load(shared);
@@ -44,8 +46,10 @@ export function useSharedProgram(hooks: SharedProgramHooks) {
     pending.value = null;
     problem.value = null;
     if (typeof shared === 'string') problem.value = shared;
-    else if (replacesProgram(hooks.current(shared.id), shared.program)) pending.value = shared;
-    else openShared(shared);
+    else if (replacesProgram(hooks.current(shared.id), shared.program)) {
+      replacedLines.value = hooks.current(shared.id).length;
+      pending.value = shared;
+    } else openShared(shared);
   }
 
   function accept(shared: SharedProgram): void {
@@ -61,5 +65,5 @@ export function useSharedProgram(hooks: SharedProgramHooks) {
   useEventListener(window, 'hashchange', read);
   void read();
 
-  return { pending, problem, accept, dismiss };
+  return { pending, problem, replacedLines, accept, dismiss };
 }

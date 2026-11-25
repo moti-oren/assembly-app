@@ -113,7 +113,7 @@ const text = (value: number): string => String(value).replace('-', '−');
     <span class="font-sans text-muted-foreground">
       {{
         solution.out
-          ? `: outside 0 to 99, so the digits read ${solution.decimal.shown}`
+          ? `: does not fit in 0 to 99, so the digits read ${solution.decimal.shown}`
           : ': fits in 0 to 99'
       }}
     </span>

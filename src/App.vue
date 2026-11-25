@@ -243,6 +243,7 @@ watch([architecture, topic], () => {
     <SharedProgramDialog
       :pending="shared.pending.value"
       :problem="shared.problem.value"
+      :replaced-lines="shared.replacedLines.value"
       @accept="shared.accept"
       @dismiss="shared.dismiss"
     />

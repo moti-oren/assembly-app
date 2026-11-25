@@ -82,7 +82,17 @@ export function freeCircuit(request: AluRequest): AluCircuit {
 
 /** Whether two requests are the same circuit, with only the values on its inputs differing. */
 export function sameCircuit(one: AluRequest, other: AluRequest): boolean {
-  if (one.kind !== other.kind || one.width !== other.width) return false;
+  if (one.kind !== other.kind) return false;
+  return sameGates(one, other);
+}
+
+/**
+ * Whether two requests run on the same gates, so a gate broken in one is broken in the other: the
+ * adder subtracts on its own gates, with its `sub` line on.
+ */
+export function sameGates(one: AluRequest, other: AluRequest): boolean {
+  const gates = (kind: AluRequest['kind']) => (kind === 'subtract' ? 'add' : kind);
+  if (gates(one.kind) !== gates(other.kind) || one.width !== other.width) return false;
   if (one.kind !== 'shift' || other.kind !== 'shift') return true;
   return (
     one.direction === other.direction &&

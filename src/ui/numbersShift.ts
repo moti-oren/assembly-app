@@ -73,7 +73,7 @@ export function shiftSummary(scale: ScaleScaling, request: ScalingRequest): Shif
           sum,
           agrees: false,
           lead: 'Does not fit.',
-          verdict: `outside ${range}: the bits read ${shown}`
+          verdict: `not in ${range}: the bits read ${shown}`
         };
   }
   if (scale.agrees) {

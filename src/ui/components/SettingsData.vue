@@ -34,6 +34,7 @@ function clearEverything(): void {
 </script>
 
 <template>
+  <!-- The button says what it does, so it keeps its own name, not the row's. -->
   <SettingsRow
     v-slot="{ named }"
     label="Panel layout"
@@ -48,7 +49,7 @@ function clearEverything(): void {
       size="sm"
       class="pointer-coarse:h-11"
       :disabled="layoutIsDefault"
-      v-bind="named"
+      :aria-describedby="named['aria-describedby']"
       @click="resetLayout"
     >
       Reset the layout

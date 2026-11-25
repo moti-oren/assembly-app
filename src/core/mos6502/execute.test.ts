@@ -195,6 +195,23 @@ describe('the stack, jumps and branches', () => {
     expect(cpu.registers.pc).toBe(addressOfLine(program, 1));
   });
 
+  it('JSR and BRK run straight from the builder come back to the line PC was on', () => {
+    // PC is on L1; JSR to L2 is run by itself, not fetched, so RTS must return to L1.
+    const program = [line('nop'), line('nop'), line('rts'), line('rti')];
+    cpu.registers.pc = addressOfLine(program, 1);
+    execute(cpu, line('jsr', { type: 'label', target: 2 }), null, program);
+    expect(cpu.registers.pc).toBe(addressOfLine(program, 2));
+    execute(cpu, program[2], 2, program);
+    expect(cpu.registers.pc).toBe(addressOfLine(program, 1));
+
+    cpu.memory[0xfffe] = addressOfLine(program, 3) & 0xff;
+    cpu.memory[0xffff] = addressOfLine(program, 3) >> 8;
+    execute(cpu, line('brk'), null, program);
+    expect(cpu.registers.pc).toBe(addressOfLine(program, 3));
+    execute(cpu, program[3], 3, program);
+    expect(cpu.registers.pc).toBe(addressOfLine(program, 1));
+  });
+
   it('names where an address that leads nowhere came from', () => {
     const program = [line('brk')];
     expect(() => execute(cpu, program[0], 0, program)).toThrow(

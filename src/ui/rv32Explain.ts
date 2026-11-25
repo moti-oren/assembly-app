@@ -211,9 +211,10 @@ export function describeComparison(
   const value = (v: number) => compared(v, branch.signed);
   const at = codeAddress(state.registers.pc, program.length);
   return {
-    left: `${formatRegister(a.index)} = ${value(comparison.a)}`,
+    // `a0 (5)`: a register and what it holds, so `a0 (5) < a1 (7)` reads as one comparison.
+    left: `${formatRegister(a.index)} (${value(comparison.a)})`,
     operator: branch.symbol,
-    right: `${formatRegister(b.index)} = ${value(comparison.b)}`,
+    right: `${formatRegister(b.index)} (${value(comparison.b)})`,
     how:
       branch.signed === null
         ? 'bit for bit'

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
+import { refDebounced } from '@vueuse/core';
 import type { ArithmeticRequest, ArithmeticSolution } from '@/core/representation/arithmetic';
 import type { Scale } from '@/core/representation/readings';
-import { scaleSummary } from '@/ui/numbersFlags';
+import { scaleSummary, scalesSaid } from '@/ui/numbersFlags';
 import { bitsOf } from '@/ui/numbersView';
 import { wheelOf } from '@/ui/numbersWheel';
 import type { NumberLens } from '@/ui/useNumberLens';
@@ -37,6 +38,11 @@ const scales = computed(() =>
   })
 );
 const subtracting = computed(() => props.request.kind === 'subtract');
+// What both wheels show, said once A comes to rest: a drag round the wheel is not read step by step.
+const said = refDebounced(
+  computed(() => scalesSaid(scales.value)),
+  400
+);
 </script>
 
 <!--
@@ -59,14 +65,20 @@ const subtracting = computed(() => props.request.kind === 'subtract');
         {{ each.summary.sum }}
       </p>
       <p class="mt-0.5 text-sm text-pretty" :class="{ 'text-muted-foreground': each.summary.fits }">
-        <span v-if="!each.summary.fits" class="font-semibold">Wrapped. </span
-        >{{ each.summary.verdict }}
+        {{ each.summary.verdict }}
       </p>
       <p v-if="each.wheel.stretched" class="mt-1 text-xs text-muted-foreground">
         The step is drawn longer than it is: at this width it would be too short to see.
       </p>
     </section>
   </div>
+  <p class="mt-3 max-w-prose text-xs text-pretty text-muted-foreground">
+    The blue dot is A: drag it round the wheel. The arrow goes from A to the answer. The dashed line
+    is the seam, where the scale ends and starts again; an arrow across it is an answer that does
+    not fit.
+  </p>
+  <!-- The region is there before its text is, or the first change would not be announced. -->
+  <p class="sr-only" aria-live="polite">{{ said }}</p>
 
   <div ref="rows" class="logic-rows mt-5">
     <LogicBitNumbers :width="request.width" />

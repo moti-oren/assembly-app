@@ -40,6 +40,8 @@ export interface WorkedAddress {
   sum: AddressBreakdown;
   offsetParts: OffsetBreakdown | null;
   isLastAccess: boolean;
+  /** The physical address's colour: orange for a write, blue for a read, none for a byte pointed at. */
+  tone: 'plain' | 'write' | 'read';
 }
 
 /** The address to work out: the byte under the pointer, or else the last instruction's access. */
@@ -53,16 +55,22 @@ export function workedAddress(
       segment: pointed.segment,
       sum: explainAddress(pointed.segmentValue, pointed.offset),
       offsetParts: null,
-      isLastAccess: false
+      isLastAccess: false,
+      tone: 'plain'
     };
   }
   if (!access) return null;
   return {
-    label: access.write ? 'Last write' : 'Last read',
+    label: access.bytes
+      ? `Last write, ${access.bytes} bytes from`
+      : access.write
+        ? 'Last write'
+        : 'Last read',
     segment: access.segment,
     sum: explainAddress(access.segmentValue, access.offset),
     offsetParts: access.offsetParts,
-    isLastAccess: true
+    isLastAccess: true,
+    tone: access.write ? 'write' : 'read'
   };
 }
 

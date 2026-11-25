@@ -46,7 +46,10 @@ describe('diagramView', () => {
     expect(view.registers).toEqual({ x: 'read', a: 'write' });
     expect(view.address.text).toBe('$02F0 + X ($20) = $0310, into page $03');
     expect(view.bus).toEqual({ use: 'read', text: 'Read $55 from $0310' });
-    expect(view.cycles).toEqual({ count: 5, text: '5 cycles: 4, plus 1 for crossing a page' });
+    expect(view.cycles).toEqual({
+      count: 5,
+      text: '5 clock cycles: 4, plus 1 for crossing a page'
+    });
   });
 
   it('leaves the internal bus dark before anything has run', () => {

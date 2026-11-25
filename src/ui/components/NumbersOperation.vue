@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { disallowedWidths, LENSES } from '@/ui/numbersView';
+import { disallowedWidths, LENSES, widthReason } from '@/ui/numbersView';
 import type { NumberLens } from '@/ui/useNumberLens';
 import ChoiceGroup from './ChoiceGroup.vue';
 import NumbersExtra from './NumbersExtra.vue';
@@ -29,6 +29,7 @@ const request = computed(() => props.lens.request.value);
     <WidthPicker
       :width="lens.width.value"
       :disallowed="disallowedWidths(request)"
+      :reason="widthReason(request)"
       @set="lens.setWidth"
     />
     <NumbersExtra

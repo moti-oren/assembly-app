@@ -36,11 +36,14 @@ const { registerBits } = usePreferences();
 <template>
   <CpuCanvas :stored="stored">
     <template #actions>
-      <!-- Sixteen bits a row crowd the registers, so they are shown only when asked for. -->
+      <!--
+        Sixteen bits a row crowd the registers, so they are shown only when asked for; a phone
+        has no room for the column at all, so it has no button for it either.
+      -->
       <Button
         variant="outline"
         size="xs"
-        class="font-mono pointer-coarse:h-11"
+        class="font-mono pointer-coarse:h-11 max-sm:hidden"
         :class="registerBits ? 'border-foreground/60 bg-muted text-foreground' : ''"
         :aria-pressed="registerBits"
         aria-label="Show the registers in binary"

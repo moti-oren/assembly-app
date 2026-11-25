@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PORTS } from '@/core/shared/devices';
 import { createIo } from '@/core/shared/state';
-import { addressSpace, deviceByte, formatAddress, memoryRows } from './flatMemory';
+import { addressAfterKey, addressSpace, deviceByte, formatAddress, memoryRows } from './flatMemory';
 
 describe('flat memory', () => {
   it('writes addresses as each architecture does', () => {
@@ -41,5 +41,15 @@ describe('flat memory', () => {
     const rows = memoryRows((address) => ({ address, value: 0, region: 'ram' }), 0x21b, 2, 8);
     expect(rows.map((row) => row[0].address)).toEqual([0x218, 0x220]);
     expect(rows[0]).toHaveLength(8);
+  });
+});
+
+describe('addressAfterKey', () => {
+  it('moves a row with the arrows and a screenful with the page keys, inside memory', () => {
+    expect(addressAfterKey('ArrowDown', 0x200, 16, 8, 0x10000)).toBe(0x210);
+    expect(addressAfterKey('PageDown', 0x200, 16, 8, 0x10000)).toBe(0x280);
+    expect(addressAfterKey('ArrowUp', 0, 16, 8, 0x10000)).toBe(0);
+    expect(addressAfterKey('PageDown', 0xff80, 16, 8, 0x10000)).toBe(0xff80);
+    expect(addressAfterKey('Enter', 0x200, 16, 8, 0x10000)).toBeNull();
   });
 });

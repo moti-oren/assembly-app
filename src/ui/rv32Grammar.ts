@@ -19,7 +19,13 @@ import {
   type PseudoMnemonic
 } from '@/core/rv32/pseudo';
 import { ABI_NAMES, registerRole, type RegisterRole } from '@/core/rv32/registers';
-import type { BuilderOption, DraftContext, DraftToken, InstructionGrammar } from './builderGrammar';
+import {
+  END_OF_PROGRAM,
+  type BuilderOption,
+  type DraftContext,
+  type DraftToken,
+  type InstructionGrammar
+} from './builderGrammar';
 
 /** What choosing an option adds to a RISC-V instruction. */
 export type Rv32Action =
@@ -130,7 +136,7 @@ function lineOptions(words: Words, programLines: readonly string[]): Option[] {
       words.mnemonic === 'jal' || words.pseudo === 'j'
         ? 'Jump to program line'
         : 'Branch to program line',
-    hint: programLines[target] ?? 'end of program',
+    hint: programLines[target] ?? END_OF_PROGRAM,
     matchesNumber: (value: number) => value === target,
     action: { kind: 'operand', operand: { type: 'label', target } }
   }));
