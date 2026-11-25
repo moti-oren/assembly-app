@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCpuState, physicalAddress } from '@/core/x86/state';
 import type { MemoryAccess } from './describe';
-import { offsetNote, segmentRows, workedAddress } from './x86MemoryView';
+import { byteLabel, offsetNote, segmentRows, workedAddress } from './x86MemoryView';
 
 describe('segmentRows', () => {
   it('reads rows from the segment and wraps at the end of it', () => {
@@ -57,5 +57,15 @@ describe('offsetNote', () => {
     expect(offsetNote({ ...parts, displacement: 0x20, wrapped: true })).toBe(
       'offset = BX FFF0h + 0020h, wraps at 64K'
     );
+  });
+});
+
+describe('byteLabel', () => {
+  it('says where a byte is, what it holds, and whether it was just written', () => {
+    expect(byteLabel(0x11, 0x10011, 0x41, null)).toBe('0011, physical 10011h: 41');
+    expect(byteLabel(0x11, 0x10011, 0x41, { unchanged: false })).toContain(
+      'written by the last instruction'
+    );
+    expect(byteLabel(0x11, 0x10011, 0x41, { unchanged: true })).toContain('the value it held');
   });
 });
