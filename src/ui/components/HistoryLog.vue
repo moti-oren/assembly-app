@@ -85,7 +85,7 @@ watch(
           >
             <button
               type="button"
-              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-left outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60"
+              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-left outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
               :class="
                 number === history.length
                   ? 'bg-background font-semibold'

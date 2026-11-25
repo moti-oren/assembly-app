@@ -193,7 +193,9 @@ function reveal(jump: () => void): void {
             “{{ offsetText }}” isn't a hex offset (use 0–9 and A–F, e.g. 1F0). Showing 0000.
           </span>
           <AddressSum v-else-if="worked" :worked="worked" @show="showLastAccess" />
-          <span v-else class="font-sans text-tertiary-foreground">No memory access yet</span>
+          <span v-else class="font-sans text-tertiary-foreground">
+            {{ tick > 0 ? 'The last instruction did not use memory' : 'No memory access yet' }}
+          </span>
         </p>
 
         <div ref="well" class="overflow-auto px-2.5 py-1.5 max-sm:px-1.5">

@@ -56,7 +56,11 @@ export function useStorageLens(link: () => RegisterLink | null) {
   const cell = useStorageCell();
 
   function flipBit(row: RegisterRow, index: number): void {
-    edited.value = { ...write.value, request: withBitFlipped(request.value, row, index) };
+    const flipped = withBitFlipped(request.value, row, index);
+    // "Only AL is written" holds while the write lines are the CPU's, and no longer once changed.
+    const cpu = cpuWrite.value;
+    const part = cpu && flipped.enabled === cpu.request.enabled ? cpu.part : null;
+    edited.value = { ...write.value, part, request: flipped };
   }
 
   function setWidth(width: Width): void {

@@ -294,14 +294,20 @@ function machineCode(index: number): string {
                   <button
                     type="button"
                     data-action="code"
-                    class="rounded-sm pr-1 pl-3 text-left text-xs whitespace-nowrap pointer-coarse:leading-11 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-                    :class="{ 'text-destructive': code[index].problem }"
+                    class="rounded-sm pr-1 pl-3 text-left text-xs whitespace-nowrap pointer-coarse:leading-11 outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                    :class="code[index].problem ? 'text-destructive' : 'text-muted-foreground'"
+                    :aria-label="
+                      code[index].problem
+                        ? `${machineCode(index)}: ${code[index].problem}`
+                        : undefined
+                    "
                     @click="emit('inspect', index)"
                   >
                     {{ machineCode(index) }}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
+                  <template v-if="code[index].problem">{{ code[index].problem }} </template>
                   Machine code at {{ codePlace(code[index].address) }}. Click to take it apart.
                 </TooltipContent>
               </Tooltip>

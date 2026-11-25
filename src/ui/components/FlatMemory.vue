@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
+  addressSpace,
   formatAddress,
   memoryRows,
   type AddressFormat,
@@ -61,7 +62,13 @@ const start = computed(() => (parsed.value ?? 0) >>> 0);
 const rows = computed(() => {
   void props.state.memoryVersion;
   void props.state.ioVersion;
-  return memoryRows(props.byteAt, start.value, MEMORY_ROWS, columns.value);
+  return memoryRows(
+    props.byteAt,
+    start.value,
+    MEMORY_ROWS,
+    columns.value,
+    addressSpace(props.format)
+  );
 });
 
 const warmth = (address: number): string | undefined => byteWarmth(props.heat, address);
@@ -182,7 +189,9 @@ function reveal(jump: () => void): void {
               Show in table
             </button>
           </template>
-          <span v-else class="font-sans text-tertiary-foreground">No memory access yet</span>
+          <span v-else class="font-sans text-tertiary-foreground">
+            {{ tick > 0 ? 'The last instruction did not use memory' : 'No memory access yet' }}
+          </span>
         </p>
 
         <div ref="well" class="overflow-auto px-2.5 py-1.5 max-sm:px-1.5">

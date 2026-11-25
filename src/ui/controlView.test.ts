@@ -80,6 +80,15 @@ describe('equationText', () => {
     );
   });
 
+  it('says a broken line apart from what the word turns on', () => {
+    const word = STARTING_WORD;
+    const healthy = solveControl(RV32_CONTROL, word);
+    expect(controlLabel('memWrite')).toBe('MemWrite');
+    expect(equationText(word, healthy, { memWrite: 1 })).toBe(
+      '0x00B50533 is OP: RegWrite, Sum, with MemWrite stuck at 1'
+    );
+  });
+
   it('says so when the opcode is not one the decoder knows', () => {
     expect(equationText(0x7f, solveControl(RV32_CONTROL, 0x7f))).toBe(
       '0x0000007F is no instruction the decoder knows'
@@ -172,7 +181,9 @@ describe('readingText', () => {
   });
 
   it('says when the opcode is unknown', () => {
-    expect(read(0)).toBe('No RV32IM instruction has this opcode.');
+    expect(read(0)).toBe(
+      'This CPU has no instruction with this opcode: it runs RV32IM without ECALL, EBREAK and FENCE.'
+    );
   });
 });
 

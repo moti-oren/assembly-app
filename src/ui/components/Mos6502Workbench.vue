@@ -12,7 +12,7 @@ import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { MOS6502_DEVICE_ACCESS } from '@/ui/deviceAccess';
 import { MOS6502_CODE_PLACE, mos6502LineCode } from '@/ui/programCode';
-import { describeAccess } from '@/ui/mos6502Explain';
+import { memoryAccessOf } from '@/ui/mos6502Access';
 import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
 import { mos6502Sounds } from '@/ui/sounds';
@@ -123,11 +123,9 @@ const { open: challengesOpen } = useChallenges();
 
 const memoryPlaces = mos6502MemoryPlaces(state);
 
-const memoryAccess = computed(() => {
-  const record = lastRecord.value;
-  const text = record && describeAccess(record);
-  return record?.access && text ? { address: record.access.address, size: 1, text } : null;
-});
+const memoryAccess = computed(
+  () => lastRecord.value && memoryAccessOf(lastRecord.value, state.memory)
+);
 
 const { programLines, assembled, draft, encodingShown } = useProgramCode(cpu, inspectedLine, {
   format: formatInstruction,

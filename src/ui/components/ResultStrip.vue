@@ -59,7 +59,8 @@ function reached(index: number): boolean {
       </span>
       <span v-if="phase" class="sr-only">{{ phase }} done</span>
       <span v-if="!empty" :title="next ? `Line ${next} runs next` : 'The program has ended'">
-        <span class="sr-only">Next: </span>{{ next ?? 'end' }}
+        <!-- Said, not only titled: a line number beside the instruction reads as its own. -->
+        {{ next ? `next ${next}` : 'end' }}
       </span>
     </span>
     <div

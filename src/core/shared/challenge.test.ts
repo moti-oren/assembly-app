@@ -100,6 +100,26 @@ describe('checkChallenge', () => {
     const result = check([set(3), set(12)]);
     expect(result.goals[0].met).toBe(false);
     expect(result.solved).toBe(false);
+    expect(result.onlyAsGiven).toBe(true);
+  });
+
+  it('does not say a program works as given when it does not work at all', () => {
+    expect(check([set(3), dbl]).onlyAsGiven).toBe(false);
+    expect(check([set(3), dbl, dbl]).onlyAsGiven).toBe(false);
+    expect(check([set(4), set(12)]).onlyAsGiven).toBe(false);
+  });
+
+  it('gives a run that stopped as the reason, not an answer written in', () => {
+    const faulty = {
+      ...QUADRUPLE,
+      cases: [
+        QUADRUPLE.cases[0],
+        { given: [{ mnemonic: 'bad', operands: [] } as Toy], met: [() => true] }
+      ]
+    };
+    const result = checkChallenge(TOY, faulty, [set(3), dbl, dbl]);
+    expect(result.error).toBe('It broke');
+    expect(result.onlyAsGiven).toBe(false);
   });
 
   it('does not pass the given lines alone', () => {

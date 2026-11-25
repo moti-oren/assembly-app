@@ -38,7 +38,11 @@ export function outcomeText(result: ChallengeResult, par: number): string {
   if (result.error) return `The program stopped: ${result.error}`;
   if (result.lines === 0) return 'Nothing written yet.';
   const all = [...result.goals, ...result.limits];
-  return `${all.filter((verdict) => verdict.met).length} of ${all.length} met.`;
+  const count = `${all.filter((verdict) => verdict.met).length} of ${all.length} met.`;
+  // The program is also run from other starting values, which the page never shows.
+  return result.onlyAsGiven
+    ? `${count} It works with the given lines on show, but not when they start it from other values: the answer has to be worked out, not written in.`
+    : count;
 }
 
 /** What the list says of a challenge that was solved: the fewest lines it took. */

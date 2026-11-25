@@ -104,7 +104,9 @@ const onTouchScreen = (): boolean => window.matchMedia('(pointer: coarse)').matc
  * a touch screen: focusing there opens the on-screen keyboard over half the page.
  */
 function focusInputOnLoad(): void {
-  if (!onTouchScreen()) box.value?.focus({ quiet: true });
+  // A dialog that opened first (a shared link asking) keeps the focus: this workbench loads late.
+  const dialogOpen = document.querySelector('[role="dialog"], [role="alertdialog"]') !== null;
+  if (!onTouchScreen() && !dialogOpen) box.value?.focus({ quiet: true });
 }
 
 /**
@@ -114,6 +116,19 @@ function focusInputOnLoad(): void {
 function focusBuilder(): void {
   if (onTouchScreen()) card.value?.$el.focus();
   else focusInput();
+}
+
+/**
+ * After a pick, the button that was pressed or the word that was removed is gone: the focus goes
+ * back to the builder. Typing goes on where it was; a tap on a touch screen opens no keyboard.
+ */
+function refocus(): void {
+  if (
+    card.value?.$el.contains(document.activeElement) &&
+    document.activeElement?.tagName === 'INPUT'
+  )
+    return;
+  focusBuilder();
 }
 
 onMounted(focusInputOnLoad);
@@ -133,7 +148,7 @@ function choose(option: BuilderOption<Action>): void {
   draft.apply(option.action);
   hovered.value = null;
   filter.value = '';
-  focusInput();
+  refocus();
 }
 
 /** Removes the token at `index` and everything after it. */
@@ -144,13 +159,13 @@ function truncateTo(index: number): void {
   }
   draft.truncateTo(index);
   sound.play('pick');
-  focusInput();
+  refocus();
 }
 
 function clear(): void {
   draft.clear();
   filter.value = '';
-  focusInput();
+  refocus();
 }
 
 /** Esc and the clear button: they empty the box, which gives up the edit of a line too. */
@@ -258,7 +273,7 @@ function onEnter(event: KeyboardEvent): void {
 
       <Alert v-if="error" variant="destructive" role="alert">
         <CircleAlert />
-        <AlertDescription class="text-destructive/90">{{ error }}</AlertDescription>
+        <AlertDescription class="text-destructive">{{ error }}</AlertDescription>
       </Alert>
 
       <BuilderOptions

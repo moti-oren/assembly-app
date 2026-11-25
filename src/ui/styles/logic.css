@@ -332,6 +332,12 @@
     stroke: var(--foreground);
     stroke-width: 2.25;
   }
+  /* Picked and focused at once: the focus must still show over the line that marks it picked. */
+  .logic-gate[aria-pressed='true']:focus-visible .logic-gate-body {
+    stroke-width: 4;
+    /* A halo, so the focus is more than a thicker line of the same colour. */
+    filter: drop-shadow(0 0 2px var(--ring));
+  }
   /* A broken gate: its outline is broken too. */
   .logic-gate[data-stuck] .logic-gate-body {
     stroke: var(--foreground);

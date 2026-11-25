@@ -108,6 +108,7 @@ onActivated(focusStage);
     :moment="moment"
     :equation="equation"
     :edited="edited"
+    :unavailable="!edited && unavailable !== null"
     @back="$emit('back')"
   />
 
@@ -121,7 +122,7 @@ onActivated(focusStage);
           :moment="moment"
           :equation="equation"
           :edited="edited"
-          :unavailable="unavailable"
+          :unavailable="edited ? null : unavailable"
           :aside="aside"
         />
       </TopicSection>

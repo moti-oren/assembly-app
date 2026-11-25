@@ -11,6 +11,8 @@ defineProps<{
   equation: string;
   /** Whether the learner changed what the CPU gave. */
   edited: boolean;
+  /** Whether the CPU's last instruction has nothing to show here, so the operation is one to try. */
+  unavailable: boolean;
 }>();
 defineEmits<{ back: [] }>();
 
@@ -42,7 +44,10 @@ const { showControls } = useTopicView();
     <span v-else-if="moment.instruction" class="shrink-0 text-muted-foreground">
       {{ moment.instruction }}
     </span>
-    <span class="min-w-0 flex-1 truncate font-semibold" aria-live="polite">{{ equation }}</span>
+    <span class="min-w-0 flex-1 truncate font-semibold" aria-live="polite">
+      <span v-if="unavailable" class="font-sans font-normal text-muted-foreground">To try: </span>
+      {{ equation }}
+    </span>
     <span
       v-if="edited"
       class="shrink-0 rounded-sm border border-foreground/40 px-1.5 font-sans text-2xs font-semibold"

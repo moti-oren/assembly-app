@@ -9,7 +9,7 @@ defineProps<{
   equation: string;
   /** Whether the learner changed what the CPU gave. */
   edited: boolean;
-  /** Why the CPU's last instruction has nothing to show here, when it has nothing. */
+  /** Why the CPU's last instruction has nothing to show here; null when it has, or once edited. */
   unavailable: string | null;
   /** A quiet remark on what is shown, such as a result the CPU threw away. */
   aside: string | null;
@@ -31,12 +31,17 @@ const mode = useLayoutMode();
       </template>
       <span v-else>Nothing has run on the {{ moment.cpu }} yet: these are values to try.</span>
     </p>
+    <!-- Said before the operation, so nobody takes the one below for this instruction's own. -->
+    <p v-if="unavailable" class="max-w-prose text-xs text-pretty">
+      {{ unavailable }}
+    </p>
     <!-- The tag sits on the operation's own line, so nothing under it moves as it comes and goes. -->
     <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
       <p
         class="font-mono text-sm font-semibold wrap-anywhere"
         :aria-live="mode === 'desktop' ? 'polite' : 'off'"
       >
+        <span v-if="unavailable" class="font-sans font-normal text-muted-foreground">To try: </span>
         {{ equation }}
       </p>
       <!-- Always there, so the tag is read out as it appears. -->
@@ -48,9 +53,8 @@ const mode = useLayoutMode();
         >
       </span>
     </div>
-    <p v-if="unavailable && !edited" class="max-w-prose text-xs text-pretty">
-      {{ unavailable }}
+    <p v-if="aside && !unavailable" class="text-xs text-pretty text-muted-foreground">
+      {{ aside }}
     </p>
-    <p v-else-if="aside" class="text-xs text-pretty text-muted-foreground">{{ aside }}</p>
   </div>
 </template>

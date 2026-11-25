@@ -251,8 +251,9 @@
   --accent-foreground: #0a0b0d;
   --destructive: #d92d20;
   --border: #e4e7ec;
-  --input: #d0d5dd;
-  --ring: #0066ff;
+  /* A field's edge is what shows where it is: 3:1 against the surfaces it sits on. */
+  --input: var(--wire);
+  --ring: var(--foreground);
   /*
    * One colour per field of an encoding, the only place hues still tell things apart: muted, so
    * they never compete with the read and write accents.
@@ -270,7 +271,7 @@
   --sidebar-accent: #f2f4f7;
   --sidebar-accent-foreground: #0a0b0d;
   --sidebar-border: #e4e7ec;
-  --sidebar-ring: #0066ff;
+  --sidebar-ring: var(--foreground);
 }
 
 .dark {
@@ -330,8 +331,8 @@
   --accent-foreground: #f8fafc;
   --destructive: #f97066;
   --border: #232730;
-  --input: #343a46;
-  --ring: #3b82f6;
+  --input: var(--wire);
+  --ring: var(--foreground);
   --chart-1: oklch(0.74 0.09 255);
   --chart-2: oklch(0.75 0.07 200);
   --chart-3: oklch(0.74 0.08 295);
@@ -345,7 +346,7 @@
   --sidebar-accent: #1d222b;
   --sidebar-accent-foreground: #f8fafc;
   --sidebar-border: #232730;
-  --sidebar-ring: #3b82f6;
+  --sidebar-ring: var(--foreground);
 }
 
 /* A phone and a low window have less height to give the lines between sections. */
@@ -487,6 +488,10 @@
   /* Unlit, but still a digit to read: 0.62 keeps it above 4.5:1 in both themes. */
   .digit-off {
     opacity: 0.62;
+  }
+  /* A bit that just changed is the news: it is not dimmed, whatever it holds. */
+  .digit-marked.digit-off {
+    opacity: 1;
   }
   /* A memory byte that holds 0: quieter than the bytes that hold data. */
   .byte-zero {
