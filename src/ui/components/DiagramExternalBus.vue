@@ -43,7 +43,8 @@ defineProps<{ model: CpuDiagramModel }>();
         :class="{ 'unit-idle': !model.memoryKind }"
       >
         <h3 class="unit-title mb-0">Memory</h3>
-        <span v-if="model.memory" class="max-w-full truncate font-mono text-code">
+        <!-- What was read or written wraps rather than lose its address at the end. -->
+        <span v-if="model.memory" class="max-w-full min-w-0 font-mono text-code wrap-anywhere">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.memory.write ? 'wrote' : 'read' }}
           </span>
@@ -72,7 +73,7 @@ defineProps<{ model: CpuDiagramModel }>();
         :class="{ 'unit-idle': !model.portKind }"
       >
         <h3 class="unit-title mb-0">I/O ports</h3>
-        <span v-if="model.port" class="max-w-full truncate font-mono text-code">
+        <span v-if="model.port" class="min-w-0 font-mono text-code wrap-anywhere">
           <span class="font-sans text-xs text-muted-foreground">
             {{ model.port.write ? 'wrote' : 'read' }}
           </span>
