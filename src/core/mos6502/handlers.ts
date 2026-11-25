@@ -222,9 +222,11 @@ export const HANDLERS: Record<Mnemonic, Handler> = {
         ? addressOfLine(run.program, operand!.target)
         : run.address(operand!)
     ),
-  // JSR pushes the address of its own last byte, one short of the next instruction.
+  // JSR pushes the address of its own last byte, one short of the next instruction. Run by
+  // itself from the builder it is in no line: the way back is the line PC is on.
   jsr: (run, operand) => {
-    pushWord(run, (run.next - 1) & 0xffff);
+    const back = run.record.line === null ? run.here : run.next;
+    pushWord(run, (back - 1) & 0xffff);
     run.jump(addressOfLine(run.program, (operand as { target: number }).target));
   },
   // JSR kept the address of its own last byte: RTS adds the 1, so both numbers are named.
@@ -251,9 +253,10 @@ export const HANDLERS: Record<Mnemonic, Handler> = {
   cld: flagTo('D', false),
   sed: flagTo('D', true),
   clv: flagTo('V', false),
-  // BRK pushes the address two bytes on, past its signature byte, and P with B set.
+  // BRK pushes the address two bytes on, past its signature byte, and P with B set. Run by
+  // itself from the builder, RTI comes back to the line PC is on.
   brk: (run) => {
-    pushWord(run, (run.here + 2) & 0xffff);
+    pushWord(run, (run.record.line === null ? run.here : run.here + 2) & 0xffff);
     run.push(run.state.flags | FLAG_BREAK | FLAG_UNUSED);
     run.state.flags |= flagBit('I');
     const vector = run.readByte(IRQ_VECTOR) | (run.readByte(IRQ_VECTOR + 1) << 8);
