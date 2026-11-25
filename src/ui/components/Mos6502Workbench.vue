@@ -84,7 +84,8 @@ const layout = useLayoutMode();
 
 const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
 
-const page = useWorkbenchPage(() => lastRecord.value?.access != null);
+const memoryPlaces = mos6502MemoryPlaces(state);
+const page = useWorkbenchPage(() => lastRecord.value?.access != null, memoryPlaces);
 const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = usePrediction(
   cpu,
   mos6502Predictor,
@@ -122,8 +123,6 @@ const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panel
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, mos6502Stack);
 const { open: challengesOpen } = useChallenges();
-
-const memoryPlaces = mos6502MemoryPlaces(state);
 
 const memoryAccess = computed(
   () => lastRecord.value && memoryAccessOf(lastRecord.value, state.memory)

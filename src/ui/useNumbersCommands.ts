@@ -2,6 +2,7 @@ import { computed, type ComputedRef } from 'vue';
 import type { CpuMoment } from './cpuMoment';
 import { WIDTHS } from './logicView';
 import { momentCommands, type TopicPageActions } from './momentCommands';
+import { numbersChoices, withChoice } from './numbersChoices';
 import { DIRECTIONS, FILLS, withCount, withDirection } from './numbersShift';
 import { LENSES, widthAllowed } from './numbersView';
 import type { PaletteCommand } from './paletteCommand';
@@ -58,6 +59,21 @@ function shiftCommands(lens: NumberLens): PaletteCommand[] {
   ];
 }
 
+/** The sidebar's choices of an extension or a decimal sum; a shift has its own commands. */
+function choiceCommands(lens: NumberLens): PaletteCommand[] {
+  const { value: request } = lens.request;
+  if (request.kind === 'shift') return [];
+  return numbersChoices(request).flatMap((choice) =>
+    choice.choices.map((option) => ({
+      group: 'Numbers',
+      label: `${choice.label}: ${option.label}`,
+      current: choice.chosen === option.id,
+      disabled: choice.disabled.includes(option.id),
+      run: () => lens.change(withChoice(request, choice.id, option.id))
+    }))
+  );
+}
+
 /** Everything the command palette offers in the number topic, labelled for the current state. */
 export function useNumbersCommands(
   lens: NumberLens,
@@ -74,6 +90,7 @@ export function useNumbersCommands(
         group: 'Numbers',
         label: lens.fromCpu.value ? 'Put back the CPU’s values' : 'Put back the starting values',
         disabled: !lens.isEdited.value,
+        keywords: 'reset undo',
         run: lens.restore
       },
       ...LENSES.map((choice) => ({
@@ -92,6 +109,7 @@ export function useNumbersCommands(
         run: () => lens.setByteOrder(lens.byteOrder.value === 'little' ? 'big' : 'little')
       },
       extraCommand(lens),
+      ...choiceCommands(lens),
       ...shiftCommands(lens),
       ...WIDTHS.map((each) => ({
         group: 'Numbers',

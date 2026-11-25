@@ -36,6 +36,7 @@ export function useControlCommands(
         group: 'Control unit',
         label: lens.fromCpu.value ? 'Put back the CPU’s word' : 'Put back the starting word',
         disabled: !lens.isEdited.value,
+        keywords: 'reset undo',
         run: lens.restore
       },
       {

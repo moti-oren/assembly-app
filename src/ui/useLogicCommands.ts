@@ -22,6 +22,7 @@ export function useLogicCommands(
         group: 'Circuit',
         label: lens.fromCpu.value ? 'Put back the CPU’s values' : 'Put back the starting values',
         disabled: !lens.isEdited.value,
+        keywords: 'reset undo',
         run: lens.restore
       },
       ...FREE_OPERATIONS.map((choice) => ({

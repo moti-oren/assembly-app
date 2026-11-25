@@ -90,7 +90,8 @@ const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
 const pipeline = useRv32Pipeline();
 const timing = useRv32Timing(cpu);
 
-const page = useWorkbenchPage(() => lastRecord.value?.access != null);
+const memoryPlaces = rv32MemoryPlaces(state);
+const page = useWorkbenchPage(() => lastRecord.value?.access != null, memoryPlaces);
 const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = usePrediction(
   cpu,
   rv32Predictor,
@@ -131,8 +132,6 @@ const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, rv32Stack);
 const { open: challengesOpen } = useChallenges();
 const { shown: pipelineShown } = pipeline;
-
-const memoryPlaces = rv32MemoryPlaces(state);
 
 const memoryAccess = computed(() => {
   const record = lastRecord.value;

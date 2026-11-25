@@ -5,7 +5,7 @@ import { momentCommands, type TopicPageActions } from './momentCommands';
 import type { PaletteCommand } from './paletteCommand';
 import { SEQUENCE_INPUT, sequenceLabel, SEQUENCES } from './storageSequence';
 import { PULSE_WIRE } from './storageTiming';
-import { CELLS, CLOCK_ACTION } from './storageView';
+import { CELL_INPUTS, CELLS, CLOCK_ACTION } from './storageView';
 import { useAppCommands } from './useAppCommands';
 import type { StorageFile } from './useStorageFile';
 import type { StorageLens } from './useStorageLens';
@@ -25,6 +25,7 @@ function registerCommands(lens: StorageLens): PaletteCommand[] {
       group: 'Register',
       label: lens.fromCpu.value ? 'Put back the CPU’s values' : 'Put back the starting values',
       disabled: !lens.isEdited.value,
+      keywords: 'reset undo',
       run: lens.restore
     },
     ...WIDTHS.map((each) => ({
@@ -46,6 +47,16 @@ function cellCommands({ cell }: StorageLens): PaletteCommand[] {
       disabled: cell.cell.value === choice.id,
       run: () => cell.pick(choice.id)
     })),
+    ...(free
+      ? CELL_INPUTS[free].map((input) => ({
+          group: 'Memory cell',
+          label: `Set the cell’s ${input.label} to ${cell.inputs.value[input.signal] ? 0 : 1}`,
+          run: () => cell.flipInput(input.signal)
+        }))
+      : []),
+    ...(cell.bothHeld.value
+      ? [{ group: 'Memory cell', label: 'Let go of S and R at once', run: cell.releaseAll }]
+      : []),
     ...(pulsed
       ? [
           {
@@ -91,6 +102,7 @@ function fileCommands(file: StorageFile): PaletteCommand[] {
         ? 'Put back the CPU’s address in the register file'
         : 'Put back the starting address in the register file',
       disabled: !file.isEdited.value,
+      keywords: 'reset undo',
       run: file.restore
     }
   ];
