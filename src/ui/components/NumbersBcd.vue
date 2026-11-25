@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { BcdRequest, BcdSolution } from '@/core/representation/bcd';
-import { Button } from '@/components/ui/button';
 import { formatBits } from '@/core/shared/numbers';
 import { bitsOf, bcdExtraFrom } from '@/ui/numbersView';
 import type { NumberLens } from '@/ui/useNumberLens';
@@ -14,11 +13,6 @@ const props = defineProps<{
   solution: BcdSolution;
 }>();
 
-const OPERATIONS = [
-  { id: 'add', label: 'Add' },
-  { id: 'subtract', label: 'Subtract' }
-] as const;
-
 const adding = computed(() => props.request.operation === 'add');
 const sign = computed(() => (adding.value ? '+' : '−'));
 /** The digits as they are written: tens on the left. */
@@ -30,19 +24,6 @@ const text = (value: number): string => String(value).replace('-', '−');
 <!-- A byte as two decimal digits: each half summed in binary, then put right where it must be. -->
 <template>
   <div class="flex flex-wrap items-center gap-2">
-    <div class="toggle-group" role="group" aria-label="Operation">
-      <Button
-        v-for="choice in OPERATIONS"
-        :key="choice.id"
-        variant="ghost"
-        size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-11"
-        :aria-pressed="request.operation === choice.id"
-        @click="lens.change({ ...request, operation: choice.id })"
-      >
-        {{ choice.label }}
-      </Button>
-    </div>
     <label class="flex items-center gap-2 text-sm">
       <input
         type="checkbox"

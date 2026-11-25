@@ -44,7 +44,7 @@ describe('builderOptions', () => {
 
   it('offers a typed immediate only when it fits the operand', () => {
     const al = [{ type: 'reg', name: 'al' } as const];
-    expect(labels({ mnemonic: 'mov', operands: al, typed: 0x7f })).toContain('0x7F');
+    expect(labels({ mnemonic: 'mov', operands: al, typed: 0x7f })).toContain('127');
     expect(labels({ mnemonic: 'mov', operands: al, typed: 0x100 })).not.toContain('0x100');
   });
 
@@ -137,7 +137,7 @@ describe('X86_GRAMMAR', () => {
         ?.hint;
     expect(hintOf(5)).toBe('= 0005h, 16-bit immediate');
     expect(hintOf(-5)).toBe('= FFFBh, 16-bit immediate');
-    expect(hintOf(65)).toBe('= 65, 16-bit immediate');
+    expect(hintOf(65)).toBe('= 0041h, 16-bit immediate');
   });
 
   it('works out its options from the words chosen so far', () => {

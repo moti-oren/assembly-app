@@ -33,6 +33,10 @@ export interface NumberView {
    */
   comparable: boolean;
   note: string | null;
+  /** The CPU's names for the two inputs, as the instruction wrote them: `X` and `#$05` after CPX. */
+  operands?: { a: string; b: string };
+  /** The CPU keeps no flags: what is listed is what the instruction decides, not flags it set. */
+  flagless?: boolean;
 }
 
 /** An instruction with nothing to show as numbers, and why. */

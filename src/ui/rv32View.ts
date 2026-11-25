@@ -2,6 +2,7 @@ import type { Program } from '@/core/shared/program';
 import { wordAt } from '@/core/rv32/encode';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { Instruction } from '@/core/rv32/instructions';
+import { s32 } from '@/core/rv32/bits';
 import { regionAt } from '@/core/rv32/memory';
 import { ABI_NAMES, registerKey, registerRole, SP, type RegisterRole } from '@/core/rv32/registers';
 import {
@@ -81,4 +82,9 @@ export function byteAt(state: CpuState, program: Program<Instruction>, address: 
   if (region === 'device')
     return { address, value: deviceByte(state.io, address - DEVICE_BASE), region };
   return { address, value: null, region: null };
+}
+
+/** A register read as a signed number, with a true minus sign as the number topic writes it. */
+export function signedText(value: number): string {
+  return String(s32(value)).replace('-', '−');
 }

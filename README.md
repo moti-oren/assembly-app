@@ -233,7 +233,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   panel buttons move behind **⋯** at the end of the bottom bar, and the header keeps the CPU
   switch and the commands, with the topics, Share, Compare, Challenges, the examples and the settings
   in its own **⋯** menu. On a phone one view shows at a
-  time, chosen under the header: **Code** (the left column), **CPU**, or **Memory & I/O**. The
+  time, chosen under the header: **Code** (the left column), **CPU** (with the stack), or
+  **Memory & I/O**. The
   strip above them always shows the last instruction and what it changed, as `CX 0000 → 000A`,
   with the line that runs next, and a tap on it goes to the CPU. When more changed than fits, a
   `+N` at its end lists every change. The bottom bar keeps Step, the phase button, Run and Undo,
@@ -469,7 +470,11 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   scale reads it, and whether it fits.
 - **What each flag says** gives every flag as a question about the numbers. The 6502's C after a
   subtraction works backwards (1 means no borrow); RISC-V has no flags, so `slt`, `sltu` and the
-  branches compare on the scale their name picks.
+  branches compare on the scale their name picks, and the section is **What the instruction
+  decides**. A value changed by hand keeps the names of the CPU on show (**What the 6502 would
+  note**), and under the rows of a CPU's own operation a line says what A and B were in it (after
+  `cpx`, A is X). What is set once, as which way a shift goes, what fills an extension or whether
+  a decimal sum adds or takes off, is chosen under **What to show** in the sidebar.
 - Under a difference, **What a jump would make of it** lists the conditional jumps of the CPU on
   show (the 8086's `ja`, `jb`, `jg`, `jl` and the rest, RISC-V's branches, the 6502's branches
   after `cmp`): the question each asks, the two numbers on its own scale, the flags it goes by,
@@ -871,7 +876,7 @@ npm run verify:6502 # check the 6502 core against py65
   שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc, או לחיצה על העמוד שלידה, סוגרים אותה); Reset וכפתורי החלוניות עוברים אל
   **⋯** שבקצה הסרגל התחתון, ובכותרת נשארים בורר המעבד והפקודות, כשהנושאים, Share, Compare,
   Challenges, הדוגמאות וההגדרות נמצאים בתפריט **⋯** שלה. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
-  (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
+  (העמודה השמאלית), **CPU** (יחד עם המחסנית) או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
   שהיא שינתה, בצורה `CX 0000 → 000A`, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. כשהשתנה
   יותר ממה שנכנס, `+N` בסופו מציג את כל השינויים. בסרגל התחתון נשארים Step, כפתור
   השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; הנושאים, Share, Compare, Challenges, הדוגמאות וההגדרות
@@ -1080,7 +1085,10 @@ npm run verify:6502 # check the 6502 core against py65
   מופיע הסכום כפי שאותו סולם קורא אותו, והאם הוא נכנס.
 - **What each flag says** מציג כל דגל כשאלה על המספרים. ה-C של ה-6502 אחרי חיסור עובד הפוך (1
   פירושו שלא היה שאל); ל-RISC-V אין דגלים, ולכן `slt`, `sltu` וההסתעפויות משוות בסולם שהשם שלהן
-  בוחר.
+  בוחר, והסעיף נקרא **What the instruction decides**. ערך ששונה ביד שומר על השמות של המעבד שעל
+  המסך (**What the 6502 would note**), ומתחת לשורות של פעולה של המעבד שורה אומרת מה היו A ו-B בה
+  (אחרי `cpx`, A הוא X). מה שנקבע פעם אחת, כמו כיוון ההזזה, המילוי של הרחבה או חיבור מול חיסור
+  במספר עשרוני, נבחר תחת **What to show** בסרגל הצד.
 - מתחת להפרש, **What a jump would make of it** מפרט את הקפיצות המותנות של המעבד שעל המסך
   (`ja`, `jb`, `jg`, `jl` והשאר ב-8086, ההסתעפויות של RISC-V, וההסתעפויות של ה-6502 אחרי `cmp`):
   השאלה שכל אחת שואלת, שני המספרים בסולם שלה, הדגלים שלפיהם היא מחליטה, והאם היא נלקחת. כששני

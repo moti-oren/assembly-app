@@ -8,6 +8,10 @@ import {
 } from '@/core/numberLink';
 import { isDecimalByte, wrap, type Width } from '@/core/representation/readings';
 import { resultOf, type NumberRequest, type NumberSolution } from '@/core/representation/request';
+import { mos6502FreeView } from '@/core/mos6502NumberLink';
+import { rv32FreeView } from '@/core/rv32NumberLink';
+import { x86FreeView } from '@/core/x86NumberLink';
+import type { ArchitectureId } from './architectures';
 import { hexOf, WIDTHS } from './logicView';
 
 /** What the number topic can show, whether or not a CPU asked for it. */
@@ -123,8 +127,19 @@ export function freeRequest(lens: LensId, width: Width, from: NumberRequest | nu
   }
 }
 
-/** A request no CPU made as a view: its flags go by their plain names. */
-export function freeView(request: NumberRequest): NumberView {
+/** A request made by hand, as each CPU would set its flags for it. */
+const FREE_VIEWS: Record<ArchitectureId, (request: NumberRequest) => NumberView> = {
+  x86: x86FreeView,
+  rv32: rv32FreeView,
+  mos6502: mos6502FreeView
+};
+
+/**
+ * A request no CPU made as a view: its flags go by the names of the CPU on show, so the sidebar
+ * and the table of jumps say the same; with no CPU, by their plain names.
+ */
+export function freeView(request: NumberRequest, cpu: ArchitectureId | null = null): NumberView {
+  if (cpu) return FREE_VIEWS[cpu](request);
   const result = [reads('Zero', 'unsigned', 'zero'), reads('Negative', 'signed', 'negative')];
   const flags: Record<NumberRequest['kind'], FlagReading[]> = {
     add: [reads('Carry', 'unsigned', 'outside'), reads('Overflow', 'signed', 'outside'), ...result],
@@ -306,4 +321,20 @@ export function unavailableText(link: NumberLink | null): string | null {
 export function bcdExtraFrom(place: 'ones' | 'tens', adding: boolean): string {
   if (place === 'tens') return adding ? 'carried from the ones' : 'borrowed by the ones';
   return adding ? 'the carry coming in' : 'the borrow coming in';
+}
+
+/** The title of the section that lists the flags: RISC-V has none, only what it decides. */
+export function flagsTitle(view: NumberView, followsCpu: boolean, cpu: string): string {
+  if (view.flagless) return 'What the instruction decides';
+  return followsCpu ? 'What each flag says' : `What the ${cpu} would note`;
+}
+
+/**
+ * What the rows A and B are in the instruction, while it is the CPU's: after CPX, A is X. Said
+ * under the rows, whose labels stay short; null where the instruction names nothing.
+ */
+export function operandsText(view: NumberView, followsCpu: boolean): string | null {
+  if (!followsCpu || !view.operands) return null;
+  const { a, b } = view.operands;
+  return `A is ${a} and B is ${b}, as the instruction wrote them.`;
 }

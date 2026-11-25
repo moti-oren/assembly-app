@@ -6,6 +6,8 @@ describe('phoneViewOf', () => {
   it('puts the CPU panels in one view and what is on the bus in the other', () => {
     expect(phoneViewOf('cpu')).toBe('cpu');
     expect(phoneViewOf('registers')).toBe('cpu');
+    // The stack sits beside the CPU on a desktop's stage, and so with it on a phone.
+    expect(phoneViewOf('stack')).toBe('cpu');
     expect(phoneViewOf('memory')).toBe('memory');
     expect(phoneViewOf('devices')).toBe('memory');
   });

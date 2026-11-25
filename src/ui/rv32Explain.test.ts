@@ -122,7 +122,7 @@ describe('describeComparison', () => {
       right: 'a1 (1)',
       how: 'as unsigned numbers',
       taken: false,
-      outcome: 'false: went on to 0x00000004 (L1)'
+      outcome: 'false: not taken, on to 0x00000004 (L1)'
     });
   });
 

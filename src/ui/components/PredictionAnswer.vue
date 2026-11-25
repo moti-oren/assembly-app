@@ -43,7 +43,7 @@ function check(): void {
       class="pointer-coarse:h-11"
       @click="emit('answer', { kind: 'branch', taken: true })"
     >
-      It jumps
+      Taken
     </Button>
     <Button
       size="sm"
@@ -51,7 +51,7 @@ function check(): void {
       class="pointer-coarse:h-11"
       @click="emit('answer', { kind: 'branch', taken: false })"
     >
-      It falls through
+      Not taken
     </Button>
   </div>
 

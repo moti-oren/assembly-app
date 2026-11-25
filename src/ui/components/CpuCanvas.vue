@@ -16,6 +16,11 @@ defineProps<{
   alu?: AluLink | null;
   numbers?: NumberLink | null;
   stored?: RegisterLink | null;
+  /**
+   * Why the control topic has nothing to show (null when it has): RISC-V's way in, which its
+   * cycle card has room for only on a wide screen. Absent, no link is shown.
+   */
+  control?: string | null;
 }>();
 </script>
 
@@ -38,6 +43,7 @@ defineProps<{
         <div class="flex items-center gap-1.5 max-sm:hidden">
           <OperationLinks v-if="alu && numbers" :alu="alu" :numbers="numbers" />
           <TopicLinkButton v-if="stored" topic="storage" :unavailable="unavailableIn(stored)" />
+          <TopicLinkButton v-if="control !== undefined" topic="control" :unavailable="control" />
         </div>
         <!-- Switches an architecture adds for its own diagram. -->
         <slot name="actions" />
@@ -45,11 +51,12 @@ defineProps<{
       </CardAction>
       <!-- A phone has no room beside the title: the ways into the topics take a row under it. -->
       <div
-        v-if="(alu && numbers) || stored"
+        v-if="(alu && numbers) || stored || control !== undefined"
         class="col-span-2 flex flex-wrap items-center gap-1.5 pt-1 sm:hidden"
       >
         <OperationLinks v-if="alu && numbers" :alu="alu" :numbers="numbers" />
         <TopicLinkButton v-if="stored" topic="storage" :unavailable="unavailableIn(stored)" />
+        <TopicLinkButton v-if="control !== undefined" topic="control" :unavailable="control" />
       </div>
     </CardHeader>
     <CardContent>

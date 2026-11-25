@@ -3,7 +3,9 @@ import type { ArithmeticRequest } from './representation/arithmetic';
 import type { ScalingRequest } from './representation/scaling';
 import type { AluMnemonic } from './rv32/alu';
 import type { AluTrace, ExecutionRecord, MemoryAccess } from './rv32/execute';
-import type { Mnemonic } from './rv32/instructions';
+import type { Instruction, Mnemonic } from './rv32/instructions';
+import { formatOperand } from './rv32/operands';
+import type { NumberRequest } from './representation/request';
 import { BRANCH_TAKEN, SET_RESULT } from './rv32AluLink';
 
 const WIDTH = 32;
@@ -114,8 +116,44 @@ function computed(alu: AluTrace): NumberLink {
   }
 }
 
+/**
+ * The two inputs as the instruction wrote them: a branch compares its first two operands, any
+ * other its two sources after rd.
+ */
+function operandsOf({ mnemonic, operands }: Instruction): NumberView['operands'] {
+  const [a, b] = BRANCHES[mnemonic] ? operands : operands.slice(1);
+  return a && b ? { a: formatOperand(a), b: formatOperand(b) } : undefined;
+}
+
+/**
+ * RISC-V keeps no flags, so what a view lists is what the instruction itself decides; and its
+ * two inputs are named as the instruction wrote them, but for a load made wider, which has one.
+ */
+function named(link: NumberLink, instruction: Instruction): NumberLink {
+  if (!('request' in link)) return link;
+  const two = link.request.kind === 'add' || link.request.kind === 'subtract';
+  return { ...link, flagless: true, ...(two && { operands: operandsOf(instruction) }) };
+}
+
+/** A request made by hand: RISC-V sets no flag for it, whatever it is. */
+export function rv32FreeView(request: NumberRequest): NumberView {
+  const arithmetic = request.kind !== 'extend' && request.kind !== 'value';
+  return {
+    request,
+    flags: [],
+    resultKept: true,
+    comparable: true,
+    note: arithmetic ? NO_FLAGS : null,
+    flagless: true
+  };
+}
+
 /** An executed RISC-V instruction as arithmetic on numbers, or why there is nothing to show. */
 export function rv32NumberLink(record: ExecutionRecord): NumberLink {
+  return named(linkOf(record), record.instruction);
+}
+
+function linkOf(record: ExecutionRecord): NumberLink {
   const { alu, access, comparison, instruction } = record;
   const { mnemonic } = instruction;
   const question = BRANCHES[mnemonic];

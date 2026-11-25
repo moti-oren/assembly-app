@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { formatHex32, s32 } from '@/core/rv32/bits';
+import { formatHex32 } from '@/core/rv32/bits';
 import type { ExecutionRecord } from '@/core/rv32/execute';
 import type { RegisterName } from '@/core/rv32/registers';
 import type { CpuState } from '@/core/rv32/state';
@@ -12,7 +12,8 @@ import {
   REGISTER_GROUPS,
   ROLE_DESCRIPTIONS,
   ROLE_LABELS,
-  rv32RegisterWritten
+  rv32RegisterWritten,
+  signedText
 } from '@/ui/rv32View';
 import { changeTitle, type ValueChange } from '@/ui/stepDiff';
 import { unavailableIn } from '@/ui/topicLinks';
@@ -118,7 +119,7 @@ const pcMove = computed(
               class="truncate text-right text-xs text-muted-foreground tabular-nums"
               :title="`${state.registers[row.key]} unsigned`"
             >
-              <RollingDigits :text="String(s32(state.registers[row.key]))" />
+              <RollingDigits :text="signedText(state.registers[row.key])" />
             </span>
           </div>
         </section>

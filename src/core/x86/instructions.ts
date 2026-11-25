@@ -1,6 +1,6 @@
 import type { Size } from '../shared/numbers';
 import {
-  formatOperand,
+  formatOperandOf,
   matchesKind,
   operandSize,
   type Operand,
@@ -418,7 +418,9 @@ export function isValid(instruction: Instruction): boolean {
 }
 
 export function formatInstruction(instruction: Instruction): string {
-  const operands = instruction.operands.map(formatOperand).join(', ');
+  const operands = instruction.operands
+    .map((operand) => formatOperandOf(instruction.mnemonic, operand))
+    .join(', ');
   const body = operands ? `${instruction.mnemonic} ${operands}` : instruction.mnemonic;
   return instruction.prefix ? `${instruction.prefix} ${body}` : body;
 }

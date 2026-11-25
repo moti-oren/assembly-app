@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { DIGIT_COUNT, PORTS, litSegments, terminalText } from '@/core/shared/devices';
-import { formatHex } from '@/core/shared/numbers';
 import type { CpuState } from '@/core/shared/state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { DeviceAccess } from '@/ui/deviceAccess';
@@ -88,7 +87,7 @@ function flip(bit: number): void {
           <h3 class="device-title">
             LEDs
             <span class="device-port"
-              >{{ access.write }} {{ port(PORTS.leds) }} = {{ formatHex(leds, 8) }}h</span
+              >{{ access.write }} {{ port(PORTS.leds) }} = {{ access.byte(leds) }}</span
             >
           </h3>
           <div
@@ -110,7 +109,7 @@ function flip(bit: number): void {
           <h3 class="device-title">
             Switches
             <span class="device-port"
-              >{{ access.read }} {{ port(PORTS.switches) }} = {{ formatHex(switches, 8) }}h</span
+              >{{ access.read }} {{ port(PORTS.switches) }} = {{ access.byte(switches) }}</span
             >
           </h3>
           <div
@@ -152,10 +151,10 @@ function flip(bit: number): void {
             viewBox="0 0 42 64"
             class="h-16 w-auto max-sm:h-12"
             role="img"
-            :aria-label="`Digit at ${access.noun} ${port(digit.port)} shows ${formatHex(digit.value, 8)}h`"
+            :aria-label="`Digit at ${access.noun} ${port(digit.port)} shows ${access.byte(digit.value)}`"
           >
             <title>
-              {{ formatHex(digit.value, 8) }}h, written to {{ access.noun }} {{ port(digit.port) }}.
+              {{ access.byte(digit.value) }}, written to {{ access.noun }} {{ port(digit.port) }}.
               Bits 0 to 7 light a, b, c, d, e, f, g and the dot.
             </title>
             <g class="device-segments">

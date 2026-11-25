@@ -88,7 +88,7 @@ defineEmits<{ choose: [gate: number] }>();
       <tspan
         class="logic-value"
         dx="3"
-        :data-tone="terminal.side === 'out' && written ? 'result' : undefined"
+        :data-tone="terminal.side === 'out' && !terminal.passedOn && written ? 'result' : undefined"
       >
         {{ unknown(terminal.signal) ? '?' : signals[terminal.signal] }}
       </tspan>

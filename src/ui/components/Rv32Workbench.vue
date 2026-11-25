@@ -260,6 +260,7 @@ followBuilder(draft);
           :after="lastAfter"
           :pending="pending"
           :stored="registerLink"
+          :control="controlUnavailable"
           :tick="history.length"
         />
       </template>

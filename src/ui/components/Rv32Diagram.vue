@@ -36,6 +36,8 @@ const props = defineProps<{
   tick: number;
   /** Where the last instruction's write leads in the storage topic. */
   stored: RegisterLink | null;
+  /** Why the control topic has nothing to show for it: null when it has; absent, no link. */
+  control?: string | null;
 }>();
 
 // The 32 names are one stop for Tab, in the order drawn; the arrows move between them, so any
@@ -100,7 +102,7 @@ function change(index: number): ValueChange | null {
 </script>
 
 <template>
-  <CpuCanvas :alu="aluLink" :numbers="numberLink" :stored="stored">
+  <CpuCanvas :alu="aluLink" :numbers="numberLink" :stored="stored" :control="control">
     <div class="@container">
       <div class="chip-package rounded-lg p-4">
         <!--

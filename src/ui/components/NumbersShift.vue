@@ -4,14 +4,7 @@ import { Minus, Plus } from '@lucide/vue';
 import type { Scale } from '@/core/representation/readings';
 import type { ScalingRequest, ScalingSolution } from '@/core/representation/scaling';
 import { Button } from '@/components/ui/button';
-import {
-  DIRECTIONS,
-  FILLS,
-  placesText,
-  shiftSummary,
-  withCount,
-  withDirection
-} from '@/ui/numbersShift';
+import { placesText, shiftSummary, withCount } from '@/ui/numbersShift';
 import { bitsOf } from '@/ui/numbersView';
 import type { NumberLens } from '@/ui/useNumberLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
@@ -35,7 +28,6 @@ const scales = computed(() =>
     summary: shiftSummary(props.solution.scales[scale], props.request)
   }))
 );
-const left = computed(() => props.request.direction === 'left');
 
 /** A press at either end changes nothing, and so leaves the CPU's own shift on show. */
 function move(by: number): void {
@@ -50,38 +42,6 @@ function move(by: number): void {
 -->
 <template>
   <div class="flex flex-wrap items-center gap-2">
-    <div class="toggle-group" role="group" aria-label="Which way the bits move">
-      <Button
-        v-for="direction in DIRECTIONS"
-        :key="direction.id"
-        variant="ghost"
-        size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-11 pointer-coarse:min-w-11"
-        :aria-pressed="request.direction === direction.id"
-        @click="lens.change(withDirection(request, direction.id))"
-      >
-        {{ direction.label }}
-      </Button>
-    </div>
-    <!-- A shift left has only zeros to bring in, so it has no fill to choose. -->
-    <div
-      v-if="!left"
-      class="toggle-group"
-      role="group"
-      aria-label="What comes into the emptied places"
-    >
-      <Button
-        v-for="fill in FILLS"
-        :key="fill.id"
-        variant="ghost"
-        size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-11 pointer-coarse:min-w-11"
-        :aria-pressed="request.fill === fill.id"
-        @click="lens.change({ ...request, fill: fill.id })"
-      >
-        {{ fill.label }}
-      </Button>
-    </div>
     <!-- A stepper at its end stays in the tab order, so the keyboard's focus is not dropped. -->
     <div class="flex items-center gap-1" role="group" aria-label="How many places">
       <Button

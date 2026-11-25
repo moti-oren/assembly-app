@@ -7,7 +7,7 @@ import type { Operand } from './rv32/operands';
 import { parseRegister } from './rv32/registers';
 import { createCpuState, readRegister, writeRegister } from './rv32/state';
 import { BRANCH_TAKEN, SET_RESULT } from './rv32AluLink';
-import { rv32NumberLink } from './rv32NumberLink';
+import { rv32FreeView, rv32NumberLink } from './rv32NumberLink';
 
 const r = (name: string): Operand => ({ type: 'reg', index: parseRegister(name)! });
 const imm = (value: number): Operand => ({ type: 'imm', value });
@@ -163,5 +163,22 @@ describe('rv32NumberLink', () => {
     expect(link(line('and', r('a0'), r('a1'), r('a2')))).toHaveProperty('unavailable');
     expect(link(line('mul', r('a0'), r('a1'), r('a2')))).toHaveProperty('unavailable');
     expect(link(line('lui', r('a0'), imm(1)))).toHaveProperty('unavailable');
+  });
+});
+
+describe('rv32FreeView', () => {
+  it('keeps no flags for a sum made by hand, and says the CPU has none', () => {
+    const view = rv32FreeView({ kind: 'add', width: 32, a: 1, b: 2, extra: 0 });
+    expect(view.flags).toEqual([]);
+    expect(view.flagless).toBe(true);
+    expect(view.note).toMatch(/^RISC-V keeps no flags/);
+  });
+
+  it('names the registers an instruction read', () => {
+    const cpu = createCpuState();
+    const instruction = line('sub', r('a0'), r('a1'), r('a2'));
+    const link = rv32NumberLink(execute(cpu, instruction, 0, [instruction]));
+    expect(hasNumbers(link) && link.operands).toEqual({ a: 'a1', b: 'a2' });
+    expect(hasNumbers(link) && link.flagless).toBe(true);
   });
 });

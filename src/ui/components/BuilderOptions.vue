@@ -53,6 +53,9 @@ const emit = defineEmits<{
           @blur="emit('hover', null)"
         >
           {{ option.label }}
+          <span v-if="option.aside" class="font-sans text-2xs text-muted-foreground">{{
+            option.aside
+          }}</span>
           <!-- A touch screen has no Enter to press, and the mark would widen the one button. -->
           <CornerDownLeft
             v-if="option === enterOption"

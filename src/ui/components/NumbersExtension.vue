@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
 import type { ExtensionRequest, ExtensionSolution } from '@/core/representation/extension';
-import { Button } from '@/components/ui/button';
 import { bitsLeftToRight, startsDigit } from '@/ui/logicLayout';
 import { bitsOf, numberText as text } from '@/ui/numbersView';
 import type { NumberLens } from '@/ui/useNumberLens';
@@ -15,12 +14,6 @@ const props = defineProps<{
 }>();
 
 useScrollEnd(useTemplateRef<HTMLElement>('rows'), () => props.request.to);
-
-const FILLS = [
-  { signed: true, label: 'Copy the top bit' },
-  { signed: false, label: 'Fill with zeros' }
-] as const;
-const NARROW = [8, 16] as const;
 
 const narrow = computed(() => bitsOf(props.solution.value, props.request.from));
 const wide = computed(() => bitsOf(props.solution.result, props.request.to));
@@ -39,37 +32,7 @@ const scales = computed(() => {
 
 <!-- A narrow value above the wide one it becomes: the new places all take one bit. -->
 <template>
-  <div class="flex flex-wrap items-center gap-2">
-    <div class="toggle-group" role="group" aria-label="How the new bits are filled">
-      <Button
-        v-for="fill in FILLS"
-        :key="fill.label"
-        variant="ghost"
-        size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-11"
-        :aria-pressed="request.signed === fill.signed"
-        @click="lens.change({ ...request, signed: fill.signed })"
-      >
-        {{ fill.label }}
-      </Button>
-    </div>
-    <div class="toggle-group" role="group" aria-label="Bits of the value">
-      <Button
-        v-for="bits in NARROW"
-        :key="bits"
-        variant="ghost"
-        size="sm"
-        class="h-7 px-2.5 text-xs pointer-coarse:h-11"
-        :disabled="bits >= request.to"
-        :aria-pressed="request.from === bits"
-        @click="lens.change({ ...request, from: bits, value: request.value % 2 ** bits })"
-      >
-        From {{ bits }} bits
-      </Button>
-    </div>
-  </div>
-
-  <div ref="rows" class="logic-rows mt-3">
+  <div ref="rows" class="logic-rows">
     <LogicBitNumbers :width="request.to" />
     <div class="logic-row">
       <div class="logic-label">Value</div>

@@ -1,3 +1,4 @@
+import { immediateText } from '../shared/numbers';
 import { formatLabel } from '../shared/program';
 import { fitsSigned, fitsUnsigned } from './bits';
 import { ABI_NAMES } from './registers';
@@ -42,17 +43,12 @@ export function formatRegister(index: number): string {
   return ABI_NAMES[index];
 }
 
-/** Small and negative numbers read best in decimal, larger ones in hex, as in a disassembly. */
-function formatImmediate(value: number): string {
-  return value < 10 ? String(value) : `0x${value.toString(16)}`;
-}
-
 export function formatOperand(operand: Operand): string {
   switch (operand.type) {
     case 'reg':
       return formatRegister(operand.index);
     case 'imm':
-      return formatImmediate(operand.value);
+      return immediateText(operand.value);
     case 'mem':
       return `${operand.offset}(${formatRegister(operand.base)})`;
     case 'label':

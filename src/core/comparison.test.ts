@@ -33,13 +33,13 @@ describe('measure', () => {
     const { x86, rv32, mos6502 } = measure(task('wide-add'));
     expect(x86.listing).toEqual([
       { text: 'mov ax, 0x1234', bytes: [0xb8, 0x34, 0x12] },
-      { text: 'add ax, 0xFF', bytes: [0x05, 0xff, 0x00] }
+      { text: 'add ax, 255', bytes: [0x05, 0xff, 0x00] }
     ]);
     expect(x86.bytes).toBe(6);
     expect(rv32.listing.map((line) => line.text)).toEqual([
       'lui a0, 1',
       'addi a0, a0, 0x234',
-      'addi a0, a0, 0xff'
+      'addi a0, a0, 255'
     ]);
     expect(rv32.bytes).toBe(12);
     expect(mos6502.bytes).toBe(13);
