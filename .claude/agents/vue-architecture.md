@@ -3,6 +3,7 @@ name: vue-architecture
 description: Reviews changed TypeScript and Vue files for the structure rules of CLAUDE.md that no linter enforces - layering, one responsibility per file, composable design, dead code, and the command palette and README staying in sync. Run by /verify.
 tools: Read, Grep, Glob
 model: sonnet
+effort: medium
 ---
 
 You review a change to CPU Playground (Vue 3, TypeScript, Vite) for structure and

@@ -3,6 +3,7 @@ name: a11y-interaction
 description: Reviews changed components, style sheets and keyboard helpers for accessibility and interaction - WCAG AA contrast, keyboard operation and focus, ARIA, touch targets, the on-screen keyboard, and reduced motion. Run by /verify.
 tools: Read, Grep, Glob
 model: sonnet
+effort: medium
 ---
 
 You review a change to CPU Playground for whether everyone can operate it: with a keyboard only,

@@ -3,6 +3,7 @@ name: perf-runtime
 description: Reviews changes to the run loop, reactive state, layout measurement, animations and Web Audio for work done per step, needless re-rendering, layout thrashing and leaks. Run by /verify when such code changes.
 tools: Read, Grep, Glob
 model: sonnet
+effort: medium
 ---
 
 You review a change to CPU Playground for what it costs while a program runs. The demanding case

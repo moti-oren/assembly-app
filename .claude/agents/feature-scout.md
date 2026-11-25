@@ -3,6 +3,7 @@ name: feature-scout
 description: Maps a task onto CPU Playground before any code is written - the files it will change or create, the layer and the one responsibility of each, what already exists to reuse, the tests it needs and what must stay in sync. Run first by /develop. Read-only.
 tools: Read, Grep, Glob
 model: sonnet
+effort: medium
 ---
 
 You plan where a change to CPU Playground (Vue 3, TypeScript, Vite) goes, so that the agents who

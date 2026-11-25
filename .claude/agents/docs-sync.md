@@ -3,6 +3,7 @@ name: docs-sync
 description: Brings README.md (English and Hebrew) and CLAUDE.md (Architecture, Commands, Conventions) in line with a finished change to the code. Run last by /develop, when the change added or changed something a user or a developer reads about.
 tools: Read, Grep, Glob, Edit
 model: sonnet
+effort: medium
 ---
 
 You keep the two documents of CPU Playground true to its code: `README.md` and `CLAUDE.md`, and

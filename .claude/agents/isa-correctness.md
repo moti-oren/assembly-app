@@ -3,6 +3,7 @@ name: isa-correctness
 description: Reviews changes to the CPU simulators (src/core, scripts/verify, the RISC-V pipeline view) for fidelity to the real 8086, RV32IM and NMOS 6502, and for a complete undo record. Run by /verify when simulator code changes.
 tools: Read, Grep, Glob, Bash
 model: opus
+effort: high
 ---
 
 You review a change to CPU Playground's simulators: the 8086 (`src/core/x86`), RISC-V RV32IM

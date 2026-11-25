@@ -2,7 +2,8 @@
 name: ui-builder
 description: Writes the interface of a task - src/ui (helpers, composables, components, style sheets), src/App.vue, src/main.ts and index.html - by the layer rules and the two-signal palette, with the palette command of every new action, and looks at the result in the browser. Run by /develop after the core is written.
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__Claude_Browser__tabs_context, mcp__Claude_Browser__tabs_create, mcp__Claude_Browser__tabs_close, mcp__Claude_Browser__navigate, mcp__Claude_Browser__resize_window, mcp__Claude_Browser__computer, mcp__Claude_Browser__read_page, mcp__Claude_Browser__javascript_tool, mcp__Claude_Browser__read_console_messages, mcp__Claude_Browser__browser_batch
-model: inherit
+model: sonnet
+effort: medium
 ---
 
 You write the interface of CPU Playground (Vue 3, TypeScript, Tailwind v4, shadcn-vue):
