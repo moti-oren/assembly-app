@@ -19,6 +19,7 @@ import {
   type PseudoMnemonic
 } from '@/core/rv32/pseudo';
 import { ABI_NAMES, registerRole, type RegisterRole } from '@/core/rv32/registers';
+import { REGISTER_GROUPS } from './rv32View';
 import {
   END_OF_PROGRAM,
   type BuilderOption,
@@ -115,13 +116,16 @@ function mnemonicOptions(): Option[] {
   return [...real, ...pseudo];
 }
 
+/** The registers in the order of their groups in the registers panel, so both read alike. */
+const REGISTER_ORDER = REGISTER_GROUPS.flatMap((group) => group.rows.map((row) => row.index));
+
 function registerOptions(
   label: (abi: string) => string,
   operand: (index: number) => Operand
 ): Option[] {
-  return ABI_NAMES.map((abi, index) => ({
+  return REGISTER_ORDER.map((index) => ({
     key: `x${index}`,
-    label: label(abi),
+    label: label(ABI_NAMES[index]),
     group: ROLE_GROUPS[registerRole(index)],
     hint: index === 0 ? 'x0: always reads as 0; writes to it are thrown away' : `x${index}`,
     action: { kind: 'operand', operand: operand(index) }
