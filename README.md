@@ -9,7 +9,7 @@ A second topic, **Logic**, shows the gates behind an operation the CPU just made
 beside the ALU's result and the same bits appear in an adder, a row of gates or a shifter. A
 third, **Numbers**, shows what that operation means as numbers: press **Numbers** and the same
 bits are read once as unsigned and once as signed, each on a wheel of its own. A fourth,
-**Storage**, shows how a value is kept: press **Stored** in the registers panel and the register
+**Storage**, shows how a value is kept: press **Storage** in the registers panel and the register
 the instruction wrote appears as a row of flip-flops, waiting for its clock. A fifth, **Control**,
 shows what tells all of these what to do: the 32 bits of a RISC-V instruction go through two
 decoders, and the lines they set pick the ALU's operation, turn on a register's write line and
@@ -229,7 +229,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   the right column stay where they are. On a wide screen each column scrolls on its own, so the
   program stays in view under a long CPU column, and the bottom bar sits below both.
 - The page fits the screen it is on. On a tablet the right column takes the whole width, and the
-  left one is a drawer that **Code**, at the top, slides over it (Esc closes it); Reset and the
+  left one is a drawer that **Code**, at the top, slides over it (Esc, or a press on the page beside it, closes it); Reset and the
   panel buttons move behind **⋯** at the end of the bottom bar, and the header keeps the CPU
   switch and the commands, with the topics, Share, Compare, Challenges, the examples and the settings
   in its own **⋯** menu. On a phone one view shows at a
@@ -411,7 +411,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **⋯** menu below a desktop), switch
   between the topics. **Gates**, beside the result in a CPU's ALU panel, opens the logic topic on the
   operation that CPU just made; so does **Show the gates behind the last operation** in the
-  command palette. In the diagram view **Gates**, **Numbers** and **Stored** sit in the CPU
+  command palette. In the diagram view **Gates**, **Numbers** and **Storage** sit in the CPU
   panel's header, and after a shift, NOT or a multiplication they stay beside the ALU too.
 - The page shows that operation as a circuit, with the CPU's own bits on its wires: a full adder
   under every bit with the carry rippling between them (a subtraction is the same adder with B
@@ -508,7 +508,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## From an instruction to the register that keeps its result
 
-- **Stored**, at the top of a CPU's registers panel, opens the storage topic on the register the
+- **Storage**, at the top of a CPU's registers panel, opens the storage topic on the register the
   last instruction wrote; so does **Show how the last register written is kept** in the command
   palette.
 - The page is laid out like the logic topic's: on the left where the register came from and
@@ -552,7 +552,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   for the counter, which bits will flip), and a timing diagram follows the input, the clock and
   every flip-flop. **The counter every CPU has: PC** opens the control topic.
 - An instruction that wrote no register (a comparison, a store, a branch) has nothing to show:
-  there **Stored** is greyed and says why. So does RISC-V's `x0`, which has no flip-flops, and a
+  there **Storage** is greyed and says why. So does RISC-V's `x0`, which has no flip-flops, and a
   jump, which writes only the instruction pointer: how that register is loaded on every
   instruction is shown in the control topic, for RISC-V.
 - **Logic** and **Control**, at the right of the bar under the page (behind **⋯** below a
@@ -578,7 +578,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   funct3 and funct7, and sets the lines of the ALU: Sum, Sub, Shift, and for a branch which wire
   of the subtraction it reads.
 - **What the lines tell the CPU** lists every line that is 1 with what it does. **Gates** beside
-  an ALU line opens the logic topic on the same instruction, and **Stored** beside RegWrite opens
+  an ALU line opens the logic topic on the same instruction, and **Storage** beside RegWrite opens
   the storage topic.
 - Press a line, at 1 or at 0, to break it: **Stuck at 0** or **Stuck at 1** holds it there
   whatever the word says, and **Works** mends it. A broken line stays broken as the CPU steps, so
@@ -661,7 +661,7 @@ CPU Playground: בונים הוראה מילה אחר מילה, מריצים א�
 נושא שני, **Logic**, מציג את השערים שמאחורי פעולה שהמעבד ביצע זה עתה: לוחצים על **Gates** ליד
 תוצאת ה-ALU, ואותן סיביות מופיעות במחבר, בשורת שערים או במעגל הזזה. נושא שלישי, **Numbers**,
 מציג מה אותה פעולה אומרת כמספרים: לוחצים על **Numbers**, ואותן סיביות נקראות פעם ללא סימן ופעם
-עם סימן, כל קריאה על גלגל משלה. נושא רביעי, **Storage**, מציג איך ערך נשמר: לוחצים על **Stored**
+עם סימן, כל קריאה על גלגל משלה. נושא רביעי, **Storage**, מציג איך ערך נשמר: לוחצים על **Storage**
 בחלונית האוגרים, והאוגר שההוראה כתבה מופיע כשורה של פליפ-פלופים שמחכים לשעון. נושא חמישי,
 **Control**, מציג מה אומר לכל אלה מה לעשות: 32 הסיביות של הוראת RISC-V עוברות דרך שני מפענחים,
 והקווים שהם קובעים בוחרים את הפעולה של ה-ALU, מדליקים את קו הכתיבה של אוגר ובוחרים לאן PC ממשיך.
@@ -868,7 +868,7 @@ npm run verify:6502 # check the 6502 core against py65
   במסך רחב כל עמודה נגללת בנפרד, כך שהתוכנית נשארת גלויה לצד עמודת CPU ארוכה, והסרגל התחתון נמצא
   מתחת לשתיהן.
 - העמוד מתאים את עצמו למסך. בטאבלט העמודה הימנית תופסת את כל הרוחב, והשמאלית היא מגירה
-  שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc סוגר אותה); Reset וכפתורי החלוניות עוברים אל
+  שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc, או לחיצה על העמוד שלידה, סוגרים אותה); Reset וכפתורי החלוניות עוברים אל
   **⋯** שבקצה הסרגל התחתון, ובכותרת נשארים בורר המעבד והפקודות, כשהנושאים, Share, Compare,
   Challenges, הדוגמאות וההגדרות נמצאים בתפריט **⋯** שלה. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
   (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
@@ -1028,7 +1028,7 @@ npm run verify:6502 # check the 6502 core against py65
   **Gates**, ליד
   התוצאה בחלונית ה-ALU של מעבד, פותח את נושא הלוגיקה על הפעולה שאותו מעבד ביצע זה עתה; כך גם
   **Show the gates behind the last operation** בפלטת הפקודות. בתצוגת הדיאגרמה **Gates**,
-  **Numbers** ו-**Stored** נמצאים בכותרת של חלונית ה-CPU, ואחרי הזזה, NOT או כפל הם נשארים גם ליד
+  **Numbers** ו-**Storage** נמצאים בכותרת של חלונית ה-CPU, ואחרי הזזה, NOT או כפל הם נשארים גם ליד
   ה-ALU.
 - העמוד מציג את הפעולה כמעגל, עם הסיביות של המעבד עצמו על החוטים: מחבר מלא מתחת לכל סיבית,
   כשהנשא מתגלגל ביניהם (חיסור הוא אותו מחבר עם B הפוך), שער אחד לכל סיבית ב-AND, ב-OR וב-XOR, או
@@ -1114,7 +1114,7 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## מהוראה לאוגר ששומר את התוצאה שלה
 
-- **Stored**, בראש חלונית האוגרים של מעבד, פותח את נושא האחסון על האוגר שההוראה האחרונה כתבה; כך
+- **Storage**, בראש חלונית האוגרים של מעבד, פותח את נושא האחסון על האוגר שההוראה האחרונה כתבה; כך
   גם **Show how the last register written is kept** בפלטת הפקודות.
 - העמוד בנוי כמו העמוד של נושא הלוגיקה: משמאל מאין הגיע האוגר ואיזה מעגל כל חלק מציג (האוגר
   שנכתב והרוחב שלו, תא הזיכרון, אוגר ההזזה או המונה); מימין המעגלים; ומתחת לשניהם סרגל עם הצעדים
@@ -1151,7 +1151,7 @@ npm run verify:6502 # check the 6502 core against py65
   את **In** בסיבית 0, והמונה מוסיף 1 כל עוד **Count** הוא 1. השורות שמעל מה שהפליפ-פלופים מחזיקים
   מראות מה כל אחד ייקח בתקתוק הבא (ובמונה, אילו סיביות יתהפכו), ודיאגרמת תזמון עוקבת אחרי הכניסה,
   השעון וכל פליפ-פלופ. **The counter every CPU has: PC** פותח את נושא הבקרה.
-- להוראה שלא כתבה אוגר (השוואה, כתיבה לזיכרון, הסתעפות) אין מה להציג: שם **Stored** אפור ומסביר
+- להוראה שלא כתבה אוגר (השוואה, כתיבה לזיכרון, הסתעפות) אין מה להציג: שם **Storage** אפור ומסביר
   למה. כך גם `x0` של RISC-V, שאין לו פליפ-פלופים, וקפיצה, שכותבת רק את מצביע ההוראה: האופן שבו
   האוגר הזה נטען בכל הוראה מוצג בנושא הבקרה, עבור RISC-V.
 - **Logic** ו-**Control**, בצד ימין של הסרגל שמתחת לעמוד (מתחת לדסקטופ: מאחורי **⋯**), פותחים את
@@ -1174,7 +1174,7 @@ npm run verify:6502 # check the 6502 core against py65
   קורא את מה שהראשון מצא יחד עם funct3 ו-funct7, וקובע את הקווים של ה-ALU: Sum, Sub, Shift,
   ובהסתעפות גם איזה חוט של החיסור נקרא.
 - **What the lines tell the CPU** מפרט כל קו שערכו 1 ומה הוא עושה. **Gates** ליד קו של ה-ALU
-  פותח את נושא הלוגיקה על אותה הוראה, ו-**Stored** ליד RegWrite פותח את נושא האחסון.
+  פותח את נושא הלוגיקה על אותה הוראה, ו-**Storage** ליד RegWrite פותח את נושא האחסון.
 - לחיצה על קו, בין שערכו 1 ובין שערכו 0, מאפשרת לשבור אותו: **Stuck at 0** או **Stuck at 1**
   מחזיקים אותו שם, מה שלא תאמר המילה, ו-**Works** מתקן אותו. קו שבור נשאר שבור כשהמעבד צועד, כך
   שאפשר לעקוב אחרי תוכנית עם RegWrite תקוע על 0. **Mend every line** (גם בפלטת הפקודות) מחזיר את
