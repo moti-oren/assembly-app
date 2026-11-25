@@ -62,3 +62,24 @@ export function memoryRows(
     Array.from({ length: columns }, (_, column) => byteAt(first + columns * row + column))
   );
 }
+
+/**
+ * Where a key in the address box moves the rows on show: a row with the arrows, a screenful
+ * with Page Up and Page Down, kept inside the address space. Null for any other key.
+ */
+export function addressAfterKey(
+  key: string,
+  start: number,
+  columns: number,
+  rows: number,
+  space: number
+): number | null {
+  const step: Record<string, number> = {
+    ArrowUp: -columns,
+    ArrowDown: columns,
+    PageUp: -columns * rows,
+    PageDown: columns * rows
+  };
+  if (!(key in step)) return null;
+  return Math.max(0, Math.min(space - columns * rows, start + step[key]));
+}

@@ -128,6 +128,8 @@ export interface MemoryAccess {
   offset: number;
   /** How a memory operand formed its offset; null when a register alone is the offset. */
   offsetParts: OffsetBreakdown | null;
+  /** For a repeated string instruction, how many bytes it wrote, from this address on. */
+  bytes?: number;
 }
 
 type DataSegment = MemoryAccess['segment'];
@@ -156,12 +158,13 @@ function stringAccess(state: CpuState, record: ExecutionRecord): MemoryAccess | 
   const { instruction, memoryWrites } = record;
   const registers = record.before.registers;
   const size = getSpec(instruction.mnemonic).size ?? 8;
-  // A repeated store or copy shows the last element it wrote, at ES:DI.
+  // A store or copy shows the first element it wrote, at ES:DI; a repeated one, how many bytes.
   if (memoryWrites.length > 0) {
-    const last = memoryWrites.slice(-size / 8);
-    const value = littleEndian(last.map((write) => write.after));
-    const offset = last[0].address - (registers.es << 4);
-    return memoryAccess(record, 'es', offset, formatHex(value, size), true);
+    const first = memoryWrites.slice(0, size / 8);
+    const value = littleEndian(first.map((write) => write.after));
+    const offset = first[0].address - (registers.es << 4);
+    const access = memoryAccess(record, 'es', offset, formatHex(value, size), true);
+    return memoryWrites.length > size / 8 ? { ...access, bytes: memoryWrites.length } : access;
   }
   // With CX = 0 a repeat touches no memory at all.
   if (instruction.prefix && registers.cx === 0) return null;

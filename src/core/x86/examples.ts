@@ -61,7 +61,7 @@ export const EXAMPLE_PROGRAMS: Example<Instruction>[] = [
   },
   {
     name: 'Fill and copy a string',
-    description: 'REP STOSB fills 8 bytes at DS:0000, REP MOVSB copies them to DS:0010',
+    description: 'REP STOSB fills 8 bytes at ES:0000, REP MOVSB copies them to ES:0010',
     program: [
       line('mov', reg('al'), imm(0x2a)),
       line('mov', reg('di'), imm(0)),

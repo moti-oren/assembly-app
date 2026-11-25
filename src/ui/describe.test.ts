@@ -49,6 +49,14 @@ describe('registersWritten', () => {
 });
 
 describe('describeMemoryAccess', () => {
+  it('gives a repeated store from its first byte, with how many it wrote', () => {
+    writeRegister(cpu, 'cx', 8);
+    writeRegister(cpu, 'al', 0x2a);
+    const record = execute(cpu, { prefix: 'rep', mnemonic: 'stosb', operands: [] });
+    const access = describeMemoryAccess(cpu, record);
+    expect(access).toMatchObject({ segment: 'es', offset: 0, bytes: 8, write: true });
+  });
+
   it('shows a word at offset FFFF as the 8086 read it, wrapping inside the segment', () => {
     const ds = cpu.registers.ds;
     cpu.memory[physicalAddress(ds, 0xffff)] = 0x34;

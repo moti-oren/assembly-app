@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
+  addressAfterKey,
   addressSpace,
   formatAddress,
   memoryRows,
@@ -57,7 +58,25 @@ const parsed = computed(() =>
 );
 const invalid = computed(() => addressText.value.trim() !== '' && parsed.value === null);
 const errorId = useId();
+const keysId = useId();
 const start = computed(() => (parsed.value ?? 0) >>> 0);
+
+/** The arrows and Page Up and Down in the address box move through memory without typing. */
+function onAddressKey(event: KeyboardEvent): void {
+  // Shift selects and Alt moves panels: only the bare keys move through memory.
+  if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
+  const space = addressSpace(props.format);
+  const next = addressAfterKey(
+    event.key,
+    rowStart(start.value, columns.value),
+    columns.value,
+    MEMORY_ROWS,
+    space
+  );
+  if (next === null) return;
+  event.preventDefault();
+  addressText.value = hex(next);
+}
 
 const rows = computed(() => {
   void props.state.memoryVersion;
@@ -161,14 +180,22 @@ function reveal(jump: () => void): void {
               { 'pointer-coarse:w-36': format.digits > 4 }
             ]"
             :aria-invalid="invalid || undefined"
-            :aria-describedby="invalid ? errorId : undefined"
+            :aria-describedby="invalid ? `${keysId} ${errorId}` : keysId"
             :maxlength="format.digits + format.prefix.length"
             autocomplete="off"
             autocapitalize="characters"
             autocorrect="off"
             spellcheck="false"
             aria-label="Address (hex)"
+            @keydown="onAddressKey"
           />
+          <span :id="keysId" class="sr-only">
+            The arrows move a row, Page Up and Page Down a screenful.
+          </span>
+          <!-- Always there, so the message is heard as it appears, while typing goes on. -->
+          <span class="sr-only" role="status">{{
+            invalid ? `Not a hex address: showing ${formatAddress(format, 0)}.` : ''
+          }}</span>
         </div>
       </div>
 

@@ -58,7 +58,11 @@ export function workedAddress(
   }
   if (!access) return null;
   return {
-    label: access.write ? 'Last write' : 'Last read',
+    label: access.bytes
+      ? `Last write, ${access.bytes} bytes from`
+      : access.write
+        ? 'Last write'
+        : 'Last read',
     segment: access.segment,
     sum: explainAddress(access.segmentValue, access.offset),
     offsetParts: access.offsetParts,
