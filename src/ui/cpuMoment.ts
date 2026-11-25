@@ -12,6 +12,8 @@ export interface CpuMoment<Link> {
   /** The nearest positions, back and forward, whose instruction has something to show there. */
   previous: number | null;
   next: number | null;
+  /** The error the CPU stopped with after that instruction, when the next one raised one. */
+  stopped: string | null;
 }
 
 /** A CPU's timeline, and how its records are read. */
@@ -29,6 +31,8 @@ export interface MomentSource<Record, Link> {
    * found by asking it of the whole history.
    */
   has?: (record: Record) => boolean;
+  /** The error the CPU stopped with, which left no record in the history. */
+  error?: string | null;
 }
 
 export function momentOf<Record, Link>(source: MomentSource<Record, Link>): CpuMoment<Link> {
@@ -48,6 +52,7 @@ export function momentOf<Record, Link>(source: MomentSource<Record, Link>): CpuM
     instruction: last === undefined ? null : source.format(last),
     link: last === undefined ? null : link(last),
     previous,
-    next: ahead === -1 ? null : position + ahead + 1
+    next: ahead === -1 ? null : position + ahead + 1,
+    stopped: source.error ?? null
   };
 }

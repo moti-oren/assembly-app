@@ -25,6 +25,20 @@ const moment = (history: string[], future: string[] = []) =>
   });
 
 describe('momentOf', () => {
+  it('carries the error the CPU stopped with, and none when it did not stop', () => {
+    expect(moment(['mov']).stopped).toBeNull();
+    const stopped = momentOf({
+      cpu: '8086',
+      history: ['mov'],
+      future: [],
+      format: (record) => record,
+      link,
+      shows: hasCircuit,
+      error: 'Divide error'
+    });
+    expect(stopped).toMatchObject({ instruction: 'mov', stopped: 'Divide error' });
+  });
+
   it('asks a caller that remembers which records have something to show', () => {
     const asked: string[] = [];
     const found = momentOf({
@@ -53,7 +67,8 @@ describe('momentOf', () => {
       instruction: null,
       link: null,
       previous: null,
-      next: null
+      next: null,
+      stopped: null
     });
   });
 

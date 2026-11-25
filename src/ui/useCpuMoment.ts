@@ -8,6 +8,8 @@ interface Timeline<Record> {
   history: Readonly<Ref<readonly Record[]>>;
   future: Readonly<Ref<readonly Record[]>>;
   seek: (position: number) => void;
+  /** The error the CPU stopped with, if it did. */
+  error: Readonly<Ref<string | null>>;
 }
 
 /** How a topic reads a CPU's records: where each leads, and whether there is something to show. */
@@ -49,7 +51,8 @@ export function followed<Record extends object, Link>(
         future: cpu.future.value,
         format,
         ...linker,
-        has
+        has,
+        error: cpu.error.value
       }),
     seek: cpu.seek
   };
