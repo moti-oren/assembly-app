@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RegisterLink } from '@/core/registerLink';
+import { rv32AluLink } from '@/core/rv32AluLink';
+import { rv32NumberLink } from '@/core/rv32NumberLink';
 import { computed } from 'vue';
 import { formatHex32 } from '@/core/rv32/bits';
 import type { ExecutionRecord } from '@/core/rv32/execute';
@@ -27,7 +30,12 @@ const props = defineProps<{
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes. */
   tick: number;
+  /** Where the last instruction's write leads in the storage topic. */
+  stored: RegisterLink | null;
 }>();
+
+const aluLink = computed(() => props.record && rv32AluLink(props.record));
+const numberLink = computed(() => props.record && rv32NumberLink(props.record));
 
 const view = computed(() =>
   datapathView({
@@ -74,7 +82,7 @@ function change(index: number): ValueChange | null {
 </script>
 
 <template>
-  <CpuCanvas>
+  <CpuCanvas :alu="aluLink" :numbers="numberLink" :stored="stored">
     <div class="@container">
       <div class="chip-package rounded-lg p-4">
         <!--

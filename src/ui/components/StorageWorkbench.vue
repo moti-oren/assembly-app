@@ -16,6 +16,7 @@ import { useStorageFile } from '@/ui/useStorageFile';
 import { useStorageLens } from '@/ui/useStorageLens';
 import { useStorageSequence } from '@/ui/useStorageSequence';
 import { useTopic } from '@/ui/useTopic';
+import { useTopicView } from '@/ui/useTopicView';
 import ChoiceGroup from './ChoiceGroup.vue';
 import StageSection from './StageSection.vue';
 import StorageCell from './StorageCell.vue';
@@ -54,6 +55,25 @@ async function showRegister(write: RegisterWrite): Promise<void> {
   registerSection.value?.$el.focus();
   // A press of the pointer shows no focus ring: the section itself comes into sight.
   registerSection.value?.$el.scrollIntoView({ block: 'nearest' });
+}
+
+// A circuit picked in the sidebar may be far down the stage, or on a phone in another view: the
+// page goes to it, so the pick is seen to do something.
+const { showStage } = useTopicView();
+const cellSection = useTemplateRef<{ $el: HTMLElement }>('cellSection');
+const sequenceSection = useTemplateRef<{ $el: HTMLElement }>('sequenceSection');
+async function reveal(section: { $el: HTMLElement } | null): Promise<void> {
+  showStage();
+  await nextTick();
+  section?.$el.scrollIntoView({ block: 'start' });
+}
+function pickCell(id: Parameters<typeof lens.cell.pick>[0]): void {
+  lens.cell.pick(id);
+  void reveal(cellSection.value);
+}
+function pickSequence(id: Parameters<typeof sequence.pick>[0]): void {
+  sequence.pick(id);
+  void reveal(sequenceSection.value);
 }
 
 /** The registers the CPU's instruction wrote, when it wrote more than one. */
@@ -109,7 +129,7 @@ const SECTIONS: readonly TopicSectionInfo[] = [
         label="Memory cell"
         :choices="CELLS"
         :chosen="lens.cell.cell.value"
-        @pick="lens.cell.pick"
+        @pick="pickCell"
       />
     </template>
     <template #sequence>
@@ -117,7 +137,7 @@ const SECTIONS: readonly TopicSectionInfo[] = [
         label="Circuit"
         :choices="SEQUENCES"
         :chosen="sequence.kind.value"
-        @pick="sequence.pick"
+        @pick="pickSequence"
       />
     </template>
 
@@ -138,9 +158,9 @@ const SECTIONS: readonly TopicSectionInfo[] = [
         <StorageRegister :lens="lens" />
       </StageSection>
 
-      <StorageCell :lens="lens" />
+      <StorageCell ref="cellSection" :lens="lens" />
       <StorageFile :file="file" @show="showRegister" />
-      <StorageSequence :sequence="sequence" @control="topic = 'control'" />
+      <StorageSequence ref="sequenceSection" :sequence="sequence" @control="topic = 'control'" />
 
       <p class="max-w-prose px-4 py-(--pane-section-py) text-xs text-pretty text-muted-foreground">
         These are the simplest cells that behave the same. A real chip builds them from fewer

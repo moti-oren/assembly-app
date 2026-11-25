@@ -251,6 +251,7 @@ followBuilder(draft);
           :record="lastRecord"
           :after="lastAfter"
           :pending="pending"
+          :stored="registerLink"
           :tick="history.length"
         />
       </template>

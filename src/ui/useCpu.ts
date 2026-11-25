@@ -20,6 +20,7 @@ import { useCpuHistory } from './useCpuHistory';
 import { usePhaseStepping } from './usePhaseStepping';
 import { useProgramLines, type ProgramSource } from './useProgramLines';
 import { useProgramRun } from './useProgramRun';
+import { useReplaceGuard } from './useReplaceGuard';
 import type { RunSpeed } from './runSpeeds';
 import type { ByteChange } from './stepDiff';
 
@@ -147,10 +148,15 @@ export function useCpu<
     replaceProgram(lines, from);
   }
 
+  const replaceGuard = useReplaceGuard();
+
+  /** Loads an example, after asking when it would replace the learner's own program. */
   function loadExample(index: number): void {
     const { program: lines, name, description } = architecture.examples[index];
-    loadProgram(lines, { name, description });
-    analytics.track({ name: 'example-loaded', architecture: architecture.id, example: name });
+    replaceGuard.guard(program.value, lines, name, () => {
+      loadProgram(lines, { name, description });
+      analytics.track({ name: 'example-loaded', architecture: architecture.id, example: name });
+    });
   }
 
   /** Moves through time: undoes or redoes until exactly `position` instructions have run. */

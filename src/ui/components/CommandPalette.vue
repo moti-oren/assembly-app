@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/dialog';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { groupBy } from '@/ui/groupBy';
-import type { PaletteCommand } from '@/ui/paletteCommand';
+import { Check } from '@lucide/vue';
+import { searchText, type PaletteCommand } from '@/ui/paletteCommand';
 
 const props = defineProps<{ commands: PaletteCommand[] }>();
 const open = defineModel<boolean>('open', { required: true });
@@ -85,9 +86,15 @@ function onCloseAutoFocus(event: Event): void {
               class="px-3 py-2.5 pointer-coarse:min-h-11"
               :value="`${group} ${command.label}`"
               :disabled="command.disabled"
+              :aria-disabled="command.disabled || undefined"
+              :aria-current="command.current || undefined"
               @select="choose(command)"
             >
+              <!-- The words a search is matched against: never shown, and never read out. -->
+              <span hidden>{{ searchText(command) }}</span>
               {{ command.label }}
+              <Check v-if="command.current" class="size-4" aria-hidden="true" />
+              <span v-if="command.current" class="sr-only">(current)</span>
               <!-- Its shortcut, at the right edge; no use on a screen worked by touch. -->
               <CommandShortcut v-if="command.keys" class="shrink-0 tracking-normal touch:hidden">
                 <KbdGroup

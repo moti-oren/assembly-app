@@ -1,7 +1,8 @@
 import { computed, ref, shallowRef, watch, type Ref } from 'vue';
-import { parseNumber } from '@/core/shared/numbers';
 import {
   filterOptions,
+  splitWord,
+  typedNumberIn,
   type BuilderOption,
   type DraftContext,
   type InstructionGrammar
@@ -28,7 +29,7 @@ export function useBuilderOptions<Action, Instruction>(
   /** The option under the pointer or keyboard focus; its hint is previewed below the input. */
   const hovered = shallowRef<BuilderOption<Action> | null>(null);
 
-  const typedNumber = computed(() => parseNumber(filter.value));
+  const typedNumber = computed(() => typedNumberIn(filter.value));
   const context = computed<DraftContext>(() => ({
     typed: typedNumber.value,
     programLines: programLines()
@@ -72,7 +73,30 @@ export function useBuilderOptions<Action, Instruction>(
     return described;
   });
 
+  /** The options `text` would leave, in the order Enter would consider them. */
+  function optionsFor(text: string): BuilderOption<Action>[] {
+    const typed = typedNumberIn(text);
+    const all = grammar.options(chosen.value, { typed, programLines: programLines() });
+    const grouped = groupBy(filterOptions(all, text, typed), (option) => option.group);
+    return grouped.flatMap(([, options]) => options);
+  }
+
+  /**
+   * The word typed text has finished, and the option it picks: `mov ax 3` has finished `mov`.
+   * Null while the text is still one word, or the word picks nothing.
+   */
+  function finishedWord(text: string): { option: BuilderOption<Action>; rest: string } | null {
+    const goesOn = (start: string) =>
+      optionsFor(start).some((option) =>
+        option.label.toLowerCase().startsWith(start.toLowerCase())
+      );
+    const split = splitWord(text, goesOn);
+    const option = split && optionsFor(split.word)[0];
+    return split && option ? { option, rest: split.rest } : null;
+  }
+
   return {
+    finishedWord,
     hovered,
     groups,
     doesNotFit,

@@ -25,6 +25,7 @@ import { hasNumbers } from '@/core/numberLink';
 import { hasRegisters } from '@/core/registerLink';
 import type { ComparedId } from '@/core/comparison';
 import type { ComparisonTask } from '@/core/comparisonTasks';
+import ReplaceProgramDialog from '@/ui/components/ReplaceProgramDialog.vue';
 import SharedProgramDialog from '@/ui/components/SharedProgramDialog.vue';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { analytics } from '@/ui/analyticsClient';
@@ -34,6 +35,7 @@ import { useAppAnalytics } from '@/ui/useAppAnalytics';
 import { startChallenge } from '@/ui/useChallenge';
 import { useChallenges } from '@/ui/useChallenges';
 import { useComparison } from '@/ui/useComparison';
+import { useReplaceGuard } from '@/ui/useReplaceGuard';
 import { sound } from '@/ui/soundEngine';
 import { useCpu } from '@/ui/useCpu';
 import { followed, useCpuMoment } from '@/ui/useCpuMoment';
@@ -79,16 +81,19 @@ const sidebar = useSidebarLayout();
 const { wanted: feedbackWanted } = useFeedback();
 const { wanted: settingsWanted } = useSettings();
 const { wanted: shareWanted } = useShare();
+const replaceGuard = useReplaceGuard();
 
 /** Opens a task's program on its CPU, from the comparison. */
 function loadSolution(task: ComparisonTask, id: ComparedId): void {
   const from = { name: task.name, description: task.lesson };
-  if (id === 'x86') x86.loadProgram(task.x86.program, from);
-  else if (id === 'rv32') rv32.loadProgram(task.rv32.program, from);
-  else mos6502.loadProgram(task.mos6502.program, from);
-  architecture.value = id;
   comparisonOpen.value = false;
-  analytics.track({ name: 'solution-loaded', architecture: id, task: task.id });
+  replaceGuard.guard(programOf(id), task[id].program, task.name, () => {
+    if (id === 'x86') x86.loadProgram(task.x86.program, from);
+    else if (id === 'rv32') rv32.loadProgram(task.rv32.program, from);
+    else mos6502.loadProgram(task.mos6502.program, from);
+    architecture.value = id;
+    analytics.track({ name: 'solution-loaded', architecture: id, task: task.id });
+  });
 }
 
 /** The challenges of the CPU on show, for their list. */
@@ -236,5 +241,6 @@ watch([architecture, topic], () => {
       @accept="shared.accept"
       @dismiss="shared.dismiss"
     />
+    <ReplaceProgramDialog />
   </TooltipProvider>
 </template>

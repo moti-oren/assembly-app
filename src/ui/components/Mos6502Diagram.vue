@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RegisterLink } from '@/core/registerLink';
+import { mos6502AluLink } from '@/core/mos6502AluLink';
+import { mos6502NumberLink } from '@/core/mos6502NumberLink';
 import { computed } from 'vue';
 import { formatBinary, formatHex } from '@/core/shared/numbers';
 import type { ExecutionRecord } from '@/core/mos6502/executionContext';
@@ -31,7 +34,12 @@ const props = defineProps<{
   pending: PendingInstruction<Instruction> | null;
   /** Number of instructions executed so far; replays the flashes. */
   tick: number;
+  /** Where the last instruction's write leads in the storage topic. */
+  stored: RegisterLink | null;
 }>();
+
+const aluLink = computed(() => props.record && mos6502AluLink(props.record));
+const numberLink = computed(() => props.record && mos6502NumberLink(props.record));
 
 const view = computed(() =>
   diagramView({
@@ -74,7 +82,7 @@ const flagChanged = (bit: number) =>
 </script>
 
 <template>
-  <CpuCanvas>
+  <CpuCanvas :alu="aluLink" :numbers="numberLink" :stored="stored">
     <div class="@container">
       <!--
         The chip: its registers on the left, the units that work on them on the right, and the

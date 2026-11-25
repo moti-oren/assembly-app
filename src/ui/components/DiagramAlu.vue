@@ -79,6 +79,13 @@ const numbers = computed(() => props.model.shown && x86NumberLink(props.model.sh
           :title="model.notes.alu"
           >{{ model.notes.alu }}</span
         >
+        <!-- A shift or NOT has no sum to write here, and still a circuit and numbers to show. -->
+        <OperationLinks
+          v-if="link && numbers"
+          class="ml-auto shrink-0"
+          :alu="link"
+          :numbers="numbers"
+        />
       </div>
     </div>
     <!-- Operands come in off the bus; the result goes back onto it. -->

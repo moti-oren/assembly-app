@@ -24,5 +24,11 @@ export const useTopicView = createGlobalState(() => {
     else if (mode.value === 'tablet') drawerOpen.value = true;
   }
 
-  return { view, showControls };
+  /** Brings the drawing in sight: a phone's stage view, or the stage behind a tablet's drawer. */
+  function showStage(): void {
+    if (mode.value === 'phone') view.value = 'stage';
+    else if (mode.value === 'tablet') drawerOpen.value = false;
+  }
+
+  return { view, showControls, showStage };
 });

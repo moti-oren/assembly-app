@@ -48,6 +48,13 @@ const numbers = computed(() => props.record && x86NumberLink(props.record));
           </span>
           <OperationLinks v-if="link && numbers" :alu="link" :numbers="numbers" />
         </span>
+        <!-- Without a sum to write out, the ways into the other topics stay: each says why. -->
+        <OperationLinks
+          v-else-if="link && numbers"
+          class="ml-auto"
+          :alu="link"
+          :numbers="numbers"
+        />
       </template>
       <span v-else class="font-sans text-sm text-muted-foreground">
         Run an instruction to see how its result was computed.

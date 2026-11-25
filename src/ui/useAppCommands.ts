@@ -47,12 +47,14 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
     {
       group: 'Preferences',
       label: isDark.value ? 'Switch to light theme' : 'Switch to dark theme',
+      keywords: 'dark mode light mode appearance colours',
       run: toggleTheme
     },
     {
       group: 'Preferences',
       label: 'Follow the system theme',
-      disabled: theme.value === 'auto',
+      keywords: 'dark mode light mode appearance auto',
+      current: theme.value === 'auto',
       run: () => setTheme('auto')
     },
     {
@@ -118,6 +120,7 @@ export function useAppCommands(): ComputedRef<PaletteCommand[]> {
     {
       group: 'Preferences',
       label: 'Open the settings…',
+      keywords: 'preferences options help keyboard shortcuts keys',
       // The dialog takes focus; the palette must not take it back as it closes.
       moves: 'focus' as const,
       run: () => {

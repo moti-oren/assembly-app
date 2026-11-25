@@ -4,6 +4,14 @@ export const SIDEBAR_PANELS = ['challenge', 'builder', 'program', 'history', 'en
 export type SidebarKey = (typeof SIDEBAR_PANELS)[number];
 
 /**
+ * What closing a panel does, where it is more than hiding it: the challenge's panel is on show
+ * only while there is a challenge, so closing it leaves the challenge.
+ */
+export const CLOSE_LABELS: Partial<Record<SidebarKey, string>> = {
+  challenge: 'Leave the challenge'
+};
+
+/**
  * How the sidebar's panels share its height: which are collapsed to their header, and how tall
  * each open one would like to be. Sizes are weights: the open panels share the pane in
  * proportion to them, so the layout follows the window's height. No panel grows past its
