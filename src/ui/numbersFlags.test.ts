@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { reads, type NumberView } from '@/core/numberLink';
 import { solveArithmetic, type ArithmeticRequest } from '@/core/representation/arithmetic';
-import { flagRows, scaleSummary } from './numbersFlags';
+import { flagRows, scaleSummary, scalesSaid } from './numbersFlags';
 
 const request: ArithmeticRequest = { kind: 'add', width: 8, a: 0x7f, b: 0x01, extra: 0 };
 
@@ -47,17 +47,28 @@ describe('scaleSummary', () => {
     expect(scaleSummary(unsigned, 'add', 0)).toEqual({
       sum: '127 + 1 = 128',
       fits: true,
-      verdict: 'fits in 0 to 255'
+      verdict: 'Fits in 0 to 255.'
     });
   });
 
   it('says what the bits read when it does not', () => {
     const { signed } = solveArithmetic(request);
-    expect(scaleSummary(signed, 'add', 0).verdict).toBe('outside −128 to 127: the bits read −128');
+    expect(scaleSummary(signed, 'add', 0).verdict).toBe(
+      'Does not fit in −128 to 127: the bits read −128.'
+    );
   });
 
   it('sets a negative second number in brackets, and counts the borrow', () => {
     const { signed } = solveArithmetic({ kind: 'subtract', width: 8, a: 1, b: 0xff, extra: 1 });
     expect(scaleSummary(signed, 'subtract', 1).sum).toBe('1 − (−1) − 1 = 1');
+  });
+});
+
+describe('scalesSaid', () => {
+  it('says each scale, its sum and its verdict', () => {
+    const summary = { sum: '255 + 1 = 256', fits: false, verdict: 'Does not fit in 0 to 255.' };
+    expect(scalesSaid([{ scale: 'unsigned', summary }])).toBe(
+      'unsigned: 255 + 1 = 256. Does not fit in 0 to 255.'
+    );
   });
 });
