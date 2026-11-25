@@ -1,4 +1,4 @@
-import { computed, shallowRef, type Ref } from 'vue';
+import { computed, ref, shallowRef, watch, type Ref } from 'vue';
 import { chooseEncoding, type EncodeNext } from './encodingShown';
 
 /** What the CPU knows about its program, as a workbench gets it from `useCpu`. */
@@ -30,13 +30,24 @@ export function useProgramCode<Instruction, Line>(
   const assembled = computed(() => coding.assemble(cpu.program.value));
   /** The complete instruction sitting in the builder, if any. */
   const draft = shallowRef<Instruction | null>(null);
+  /**
+   * Whichever was chosen last is taken apart: a line clicked after an instruction was left in
+   * the builder wins, until the builder's instruction changes again.
+   */
+  const lineChosenLast = ref(false);
+  watch(inspectedLine, (line) => {
+    lineChosenLast.value = line !== null;
+  });
+  watch(draft, () => {
+    lineChosenLast.value = false;
+  });
 
   const encodingShown = computed(() =>
     chooseEncoding(
       {
         program: cpu.program.value,
         lines: assembled.value.lines,
-        draft: draft.value,
+        draft: lineChosenLast.value ? null : draft.value,
         inspected: inspectedLine.value,
         next: cpu.finished.value ? null : cpu.nextLine.value,
         last: cpu.lastRecord.value
