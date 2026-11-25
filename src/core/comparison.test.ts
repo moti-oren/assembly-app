@@ -32,7 +32,7 @@ describe('measure', () => {
   it('lists each line with its machine code, and the total size', () => {
     const { x86, rv32, mos6502 } = measure(task('wide-add'));
     expect(x86.listing).toEqual([
-      { text: 'mov ax, 0x1234', bytes: [0xb8, 0x34, 0x12] },
+      { text: 'mov ax, 1234h', bytes: [0xb8, 0x34, 0x12] },
       { text: 'add ax, 255', bytes: [0x05, 0xff, 0x00] }
     ]);
     expect(x86.bytes).toBe(6);

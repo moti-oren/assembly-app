@@ -95,17 +95,26 @@ export function hexLiteral(value: number): string {
 }
 
 /**
+ * A number in hex as Intel's 8086 listings write it: `2Ah`, with a 0 in front of a first digit
+ * that is a letter (`0FFh`), so it cannot be read as a name.
+ */
+export function hexSuffixed(value: number, size?: Size): string {
+  const digits = size ? formatHex(value, size) : value.toString(16).toUpperCase();
+  return `${/^[A-F]/.test(digits) ? '0' : ''}${digits}h`;
+}
+
+/**
  * An instruction's number as it reads best: up to 255 (and below 0) in decimal, as it is mostly
  * typed, larger in hex.
  */
-export function immediateText(value: number): string {
-  return value < 256 ? String(value) : hexLiteral(value);
+export function immediateText(value: number, hex: (value: number) => string = hexLiteral): string {
+  return value < 256 ? String(value) : hex(value);
 }
 
 /**
  * A number that stands for bits or a code rather than an amount (an interrupt's, LUI's upper
  * bits): in hex from 10 up, as every listing writes it.
  */
-export function codeText(value: number): string {
-  return value < 10 ? String(value) : hexLiteral(value);
+export function codeText(value: number, hex: (value: number) => string = hexLiteral): string {
+  return value < 10 ? String(value) : hex(value);
 }

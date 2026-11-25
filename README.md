@@ -216,7 +216,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **In memory** shows the same bytes in the memory panel.
 - `int n` pushes FLAGS, CS and IP, clears IF and TF, and jumps to the handler stored in vector `n`
   (two words at `0000:n×4`: the handler's program line, then its CS). `iret` returns. `mov` takes a
-  program line as its source (`mov word [0x84], L8`) to fill a vector. `into` is `int 4` when OF = 1,
+  program line as its source (`mov word [0084h], L8`) to fill a vector. `into` is `int 4` when OF = 1,
   and a divide error is `int 0`. An empty vector is reported as an error instead of jumping to
   `0000:0000`. `pushf` and `popf` move FLAGS through the stack.
 - Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
@@ -862,7 +862,7 @@ npm run verify:6502 # check the 6502 core against py65
   בחלונית הזיכרון.
 - `int n` דוחף את FLAGS, CS ו-IP, מאפס את IF ו-TF, וקופץ ל-handler ששמור בווקטור `n`
   (שתי מילים ב-`0000:n×4`: שורת התוכנית של ה-handler ואחריה ה-CS שלו). `iret` חוזר. `mov` מקבל
-  שורת תוכנית כמקור (`mov word [0x84], L8`) כדי למלא וקטור. `into` הוא `int 4` כאשר OF = 1,
+  שורת תוכנית כמקור (`mov word [0084h], L8`) כדי למלא וקטור. `into` הוא `int 4` כאשר OF = 1,
   וחריגת חלוקה היא `int 0`. וקטור ריק מדווח כשגיאה במקום לקפוץ ל-`0000:0000`. `pushf` ו-`popf`
   מעבירות את FLAGS דרך המחסנית.
 - מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של

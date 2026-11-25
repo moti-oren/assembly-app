@@ -10,7 +10,7 @@ import {
   type Mnemonic,
   type RepeatPrefix
 } from '@/core/x86/instructions';
-import { fitsIn, formatHex, type Size } from '@/core/shared/numbers';
+import { fitsIn, hexSuffixed, type Size } from '@/core/shared/numbers';
 import { formatLabel } from '@/core/shared/program';
 import {
   MEMORY_BASES,
@@ -108,7 +108,7 @@ function memoryAddressOptions(size: Size, typed: number | null): X86Option[] {
   if (typed !== null && typed >= 0 && typed <= 0xffff) {
     options.unshift({
       key: 'direct',
-      label: `[0x${formatHex(typed, 16)}]`,
+      label: `[${hexSuffixed(typed, 16)}]`,
       group: 'Direct address',
       hint: 'DS:offset',
       matchesNumber: anyNumber,
@@ -120,7 +120,7 @@ function memoryAddressOptions(size: Size, typed: number | null): X86Option[] {
 
 /** The number in the base its label does not use: the label of 65 is `65`, its hint 0041h. */
 function otherBase(label: string, value: number, size: Size): string {
-  return label.startsWith('0x') ? String(value) : `${formatHex(value, size)}h`;
+  return /h$/i.test(label) ? String(value) : hexSuffixed(value, size);
 }
 
 /** A typed number that fits the immediate, written as the instruction will write it. */
@@ -223,7 +223,7 @@ export function typingHint(draft: BuilderDraft, filter: string, complete: boolea
   if (mnemonic === null) {
     return prefix ? 'Pick the string instruction to repeat' : 'Type to filter instructions';
   }
-  if (pendingMemory !== null) return 'Pick a register or type an offset (e.g. 0x10)';
+  if (pendingMemory !== null) return 'Pick a register or type an offset (e.g. 10h)';
   const tooBig = overflowingSize(draft);
   if (tooBig !== null) return `${filter} does not fit in ${tooBig} bits`;
   const choices = operandChoices(mnemonic, operands);

@@ -181,7 +181,7 @@ describe('decode', () => {
 
   it('decodes the interrupt instructions', () => {
     const enter = decode(line('int', imm(0x21)));
-    expect(enter.operands).toEqual([{ text: '0x21', kind: 'imm8', role: 'vector' }]);
+    expect(enter.operands).toEqual([{ text: '21h', kind: 'imm8', role: 'vector' }]);
     expect(enter).toMatchObject({
       reads: ['sp', 'cs', 'ss', 'ip'],
       writes: ['sp', 'cs', 'ip'],
