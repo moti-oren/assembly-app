@@ -11,6 +11,8 @@ defineProps<{
   topic: LinkedTopic;
   /** Why that topic has nothing to show for the instruction, or null when it has. */
   unavailable: string | null;
+  /** What the topic opens on, where the panel beside the button shows something else. */
+  what?: string | null;
 }>();
 
 const { showCircuit, showNumbers, showStorage, showControl } = useTopic();
@@ -53,11 +55,11 @@ const LINKS = {
     variant="outline"
     size="sm"
     class="h-7 gap-1.5 px-2 font-sans text-xs pointer-coarse:h-11"
-    :aria-label="`${LINKS[topic].label}: ${LINKS[topic].title}`"
+    :aria-label="`${LINKS[topic].label}: ${what ?? LINKS[topic].title}`"
     @click="LINKS[topic].open()"
   >
     <TopicIcon :topic="topic" />
-    {{ LINKS[topic].label }}
+    {{ LINKS[topic].label }}<template v-if="what">: {{ what }}</template>
   </Button>
   <TapTooltip v-else v-slot="{ toggle }">
     <TooltipTrigger as-child>
