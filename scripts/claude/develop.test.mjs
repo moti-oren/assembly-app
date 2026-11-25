@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { BUILDERS, INLINE_FILES, ownerOf, plan, stray } from './develop.mjs';
+import { BUILDERS, INLINE_FILES, MODELS, ownerOf, plan, stray } from './develop.mjs';
 
 describe('who writes a file', () => {
   it.each([
@@ -55,7 +58,14 @@ describe('the plan of a task', () => {
   });
 
   it('has nothing to run for no files', () => {
-    expect(plan([])).toEqual({ inline: true, order: [], packages: {}, checks: {}, unowned: [] });
+    expect(plan([])).toEqual({
+      inline: true,
+      mismatched: [],
+      order: [],
+      packages: {},
+      checks: {},
+      unowned: []
+    });
   });
 });
 
@@ -109,6 +119,67 @@ describe('a task small enough for the main session', () => {
 
   it('is never a task for two builders', () => {
     expect(plan(['src/core/rv32/alu.ts', 'src/ui/rv32View.ts']).inline).toBe(false);
+  });
+});
+
+describe('the model the session runs on', () => {
+  const ui = ['src/ui/sounds.ts'];
+  const core = ['src/core/rv32/alu.ts'];
+
+  it('changes nothing when it is not given', () => {
+    expect(plan(ui).mismatched).toEqual([]);
+    expect(plan(core).inline).toBe(true);
+  });
+
+  it.each([
+    ['haiku', false],
+    ['sonnet', true],
+    ['opus', true],
+    ['fable', false]
+  ])('on %s, a small change to the interface is the session’s own: %s', (model, own) => {
+    const result = plan(ui, { model });
+    expect(result.inline).toBe(own);
+    expect(result.mismatched).toEqual(own ? [] : ['ui-builder']);
+  });
+
+  it.each([
+    ['haiku', false],
+    ['sonnet', false],
+    ['opus', true],
+    ['fable', true]
+  ])('on %s, a small change to the core is the session’s own: %s', (model, own) => {
+    const result = plan(core, { model });
+    expect(result.inline).toBe(own);
+    expect(result.mismatched).toEqual(own ? [] : ['core-builder']);
+  });
+
+  it('hands the docs down from Fable, which keeps the core', () => {
+    const result = plan([...core, 'README.md'], { model: 'fable' });
+    expect(result.mismatched).toEqual(['docs-sync']);
+    expect(result.inline).toBe(false);
+  });
+
+  it('leaves a large task to the builders on any model', () => {
+    const large = ['src/ui/a.ts', 'src/ui/b.ts', 'src/ui/c.ts'];
+    const result = plan(large, { model: 'sonnet' });
+    expect(result.mismatched).toEqual([]);
+    expect(result.inline).toBe(false);
+  });
+
+  it('reads a model as a session names it', () => {
+    expect(plan(ui, { model: 'claude-fable-5-2' }).mismatched).toEqual(['ui-builder']);
+    expect(plan(ui, { model: 'Sonnet 5.5' }).mismatched).toEqual([]);
+  });
+
+  it('refuses a model it does not know', () => {
+    expect(() => plan(ui, { model: 'gpt' })).toThrow('Unknown model');
+    expect(() => plan(ui, { model: '' })).toThrow('Unknown model');
+  });
+
+  it.each(BUILDERS)('is the one the file of %s pins it to', (agent) => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const file = readFileSync(resolve(here, '../../.claude/agents', `${agent}.md`), 'utf8');
+    expect(file).toMatch(new RegExp(`^model: ${MODELS[agent]}\\r?$`, 'm'));
   });
 });
 
