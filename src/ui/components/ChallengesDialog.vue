@@ -47,7 +47,7 @@ function onCloseAutoFocus(event: Event): void {
 <template>
   <Dialog v-model:open="open">
     <DialogContent
-      class="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)] sm:max-w-xl"
+      class="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)] sm:max-w-xl max-md:top-0 max-md:left-0 max-md:h-dvh max-md:max-h-none max-md:max-w-none sm:max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:pt-[calc(1.5rem+env(safe-area-inset-top))] max-md:pb-[calc(1.5rem+env(safe-area-inset-bottom))] pointer-coarse:[&>button]:size-11"
       @close-auto-focus="onCloseAutoFocus"
     >
       <DialogHeader>
@@ -56,6 +56,11 @@ function onCloseAutoFocus(event: Event): void {
           A small task each. Write the program; it is checked as you go, by running it on a CPU of
           its own.
         </DialogDescription>
+        <!-- Said before the Start buttons, not after them: it is what pressing one will do. -->
+        <p class="text-xs text-muted-foreground">
+          Starting a challenge replaces that CPU's program and clears its history, as an example
+          does.
+        </p>
       </DialogHeader>
       <ul class="-mr-2 flex min-h-0 flex-col gap-2 overflow-y-auto pr-2">
         <li
@@ -90,9 +95,6 @@ function onCloseAutoFocus(event: Event): void {
           </Button>
         </li>
       </ul>
-      <p class="text-xs text-muted-foreground">
-        Starting a challenge replaces that CPU's program and clears its history, as an example does.
-      </p>
     </DialogContent>
   </Dialog>
 </template>
