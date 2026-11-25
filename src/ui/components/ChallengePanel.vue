@@ -30,7 +30,7 @@ const news = computed(() => isNews(props.result));
 
 <!-- The challenge the program is for: the task, and what the program meets of it so far. -->
 <template>
-  <Card size="sm">
+  <Card size="sm" data-challenge-panel tabindex="-1" class="outline-none">
     <CardHeader>
       <CardTitle role="heading" aria-level="2" class="group-data-[size=sm]/card:text-base"
         >Challenge</CardTitle

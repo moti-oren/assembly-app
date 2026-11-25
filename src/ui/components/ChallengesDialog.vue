@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { watch } from 'vue';
 import { Check } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,11 +22,34 @@ defineProps<{
 const emit = defineEmits<{ start: [id: string] }>();
 
 const { open, active, solved } = useChallenges();
+
+/**
+ * A challenge is started once the list has closed: the page then puts the focus on its panel,
+ * and the list must not hand it back to the button that opened it.
+ */
+let starting: string | null = null;
+watch(open, (isOpen) => {
+  if (isOpen) starting = null;
+});
+function start(id: string): void {
+  starting = id;
+  open.value = false;
+}
+function onCloseAutoFocus(event: Event): void {
+  const id = starting;
+  starting = null;
+  if (id === null) return;
+  event.preventDefault();
+  emit('start', id);
+}
 </script>
 
 <template>
   <Dialog v-model:open="open">
-    <DialogContent class="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)] sm:max-w-xl">
+    <DialogContent
+      class="max-h-[calc(100svh-2rem)] grid-rows-[auto_minmax(0,1fr)] sm:max-w-xl"
+      @close-auto-focus="onCloseAutoFocus"
+    >
       <DialogHeader>
         <DialogTitle>Challenges for the {{ architectureLabel(architecture) }}</DialogTitle>
         <DialogDescription>
@@ -60,7 +84,7 @@ const { open, active, solved } = useChallenges();
             size="sm"
             class="min-w-24 shrink-0 pointer-coarse:h-11"
             :aria-label="`${active[architecture] === challenge.id ? 'Start over' : 'Start'}: ${challenge.title}`"
-            @click="emit('start', challenge.id)"
+            @click="start(challenge.id)"
           >
             {{ active[architecture] === challenge.id ? 'Start over' : 'Start' }}
           </Button>

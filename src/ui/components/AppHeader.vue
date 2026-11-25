@@ -76,6 +76,7 @@ function loadFromMenu(index: number): void {
         class="pointer-coarse:h-11"
         :class="drawerOpen ? 'border-foreground/60 bg-muted text-foreground' : ''"
         :aria-pressed="drawerOpen"
+        data-drawer-toggle
         aria-label="Code: the instruction and the program"
         @click="drawerOpen = !drawerOpen"
       >

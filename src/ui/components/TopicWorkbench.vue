@@ -90,6 +90,7 @@ onActivated(focusStage);
         class="pointer-coarse:h-11"
         :class="drawerOpen ? 'border-foreground/60 bg-muted text-foreground' : ''"
         :aria-pressed="drawerOpen"
+        data-drawer-toggle
         aria-label="Controls: what this page shows, and where it came from"
         @click="drawerOpen = !drawerOpen"
       >

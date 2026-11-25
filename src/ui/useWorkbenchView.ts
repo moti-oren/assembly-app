@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { createGlobalState, useEventListener } from '@vueuse/core';
 import type { PhoneView } from './layoutMode';
 import { useLayoutMode } from './useLayoutMode';
@@ -27,6 +27,8 @@ export const useWorkbenchView = createGlobalState(() => {
     if (event.key !== 'Escape' || mode.value !== 'tablet' || !drawerOpen.value) return;
     if (event.target instanceof Element && event.target.closest(ESCAPE_TAKEN)) return;
     drawerOpen.value = false;
+    // The drawer hides what had the focus: it goes back to the button that opens the drawer.
+    void nextTick(() => document.querySelector<HTMLElement>('[data-drawer-toggle]')?.focus());
   });
 
   return { view, drawerOpen, show };

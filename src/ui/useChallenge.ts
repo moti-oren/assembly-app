@@ -13,12 +13,15 @@ import { useChallenges } from './useChallenges';
 import type { CpuOf } from './useCpu';
 import { useReplaceGuard } from './useReplaceGuard';
 
-/** Loads a challenge's given lines into its CPU, afresh, and makes it the one worked on. */
+/**
+ * Loads a challenge's given lines into its CPU, afresh, and makes it the one worked on;
+ * `onStarted` runs once it has, which is not at once when the learner is asked first.
+ */
 export function startChallenge<
   Instruction extends ChallengeInstruction,
   State extends CpuState,
   Record extends ExecutionRecord<Instruction>
->(cpu: CpuOf<Instruction, State, Record>, id: string): void {
+>(cpu: CpuOf<Instruction, State, Record>, id: string, onStarted?: () => void): void {
   const challenge = cpu.architecture.challenges.find((each) => each.id === id);
   if (!challenge) return;
   const given = givenLines(challenge);
@@ -31,6 +34,7 @@ export function startChallenge<
       architecture: cpu.architecture.id,
       challenge: id
     });
+    onStarted?.();
   });
 }
 
