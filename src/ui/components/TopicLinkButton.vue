@@ -38,7 +38,7 @@ const LINKS = {
     none: 'No numbers to show'
   },
   storage: {
-    label: 'Stored',
+    label: 'Storage',
     open: showStorage,
     title: 'show the flip-flops that keep what was written',
     none: 'No register to show'

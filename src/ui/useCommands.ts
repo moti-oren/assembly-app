@@ -1,6 +1,5 @@
 import { computed, type ComputedRef, type Ref } from 'vue';
 import { formatLabel } from '@/core/shared/program';
-import { ARCHITECTURE_CHOICES } from './architectures';
 import { PHONE_VIEW_LABELS, PHONE_VIEWS } from './layoutMode';
 import type { PaletteCommand } from './paletteCommand';
 import { isApple } from './platform';
@@ -55,7 +54,7 @@ export function useCommands(
   extra: () => PaletteCommand[] = () => [],
   sidebarKeys?: Ref<readonly SidebarKey[]>
 ): ComputedRef<PaletteCommand[]> {
-  const { cpuView, architecture } = usePreferences();
+  const { cpuView } = usePreferences();
   const app = useAppCommands();
   const { showCircuit, showNumbers, showStorage, showControl } = useTopic();
   const panelOrder = usePanelOrder();
@@ -269,13 +268,6 @@ export function useCommands(
       current: speed.value === name,
       run: () => {
         speed.value = name;
-      }
-    })),
-    ...ARCHITECTURE_CHOICES.filter((choice) => choice.id !== architecture.value).map((choice) => ({
-      group: 'CPU',
-      label: `Switch to ${choice.label}`,
-      run: () => {
-        architecture.value = choice.id;
       }
     })),
     {

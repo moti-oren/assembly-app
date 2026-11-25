@@ -129,7 +129,11 @@ function settingsFromMenu(): void {
                 @click="goTo(choice.id)"
               >
                 <ArrowRightLeft aria-hidden="true" />
-                Go to {{ choice.name }}
+                Go to {{ choice.label }}
+                <!-- The long name says more than the tab's word, except for the CPU's own. -->
+                <span v-if="choice.id !== 'cpu'" class="text-muted-foreground"
+                  >· {{ choice.name }}</span
+                >
               </button>
               <slot name="menu-actions" />
               <button

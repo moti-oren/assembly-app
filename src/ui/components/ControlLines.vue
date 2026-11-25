@@ -31,7 +31,7 @@ const OFF_REASON =
 
 const LINKS: Partial<Record<LinkedTopic, { label: string; icon: typeof CircuitBoard }>> = {
   logic: { label: 'Gates', icon: CircuitBoard },
-  storage: { label: 'Stored', icon: MemoryStick }
+  storage: { label: 'Storage', icon: MemoryStick }
 };
 
 // The switch is drawn after every line: the keyboard goes to it, not through the lines between.

@@ -160,7 +160,8 @@ function goFromMore(to: LinkedTopic): void {
           @click="goFromMore(way.to)"
         >
           <TopicIcon :topic="way.to" />
-          {{ way.label }}
+          {{ way.name }}
+          <span class="truncate font-normal text-muted-foreground">· {{ way.label }}</span>
         </Button>
       </TransportMore>
     </div>
