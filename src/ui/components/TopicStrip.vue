@@ -23,7 +23,7 @@ const { showControls } = useTopicView();
 <!--
   Where the sidebar is not in sight (a phone on the drawing, a tablet with its drawer closed),
   this keeps the operation on show there, at the height of the CPU's result strip. A tap goes
-  to the controls. A phone has no activity bar, so the way back to the CPU is here.
+  to the controls. Below a desktop there is no activity bar, so the way back to the CPU is here.
 -->
 <template>
   <div
@@ -32,7 +32,7 @@ const { showControls } = useTopicView();
   >
     <!-- Its hit area reaches 44px on a touch screen, past the strip's own height. -->
     <button
-      v-if="mode === 'phone'"
+      v-if="mode !== 'desktop'"
       type="button"
       class="relative flex shrink-0 items-center gap-1 rounded-sm px-1 font-sans text-muted-foreground outline-none after:absolute after:-inset-x-1 after:-inset-y-2 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
       :aria-label="`Back to the ${moment.cpu}`"

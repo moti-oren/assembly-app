@@ -17,6 +17,13 @@ defineProps<{
 
 const { showCircuit, showNumbers, showStorage, showControl } = useTopic();
 
+/**
+ * The topics whose page still has something to do with no instruction to show: the control
+ * unit decodes a word the learner types. Their button opens the page all the same, and says why
+ * the CPU's instruction is not there on hover or focus.
+ */
+const WORKS_BY_HAND: ReadonlySet<LinkedTopic> = new Set(['control']);
+
 const LINKS = {
   logic: {
     label: 'Gates',
@@ -67,9 +74,13 @@ const LINKS = {
         variant="outline"
         size="sm"
         class="h-7 cursor-help gap-1.5 border-dashed px-2 font-sans text-xs text-muted-foreground pointer-coarse:h-11"
-        aria-disabled="true"
-        :aria-label="`${LINKS[topic].label}. ${LINKS[topic].none}: ${unavailable}`"
-        @click="toggle"
+        :aria-disabled="WORKS_BY_HAND.has(topic) ? undefined : 'true'"
+        :aria-label="
+          WORKS_BY_HAND.has(topic)
+            ? `${LINKS[topic].label}: open it to try one by hand. ${LINKS[topic].none}: ${unavailable}`
+            : `${LINKS[topic].label}. ${LINKS[topic].none}: ${unavailable}`
+        "
+        @click="WORKS_BY_HAND.has(topic) ? LINKS[topic].open() : toggle()"
       >
         <TopicIcon :topic="topic" />
         {{ LINKS[topic].label }}
