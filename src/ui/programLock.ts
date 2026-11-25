@@ -28,7 +28,7 @@ export function moveRefusal(from: number, locked: number): string {
  */
 export function lockNote(from: number, to: number, locked: number): string | null {
   if (!canChange(from, locked)) return 'it is given by the challenge';
-  return canMove(from, to, locked) ? null : 'the lines above it are given by the challenge';
+  return to >= 0 && to < locked ? 'the lines above it are given by the challenge' : null;
 }
 
 /**

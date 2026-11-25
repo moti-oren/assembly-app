@@ -27,6 +27,8 @@ describe('a program with locked lines', () => {
     expect(lockNote(2, 2, 2)).toBeNull();
     expect(lockNote(2, 3, 2)).toBeNull();
     expect(lockNote(0, 0, 0)).toBeNull();
+    // The first line has nowhere to go up to, and no challenge is to blame for it.
+    expect(lockNote(0, -1, 0)).toBeNull();
   });
 
   it('puts new lines under the locked ones at the highest', () => {
