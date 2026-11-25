@@ -11,9 +11,10 @@ core never imports Vue or anything from `src/ui`. A mistake here is a silent wro
 someone learning how a CPU works, so the bar is the real chip, not what looks reasonable.
 
 You are given the task, your files from the plan, and the checks you must pass. CLAUDE.md is
-already in your context when you start: go by its "Architecture", "Code structure", "Execution
-model" and "Conventions" sections, and do not open the file again. Read the files you will change
-and the tests beside them first.
+already in your context when you start: go by its "Code structure", "Execution model" and
+"Conventions" sections, and do not open the file again. Read `docs/architecture/core.md` first,
+the map of what every file of the core holds, then the files you will change and the tests beside
+them.
 
 ## How to work
 

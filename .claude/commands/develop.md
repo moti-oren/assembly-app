@@ -72,10 +72,10 @@ After each builder, before the next one starts:
 
 ## 5. Docs
 
-Start `docs-sync` when `SYNC` names the README or CLAUDE.md, when a builder reported `COMMANDS`,
-or when the change added, renamed or removed a file. Give it the base ref, the changed files and
-one sentence saying what the change is for. Read what it changed: both halves of the README must
-say the same thing.
+Start `docs-sync` when `SYNC` names the README, a map or CLAUDE.md, when a builder reported
+`COMMANDS`, or when the change added, renamed or removed a file. Give it the base ref, the changed
+files and one sentence saying what the change is for. Read what it changed: both halves of the
+README must say the same thing.
 
 ## 6. Verify
 
