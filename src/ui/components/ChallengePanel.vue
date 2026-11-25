@@ -22,7 +22,7 @@ const emit = defineEmits<{
 }>();
 
 const verdicts = computed(() => [...props.result.goals, ...props.result.limits]);
-const note = computed(() => givenNote(props.given));
+const note = computed(() => givenNote(props.given, props.result.limits.length > 0));
 const outcome = computed(() => outcomeText(props.result, props.challenge.par));
 /** Only a result is announced: the running count would speak after every edit. */
 const news = computed(() => isNews(props.result));

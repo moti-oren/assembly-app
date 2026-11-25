@@ -12,12 +12,16 @@ export interface ChallengeInfo {
 
 const lines = (count: number) => plural(count, 'line');
 
-/** Which lines the program starts with and must keep; null when it starts empty. */
-export function givenNote(given: number): string | null {
+/**
+ * Which lines the program starts with and must keep; null when it starts empty. With `limited`,
+ * it says the limits are on the lines written under them, so a given MOV breaks no "No MOV".
+ */
+export function givenNote(given: number, limited = false): string | null {
   if (given === 0) return null;
   const which =
     given === 1 ? `${formatLabel(0)} is` : `${formatLabel(0)} to ${formatLabel(given - 1)} are`;
-  return `${which} given, and locked: write under ${given === 1 ? 'it' : 'them'}.`;
+  const note = `${which} given, and locked: write under ${given === 1 ? 'it' : 'them'}.`;
+  return limited ? `${note} The limits count only the lines you write.` : note;
 }
 
 /**
