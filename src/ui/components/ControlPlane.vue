@@ -69,7 +69,9 @@ const view = computed(() => planeView(props.solution, props.faults));
         </tr>
         <tr v-for="row in view.rows" :key="row.id" :data-on="row.on ? '' : undefined">
           <th scope="row" class="control-name">
-            {{ controlLabel(row.id) }}<span v-if="row.on" class="sr-only"> (on)</span>
+            <span class="control-mark" aria-hidden="true">{{ row.on ? '▶' : '' }}</span>{{
+              controlLabel(row.id)
+            }}<span v-if="row.on" class="sr-only"> (on)</span>
           </th>
           <td
             v-for="(ask, index) in row.asks"

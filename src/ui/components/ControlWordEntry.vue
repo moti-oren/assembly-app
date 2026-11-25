@@ -23,7 +23,18 @@ watch(
   { immediate: true }
 );
 
-const reading = computed(() => readingText(props.lens.word.value, props.lens.solution.value));
+// The CPU's own word is already written as its program wrote it: a second spelling of the same
+// instruction only says it again.
+const reading = computed(() =>
+  props.lens.fromCpu.value && !props.lens.isEdited.value
+    ? null
+    : readingText(props.lens.word.value, props.lens.solution.value)
+);
+
+/** The whole word is picked as the box takes the focus, so typing replaces it. */
+function selectAll(event: FocusEvent): void {
+  if (event.target instanceof HTMLInputElement) event.target.select();
+}
 
 function send(): void {
   const word = parseWord(typed.value);
@@ -39,7 +50,6 @@ function send(): void {
       <Input
         v-model="typed"
         class="h-8 w-36 font-mono pointer-coarse:h-11"
-        maxlength="12"
         aria-label="The instruction word in hex"
         :aria-invalid="refused || undefined"
         :aria-describedby="hintId"
@@ -48,13 +58,14 @@ function send(): void {
         spellcheck="false"
         data-control-word
         @input="refused = false"
+        @focus="selectAll"
       />
       <Button type="submit" size="sm" variant="outline" class="pointer-coarse:h-11">
         Decode
       </Button>
     </form>
     <div :id="hintId" class="max-w-prose text-sm text-pretty">
-      <p v-if="!refused">{{ reading }}</p>
+      <p v-if="!refused && reading">{{ reading }}</p>
       <!-- Only a refusal is announced: the reading changes with every bit that is flipped. -->
       <p aria-live="polite">
         <span v-if="refused">Type up to eight hex digits, such as 0x40B50533.</span>

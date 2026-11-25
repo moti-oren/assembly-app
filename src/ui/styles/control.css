@@ -54,11 +54,17 @@
   .control-plane td[data-met] {
     color: var(--foreground);
   }
-  /* The gate that is on: the row the word lit. */
+  /* The gate that is on: the row the word lit, marked by more than a shade, which is faint. */
   .control-plane tr[data-on] > * {
+    border-block: 1px solid var(--wire);
     background: var(--muted);
     color: var(--foreground);
     font-weight: 600;
+  }
+  /* Room for the mark beside every gate's name, so the names stay in line. */
+  .control-plane .control-mark {
+    display: inline-block;
+    width: 1.25em;
   }
   .control-plane .control-value {
     color: var(--foreground);
