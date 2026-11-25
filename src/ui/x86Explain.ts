@@ -73,13 +73,35 @@ export function jumpOutcome(record: ExecutionRecord, state: CpuState): string | 
   });
 }
 
+/**
+ * A changed AX..DX by the byte of it that changed, where the instruction names a byte of it:
+ * `MOV AL, AH` changed AL. One that names no byte of it (`MOV AX, 5`, LOOP's CX, MUL's AX) changed
+ * the word, and so did one that changed both bytes, unless it names both halves (`XCHG AL, AH`).
+ */
+function changedNames(name: string, before: number, after: number, instruction: Instruction) {
+  const word = name.toUpperCase();
+  if (!/^[abcd]x$/.test(name)) return [word];
+  const named = new Set<string>(
+    instruction.operands.flatMap((operand) => (operand.type === 'reg' ? [operand.name] : []))
+  );
+  const [l, h] = [`${word[0]}L`, `${word[0]}H`];
+  if (!named.has(l.toLowerCase()) && !named.has(h.toLowerCase())) return [word];
+  const low = ((before ^ after) & 0x00ff) !== 0;
+  const high = ((before ^ after) & 0xff00) !== 0;
+  if (low && high)
+    return named.has(l.toLowerCase()) && named.has(h.toLowerCase()) ? [l, h] : [word];
+  return [low ? l : h];
+}
+
 /** What the instruction did, given the CPU right after it. */
 export function describeExecute(record: ExecutionRecord, state: CpuState): string {
   const { registers, flags } = state;
   const changed = listed([
     ...changedRegisters(record.before.registers, registers)
       .filter((name) => name !== 'ip')
-      .map((name) => name.toUpperCase()),
+      .flatMap((name) =>
+        changedNames(name, record.before.registers[name], registers[name], record.instruction)
+      ),
     record.memoryWrites.length > 0 && 'memory',
     record.portWrites.length > 0 && 'an I/O port',
     flags !== record.before.flags && 'the flags'

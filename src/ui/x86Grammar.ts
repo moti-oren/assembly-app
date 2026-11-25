@@ -132,7 +132,7 @@ function numberOptions(choices: OperandChoices, typed: number | null): X86Option
     options.push({
       key: 'imm',
       label: formatImmediate(typed),
-      group: `Immediate (${size}-bit)`,
+      group: `A number (${size} bits)`,
       hint: `= ${otherBase(typed, size)}, ${size}-bit immediate`,
       matchesNumber: anyNumber,
       action: { kind: 'operand', operand: { type: 'imm', value: typed } }
