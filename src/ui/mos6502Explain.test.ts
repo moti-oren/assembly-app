@@ -30,10 +30,10 @@ describe('the cycle in words', () => {
 
   it('decodes the mode, the registers and the cycles', () => {
     expect(describeDecode(program[1])).toBe(
-      'Load & store, absolute,X: The operand = A. It reads A and X. It will write a byte to memory. It takes 5 cycles.'
+      'Load & store, absolute,X: The operand = A. It reads A and X. It will write a byte to memory. It takes 5 clock cycles.'
     );
     expect(describeDecode(line('lda', { type: 'izy', address: 0x10 }))).toContain(
-      'It takes 5 cycles, one more if indexing crosses a page.'
+      'It takes 5 clock cycles, one more if indexing crosses a page.'
     );
   });
 
@@ -41,7 +41,7 @@ describe('the cycle in words', () => {
     const state = createCpuState();
     const record = execute(state, program[0], 0, program);
     expect(describeExecute(record, state, program)).toBe(
-      'It changed A. 2 cycles. PC is at $0602 (L1), the next line.'
+      'It changed A. 2 clock cycles. PC is at $0602 (L1), the next line.'
     );
   });
 
@@ -50,13 +50,13 @@ describe('the cycle in words', () => {
     const state = createCpuState();
     execute(state, loop[0], 0, loop);
     expect(describeExecute(execute(state, loop[1], 1, loop), state, loop)).toBe(
-      'Not taken: BNE branches when Z = 0, but Z is 1. 2 cycles. PC is at $0604 (L2), the next line.'
+      'Not taken: BNE branches when Z = 0, but Z is 1. 2 clock cycles. PC is at $0604 (L2), the next line.'
     );
     const back = [line('lda', imm(0)), line('beq', { type: 'label', target: 0 })];
     const again = createCpuState();
     execute(again, back[0], 0, back);
     expect(describeExecute(execute(again, back[1], 1, back), again, back)).toBe(
-      'Taken: BEQ branches when Z = 1, and Z is 1. 3 cycles: 2, plus 1 for taking the branch. PC is now $0600 (L0).'
+      'Taken: BEQ branches when Z = 1, and Z is 1. 3 clock cycles: 2, plus 1 for taking the branch. PC is now $0600 (L0).'
     );
   });
 
@@ -64,10 +64,10 @@ describe('the cycle in words', () => {
     const state = createCpuState();
     const clear = [line('clc'), line('sec')];
     expect(describeExecute(execute(state, clear[0], 0, clear), state, clear)).toBe(
-      'C was already 0. 2 cycles. PC is at $0601 (L1), the next line.'
+      'C was already 0. 2 clock cycles. PC is at $0601 (L1), the next line.'
     );
     expect(describeExecute(execute(state, clear[1], 1, clear), state, clear)).toBe(
-      'It changed the flags. 2 cycles. PC is at $0602 (L2), the next line.'
+      'It changed the flags. 2 clock cycles. PC is at $0602 (L2), the next line.'
     );
   });
 
@@ -75,7 +75,7 @@ describe('the cycle in words', () => {
     const state = createCpuState();
     const record = execute(state, line('lda', imm(1)), null, []);
     expect(describeExecute(record, state, [])).toBe(
-      'Ran directly (not from the program). It changed A. 2 cycles.'
+      'Ran directly (not from the program). It changed A. 2 clock cycles.'
     );
   });
 });
@@ -91,7 +91,7 @@ describe('addressSteps', () => {
       []
     );
     expect(addressSteps(record.addressing!)).toBe('$02F0 + X ($20) = $0310, into page $03');
-    expect(cyclesBreakdown(record)).toBe('5 cycles: 4, plus 1 for crossing a page');
+    expect(cyclesBreakdown(record)).toBe('5 clock cycles: 4, plus 1 for crossing a page');
   });
 
   it('follows the pointer of ($nn),Y', () => {

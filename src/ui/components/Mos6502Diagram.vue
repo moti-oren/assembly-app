@@ -226,7 +226,7 @@ const flagChanged = (bit: number) =>
                     <span
                       v-for="n in view.cycles.count"
                       :key="`${tick}-${n}`"
-                      class="h-3 w-1.5 rounded-xs bg-written"
+                      class="h-3 w-1.5 rounded-xs bg-foreground/45"
                     />
                   </span>
                   <span class="font-mono text-xs">{{ view.cycles.text }}</span>
@@ -268,9 +268,11 @@ const flagChanged = (bit: number) =>
             :class="{ 'unit-idle': !view.bus.use }"
           >
             <h3 class="unit-title mb-0 shrink-0">Memory <span>RAM · devices</span></h3>
-            <span class="truncate font-mono text-xs" :class="{ standby: !view.bus.use }">{{
-              view.bus.text
-            }}</span>
+            <span
+              class="min-w-0 text-right font-mono text-xs wrap-anywhere"
+              :class="{ standby: !view.bus.use }"
+              >{{ view.bus.text }}</span
+            >
           </div>
         </div>
       </div>
