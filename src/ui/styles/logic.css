@@ -67,6 +67,10 @@
       --cell: clamp(1.625rem, (100cqw - var(--label) - 1px) / var(--columns), 2.75rem);
       --cell-height: 2.75rem;
     }
+    /* A row whose bits are each a switch to press (the control word's) gives each 44px. */
+    .logic-rows[data-touch-cells] {
+      --cell: 2.75rem;
+    }
     /* Wide enough for "move 16" on one line. */
     .logic-rows[data-tailed] {
       --label: 3.75rem;

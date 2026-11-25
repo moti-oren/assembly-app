@@ -25,7 +25,8 @@ const bits = computed(() => bitsOf(props.lens.word.value, WIDTH));
 <!-- The instruction as the control unit gets it: 32 bits, each to flip. -->
 <template>
   <div class="flex flex-col gap-3">
-    <div ref="rows" class="logic-rows">
+    <!-- Its bits are pressed one by one: on a phone each gets a finger's room, and the row scrolls. -->
+    <div ref="rows" class="logic-rows" data-touch-cells>
       <ControlFieldMarks :fields="lens.fields.value" :width="WIDTH" />
       <LogicBitNumbers :width="WIDTH" />
       <LogicRow
