@@ -116,7 +116,7 @@ function open(index: number): void {
         <button
           type="button"
           class="flex h-9 w-full items-center gap-2 rounded-md border bg-inset px-2 text-xs outline-none hover:border-foreground focus-visible:ring-2 focus-visible:ring-ring aria-disabled:cursor-default aria-disabled:hover:border-border pointer-coarse:h-11"
-          :class="{ 'border-foreground': row.load }"
+          :class="row.load ? 'border-foreground' : row.wired ? '' : 'border-wire'"
           :aria-disabled="row.wired"
           :aria-label="row.wired ? row.label : `${row.label}. Show its flip-flops`"
           @click="open(row.index)"
