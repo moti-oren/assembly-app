@@ -18,7 +18,10 @@ interface Drag {
  * Every open panel is given the height it is drawn at, so only the two panels on either side
  * of the line change, and nothing else in the pane shifts.
  */
-export function useSidebarResize(height: (key: SidebarKey) => number) {
+export function useSidebarResize(
+  height: (key: SidebarKey) => number,
+  programRows: () => number = () => 0
+) {
   const layout = useSidebarLayout();
   let drag: Drag | null = null;
 
@@ -35,7 +38,8 @@ export function useSidebarResize(height: (key: SidebarKey) => number) {
     const [up, down] = resizePair(
       { key: above, height: heights.get(above) ?? 0 },
       { key: below, height: heights.get(below) ?? 0 },
-      dy
+      dy,
+      programRows()
     );
     layout.setSizes({ ...Object.fromEntries(heights), [above]: up, [below]: down });
   }

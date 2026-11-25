@@ -42,17 +42,23 @@ const MIN_HEIGHTS: Record<SidebarKey, number> = {
   encoding: 96
 };
 
-/** A program line's height, and how many of them stay in sight whatever else is open. */
+/**
+ * A program line's height; how many of them stay in sight whatever else is open, and the room
+ * kept for a few even before there are any, where the lines being written will go.
+ */
 const PROGRAM_ROW = 28;
 const PROGRAM_ROWS_KEPT = 6;
+const PROGRAM_ROWS_ROOM = 4;
 
 /**
  * The least an open panel is given. The program keeps a few of its lines in sight, as many as
- * it has up to a handful, so opening every panel does not leave it a couple of rows.
+ * it has up to a handful and room for four even when it has fewer (a challenge starts with one
+ * or two), so opening every panel does not leave it a couple of rows.
  */
 export function leastHeight(key: SidebarKey, programRows = 0): number {
   if (key !== 'program') return MIN_HEIGHTS[key];
-  return MIN_HEIGHTS.program + Math.min(programRows, PROGRAM_ROWS_KEPT) * PROGRAM_ROW;
+  const rows = Math.min(Math.max(programRows, PROGRAM_ROWS_ROOM), PROGRAM_ROWS_KEPT);
+  return MIN_HEIGHTS.program + rows * PROGRAM_ROW;
 }
 
 export function isSidebarKey(key: string): key is SidebarKey {
@@ -119,16 +125,18 @@ export function sectionStyle(
 
 /**
  * Moves the line between two neighbouring open panels by `dy` pixels. Their total stays the
- * same, and neither goes below its least height; two panels already that small do not move.
+ * same, and neither goes below the least height the page gives it (the program's counts its
+ * lines); two panels already that small do not move.
  */
 export function resizePair(
   above: { key: SidebarKey; height: number },
   below: { key: SidebarKey; height: number },
-  dy: number
+  dy: number,
+  programRows = 0
 ): [number, number] {
   const total = above.height + below.height;
-  const least = MIN_HEIGHTS[above.key];
-  const most = total - MIN_HEIGHTS[below.key];
+  const least = leastHeight(above.key, programRows);
+  const most = total - leastHeight(below.key, programRows);
   if (most < least) return [above.height, below.height];
   const next = Math.min(Math.max(above.height + dy, least), most);
   return [next, total - next];

@@ -30,7 +30,10 @@ const column = useTemplateRef<{ $el: HTMLElement }>('column');
 const layout = useSidebarLayout();
 const resize = useSidebarResize(
   (key) =>
-    column.value?.$el.querySelector(`[data-sortable="${key}"]`)?.getBoundingClientRect().height ?? 0
+    column.value?.$el.querySelector(`[data-sortable="${key}"]`)?.getBoundingClientRect().height ??
+    0,
+  // The line stops where the panel drawn does: the program keeps room for its lines.
+  () => props.programRows ?? 0
 );
 
 const open = computed(() => props.keys.filter((key) => !layout.isCollapsed(key)));

@@ -84,8 +84,9 @@ describe('sectionStyle', () => {
 
 describe('leastHeight', () => {
   it('keeps as many program lines in sight as there are, up to a handful', () => {
-    expect(leastHeight('program')).toBe(96);
-    expect(leastHeight('program', 2)).toBe(152);
+    // Room for four lines is kept even before there are any.
+    expect(leastHeight('program')).toBe(208);
+    expect(leastHeight('program', 2)).toBe(208);
     expect(leastHeight('program', 6)).toBe(264);
     expect(leastHeight('program', 40)).toBe(264);
     expect(sectionStyle('program', false, 100, 40)['--section-min']).toBe('264px');
@@ -103,13 +104,18 @@ describe('resizePair', () => {
 
   it('moves the line and keeps the total', () => {
     expect(resizePair(program(300), history(200), 50)).toEqual([350, 150]);
-    expect(resizePair(program(300), history(200), -100)).toEqual([200, 300]);
+    expect(resizePair(program(300), history(200), -80)).toEqual([220, 280]);
   });
 
   it('stops each panel at its own least height', () => {
     expect(resizePair(program(300), history(200), 500)).toEqual([404, 96]);
-    expect(resizePair(program(300), history(200), -500)).toEqual([96, 404]);
-    expect(resizePair({ key: 'builder', height: 300 }, program(200), -500)).toEqual([296, 204]);
+    expect(resizePair(program(300), history(200), -500)).toEqual([208, 292]);
+    expect(resizePair({ key: 'builder', height: 300 }, program(300), -500)).toEqual([296, 304]);
+  });
+
+  it('stops the program where the page does, by the lines it has', () => {
+    // Six lines keep 264px: the line stops there, as the panel drawn does.
+    expect(resizePair(program(400), history(200), -500, 6)).toEqual([264, 336]);
   });
 
   it('leaves two panels that are already too small as they are', () => {
