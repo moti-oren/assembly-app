@@ -56,10 +56,15 @@ function bitOf(bit: number): number {
 
     <CardContent v-if="shown && encoding" class="@container flex flex-col gap-3">
       <!-- The word bit by bit, 31 on the left as it is written, with each field over its bits. -->
-      <!-- Never squeezed: in a short panel the body scrolls, and the strip keeps its height. -->
+      <!--
+        Never squeezed in height: in a short panel the body scrolls, and the strip keeps its height.
+        In a narrow panel it takes the panel's width, its digits smaller, rather than scroll: a
+        field cut by the edge would hide which bits are its. Field names too long for their bits
+        are cut short, with the whole name in their title.
+      -->
       <div class="shrink-0 overflow-x-auto">
         <div
-          class="grid min-w-[30rem] grid-cols-[repeat(32,minmax(0,1fr))] gap-y-1 font-mono text-2xs"
+          class="grid min-w-[16rem] grid-cols-[repeat(32,minmax(0,1fr))] gap-y-1 font-mono text-2xs"
           aria-label="The 32 bits of the instruction"
         >
           <span
@@ -75,7 +80,7 @@ function bitOf(bit: number): number {
           <span
             v-for="bit in BITS"
             :key="bit"
-            class="border-y py-0.5 text-center text-xs"
+            class="border-y py-0.5 text-center text-2xs @min-[30rem]:text-xs"
             :class="[
               bit % 4 === 0 ? 'border-r border-r-foreground/25' : '',
               bitOf(bit) ? 'font-semibold' : 'text-muted-foreground'
