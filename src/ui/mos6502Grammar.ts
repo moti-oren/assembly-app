@@ -48,6 +48,11 @@ function cycles({ cycles: count, pageCross }: Opcode): string {
   return `${count} cycles${pageCross ? ', +1 across a page' : ''}`;
 }
 
+/** The cycles, short enough for a button: `4+ cycles` where a page crossing adds one. */
+function cyclesAside({ cycles: count, pageCross }: Opcode): string {
+  return `${count}${pageCross ? '+' : ''} cycles`;
+}
+
 const byte = (value: number) => Number.isInteger(value) && value >= 0 && value <= 0xff;
 const word = (value: number) => Number.isInteger(value) && value >= 0 && value <= 0xffff;
 
@@ -152,6 +157,7 @@ function numberOptions(mnemonic: Mnemonic, typed: number): Option[] {
         group: `${MODE_NAMES[mode][0].toUpperCase()}${MODE_NAMES[mode].slice(1)}`,
         // The cycles first: a long meaning is what gets cut on a narrow line, not the count.
         hint: `${cycles(modes[mode]!)} · ${meaning(typed)}${through}`,
+        aside: cyclesAside(modes[mode]!),
         matchesNumber: () => true,
         action: { kind: 'operand', operand: chosen }
       };
@@ -182,6 +188,7 @@ function options(chosen: readonly Mos6502Action[], context: DraftContext): Optio
       label: 'a',
       group: 'Accumulator',
       hint: `${cycles(getSpec(mnemonic).modes.acc!)} · A itself`,
+      aside: cyclesAside(getSpec(mnemonic).modes.acc!),
       action: { kind: 'operand', operand: { type: 'acc' } }
     });
   }

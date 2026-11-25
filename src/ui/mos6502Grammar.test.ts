@@ -37,6 +37,8 @@ describe('MOS6502_GRAMMAR', () => {
     expect(zeroPageX.hint).toBe('4 cycles · the byte at $10 + X, wrapping around in the zero page');
     const absoluteX = MOS6502_GRAMMAR.options([mnemonic('lda')], typed(0x10))[4];
     expect(absoluteX.hint).toBe('4 cycles, +1 across a page · the byte at $0010 + X');
+    // On the button itself, for a touch screen that shows no hint.
+    expect([zeroPageX.aside, absoluteX.aside]).toEqual(['4 cycles', '4+ cycles']);
   });
 
   it('offers A for the shifts, and lines for branches and jumps', () => {

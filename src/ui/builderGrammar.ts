@@ -12,6 +12,11 @@ export interface BuilderOption<Action> {
   label: string;
   group: string;
   hint?: string;
+  /**
+   * A few words on the button itself, after the label: what a touch screen, which shows no hint,
+   * must see to choose. The 6502's modes give their clock cycles.
+   */
+  aside?: string;
   /** For options a typed number can select: immediates, addresses, counts, line labels. */
   matchesNumber?: (value: number) => boolean;
   action: Action;
