@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { disallowedWidths, LENSES, widthReason } from '@/ui/numbersView';
 import type { NumberLens } from '@/ui/useNumberLens';
 import ChoiceGroup from './ChoiceGroup.vue';
+import NumbersChoices from './NumbersChoices.vue';
 import NumbersExtra from './NumbersExtra.vue';
 import WidthPicker from './WidthPicker.vue';
 
@@ -18,8 +19,9 @@ const request = computed(() => props.lens.request.value);
 <!-- What the numbers on show are: the operation, how many bits wide, and one more coming in. -->
 <template>
   <div class="flex flex-col gap-4">
+    <!-- The section is "What to show": the choice in it is the operation, not said twice. -->
     <ChoiceGroup
-      label="What to show"
+      label="Operation"
       titled
       :columns="3"
       :choices="LENSES"
@@ -32,6 +34,7 @@ const request = computed(() => props.lens.request.value);
       :reason="widthReason(request)"
       @set="lens.setWidth"
     />
+    <NumbersChoices :lens="lens" />
     <NumbersExtra
       v-if="withExtra && (request.kind === 'add' || request.kind === 'subtract')"
       :lens="lens"
