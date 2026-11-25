@@ -17,6 +17,18 @@ describe('shortcutList', () => {
     expect(commands(false)).toEqual(['Ctrl', 'K']);
   });
 
+  it('lists the other redo, and the keys of panels and program lines', () => {
+    const labels = shortcutList(false).map((each) => each.label);
+    expect(labels).toEqual(
+      expect.arrayContaining([
+        'Redo it, the other way',
+        'Move a panel to the top or the bottom',
+        'Resize a panel',
+        'Move a line of the program'
+      ])
+    );
+  });
+
   it('names every shortcut once', () => {
     const labels = shortcutList(false).map((each) => each.label);
     expect(new Set(labels).size).toBe(labels.length);
