@@ -12,14 +12,17 @@ export const STAGE = {
 
 export type StageKey = (typeof STAGE)[keyof typeof STAGE][number];
 
-/** On a phone the stage is two views: the CPU, and what is on its bus. */
+/**
+ * On a phone the stage is two views: the CPU, and what is on its bus. The stack goes with the
+ * CPU, as on a desktop's stage, where it sits beside it: under "Memory & I/O" no one looks for it.
+ */
 const PHONE_VIEW: Record<StageKey, PhoneView> = {
   cycle: 'cpu',
   cpu: 'cpu',
   registers: 'cpu',
   operation: 'cpu',
   flags: 'cpu',
-  stack: 'memory',
+  stack: 'cpu',
   devices: 'memory',
   memory: 'memory'
 };

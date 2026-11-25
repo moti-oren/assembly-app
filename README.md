@@ -233,7 +233,8 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   panel buttons move behind **⋯** at the end of the bottom bar, and the header keeps the CPU
   switch and the commands, with the topics, Share, Compare, Challenges, the examples and the settings
   in its own **⋯** menu. On a phone one view shows at a
-  time, chosen under the header: **Code** (the left column), **CPU**, or **Memory & I/O**. The
+  time, chosen under the header: **Code** (the left column), **CPU** (with the stack), or
+  **Memory & I/O**. The
   strip above them always shows the last instruction and what it changed, as `CX 0000 → 000A`,
   with the line that runs next, and a tap on it goes to the CPU. When more changed than fits, a
   `+N` at its end lists every change. The bottom bar keeps Step, the phase button, Run and Undo,
@@ -871,7 +872,7 @@ npm run verify:6502 # check the 6502 core against py65
   שהכפתור **Code** שבראש העמוד מחליק מעליה (Esc, או לחיצה על העמוד שלידה, סוגרים אותה); Reset וכפתורי החלוניות עוברים אל
   **⋯** שבקצה הסרגל התחתון, ובכותרת נשארים בורר המעבד והפקודות, כשהנושאים, Share, Compare,
   Challenges, הדוגמאות וההגדרות נמצאים בתפריט **⋯** שלה. בטלפון מוצגת תצוגה אחת בכל רגע, ובוחרים אותה מתחת לכותרת: **Code**
-  (העמודה השמאלית), **CPU** או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
+  (העמודה השמאלית), **CPU** (יחד עם המחסנית) או **Memory & I/O**. הפס שמעליהן מציג תמיד את ההוראה האחרונה ומה
   שהיא שינתה, בצורה `CX 0000 → 000A`, יחד עם השורה שתרוץ הבאה, והקשה עליו עוברת ל-CPU. כשהשתנה
   יותר ממה שנכנס, `+N` בסופו מציג את כל השינויים. בסרגל התחתון נשארים Step, כפתור
   השלב, Run ו-Undo, והשאר נמצא ב-**⋯** שלו; הנושאים, Share, Compare, Challenges, הדוגמאות וההגדרות
