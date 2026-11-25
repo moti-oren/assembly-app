@@ -4,13 +4,15 @@ import { Check, Circle } from '@lucide/vue';
 import type { ChallengeResult } from '@/core/shared/challenge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { givenNote, isNews, outcomeText, type ChallengeInfo } from '@/ui/challengeView';
+import { givenNote, isNews, outcomeText, solvedSaid, type ChallengeInfo } from '@/ui/challengeView';
 
 const props = defineProps<{
   challenge: ChallengeInfo;
   result: ChallengeResult;
   /** How many lines the program starts with. */
   given: number;
+  /** The challenge to go on to, once this one is solved; null when there is none. */
+  next?: { title: string } | null;
 }>();
 
 const hintShown = defineModel<boolean>('hintShown', { required: true });
@@ -19,6 +21,8 @@ const emit = defineEmits<{
   restart: [];
   /** Opens the list of challenges. */
   list: [];
+  /** Starts the next challenge. */
+  next: [];
 }>();
 
 const verdicts = computed(() => [...props.result.goals, ...props.result.limits]);
@@ -63,13 +67,27 @@ const news = computed(() => isNews(props.result));
         </li>
       </ul>
 
+      <!-- Solved is a moment of its own: a large mark, the result, and the way on. -->
       <p
-        class="text-xs"
-        :class="result.solved ? 'font-semibold text-foreground' : 'text-muted-foreground'"
+        class="flex items-start gap-2"
+        :class="
+          result.solved ? 'text-sm font-semibold text-foreground' : 'text-xs text-muted-foreground'
+        "
       >
-        <span role="status">{{ news ? outcome : '' }}</span>
+        <Check v-if="result.solved" class="size-6 shrink-0 stroke-[3]" aria-hidden="true" />
+        <span role="status">{{
+          news ? solvedSaid(outcome, result.solved ? next : null) : ''
+        }}</span>
         <span v-if="!news">{{ outcome }}</span>
       </p>
+      <Button
+        v-if="result.solved && next"
+        size="sm"
+        class="h-auto max-w-full self-start py-1.5 text-left whitespace-normal pointer-coarse:min-h-11"
+        @click="emit('next')"
+      >
+        Next challenge: {{ next.title }}
+      </Button>
 
       <p
         v-show="hintShown"

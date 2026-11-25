@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { formatBits, formatBytes, littleEndian, parseNumber } from './numbers';
+import { formatBits, formatBytes, hexSuffixed, littleEndian, parseNumber } from './numbers';
+
+describe('hexSuffixed', () => {
+  it('writes hex as 8086 listings do, a 0 before a first letter, and reads back', () => {
+    expect(hexSuffixed(0x100)).toBe('100h');
+    expect(hexSuffixed(0xa000)).toBe('0A000h');
+    expect(hexSuffixed(0x84, 16)).toBe('0084h');
+    expect(hexSuffixed(0xffff, 16)).toBe('0FFFFh');
+    for (const value of [0x100, 0xa000, 0xffff]) {
+      expect(parseNumber(hexSuffixed(value, 16))).toBe(value);
+    }
+  });
+});
 
 describe('littleEndian', () => {
   it('puts the first byte lowest', () => {

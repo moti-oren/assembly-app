@@ -13,6 +13,7 @@ import {
   unavailableText
 } from '@/ui/numbersView';
 import type { TopicSectionInfo } from '@/ui/topicSections';
+import { useHexStyle } from '@/ui/useHexStyle';
 import { useLayoutMode } from '@/ui/useLayoutMode';
 import { useNumberLens } from '@/ui/useNumberLens';
 import { useNumbersCommands } from '@/ui/useNumbersCommands';
@@ -48,7 +49,8 @@ const commands = useNumbersCommands(lens, () => props.moment, {
 
 const request = computed(() => lens.request.value);
 const solution = computed(() => lens.solution.value);
-const equation = computed(() => equationText(request.value, solution.value));
+const hexStyle = useHexStyle();
+const equation = computed(() => equationText(request.value, solution.value, hexStyle.value));
 
 /** The sidebar's sections. A value by itself, or one made wider, sets no flag: no section. */
 const sections = computed<TopicSectionInfo[]>(() => [

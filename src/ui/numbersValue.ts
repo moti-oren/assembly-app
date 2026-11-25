@@ -1,4 +1,5 @@
 import type { ValueReadings } from '@/core/representation/readings';
+import { PREFIXED, type HexStyle } from './hexNotation';
 import { numberText as text } from './numbersView';
 
 /** One way of reading a row of bits. */
@@ -12,7 +13,7 @@ export interface ValueRow {
 }
 
 /** Every reading of a value, in the order they are shown. */
-export function valueRows(readings: ValueReadings): ValueRow[] {
+export function valueRows(readings: ValueReadings, style: HexStyle = PREFIXED): ValueRow[] {
   const top = readings.width - 1;
   const characters = readings.characters.map((character) => character ?? '·').join('');
   const hasCharacter = readings.characters.some((character) => character !== null);
@@ -20,7 +21,7 @@ export function valueRows(readings: ValueReadings): ValueRow[] {
   return [
     {
       name: 'Hex',
-      value: `0x${readings.hex}`,
+      value: style(readings.hex),
       none: false,
       how: 'four bits to a digit'
     },

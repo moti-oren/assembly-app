@@ -11,6 +11,7 @@ import {
   unavailableText
 } from '@/ui/storageView';
 import type { TopicSectionInfo } from '@/ui/topicSections';
+import { useHexStyle } from '@/ui/useHexStyle';
 import { useStorageCommands } from '@/ui/useStorageCommands';
 import { useStorageFile } from '@/ui/useStorageFile';
 import { useStorageLens } from '@/ui/useStorageLens';
@@ -45,7 +46,10 @@ const commands = useStorageCommands(lens, file, sequence, () => props.moment, {
   back: () => emit('back')
 });
 
-const equation = computed(() => equationText(lens.write.value, lens.solution.value.stored));
+const hexStyle = useHexStyle();
+const equation = computed(() =>
+  equationText(lens.write.value, lens.solution.value.stored, hexStyle.value)
+);
 // A register picked in the file is shown where a register is: the focus follows it there.
 const registerSection = useTemplateRef<{ $el: HTMLElement }>('registerSection');
 async function showRegister(write: RegisterWrite): Promise<void> {

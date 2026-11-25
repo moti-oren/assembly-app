@@ -53,3 +53,17 @@ export function outcomeText(result: ChallengeResult, par: number): string {
 export function solvedText(best: number, par: number): string {
   return best <= par ? `Solved in ${lines(best)}, par` : `Solved in ${lines(best)}; par is ${par}`;
 }
+
+/** The challenge after one in its CPU's list, to go on to once it is solved; null after the last. */
+export function nextChallenge<Item extends { id: string }>(
+  list: readonly Item[],
+  id: string | undefined
+): Item | null {
+  const at = list.findIndex((each) => each.id === id);
+  return at >= 0 && at + 1 < list.length ? list[at + 1] : null;
+}
+
+/** What is said when the program passes: the outcome, and the challenge there is to go on to. */
+export function solvedSaid(outcome: string, next: { title: string } | null | undefined): string {
+  return next ? `${outcome} Next: ${next.title}.` : outcome;
+}

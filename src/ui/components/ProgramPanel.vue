@@ -31,6 +31,11 @@ const props = withDefaults(
     code: LineCode[];
     /** Where a line's code sits, as the tooltip says it. */
     codePlace: CodePlace;
+    /**
+     * A line's address, written short beside its label, where the CPU names lines by address (its
+     * PC, the stack, its errors). Left out where the instruction pointer is the line itself.
+     */
+    lineAddress?: CodePlace | null;
     ip: number;
     /** Line new instructions are inserted before; null = the end. */
     insertAt: number | null;
@@ -48,7 +53,7 @@ const props = withDefaults(
     /** Lines at the top that are given by a challenge: shown, and not edited, moved or deleted. */
     locked?: number;
   }>(),
-  { source: null, editingLine: null, lastMove: null, locked: 0 }
+  { source: null, editingLine: null, lastMove: null, locked: 0, lineAddress: null }
 );
 
 const emit = defineEmits<{
@@ -256,7 +261,7 @@ function machineCode(index: number): string {
         ref="list"
         tabindex="-1"
         data-fill
-        class="well relative grid max-h-80 grid-cols-[1.25rem_2.75rem_fit-content(28ch)_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
+        class="well relative grid max-h-80 grid-cols-[1.25rem_minmax(2.75rem,auto)_fit-content(28ch)_minmax(0,1fr)_auto] content-start gap-x-1 overflow-y-auto rounded-lg py-1 font-mono text-code lg:max-h-112"
         aria-label="Program lines"
         @keydown.capture="onListKeydown"
       >
@@ -298,10 +303,15 @@ function machineCode(index: number): string {
               />
             </span>
             <span
-              class="text-xs"
-              :class="
-                targets.has(index) ? 'font-semibold text-foreground' : 'text-muted-foreground'
-              "
+              class="text-xs whitespace-nowrap"
+              :class="[
+                targets.has(index) ? 'font-semibold text-foreground' : 'text-muted-foreground',
+                { 'text-right': lineAddress }
+              ]"
+              ><span
+                v-if="lineAddress && code[index]"
+                class="mr-1.5 font-normal text-muted-foreground tabular-nums"
+                >{{ lineAddress(code[index].address) }}<span class="sr-only">, </span></span
               >{{ formatLabel(index) }}{{ targets.has(index) ? ':' : '' }}</span
             >
             <!-- A finger cannot hover for the title: on a touch screen a long line wraps instead. -->
@@ -370,11 +380,12 @@ function machineCode(index: number): string {
           <span />
           <span
             class="text-xs"
-            :class="
+            :class="[
               targets.has(program.length)
                 ? 'font-semibold text-foreground'
-                : 'text-muted-foreground'
-            "
+                : 'text-muted-foreground',
+              { 'text-right': lineAddress }
+            ]"
             >{{ formatLabel(program.length) }}{{ targets.has(program.length) ? ':' : '' }}</span
           >
           <span class="font-sans text-xs text-muted-foreground">end of program</span>

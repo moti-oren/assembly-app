@@ -124,7 +124,12 @@ const card = ref<{ $el: HTMLElement } | null>(null);
 /** For the command palette: jump, then bring the memory into view, which may be off screen. */
 defineExpose({
   showStackTop: () => reveal(showStackTop),
-  showLastAccess: () => reveal(showLastAccess)
+  showLastAccess: () => reveal(showLastAccess),
+  showPlace: (label: string) =>
+    reveal(() => {
+      const place = props.places.find((each) => each.label === label);
+      if (place) go(place);
+    })
 });
 
 function reveal(jump: () => void): void {

@@ -58,7 +58,7 @@ describe('builderOptions', () => {
   it('offers the base registers inside brackets, and a typed direct address first', () => {
     const options = builderOptions({ ...empty, mnemonic: 'mov', pendingMemory: 8, typed: 0x10 });
     expect(options.map((option) => option.label)).toEqual([
-      '[0x0010]',
+      '[0010h]',
       '[bx]',
       '[si]',
       '[di]',
@@ -86,7 +86,7 @@ describe('typingHint', () => {
 
   it('asks for an address inside the brackets of a memory operand', () => {
     expect(typingHint(draft({ mnemonic: 'mov', pendingMemory: 16 }), '', false)).toBe(
-      'Pick a register or type an offset (e.g. 0x10)'
+      'Pick a register or type an offset (e.g. 10h)'
     );
   });
 
@@ -136,7 +136,7 @@ describe('X86_GRAMMAR', () => {
       X86_GRAMMAR.options([mov, ax], { ...context, typed }).find((option) => option.key === 'imm')
         ?.hint;
     expect(hintOf(5)).toBe('= 0005h, 16-bit immediate');
-    expect(hintOf(-5)).toBe('= FFFBh, 16-bit immediate');
+    expect(hintOf(-5)).toBe('= 0FFFBh, 16-bit immediate');
     expect(hintOf(65)).toBe('= 0041h, 16-bit immediate');
   });
 

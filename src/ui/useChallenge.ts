@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import {
   checkChallenge,
   givenLines,
@@ -8,6 +8,8 @@ import {
 import type { ExecutionRecord } from '@/core/shared/executionRecord';
 import type { CpuState } from '@/core/shared/state';
 import { analytics } from './analyticsClient';
+import { nextChallenge } from './challengeView';
+import type { PaletteCommand } from './paletteCommand';
 import { sound } from './soundEngine';
 import { useChallenges } from './useChallenges';
 import type { CpuOf } from './useCpu';
@@ -101,5 +103,25 @@ export function useChallenge<
     if (challenge.value) startChallenge(cpu, challenge.value.id);
   }
 
-  return { challenge, result, given, hintShown, restart };
+  /** The challenge to go on to, offered once this one is solved. */
+  const next = computed(() =>
+    result.value?.solved ? nextChallenge(architecture.challenges, challenge.value?.id) : null
+  );
+
+  /** Goes on, and puts the focus on the new challenge's panel: the button pressed is gone. */
+  function startNext(): void {
+    if (!next.value) return;
+    startChallenge(cpu, next.value.id, () => {
+      void nextTick(() => document.querySelector<HTMLElement>('[data-challenge-panel]')?.focus());
+    });
+  }
+
+  /** The palette's way on, while there is one. */
+  const commands = computed<PaletteCommand[]>(() =>
+    next.value
+      ? [{ group: 'Program', label: `Next challenge: ${next.value.title}`, run: startNext }]
+      : []
+  );
+
+  return { challenge, result, given, hintShown, restart, next, startNext, commands };
 }

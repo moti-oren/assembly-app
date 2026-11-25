@@ -10,7 +10,7 @@ import { DATA_BASE, type CpuState } from '@/core/rv32/state';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { RV32_DEVICE_ACCESS } from '@/ui/deviceAccess';
-import { RV32_CODE_PLACE, rv32LineCode } from '@/ui/programCode';
+import { RV32_CODE_PLACE, SHORT_LINE_ADDRESS, rv32LineCode } from '@/ui/programCode';
 import { describeAccess } from '@/ui/rv32Explain';
 import { RV32_GRAMMAR } from '@/ui/rv32Grammar';
 import { byteAt, rv32MemoryPlaces, RV32_ADDRESSES } from '@/ui/rv32View';
@@ -90,7 +90,8 @@ const LABELS = { ...PANEL_LABELS, flags: 'No flags', operation: 'ALU' };
 const pipeline = useRv32Pipeline();
 const timing = useRv32Timing(cpu);
 
-const page = useWorkbenchPage(() => lastRecord.value?.access != null);
+const memoryPlaces = rv32MemoryPlaces(state);
+const page = useWorkbenchPage(() => lastRecord.value?.access != null, memoryPlaces);
 const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = usePrediction(
   cpu,
   rv32Predictor,
@@ -98,6 +99,7 @@ const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = 
 );
 const { running } = controls;
 
+const challenge = useChallenge(cpu);
 const {
   panels,
   commands,
@@ -122,17 +124,14 @@ const {
   usesDevices: rv32UsesDevices,
   // The timing is the chart's own, worked out once for both.
   soundOf: () => rv32Sounds(history.value, state, pipeline.shown.value ? timing.value : null),
-  commands: pipeline.commands,
+  commands: () => [...pipeline.commands(), ...challenge.commands.value],
   page
 });
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, rv32Stack);
-const challenge = useChallenge(cpu);
 const { open: challengesOpen } = useChallenges();
 const { shown: pipelineShown } = pipeline;
-
-const memoryPlaces = rv32MemoryPlaces(state);
 
 const memoryAccess = computed(() => {
   const record = lastRecord.value;
@@ -195,7 +194,9 @@ followBuilder(draft);
           :challenge="challenge.challenge.value"
           :result="challenge.result.value"
           :given="challenge.given.value"
+          :next="challenge.next.value"
           @restart="challenge.restart"
+          @next="challenge.startNext"
           @list="challengesOpen = true"
         />
       </template>
@@ -221,6 +222,7 @@ followBuilder(draft);
           :format="formatInstruction"
           :code="assembled.lines.map(rv32LineCode)"
           :code-place="RV32_CODE_PLACE"
+          :line-address="SHORT_LINE_ADDRESS"
           :ip="nextLine"
           :last-line="lastRecord?.line ?? null"
           :finished="finished"

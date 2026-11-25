@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { ChallengeResult } from '@/core/shared/challenge';
-import { givenNote, isNews, outcomeText, solvedText } from './challengeView';
+import {
+  givenNote,
+  isNews,
+  nextChallenge,
+  solvedSaid,
+  outcomeText,
+  solvedText
+} from './challengeView';
 
 const result = (over: Partial<ChallengeResult>): ChallengeResult => ({
   goals: [
@@ -70,5 +77,24 @@ describe('solvedText', () => {
   it('tells the fewest lines a challenge took', () => {
     expect(solvedText(1, 1)).toBe('Solved in 1 line, par');
     expect(solvedText(4, 3)).toBe('Solved in 4 lines; par is 3');
+  });
+});
+
+describe('nextChallenge', () => {
+  const list = [{ id: 'a' }, { id: 'b' }];
+
+  it('goes on in the order of the list, and stops after the last', () => {
+    expect(nextChallenge(list, 'a')).toEqual({ id: 'b' });
+    expect(nextChallenge(list, 'b')).toBeNull();
+    expect(nextChallenge(list, undefined)).toBeNull();
+  });
+});
+
+describe('solvedSaid', () => {
+  it('says the challenge to go on to, where there is one', () => {
+    expect(solvedSaid('Solved in 3 lines: that is par.', { title: 'Swap' })).toBe(
+      'Solved in 3 lines: that is par. Next: Swap.'
+    );
+    expect(solvedSaid('Solved.', null)).toBe('Solved.');
   });
 });

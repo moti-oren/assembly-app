@@ -122,6 +122,10 @@ export function useWorkbench<
         show('memory');
         void nextTick(hooks.page.showLastAccess);
       },
+      showMemoryPlace: (label) => {
+        show('memory');
+        void nextTick(() => hooks.page.showMemoryPlace(label));
+      },
       askClearProgram: () => {
         clearAsked.value = true;
       },

@@ -11,7 +11,7 @@ import type { CpuState } from '@/core/mos6502/state';
 import { formatLabel } from '@/core/shared/program';
 import { Card, CardContent } from '@/components/ui/card';
 import { MOS6502_DEVICE_ACCESS } from '@/ui/deviceAccess';
-import { MOS6502_CODE_PLACE, mos6502LineCode } from '@/ui/programCode';
+import { MOS6502_CODE_PLACE, SHORT_LINE_ADDRESS, mos6502LineCode } from '@/ui/programCode';
 import { memoryAccessOf } from '@/ui/mos6502Access';
 import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
@@ -84,7 +84,8 @@ const layout = useLayoutMode();
 
 const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
 
-const page = useWorkbenchPage(() => lastRecord.value?.access != null);
+const memoryPlaces = mos6502MemoryPlaces(state);
+const page = useWorkbenchPage(() => lastRecord.value?.access != null, memoryPlaces);
 const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = usePrediction(
   cpu,
   mos6502Predictor,
@@ -92,6 +93,7 @@ const { asking, last, tally, skipped, answer, skip, followBuilder, controls } = 
 );
 const { running } = controls;
 
+const challenge = useChallenge(cpu);
 const {
   panels,
   commands,
@@ -108,6 +110,7 @@ const {
   confirmReset,
   clearProgram
 } = useWorkbench(controls, {
+  commands: () => challenge.commands.value,
   aluLink: mos6502AluLink,
   numberLink: mos6502NumberLink,
   registerLink: mos6502RegisterLink,
@@ -119,10 +122,7 @@ const {
 const { historyShown, bytesShown, devicesShown, inspectedLine, inspect } = panels;
 const { leftKeys, rightKeys, closable, move, close } = columns;
 const stack = useStack(cpu, mos6502Stack);
-const challenge = useChallenge(cpu);
 const { open: challengesOpen } = useChallenges();
-
-const memoryPlaces = mos6502MemoryPlaces(state);
 
 const memoryAccess = computed(
   () => lastRecord.value && memoryAccessOf(lastRecord.value, state.memory)
@@ -181,7 +181,9 @@ followBuilder(draft);
           :challenge="challenge.challenge.value"
           :result="challenge.result.value"
           :given="challenge.given.value"
+          :next="challenge.next.value"
           @restart="challenge.restart"
+          @next="challenge.startNext"
           @list="challengesOpen = true"
         />
       </template>
@@ -207,6 +209,7 @@ followBuilder(draft);
           :format="formatInstruction"
           :code="assembled.lines.map(mos6502LineCode)"
           :code-place="MOS6502_CODE_PLACE"
+          :line-address="SHORT_LINE_ADDRESS"
           :ip="nextLine"
           :last-line="lastRecord?.line ?? null"
           :finished="finished"

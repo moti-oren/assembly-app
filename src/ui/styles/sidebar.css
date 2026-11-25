@@ -124,6 +124,14 @@
     min-height: var(--section-min, auto);
     max-height: var(--section-max, none);
   }
+  /*
+   * A builder with its choices folded away is its box and its buttons: it takes their height,
+   * not the height it is given open, so the room it held goes to the program under it.
+   */
+  .workbench-pane[data-pane='sidebar'] > .sortable-item:has([data-builder-folded]) {
+    flex: 0 0 auto;
+    min-height: auto;
+  }
   .sidebar-section {
     display: flex;
     flex: 1;

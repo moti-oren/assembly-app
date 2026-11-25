@@ -1,9 +1,8 @@
 import { computed, type ComputedRef, type Ref } from 'vue';
-import { formatLabel } from '@/core/shared/program';
 import { PHONE_VIEW_LABELS, PHONE_VIEWS } from './layoutMode';
 import type { PaletteCommand } from './paletteCommand';
 import { isApple } from './platform';
-import { lockNote } from './programLock';
+import { programLineCommands } from './programLineCommands';
 import { RUN_SPEED_NAMES, SPEED_LABELS } from './runSpeeds';
 import { transportKeys } from './transportKeys';
 import { useAppCommands } from './useAppCommands';
@@ -31,6 +30,10 @@ export interface PageActions {
   runAgain: () => void;
   showStackTop: () => void;
   showLastAccess: () => void;
+  /** The places the memory panel jumps to, other than the stack, by their labels. */
+  memoryPlaces: () => readonly string[];
+  /** Jumps the memory panel to one of `memoryPlaces` and brings it into view. */
+  showMemoryPlace: (label: string) => void;
   /** Whether the last instruction read or wrote memory, so there is an access to show. */
   hasLastAccess: () => boolean;
   /** Whether the last instruction has a circuit of gates to show in the logic topic. */
@@ -65,11 +68,6 @@ export function useCommands(
   const mode = useLayoutMode();
   const { view, drawerOpen } = useWorkbenchView();
   const { history, program, insertAt, future, finished, speed, running, nextLine } = cpu;
-  /** A command on the next line, named with why it is not on offer when a challenge locks it. */
-  const onNextLine = (label: string, by: number): { label: string; disabled: boolean } => {
-    const note = lockNote(nextLine.value, nextLine.value + by, cpu.lockedLines.value);
-    return { label: note ? `${label}: ${note}` : label, disabled: note !== null };
-  };
   const { historyShown, bytesShown, devicesShown, stackShown, challengeShown } = panels;
   const hasLastAccess = computed(page.hasLastAccess);
   const hasCircuit = computed(page.hasCircuit);
@@ -111,41 +109,19 @@ export function useCommands(
             disabled: finished.value,
             run: cpu.runProgram
           },
-    // A line has no name the palette could ask for, so these act on the one that runs next.
-    ...(finished.value
-      ? []
-      : [
-          {
-            group: 'Program',
-            ...onNextLine(`Edit the next line (${formatLabel(nextLine.value)})`, 0),
-            moves: 'focus' as const,
-            run: () => cpu.editLine(nextLine.value)
-          },
-          {
-            group: 'Program',
-            ...onNextLine('Move the next line up', -1),
-            ...(nextLine.value === 0 ? { disabled: true } : {}),
-            run: () => cpu.moveProgramLine(nextLine.value, nextLine.value - 1)
-          },
-          {
-            group: 'Program',
-            ...onNextLine('Move the next line down', 1),
-            ...(nextLine.value >= program.value.length - 1 ? { disabled: true } : {}),
-            run: () => cpu.moveProgramLine(nextLine.value, nextLine.value + 1)
-          }
-        ]),
-    // Only while new lines go above a chosen line; at the end is where they go otherwise.
-    ...(insertAt.value === null
-      ? []
-      : [
-          {
-            group: 'Program',
-            label: 'Add new lines at the end',
-            run: () => {
-              insertAt.value = null;
-            }
-          }
-        ]),
+    ...programLineCommands({
+      nextLine: nextLine.value,
+      length: program.value.length,
+      locked: cpu.lockedLines.value,
+      insertAt: insertAt.value,
+      finished: finished.value,
+      edit: cpu.editLine,
+      remove: cpu.removeProgramLine,
+      move: cpu.moveProgramLine,
+      insertBefore: (index) => {
+        insertAt.value = index;
+      }
+    }),
     {
       group: 'Program',
       label: 'Clear the program…',
@@ -217,6 +193,12 @@ export function useCommands(
       moves: 'scroll',
       run: page.showLastAccess
     },
+    ...page.memoryPlaces().map((label) => ({
+      group: 'CPU',
+      label: `Show the ${label.toLowerCase()} in memory`,
+      moves: 'scroll' as const,
+      run: () => page.showMemoryPlace(label)
+    })),
     {
       group: 'CPU',
       label: 'Show the gates behind the last operation',

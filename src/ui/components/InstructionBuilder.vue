@@ -236,7 +236,14 @@ function onEnter(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <Card ref="card" tabindex="-1" class="outline-none" @pointerdown="unfold" @keydown="onKeydown">
+  <Card
+    ref="card"
+    tabindex="-1"
+    class="outline-none"
+    :data-builder-folded="folded ? '' : undefined"
+    @pointerdown="unfold"
+    @keydown="onKeydown"
+  >
     <CardHeader>
       <CardTitle role="heading" aria-level="2">Instruction</CardTitle>
     </CardHeader>

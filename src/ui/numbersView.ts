@@ -12,6 +12,7 @@ import { mos6502FreeView } from '@/core/mos6502NumberLink';
 import { rv32FreeView } from '@/core/rv32NumberLink';
 import { x86FreeView } from '@/core/x86NumberLink';
 import type { ArchitectureId } from './architectures';
+import { PREFIXED, type HexStyle } from './hexNotation';
 import { hexOf, WIDTHS } from './logicView';
 
 /** What the number topic can show, whether or not a CPU asked for it. */
@@ -228,23 +229,24 @@ export function withExtraFlipped(request: NumberRequest): NumberRequest {
 const decimalText = (byte: number): string => byte.toString(16).toUpperCase().padStart(2, '0');
 
 /** The operation on one line: `0x7F + 0x01 = 0x80`. */
-export function equationText(request: NumberRequest, solution: NumberSolution): string {
+export function equationText(
+  request: NumberRequest,
+  solution: NumberSolution,
+  style: HexStyle = PREFIXED
+): string {
   const result = resultOf(solution);
   switch (request.kind) {
     case 'add':
     case 'subtract': {
       const sign = request.kind === 'add' ? '+' : '−';
-      const hex = (value: number) => hexOf(value, request.width);
+      const hex = (value: number) => hexOf(value, request.width, style);
       const extra = request.extra ? ` ${sign} 1` : '';
       return `${hex(request.a)} ${sign} ${hex(request.b)}${extra} = ${hex(result)}`;
     }
     case 'extend': {
-      const narrow = `0x${wrap(request.value, request.from)
-        .toString(16)
-        .toUpperCase()
-        .padStart(request.from / 4, '0')}`;
+      const narrow = hexOf(wrap(request.value, request.from), request.from, style);
       const how = request.signed ? 'copying the top bit' : 'filling with zeros';
-      return `${narrow} → ${hexOf(result, request.to)}, ${how}`;
+      return `${narrow} → ${hexOf(result, request.to, style)}, ${how}`;
     }
     case 'bcd': {
       const sign = request.operation === 'add' ? '+' : '−';
@@ -255,10 +257,10 @@ export function equationText(request: NumberRequest, solution: NumberSolution): 
       const sign = request.direction === 'left' ? '<<' : '>>';
       const how =
         request.direction === 'right' && request.fill === 'sign' ? ', copying the top bit' : '';
-      return `${hexOf(request.value, request.width)} ${sign} ${request.count} = ${hexOf(result, request.width)}${how}`;
+      return `${hexOf(request.value, request.width, style)} ${sign} ${request.count} = ${hexOf(result, request.width, style)}${how}`;
     }
     case 'value':
-      return hexOf(result, request.width);
+      return hexOf(result, request.width, style);
   }
 }
 

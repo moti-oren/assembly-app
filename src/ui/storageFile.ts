@@ -6,6 +6,7 @@ import {
   type RegisterFileSolution
 } from '@/core/logic/registerFile';
 import { written, type RegisterFileView, type RegisterWrite } from '@/core/registerLink';
+import { PREFIXED, type HexStyle } from './hexNotation';
 import { hexOf } from './logicView';
 
 /** A file no CPU gave: eight registers of eight bits, to work by hand. */
@@ -67,11 +68,12 @@ export function fileRows(
   solution: RegisterFileSolution,
   phase: ClockPhase,
   /** Whether the file is the CPU's as it ran: colour marks a write, and only a real one. */
-  asRun = false
+  asRun = false,
+  style: HexStyle = PREFIXED
 ): FileRow[] {
   const { width, held } = solution.request;
   return solution.registers.map((register, index) => {
-    const value = hexOf(register ? heldAt(register, phase) : 0, width);
+    const value = hexOf(register ? heldAt(register, phase) : 0, width, style);
     const load = solution.loads[index];
     const written = load === 1 && phase !== 'before';
     const state = register ? (load ? 'load line 1' : 'load line 0') : 'wired to 0, no flip-flops';

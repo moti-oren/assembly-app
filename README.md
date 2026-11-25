@@ -157,7 +157,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 - Moving, replacing or deleting a line of a program that has already run leaves what the CPU
   holds from that run, such as a return address on the stack, naming the old place. The program
   panel says so, with a **Reset** to run it from the start. The command palette can edit the line
-  that runs next, or move it up or down.
+  that runs next, delete it, move it up or down, or add new lines above it.
 - The program of each CPU is remembered in the browser. After a reload it is back, started
   afresh: registers, memory and the history are not kept.
 - With every panel of the left column open, the program keeps about six of its lines in sight,
@@ -216,7 +216,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   **In memory** shows the same bytes in the memory panel.
 - `int n` pushes FLAGS, CS and IP, clears IF and TF, and jumps to the handler stored in vector `n`
   (two words at `0000:n×4`: the handler's program line, then its CS). `iret` returns. `mov` takes a
-  program line as its source (`mov word [0x84], L8`) to fill a vector. `into` is `int 4` when OF = 1,
+  program line as its source (`mov word [0084h], L8`) to fill a vector. `into` is `int 4` when OF = 1,
   and a divide error is `int 0`. An empty vector is reported as an error instead of jumping to
   `0000:0000`. `pushf` and `popf` move FLAGS through the stack.
 - Hover or focus a flag to see why the last instruction left it at 0 or 1, worked out with that
@@ -285,7 +285,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   `s0`–`s11`). `x0` always reads 0, and writes to it are thrown away.
 - PC is a real address. Every instruction is 4 bytes, so line `Ln` is at address `4n`. `jal` puts
   the address of the next instruction in its register (`ra` for a call), and `ret` is
-  `jalr zero, 0(ra)`.
+  `jalr zero, 0(ra)`. The Program panel writes each line's address beside its label.
 - Memory is one flat space of 32-bit addresses: 1MB of RAM from `0x00000000`, with the program's
   code at its start, and the devices from `0x10000000`. The code can be read (it is its machine
   code) but a store into it is an error: the program cannot change itself. An access that is not
@@ -342,9 +342,10 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   under the box says what the highlighted one means and how many cycles it takes. A shift also
   offers `a`, and a branch, JMP or JSR offers the program's lines.
 - PC is a real address, and an instruction is 1 to 3 bytes, so each line's address depends on the
-  lines before it. The code starts at `$0600`, the zero page is `$0000`–`$00FF`, the stack is page
-  `$01`, the devices are at `$D000` (LEDs `$D010`, switches `$D011`, digits `$D012` and `$D013`,
-  terminal `$D020`), and the BRK vector is at `$FFFE`.
+  lines before it; the Program panel writes it beside the line's label. The code starts at `$0600`,
+  the zero page is `$0000`–`$00FF`, the stack is page `$01`, the devices are at `$D000` (LEDs
+  `$D010`, switches `$D011`, digits `$D012` and `$D013`, terminal `$D020`), and the BRK vector is at
+  `$FFFE`.
 - The CPU diagram shows the registers and the flags, the ALU's sum, the **address unit** (how the
   addressing mode formed the address: `$02F0 + X ($20) = $0310`, or the pointer read from the zero
   page) and the cycles the instruction took, the extra one for crossing a page or taking a branch
@@ -370,7 +371,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
   on show is never touched and you can still step through your attempt. A task with given lines is
   run with other values in them too, so writing the answer down does not pass.
 - Under the list a line says where the program stands, and once it passes, how many lines it took
-  against par. **Show a hint** gives a nudge, **Start over** brings the task back as it began, and
+  against par, with **Next challenge** to go on to the one after it. **Show a hint** gives a nudge, **Start over** brings the task back as it began, and
   closing the panel (its button says **Leave the challenge**), or loading an example, leaves the
   challenge. Solved challenges are ticked in
   the list with the fewest lines they took, and remembered between visits.
@@ -804,7 +805,8 @@ npm run verify:6502 # check the 6502 core against py65
   באותו תפריט מפרק את בתי השורה בחלונית Machine code, גם כשהחלונית צרה מכדי להציג אותם.
 - הזזה, החלפה או מחיקה של שורה בתוכנית שכבר רצה משאירה את מה שה-CPU מחזיק מהריצה, כמו כתובת
   חזרה במחסנית, מצביע על המקום הישן. חלונית התוכנית אומרת זאת, עם **Reset** להרצה מההתחלה.
-  פלטת הפקודות יכולה לערוך את השורה שתרוץ הבאה, או להזיז אותה למעלה או למטה.
+  פלטת הפקודות יכולה לערוך את השורה שתרוץ הבאה, למחוק אותה, להזיז אותה למעלה או למטה, או להוסיף
+  שורות חדשות מעליה.
 - התוכנית של כל מעבד נשמרת בדפדפן. אחרי רענון היא חוזרת, במצב התחלתי: הרגיסטרים, הזיכרון
   וההיסטוריה לא נשמרים.
 - כשכל החלוניות בעמודה השמאלית פתוחות, התוכנית שומרת כשש משורותיה גלויות, ופתיחת **History**
@@ -860,7 +862,7 @@ npm run verify:6502 # check the 6502 core against py65
   בחלונית הזיכרון.
 - `int n` דוחף את FLAGS, CS ו-IP, מאפס את IF ו-TF, וקופץ ל-handler ששמור בווקטור `n`
   (שתי מילים ב-`0000:n×4`: שורת התוכנית של ה-handler ואחריה ה-CS שלו). `iret` חוזר. `mov` מקבל
-  שורת תוכנית כמקור (`mov word [0x84], L8`) כדי למלא וקטור. `into` הוא `int 4` כאשר OF = 1,
+  שורת תוכנית כמקור (`mov word [0084h], L8`) כדי למלא וקטור. `into` הוא `int 4` כאשר OF = 1,
   וחריגת חלוקה היא `int 0`. וקטור ריק מדווח כשגיאה במקום לקפוץ ל-`0000:0000`. `pushf` ו-`popf`
   מעבירות את FLAGS דרך המחסנית.
 - מעבר עם העכבר או מיקוד על דגל מסביר למה ההוראה האחרונה השאירה אותו 0 או 1, עם המספרים של
@@ -919,7 +921,8 @@ npm run verify:6502 # check the 6502 core against py65
 - 32 רגיסטרים, `x0` עד `x31`, שמוצגים בשמות ה-ABI שלהם (`zero`, `ra`, `sp`, `a0`–`a7`,
   `t0`–`t6`, `s0`–`s11`). `x0` תמיד קורא 0, וכתיבה אליו נזרקת.
 - PC הוא כתובת אמיתית. כל הוראה היא 4 בתים, ולכן שורה `Ln` נמצאת בכתובת `4n`. `jal` שם ברגיסטר
-  שלו את הכתובת של ההוראה הבאה (`ra` בקריאה לפונקציה), ו-`ret` הוא `jalr zero, 0(ra)`.
+  שלו את הכתובת של ההוראה הבאה (`ra` בקריאה לפונקציה), ו-`ret` הוא `jalr zero, 0(ra)`. חלונית
+  התוכנית כותבת את הכתובת של כל שורה ליד התווית שלה.
 - הזיכרון הוא מרחב אחד שטוח של כתובות של 32 סיביות: 1MB של RAM החל מ-`0x00000000`, כשהקוד של
   התוכנית בתחילתו, וההתקנים החל מ-`0x10000000`. אפשר לקרוא את הקוד (זה קוד המכונה שלו), אבל כתיבה
   לתוכו היא שגיאה: התוכנית לא יכולה לשנות את עצמה. גם גישה שאינה מיושרת לגודל שלה, או לכתובת שאין
@@ -968,7 +971,8 @@ npm run verify:6502 # check the 6502 core against py65
   `#$10`, `$10`, `$10,x`, `$0010`, `$0010,x`, `($10,x)`, `($10),y` וכן הלאה. השורה שמתחת לתיבה
   אומרת מה המסומנת אומרת וכמה מחזורי שעון היא לוקחת. הזזה מציעה גם `a`, וענף, JMP או JSR מציעים
   את שורות התוכנית.
-- PC הוא כתובת אמיתית, והוראה היא 1 עד 3 בתים, ולכן הכתובת של כל שורה תלויה בשורות שלפניה. הקוד
+- PC הוא כתובת אמיתית, והוראה היא 1 עד 3 בתים, ולכן הכתובת של כל שורה תלויה בשורות שלפניה; חלונית
+  התוכנית כותבת אותה ליד התווית של השורה. הקוד
   מתחיל ב-`$0600`, ה-zero page הוא `$0000`–`$00FF`, המחסנית היא עמוד `$01`, ההתקנים ב-`$D000`
   (נורות `$D010`, מתגים `$D011`, ספרות `$D012` ו-`$D013`, מסוף `$D020`), והווקטור של BRK ב-`$FFFE`.
 - דיאגרמת ה-CPU מציגה את הרגיסטרים והדגלים, את החישוב ב-ALU, את **יחידת הכתובת** (איך שיטת
@@ -993,7 +997,7 @@ npm run verify:6502 # check the 6502 core against py65
   מורצת מחדש על מעבד משלה אחרי כל עריכה, כך שהמעבד שעל המסך לא משתנה ואפשר להמשיך לצעוד בניסיון
   שלכם. משימה עם שורות נתונות מורצת גם עם ערכים אחרים בהן, כך שכתיבת התשובה ישירות לא עוברת.
 - מתחת לרשימה שורה אומרת איפה התוכנית עומדת, וכשהיא עוברת, כמה שורות היא לקחה ביחס ל-par.
-  **Show a hint** נותן רמז, **Start over** מחזיר את המשימה למצב ההתחלתי, וסגירת החלונית (הכפתור
+  כשהתוכנית עוברת, **Next challenge** עובר לאתגר הבא. **Show a hint** נותן רמז, **Start over** מחזיר את המשימה למצב ההתחלתי, וסגירת החלונית (הכפתור
   שלה אומר **Leave the challenge**), או טעינת דוגמה, עוזבת את האתגר. אתגרים שנפתרו מסומנים ברשימה עם מספר השורות הקטן ביותר שלקחו, ונשמרים
   בין ביקורים.
 

@@ -16,15 +16,16 @@ describe('COMPARISON_TASKS', () => {
   it('gets the same answer on every architecture', () => {
     const results = (id: string) => Object.values(measure(task(id))).map((m) => m.result);
     expect(results('sum')).toEqual(['AX = 55', 'a0 = 55', 'A = 55']);
-    expect(results('wide-add')).toEqual(['AX = $1333', 'a0 = $1333', '$01:$00 = $1333']);
+    // Each in its CPU's own hex: 1333h, 0x1333, $1333.
+    expect(results('wide-add')).toEqual(['AX = 1333h', 'a0 = 0x1333', '$01:$00 = $1333']);
     expect(results('multiply')).toEqual(['AX = 42', 'a2 = 42', '$01 = 42']);
     expect(results('fill')).toEqual([
       'ES:0000 = 2A 2A 2A 2A 2A 2A 2A 2A',
-      '$00010000 = 2A 2A 2A 2A 2A 2A 2A 2A',
+      '0x00010000 = 2A 2A 2A 2A 2A 2A 2A 2A',
       '$0300 = 2A 2A 2A 2A 2A 2A 2A 2A'
     ]);
     expect(results('call')).toEqual(['AX = 14', 'a0 = 14', 'A = 14']);
-    expect(results('light')).toEqual(['LEDs = $80', 'LEDs = $80', 'LEDs = $80']);
+    expect(results('light')).toEqual(['LEDs = 80h', 'LEDs = 0x80', 'LEDs = $80']);
   });
 });
 
@@ -32,7 +33,7 @@ describe('measure', () => {
   it('lists each line with its machine code, and the total size', () => {
     const { x86, rv32, mos6502 } = measure(task('wide-add'));
     expect(x86.listing).toEqual([
-      { text: 'mov ax, 0x1234', bytes: [0xb8, 0x34, 0x12] },
+      { text: 'mov ax, 1234h', bytes: [0xb8, 0x34, 0x12] },
       { text: 'add ax, 255', bytes: [0x05, 0xff, 0x00] }
     ]);
     expect(x86.bytes).toBe(6);

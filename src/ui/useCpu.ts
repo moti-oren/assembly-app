@@ -293,6 +293,7 @@ export interface CpuControls<
   /** Starts editing a program line in the builder, or stops with null. */
   editLine(index: number | null): void;
   moveProgramLine(from: number, to: number): void;
+  removeProgramLine(index: number): void;
   loadExample(index: number): void;
   reset(): void;
 }

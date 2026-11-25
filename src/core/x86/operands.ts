@@ -1,4 +1,4 @@
-import { codeText, fitsIn, formatHex, immediateText, type Size } from '../shared/numbers';
+import { codeText, fitsIn, hexSuffixed, immediateText, type Size } from '../shared/numbers';
 import { formatLabel } from '../shared/program';
 import {
   isByteRegister,
@@ -136,7 +136,7 @@ export function effectiveAddress(
 }
 
 function formatImmediate(value: number): string {
-  return immediateText(value);
+  return immediateText(value, hexSuffixed);
 }
 
 export function formatOperand(operand: Operand): string {
@@ -152,7 +152,7 @@ export function formatOperand(operand: Operand): string {
         parts.push(operand.base);
       }
       if (operand.displacement || !operand.base) {
-        parts.push(`0x${formatHex(operand.displacement, 16)}`);
+        parts.push(hexSuffixed(operand.displacement, 16));
       }
       return `${sizeName} [${parts.join('+')}]`;
     }
@@ -170,6 +170,6 @@ const CODE_NUMBERS = new Set(['int', 'in', 'out']);
  */
 export function formatOperandOf(mnemonic: string, operand: Operand): string {
   return CODE_NUMBERS.has(mnemonic) && operand.type === 'imm'
-    ? codeText(operand.value)
+    ? codeText(operand.value, hexSuffixed)
     : formatOperand(operand);
 }
