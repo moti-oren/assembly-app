@@ -145,7 +145,8 @@ describe('rv32RegisterLink', () => {
     // of the word are its bits 4 to 1 (0b1010) and bit 7 its bit 11 (1): 0b10101. Encoded at
     // address 0 instead, the distance and the field would be 0.
     const branch = line('beq', r('a1'), r('a2'), label(0));
-    const program = [line('nop'), line('nop'), line('nop'), branch];
+    const nop = line('addi', r('zero'), r('zero'), imm(0));
+    const program = [nop, nop, nop, branch];
     const cpu = createCpuState();
     const record = execute(cpu, branch, 3, program);
     expect(rv32RegisterLink(record, snapshot(cpu)).file?.request.address).toBe(21);
