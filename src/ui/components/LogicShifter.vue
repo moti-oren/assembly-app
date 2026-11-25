@@ -65,7 +65,7 @@ function carryEnd(value: Bit, label = 'the carry: the last bit pushed out') {
                   : 'border-input text-muted-foreground'
               "
               :aria-pressed="view.stages[index].on === 1"
-              :aria-label="`Move ${view.stages[index].distance} places`"
+              :aria-label="`Move ${view.stages[index].distance} place${view.stages[index].distance === 1 ? '' : 's'}`"
               @click="lens.flipStage(index)"
             >
               move {{ view.stages[index].distance }}
@@ -113,4 +113,12 @@ function carryEnd(value: Bit, label = 'the carry: the last bit pushed out') {
       A count of 0: the value passes through unchanged.
     </p>
   </div>
+  <!-- A shift tried by hand is drawn as RISC-V does it, whatever CPU is on show. -->
+  <p
+    v-if="view?.switched && !lens.followsCpu.value"
+    class="mt-2 max-w-prose text-xs text-pretty text-muted-foreground"
+  >
+    This is a barrel shifter, as a RISC-V core is usually built: each row moves the bits by its
+    distance when it is switched on. The 8086 and the 6502 move them one place at a time instead.
+  </p>
 </template>
