@@ -29,13 +29,16 @@ function setSpeed(value: unknown): void {
     <SelectTrigger
       size="sm"
       class="pointer-coarse:data-[size=sm]:h-11"
-      :class="named ? 'w-full' : 'xl:min-w-24'"
+      :class="named ? 'w-full' : 'lg:min-w-24'"
       :aria-label="`Run speed: ${SPEED_LABELS[speed]}`"
     >
-      <!-- The value alone ("Fast") does not say what it is the value of, so an icon says it. -->
+      <!--
+        The value alone ("Fast") does not say what it is the value of, so an icon says it. The word
+        stays from a laptop's width up: an icon alone hides which speed is chosen.
+      -->
       <SelectValue>
         <Gauge class="text-muted-foreground" aria-hidden="true" />
-        <span :class="{ 'hidden xl:inline': !named }">{{ SPEED_LABELS[speed] }}</span>
+        <span :class="{ 'hidden lg:inline': !named }">{{ SPEED_LABELS[speed] }}</span>
       </SelectValue>
     </SelectTrigger>
     <SelectContent>
