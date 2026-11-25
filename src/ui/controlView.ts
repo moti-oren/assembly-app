@@ -272,3 +272,26 @@ export function pcAbsentText(fromCpu: ControlView | null): string {
   if (!fromCpu) return 'Run an instruction on the RISC-V CPU to see where PC goes after it.';
   return `${fromCpu.pcNote ?? 'PC is not shown for this instruction.'} So where PC went is not worked out here.`;
 }
+
+/** What PC's clock button does: move the clock, go on to the next instruction, or nothing. */
+export interface PcClockAction {
+  kind: 'clock' | 'next' | 'done';
+  label: string;
+}
+
+/**
+ * Once PC has taken its new address the cycle is done: raising the clock again would only load
+ * the same address once more. The button goes on to the CPU's next instruction instead, while
+ * the word on show is the CPU's and there is one.
+ */
+export function pcClockAction(
+  phase: ClockPhase,
+  next: number | null,
+  asRun: boolean
+): PcClockAction {
+  if (phase === 'before') return { kind: 'clock', label: 'Raise the clock' };
+  if (phase === 'high') return { kind: 'clock', label: 'Lower the clock' };
+  return next !== null && asRun
+    ? { kind: 'next', label: 'Step to the next instruction' }
+    : { kind: 'done', label: 'The cycle is done' };
+}

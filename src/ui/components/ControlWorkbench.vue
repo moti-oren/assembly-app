@@ -155,7 +155,13 @@ const sections = computed<TopicSectionInfo[]>(() => [
           PC is a register like any other, loaded at the end of every instruction. Two adders work
           out the two places it could go, and the Branch and Jump lines choose between them.
         </template>
-        <ControlPc v-if="lens.pc.value" :lens="lens" :solution="lens.pc.value" />
+        <ControlPc
+          v-if="lens.pc.value"
+          :lens="lens"
+          :solution="lens.pc.value"
+          :next="moment.next"
+          @next="emit('seek', $event)"
+        />
         <p v-else class="max-w-prose text-sm text-pretty">
           {{ pcAbsentText(lens.fromCpu.value) }}
         </p>

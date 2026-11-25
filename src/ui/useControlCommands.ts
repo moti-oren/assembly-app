@@ -2,6 +2,7 @@ import { computed, type ComputedRef } from 'vue';
 import type { CpuMoment } from './cpuMoment';
 import { momentCommands, type TopicPageActions } from './momentCommands';
 import type { PaletteCommand } from './paletteCommand';
+import { pcClockAction } from './controlView';
 import { CLOCK_ACTION } from './storageView';
 import { useAppCommands } from './useAppCommands';
 import type { ControlLens } from './useControlLens';
@@ -46,7 +47,8 @@ export function useControlCommands(
       {
         group: 'Program counter',
         label: CLOCK_ACTION[phase],
-        disabled: !counted,
+        // Once PC holds its new address the cycle is done; the next instruction is a step away.
+        disabled: !counted || pcClockAction(phase, null, false).kind !== 'clock',
         run: lens.clock
       },
       {
