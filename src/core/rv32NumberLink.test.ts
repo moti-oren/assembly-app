@@ -132,6 +132,13 @@ describe('rv32NumberLink', () => {
     }
   });
 
+  it('says a count past 31 is cut to its low five bits', () => {
+    const { link } = run(line('sll', r('a0'), r('a1'), r('a2')), 1, 33);
+    expect(link.request).toMatchObject({ kind: 'shift', count: 1 });
+    expect(link.note).toContain('33 is 1');
+    expect(run(line('sll', r('a0'), r('a1'), r('a2')), 1, 3).link.note).not.toContain('low five');
+  });
+
   it.each(['slli', 'srli', 'srai'] as const)(
     '%s: the numbers give the CPU’s result',
     (mnemonic) => {

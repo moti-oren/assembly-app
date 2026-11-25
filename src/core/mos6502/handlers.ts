@@ -2,7 +2,7 @@ import { add, compare, shift, subtract, type ShiftMnemonic } from './alu';
 import type { Run } from './executionContext';
 import type { Mnemonic } from './instructions';
 import { addressOfLine } from './layout';
-import type { Operand } from './operands';
+import { hex, type Operand } from './operands';
 import {
   FLAG_BREAK,
   FLAG_UNUSED,
@@ -227,7 +227,15 @@ export const HANDLERS: Record<Mnemonic, Handler> = {
     pushWord(run, (run.next - 1) & 0xffff);
     run.jump(addressOfLine(run.program, (operand as { target: number }).target));
   },
-  rts: (run) => run.jump((pullWord(run) + 1) & 0xffff),
+  // JSR kept the address of its own last byte: RTS adds the 1, so both numbers are named.
+  rts: (run) => {
+    const pulled = pullWord(run);
+    const address = (pulled + 1) & 0xffff;
+    run.jump(
+      address,
+      `RTS pulled $${hex(pulled, 4)} from the stack and added 1, $${hex(address, 4)}`
+    );
+  },
   bcc: branch('C', false),
   bcs: branch('C', true),
   beq: branch('Z', true),
@@ -248,11 +256,13 @@ export const HANDLERS: Record<Mnemonic, Handler> = {
     pushWord(run, (run.here + 2) & 0xffff);
     run.push(run.state.flags | FLAG_BREAK | FLAG_UNUSED);
     run.state.flags |= flagBit('I');
-    run.jump(run.readByte(IRQ_VECTOR) | (run.readByte(IRQ_VECTOR + 1) << 8));
+    const vector = run.readByte(IRQ_VECTOR) | (run.readByte(IRQ_VECTOR + 1) << 8);
+    run.jump(vector, `BRK read $${hex(vector, 4)} from its vector at $${hex(IRQ_VECTOR, 4)}`);
   },
   rti: (run) => {
     run.state.flags = loadedFlags(run.pull());
-    run.jump(pullWord(run));
+    const address = pullWord(run);
+    run.jump(address, `RTI took its return address from the stack, $${hex(address, 4)}`);
   },
   nop: () => {}
 };

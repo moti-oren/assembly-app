@@ -69,7 +69,11 @@ function scaled(
     flags: [],
     resultKept: true,
     comparable: false,
-    note: NO_FLAGS
+    // A count past 31 is cut to its low five bits, which the page would otherwise show unexplained.
+    note:
+      b > 31
+        ? `RISC-V uses only the low five bits of the count: ${b} is ${b & 31}. ${NO_FLAGS}`
+        : NO_FLAGS
   };
 }
 

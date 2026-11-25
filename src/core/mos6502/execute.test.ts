@@ -195,6 +195,17 @@ describe('the stack, jumps and branches', () => {
     expect(cpu.registers.pc).toBe(addressOfLine(program, 1));
   });
 
+  it('names where an address that leads nowhere came from', () => {
+    const program = [line('brk')];
+    expect(() => execute(cpu, program[0], 0, program)).toThrow(
+      /^BRK read \$0000 from its vector at \$FFFE, and no program line starts at \$0000/
+    );
+    cpu = createCpuState();
+    expect(() => execute(cpu, line('rts'), 0, [line('rts')])).toThrow(
+      /^RTS pulled \$0000 from the stack and added 1, \$0001, and no program line/
+    );
+  });
+
   it('refuses a jump that does not land on a line, and leaves the CPU as it was', () => {
     const program = [line('rts')];
     expect(() => execute(cpu, program[0], 0, program)).toThrow(CpuError);

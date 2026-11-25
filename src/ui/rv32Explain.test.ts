@@ -41,7 +41,7 @@ describe('the cycle in words', () => {
 
   it('fetches the word at PC and moves PC on', () => {
     expect(describeFetch(1, program)).toBe(
-      'PC is 0x00000004, where L1 starts. The CPU reads the 4-byte word there, 0xFE050EE3, and PC moves on to 0x00000008 before anything runs.'
+      'PC is 0x00000004, where L1 starts. The CPU reads the 4-byte word there, 0xFE050EE3, and PC will move on to 0x00000008: the registers on show change once the instruction has run.'
     );
   });
 
@@ -160,5 +160,19 @@ describe('aluIdleText', () => {
     expect(aluIdleText(branch)).toContain('subtracted the two registers');
     const lui = line('lui', r('a0'), imm(1));
     expect(aluIdleText(execute(createCpuState(), lui, null, [lui]))).toBe('The ALU was not used.');
+  });
+});
+
+describe('aluEquation, at the edges', () => {
+  it('says a result sent to x0 is thrown away', () => {
+    const write = line('addi', r('zero'), r('zero'), imm(5));
+    const record = execute(createCpuState(), write, null, [write]);
+    expect(aluEquation(record)?.destination).toBe('thrown away: zero always reads 0');
+  });
+
+  it('says dividing by zero does not trap', () => {
+    const divide = line('div', r('a5'), r('a0'), r('zero'));
+    const record = execute(createCpuState(), divide, null, [divide]);
+    expect(aluEquation(record)?.note).toContain('dividing by zero does not trap');
   });
 });
