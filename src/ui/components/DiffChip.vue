@@ -10,8 +10,8 @@ defineProps<{
   One value the last step touched, as `name before → after`. A write is orange; a write of the
   same value only underlined; the instruction pointer blue, as everywhere it shows where
   execution is. The old value is muted, the new one bold, both at AA contrast on the chip (blue
-  text is not, so the pointer's name and new value are in the foreground colour). When the strip runs out
-  of room, the old value is cut short first: the new one always stays whole.
+  text is not, so the pointer's name and new value are in the foreground colour). A chip is never
+  cut short: a value missing its last digit reads as another value.
 -->
 <template>
   <span
@@ -32,7 +32,7 @@ defineProps<{
       <span class="shrink-0 font-sans text-2xs text-muted-foreground">written, unchanged</span>
     </template>
     <template v-else>
-      <span class="min-w-0 truncate text-muted-foreground">{{ entry.before }}</span>
+      <span class="shrink-0 text-muted-foreground">{{ entry.before }}</span>
       <span class="shrink-0" aria-hidden="true">→</span>
       <span class="sr-only">to</span>
       <span
