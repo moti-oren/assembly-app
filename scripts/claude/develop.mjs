@@ -18,11 +18,13 @@ const RANK = ['haiku', 'sonnet', 'opus', 'fable'];
 
 const UI_ROOT_FILES = ['src/App.vue', 'src/main.ts', 'index.html'];
 const DOCS = ['README.md', 'CLAUDE.md'];
+// The maps of what every file holds, kept out of CLAUDE.md so that only their readers load them.
+const MAPS = 'docs/architecture/';
 
 const OWNS = {
   'core-builder': (path) => path.startsWith('src/core/') || isOracle(path),
   'ui-builder': (path) => path.startsWith('src/ui/') || UI_ROOT_FILES.includes(path),
-  'docs-sync': (path) => DOCS.includes(path)
+  'docs-sync': (path) => DOCS.includes(path) || path.startsWith(MAPS)
 };
 
 const isTest = (path) => /\.test\.ts$/.test(path);

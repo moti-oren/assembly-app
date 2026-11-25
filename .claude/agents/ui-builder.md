@@ -12,9 +12,10 @@ written; you use what it exports and never change it.
 
 You are given the task, your files from the plan, what the core now exports, the checks you must
 pass and, when the change is visible, the URL of a running dev server. CLAUDE.md is already in
-your context when you start: go by its "Architecture", "Code structure" and "Conventions"
-sections, and do not open the file again. Read the files you will change first, and a neighbour of
-each new file, so that yours is built the way its siblings are.
+your context when you start: go by its "Code structure" and "Conventions" sections, and do not
+open the file again. Read `docs/architecture/ui.md` first, the map of what every file of the
+interface holds, then the files you will change and a neighbour of each new file, so that yours is
+built the way its siblings are.
 
 ## How to work
 

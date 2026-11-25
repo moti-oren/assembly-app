@@ -16,7 +16,9 @@ describe('who writes a file', () => {
     ['src/App.vue', 'ui-builder'],
     ['index.html', 'ui-builder'],
     ['README.md', 'docs-sync'],
-    ['CLAUDE.md', 'docs-sync']
+    ['CLAUDE.md', 'docs-sync'],
+    ['docs/architecture/core.md', 'docs-sync'],
+    ['docs/architecture/ui.md', 'docs-sync']
   ])('%s belongs to %s', (path, agent) => {
     expect(ownerOf(path)).toBe(agent);
   });
