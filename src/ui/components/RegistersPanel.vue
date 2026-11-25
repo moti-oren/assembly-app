@@ -69,7 +69,12 @@ function change(name: RegisterName): ValueChange | null {
       <CardTitle role="heading" aria-level="2">Registers</CardTitle>
       <CardAction class="flex items-center gap-3 text-xs text-muted-foreground">
         <span class="hidden items-center gap-1.5 sm:flex">
-          <span class="inline-block size-2.5 rounded-xs bg-changed" aria-hidden="true" />
+          <!-- A digit on the tint, as a changed value is drawn: the tint alone is too faint. -->
+          <span
+            class="inline-grid h-4 place-items-center rounded-xs bg-changed px-0.5 font-mono text-2xs font-semibold text-changed-foreground"
+            aria-hidden="true"
+            >0</span
+          >
           changed by the last instruction
         </span>
         <span class="hidden items-center gap-1.5 md:flex">
