@@ -302,6 +302,10 @@
     stroke: var(--foreground);
     stroke-width: 2;
   }
+  /* A wire of a loop that never came to rest: it holds no value, so it is drawn broken. */
+  .logic-diagram .logic-wire[data-unknown] {
+    stroke-dasharray: 3 3;
+  }
   .logic-diagram .logic-dot {
     fill: var(--wire);
   }
@@ -349,7 +353,7 @@
   /* The sizes of the drawing's text are in the units of its viewBox, which scales with it. */
   .logic-gate text {
     fill: var(--muted-foreground);
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 600;
     pointer-events: none;
   }

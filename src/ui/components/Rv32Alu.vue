@@ -5,7 +5,7 @@ import { formatInstruction } from '@/core/rv32/instructions';
 import { Card, CardContent } from '@/components/ui/card';
 import { rv32AluLink } from '@/core/rv32AluLink';
 import { rv32NumberLink } from '@/core/rv32NumberLink';
-import { aluEquation } from '@/ui/rv32Explain';
+import { aluEquation, aluIdleText } from '@/ui/rv32Explain';
 import OperationLinks from './OperationLinks.vue';
 
 const props = defineProps<{
@@ -36,7 +36,7 @@ const numbers = computed(() => props.record && rv32NumberLink(props.record));
           <OperationLinks v-if="link && numbers" :alu="link" :numbers="numbers" />
         </span>
         <span v-else class="ml-auto font-sans text-xs text-muted-foreground">
-          The ALU was not used.
+          {{ aluIdleText(record) }}
         </span>
       </template>
       <span v-else class="font-sans text-sm text-muted-foreground">

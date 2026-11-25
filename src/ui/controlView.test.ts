@@ -13,6 +13,7 @@ import {
   controlLabel,
   controlLines,
   equationText,
+  fieldMarks,
   inputLabel,
   parseWord,
   pcChoiceText,
@@ -194,5 +195,22 @@ describe('pcPhaseText', () => {
       expect(pcPhaseText(phase, false)).not.toContain('PC took');
       expect(pcPhaseText(phase, false)).toContain('load line');
     }
+  });
+});
+
+describe('fieldMarks', () => {
+  it('brackets each field over its bits, named at its leftmost bit', () => {
+    const fields = [
+      { label: 'funct3', high: 14, low: 12, note: '', decoded: true },
+      { label: 'opcode', high: 6, low: 0, note: '', decoded: true }
+    ];
+    const marks = fieldMarks(fields);
+    expect(marks).toHaveLength(32);
+    expect(marks[0].bit).toBe(31);
+    const at = (bit: number) => marks.find((mark) => mark.bit === bit)!;
+    expect(at(14)).toMatchObject({ label: 'funct3', start: true, end: false, decoded: true });
+    expect(at(12)).toMatchObject({ label: null, start: false, end: true });
+    expect(at(6).label).toBe('opcode');
+    expect(at(20)).toMatchObject({ label: null, start: false, end: false, decoded: false });
   });
 });

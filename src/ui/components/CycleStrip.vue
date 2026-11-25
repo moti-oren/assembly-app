@@ -56,7 +56,9 @@ const PHASE_LABELS: Record<CyclePhase, string> = {
       class="flex min-h-6 items-center gap-3 max-sm:gap-2"
       :class="{ 'max-sm:flex-wrap max-sm:gap-y-1': $slots.actions }"
     >
-      <span class="-mr-2 text-sm font-medium max-sm:-mr-1">Cycle</span>
+      <span class="-mr-2 text-sm font-medium max-sm:-mr-1" role="heading" aria-level="2"
+        >Cycle</span
+      >
       <InfoTip label="About the instruction cycle">{{ intro }}</InfoTip>
       <ol class="flex shrink-0 items-center gap-1 text-xs" aria-label="Instruction cycle">
         <li

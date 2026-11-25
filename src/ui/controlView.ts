@@ -174,6 +174,35 @@ export function wordFields(
   });
 }
 
+/** A column above the word's bits: the field its bit belongs to, named where the field starts. */
+export interface FieldMark {
+  bit: number;
+  /** The field's name, on its leftmost bit only. */
+  label: string | null;
+  /** Whether the bit is the field's leftmost or rightmost, where its bracket ends. */
+  start: boolean;
+  end: boolean;
+  decoded: boolean;
+  /** How many bits the field spans, which is all the room its name has. */
+  span: number;
+}
+
+/** The fields drawn as brackets over 32 bits, the top bit first, as the rows of bits are. */
+export function fieldMarks(fields: readonly WordField[], width = 32): FieldMark[] {
+  return Array.from({ length: width }, (_, column) => {
+    const bit = width - 1 - column;
+    const field = fields.find(({ high, low }) => bit <= high && bit >= low);
+    return {
+      bit,
+      label: field && field.high === bit ? field.label : null,
+      start: field?.high === bit,
+      end: field?.low === bit,
+      decoded: field?.decoded ?? false,
+      span: field ? field.high - field.low + 1 : 0
+    };
+  });
+}
+
 /** A word typed in hex, with or without `0x`, or null when it is not up to eight hex digits. */
 export function parseWord(text: string): number | null {
   const digits = text.replace(/[\s_]/g, '').replace(/^0x/i, '');

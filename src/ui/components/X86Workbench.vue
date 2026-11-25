@@ -110,7 +110,8 @@ const {
   historyLength,
   askReset,
   runAgain,
-  confirmReset
+  confirmReset,
+  clearProgram
 } = useWorkbench(controls, {
   aluLink: x86AluLink,
   numberLink: x86NumberLink,
@@ -155,7 +156,7 @@ followBuilder(draft);
     :program-length="program.length"
     :history-length="historyLength"
     @load-example="cpu.loadExample"
-    @clear-program="cpu.clearProgram"
+    @clear-program="clearProgram"
     @reset-cpu="confirmReset"
   />
   <ChangeStrip

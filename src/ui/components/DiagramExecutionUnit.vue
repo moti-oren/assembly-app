@@ -51,7 +51,7 @@ const GROUP_START: WordRegister = 'sp';
       <div
         v-for="name in EU_REGISTERS"
         :key="name"
-        class="flex h-5 items-center gap-2.5 rounded-sm"
+        class="flex h-5 items-center gap-2.5 rounded-sm pointer-coarse:h-8"
         :class="{
           'mt-1.5': name === GROUP_START,
           'max-sm:bg-pointer/15': model.use(name) === 'read',
@@ -62,7 +62,7 @@ const GROUP_START: WordRegister = 'sp';
           <TooltipTrigger as-child>
             <span
               tabindex="0"
-              class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground"
+              class="w-6 cursor-help font-semibold underline decoration-border decoration-dotted underline-offset-4 outline-none focus-visible:decoration-foreground pointer-coarse:inline-flex pointer-coarse:min-h-8 pointer-coarse:items-center"
               @click="toggle"
               >{{ name.toUpperCase() }}</span
             >

@@ -30,12 +30,22 @@ export function useStorageFile(link: () => RegisterLink | null) {
     phase.value = 'before';
   });
 
+  /**
+   * The file as a change finds it: once the clock has risen the registers hold what they took,
+   * and the next cycle starts from that, not from before the edge.
+   */
+  function current(): RegisterFileRequest {
+    return phase.value === 'before'
+      ? request.value
+      : { ...request.value, held: solution.value.stored };
+  }
+
   function flipAddress(bit: number): void {
-    edited.value = withAddressBitFlipped(request.value, bit);
+    edited.value = withAddressBitFlipped(current(), bit);
   }
 
   function flipWrite(): void {
-    edited.value = withWriteFlipped(request.value);
+    edited.value = withWriteFlipped(current());
   }
 
   /** Moves the clock on: up, then down. */

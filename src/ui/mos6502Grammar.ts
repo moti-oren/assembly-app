@@ -142,7 +142,8 @@ function numberOptions(mnemonic: Mnemonic, typed: number): Option[] {
         key: mode,
         label: formatOperand(chosen),
         group: `${MODE_NAMES[mode][0].toUpperCase()}${MODE_NAMES[mode].slice(1)}`,
-        hint: `${meaning(typed)} · ${cycles(modes[mode]!)}`,
+        // The cycles first: a long meaning is what gets cut on a narrow line, not the count.
+        hint: `${cycles(modes[mode]!)} · ${meaning(typed)}`,
         matchesNumber: () => true,
         action: { kind: 'operand', operand: chosen }
       };
@@ -172,7 +173,7 @@ function options(chosen: readonly Mos6502Action[], context: DraftContext): Optio
       key: 'acc',
       label: 'a',
       group: 'Accumulator',
-      hint: `A itself · ${cycles(getSpec(mnemonic).modes.acc!)}`,
+      hint: `${cycles(getSpec(mnemonic).modes.acc!)} · A itself`,
       action: { kind: 'operand', operand: { type: 'acc' } }
     });
   }

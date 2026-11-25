@@ -10,7 +10,6 @@
     margin-inline: auto;
     /* The marks at the sides are wider than the room beside the ring: a minus must not be cut. */
     overflow: visible;
-    touch-action: none;
   }
   .wheel-ring {
     fill: none;
@@ -64,8 +63,10 @@
   .wheel-reach {
     fill: transparent;
   }
+  /* Only the handle is dragged: a finger anywhere else on the wheel still scrolls the page. */
   .wheel-handle {
     cursor: grab;
+    touch-action: none;
   }
   .wheel-handle:active {
     cursor: grabbing;

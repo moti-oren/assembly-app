@@ -32,7 +32,7 @@ function changed(flag: FlagName): boolean {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Flags</CardTitle>
+      <CardTitle role="heading" aria-level="2">Flags</CardTitle>
       <CardAction>
         <Badge variant="outline" class="font-mono text-muted-foreground">
           FLAGS {{ formatHex(state.flags, 16) }}h

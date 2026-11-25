@@ -105,7 +105,8 @@ const {
   historyLength,
   askReset,
   runAgain,
-  confirmReset
+  confirmReset,
+  clearProgram
 } = useWorkbench(controls, {
   aluLink: mos6502AluLink,
   numberLink: mos6502NumberLink,
@@ -147,7 +148,7 @@ followBuilder(draft);
     :program-length="program.length"
     :history-length="historyLength"
     @load-example="cpu.loadExample"
-    @clear-program="cpu.clearProgram"
+    @clear-program="clearProgram"
     @reset-cpu="confirmReset"
   />
   <Mos6502ChangeStrip

@@ -106,7 +106,10 @@ function executed(
           use: 'write',
           text: `${equation.left} ${equation.operator} ${equation.right} = ${equation.result}`
         }
-      : IDLE,
+      : comparison
+        ? // A branch subtracts its registers and keeps only what the comparison needs.
+          { use: 'read', text: `${comparison.left} − ${comparison.right}, ${comparison.how}` }
+        : IDLE,
     memory: access ? { use: record.access?.write ? 'write' : 'read', text: access } : IDLE,
     writeBack:
       written !== undefined && decoded.writeBack

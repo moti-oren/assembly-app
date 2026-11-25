@@ -56,7 +56,10 @@ export function useStorageLens(link: () => RegisterLink | null) {
   const cell = useStorageCell();
 
   function flipBit(row: RegisterRow, index: number): void {
-    const flipped = withBitFlipped(request.value, row, index);
+    // Once the clock has risen the flip-flops hold what they took: a new value waits for the
+    // next rise, and the cycle starts again from what is held now, not from before the edge.
+    const held = phase.value === 'before' ? request.value.held : solution.value.stored;
+    const flipped = withBitFlipped({ ...request.value, held }, row, index);
     // "Only AL is written" holds while the write lines are the CPU's, and no longer once changed.
     const cpu = cpuWrite.value;
     const part = cpu && flipped.enabled === cpu.request.enabled ? cpu.part : null;

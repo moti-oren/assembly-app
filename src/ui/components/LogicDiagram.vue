@@ -18,8 +18,10 @@ const props = withDefaults(
     written: boolean;
     /** The gates that are broken, by the signal each drives. */
     stuck?: Faults;
+    /** A circuit that never came to rest: its own wires are drawn with no value. */
+    undecided?: boolean;
   }>(),
-  { stuck: () => ({}) }
+  { stuck: () => ({}), undecided: false }
 );
 defineEmits<{ choose: [gate: number] }>();
 defineSlots<{
@@ -36,7 +38,7 @@ const table = computed(() => gate.value && gateTable(gate.value, props.signals))
 <!-- A circuit drawn gate by gate, with the truth table of the gate picked. -->
 <template>
   <div class="flex flex-col gap-4">
-    <div class="well overflow-x-auto rounded-lg p-3">
+    <div class="well scroll-fade-x overflow-x-auto rounded-lg p-3">
       <LogicDrawing
         :diagram="diagram"
         :signals="signals"
@@ -44,6 +46,7 @@ const table = computed(() => gate.value && gateTable(gate.value, props.signals))
         :label="label"
         :written="written"
         :stuck="stuck"
+        :undecided="undecided"
         @choose="$emit('choose', $event)"
       />
     </div>

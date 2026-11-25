@@ -13,9 +13,10 @@ defineSlots<Record<StageKey, () => unknown>>();
 </script>
 
 <template>
-  <div class="flex min-w-0 flex-col">
+  <!-- A landmark of its own, so a screen reader can go straight to the CPU and its memory. -->
+  <section class="flex min-w-0 flex-col" aria-label="The CPU, its memory and devices">
     <div v-for="key in keys" :key="key" class="min-w-0 shrink-0" :data-in-view="phoneViewOf(key)">
       <slot :name="key" />
     </div>
-  </div>
+  </section>
 </template>

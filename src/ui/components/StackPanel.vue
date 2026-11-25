@@ -19,7 +19,11 @@ const emit = defineEmits<{
 <template>
   <Card size="sm">
     <CardHeader>
-      <CardTitle class="flex items-center gap-1 group-data-[size=sm]/card:text-base">
+      <CardTitle
+        role="heading"
+        aria-level="2"
+        class="flex items-center gap-1 group-data-[size=sm]/card:text-base"
+      >
         Stack
         <InfoTip label="About the stack">
           <p>

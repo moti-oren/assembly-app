@@ -138,4 +138,11 @@ describe('x86AluLink', () => {
     expect(run('mov', reg('ax'), imm(1))).toHaveProperty('unavailable');
     expect(run('shl', reg('ax'), reg('cl'))).toHaveProperty('unavailable');
   });
+
+  it('says NOT is computed, only not drawn', () => {
+    const link = x86AluLink(execute(createCpuState(), { mnemonic: 'not', operands: [reg('bl')] }));
+    expect(link).toEqual({
+      unavailable: 'NOT inverts every bit by itself; that row of inverters is not shown yet.'
+    });
+  });
 });

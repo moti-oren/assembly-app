@@ -119,7 +119,9 @@ function reveal(jump: () => void): void {
   <Card ref="card" size="sm">
     <CardContent class="flex flex-col gap-(--section-header-gap)">
       <div class="flex flex-wrap items-center gap-2">
-        <CardTitle class="group-data-[size=sm]/card:text-base">Memory</CardTitle>
+        <CardTitle role="heading" aria-level="2" class="group-data-[size=sm]/card:text-base"
+          >Memory</CardTitle
+        >
         <InfoTip label="About memory">
           Point at a byte, or run an instruction that uses memory, to see how its address is formed.
         </InfoTip>

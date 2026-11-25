@@ -55,7 +55,7 @@ watch(
   <Card>
     <CardHeader>
       <!-- On a phone the title row is as tall as the other panels' titles, on the chevron's line. -->
-      <CardTitle class="flex items-center gap-1 max-md:h-5">
+      <CardTitle role="heading" aria-level="2" class="flex items-center gap-1 max-md:h-5">
         History
         <InfoTip label="About the history">
           Every instruction you run appears here. Pick one to go back to the moment after it ran.
@@ -85,7 +85,7 @@ watch(
           >
             <button
               type="button"
-              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-left outline-none pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+              class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-left outline-none min-h-6 pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
               :class="
                 number === history.length
                   ? 'bg-background font-semibold'
