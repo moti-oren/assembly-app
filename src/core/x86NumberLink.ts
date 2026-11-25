@@ -1,9 +1,17 @@
-import { reads, shiftReadings, type FlagReading, type NumberLink } from './numberLink';
+import {
+  reads,
+  shiftReadings,
+  type FlagReading,
+  type NumberLink,
+  type NumberView
+} from './numberLink';
+import type { NumberRequest } from './representation/request';
 import type { ScalingRequest } from './representation/scaling';
 import { mask } from './shared/numbers';
 import type { ExecutionRecord } from './x86/execute';
 import type { AluTrace } from './x86/executionContext';
-import { isStringCompare, type Mnemonic } from './x86/instructions';
+import { isStringCompare, type Instruction, type Mnemonic } from './x86/instructions';
+import { formatOperand } from './x86/operands';
 
 type Trace<Kind extends AluTrace['kind']> = Extract<AluTrace, { kind: Kind }>;
 
@@ -72,7 +80,7 @@ function scaling(alu: Trace<'shift'>, mnemonic: Mnemonic): NumberLink {
   };
   return {
     request,
-    flags: shiftReadings(request, { carry: 'CF', overflow: 'OF', zero: 'ZF', negative: 'SF' }),
+    flags: shiftReadings(request, SHIFT_NAMES),
     resultKept: true,
     comparable: false,
     note:
@@ -88,6 +96,79 @@ const UNAVAILABLE: Record<Exclude<AluTrace['kind'], 'add' | 'subtract' | 'shift'
   restore: 'loads FLAGS whole from the stack; nothing is worked out.'
 };
 
+/**
+ * What the instruction calls its two inputs, as it wrote them. INC and DEC add or take a 1 they
+ * do not name, NEG takes its operand from 0, and the string compares read what SI and DI point
+ * at (SCAS the accumulator against [es:di]).
+ */
+function operandsOf({ mnemonic, operands }: Instruction, size: number): NumberView['operands'] {
+  const [first, second] = operands;
+  if (isStringCompare(mnemonic)) {
+    const unit = size === 8 ? 'byte' : 'word';
+    const source = mnemonic.startsWith('scas') ? (size === 8 ? 'al' : 'ax') : `${unit} [ds:si]`;
+    return { a: source, b: `${unit} [es:di]` };
+  }
+  if (mnemonic === 'neg') return { a: '0', b: first ? formatOperand(first) : '' };
+  return { a: first ? formatOperand(first) : '', b: second ? formatOperand(second) : '1' };
+}
+
+const SHIFT_NAMES = { carry: 'CF', overflow: 'OF', zero: 'ZF', negative: 'SF' };
+
+const WORD_AT_A_TIME =
+  'The 8086 works on 8 or 16 bits: 32 take two instructions, a word at a time, so only the flags that still answer for the whole number are given.';
+
+/** A shift of no place: the 8086 changes no flag for a count of 0. */
+const STILL = 'No place moved: the 8086 changes no flag when the count is 0.';
+
+/**
+ * A request made by hand, with the flags the 8086 would set for it and what they mean. Wider than
+ * its 16 bits a program takes two instructions: a sum or a difference still gets CF, OF and SF
+ * from the high word, but ZF is the high word's alone, and a shift (SHL and RCL, or SHR and RCR)
+ * keeps only CF whole. What the program would not give is left out, with a note.
+ */
+export function x86FreeView(request: NumberRequest): NumberView {
+  const view = (flags: FlagReading[], note: string | null, comparable = true): NumberView => ({
+    request,
+    flags,
+    resultKept: true,
+    comparable,
+    note
+  });
+  const wide = 'width' in request && request.width > 16;
+  switch (request.kind) {
+    case 'add':
+    case 'subtract': {
+      const flags = [
+        reads('CF', 'unsigned', 'outside'),
+        reads('OF', 'signed', 'outside'),
+        ...RESULT_FLAGS
+      ];
+      return wide
+        ? view(
+            flags.filter((reading) => reading.flag !== 'ZF'),
+            WORD_AT_A_TIME,
+            false
+          )
+        : view(flags, null);
+    }
+    case 'shift': {
+      if (request.count === 0) return view([], STILL);
+      const flags = shiftReadings(request, SHIFT_NAMES);
+      return wide
+        ? view(
+            flags.filter((reading) => reading.flag === 'CF'),
+            WORD_AT_A_TIME,
+            false
+          )
+        : view(flags, null);
+    }
+    case 'bcd':
+      return view([reads('CF', 'decimal', 'outside')], null);
+    default:
+      return view([], null);
+  }
+}
+
 /** An executed 8086 instruction as arithmetic on numbers, or why there is nothing to show. */
 export function x86NumberLink(record: ExecutionRecord): NumberLink {
   const { alu, instruction } = record;
@@ -100,7 +181,10 @@ export function x86NumberLink(record: ExecutionRecord): NumberLink {
         : `${name} worked nothing out.`
     };
   }
-  if (alu.kind === 'add' || alu.kind === 'subtract') return arithmetic(alu, instruction.mnemonic);
+  if (alu.kind === 'add' || alu.kind === 'subtract') {
+    const link = arithmetic(alu, instruction.mnemonic);
+    return 'request' in link ? { ...link, operands: operandsOf(instruction, alu.size) } : link;
+  }
   if (alu.kind === 'shift') return scaling(alu, instruction.mnemonic);
   return { unavailable: `${name} ${UNAVAILABLE[alu.kind]}` };
 }

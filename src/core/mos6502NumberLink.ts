@@ -1,5 +1,6 @@
 import type { AluTrace, ExecutionRecord } from './mos6502/executionContext';
-import type { Mnemonic } from './mos6502/instructions';
+import type { Instruction, Mnemonic } from './mos6502/instructions';
+import { formatOperand } from './mos6502/operands';
 import {
   reads,
   shiftReadings,
@@ -7,6 +8,7 @@ import {
   type NumberLink,
   type NumberView
 } from './numberLink';
+import type { NumberRequest } from './representation/request';
 import type { ScalingRequest } from './representation/scaling';
 
 const WIDTH = 8;
@@ -20,6 +22,19 @@ const RESULT_FLAGS: FlagReading[] = [
  * C is the unsigned scale's flag and V the signed one's. The 6502 has no borrow: after SBC and
  * the comparisons C is 1 when nothing had to be borrowed, the opposite of the 8086's CF.
  */
+function binaryReadings(adding: boolean): Pick<NumberView, 'flags' | 'note'> {
+  return {
+    flags: [
+      reads('C', 'unsigned', 'outside', !adding),
+      reads('V', 'signed', 'outside'),
+      ...RESULT_FLAGS
+    ],
+    note: adding
+      ? null
+      : 'C works backwards here: 1 means no borrow, 0 means one more is taken off.'
+  };
+}
+
 function binary(alu: AluTrace): NumberView {
   const adding = alu.operation === 'add';
   return {
@@ -30,18 +45,21 @@ function binary(alu: AluTrace): NumberView {
       b: alu.b,
       extra: alu.carryIn === adding ? 1 : 0
     },
-    flags: [
-      reads('C', 'unsigned', 'outside', !adding),
-      reads('V', 'signed', 'outside'),
-      ...RESULT_FLAGS
-    ],
+    ...binaryReadings(adding),
     resultKept: true,
-    comparable: true,
-    note: adding
-      ? null
-      : 'C works backwards here: 1 means no borrow, 0 means one more is taken off.'
+    comparable: true
   };
 }
+
+/** The flag C of a decimal sum or difference: it carries a hundred, and works backwards for SBC. */
+function decimalReadings(adding: boolean): FlagReading[] {
+  return [reads('C', 'decimal', 'outside', !adding)];
+}
+
+const DECIMAL_NOTE = 'In decimal mode each half of the byte is one digit, and C carries a hundred.';
+
+const BYTE_AT_A_TIME =
+  'The 6502 works a byte at a time: a wider number takes one instruction per byte, so only the flags that still answer for the whole number are given.';
 
 function decimal(alu: AluTrace): NumberView {
   const adding = alu.operation === 'add';
@@ -53,10 +71,10 @@ function decimal(alu: AluTrace): NumberView {
       b: alu.b,
       extra: alu.carryIn === adding ? 1 : 0
     },
-    flags: [reads('C', 'decimal', 'outside', !adding)],
+    flags: decimalReadings(adding),
     resultKept: true,
     comparable: false,
-    note: 'In decimal mode each half of the byte is one digit, and C carries a hundred.'
+    note: DECIMAL_NOTE
   };
 }
 
@@ -135,9 +153,79 @@ function computed(alu: AluTrace, mnemonic: Mnemonic): NumberLink {
   }
 }
 
+/** The register an instruction works on, by its mnemonic; A unless it names X or Y. */
+const REGISTER_OF: Partial<Record<Mnemonic, string>> = {
+  cpx: 'X',
+  inx: 'X',
+  dex: 'X',
+  cpy: 'Y',
+  iny: 'Y',
+  dey: 'Y'
+};
+
+/**
+ * What the instruction calls its two inputs: the register (or the byte INC and DEC change), then
+ * its operand, or the 1 a step adds.
+ */
+function operandsOf({ mnemonic, operands }: Instruction): NumberView['operands'] {
+  const [operand] = operands;
+  const written = operand && operand.type !== 'acc' ? formatOperand(operand) : 'A';
+  const steps = /^(in|de)[cxy]$/.test(mnemonic);
+  if (steps) return { a: REGISTER_OF[mnemonic] ?? written, b: '1' };
+  return { a: REGISTER_OF[mnemonic] ?? 'A', b: written };
+}
+
 /** An executed 6502 instruction as arithmetic on numbers, or why there is nothing to show. */
 export function mos6502NumberLink(record: ExecutionRecord): NumberLink {
   const { alu, instruction } = record;
   if (!alu) return { unavailable: `${instruction.mnemonic.toUpperCase()} worked nothing out.` };
-  return computed(alu, instruction.mnemonic);
+  const link = computed(alu, instruction.mnemonic);
+  const twoInputs = 'request' in link && link.request.kind !== 'shift';
+  return twoInputs ? { ...link, operands: operandsOf(instruction) } : link;
+}
+
+/**
+ * A request made by hand, with the flags the 6502 would set for it and what they mean. Only
+ * ASL's and LSR's shifts are the 6502's: a shift that copies the top bit sets nothing it has.
+ */
+export function mos6502FreeView(request: NumberRequest): NumberView {
+  const view = (parts: Pick<NumberView, 'flags' | 'note'>): NumberView => ({
+    request,
+    resultKept: true,
+    comparable: true,
+    ...parts
+  });
+  switch (request.kind) {
+    case 'add':
+    case 'subtract': {
+      const binary = binaryReadings(request.kind === 'add');
+      if (request.width === WIDTH) return view(binary);
+      // Wider than a byte, the carry goes on from byte to byte: C, V and N are the last byte's,
+      // as they are of the whole number, but Z is the last byte's alone.
+      return {
+        ...view({
+          flags: binary.flags.filter((reading) => reading.flag !== 'Z'),
+          note: BYTE_AT_A_TIME
+        }),
+        comparable: false
+      };
+    }
+    case 'bcd':
+      return view({ flags: decimalReadings(request.operation === 'add'), note: DECIMAL_NOTE });
+    case 'shift': {
+      if (request.fill !== 'zero') {
+        return view({ flags: [], note: 'The 6502 has no shift that copies the top bit.' });
+      }
+      if (request.count === 0) {
+        return view({ flags: [], note: 'No place moved: no 6502 instruction shifts by 0.' });
+      }
+      const flags = shiftReadings(request, { carry: 'C', zero: 'Z', negative: 'N' });
+      // Wider, it is ASL and ROL, or LSR and ROR: only C answers for the whole number.
+      return request.width === WIDTH
+        ? view({ flags, note: null })
+        : view({ flags: flags.filter((reading) => reading.flag === 'C'), note: BYTE_AT_A_TIME });
+    }
+    default:
+      return view({ flags: [], note: null });
+  }
 }
