@@ -40,7 +40,10 @@ export function usePrediction<
   const { prediction, predictStep, predictBuilder, predictRun } = usePreferences();
   const enabled = { step: predictStep, builder: predictBuilder, run: predictRun };
   const asking = shallowRef<Asking<Instruction> | null>(null);
-  const { last, tally, grades, forgetLast } = usePredictionScore(cpu, predictor);
+  const { last, tally, skipped, grades, forgetLast, noteSkipped } = usePredictionScore(
+    cpu,
+    predictor
+  );
   const executed = computed(() => cpu.history.value.length);
 
   function questionFor(from: AskedFrom, instruction: Instruction | undefined): Question | null {
@@ -99,6 +102,7 @@ export function usePrediction<
     if (!asked) return;
     asking.value = null;
     const ran = execute(asked);
+    if (ran) noteSkipped();
     if (asked.from === 'run') run.answered(ran);
   }
 
@@ -156,6 +160,7 @@ export function usePrediction<
     asking,
     last,
     tally,
+    skipped,
     answer,
     skip,
     followBuilder,
