@@ -109,6 +109,10 @@ const emit = defineEmits<{
       <p v-if="view.hidden > 0" class="mt-2 text-xs text-muted-foreground">
         and {{ view.hidden }} older below these.
       </p>
+      <!-- Always there, so a screen reader hears the note when it is filled. -->
+      <p class="text-xs text-pretty" :class="view.note ? 'mt-2' : 'sr-only'" role="status">
+        {{ view.note ?? '' }}
+      </p>
     </CardContent>
   </Card>
 </template>

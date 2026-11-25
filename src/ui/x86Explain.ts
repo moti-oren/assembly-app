@@ -15,7 +15,7 @@ function listed(items: (string | false)[]): string {
 }
 
 export function describeFetch(line: number): string {
-  return `IP points at ${formatLabel(line)}. That line is read out of the program, and IP moves on to ${formatLabel(line + 1)} before anything runs.`;
+  return `IP points at ${formatLabel(line)}. That line is read out of the program, and IP will move on to ${formatLabel(line + 1)}: the registers on show change once the instruction has run.`;
 }
 
 export function describeDecode(instruction: Instruction): string {

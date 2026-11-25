@@ -34,6 +34,8 @@ export interface StackView {
   hidden: number;
   /** What to say in place of the list when it is empty. */
   empty: string;
+  /** Something to say about the stack itself, as that more was taken off than was put on. */
+  note?: string;
 }
 
 /** Some bytes of the stack that are read as one value; `address` is the lowest. */

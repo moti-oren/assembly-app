@@ -24,7 +24,7 @@ function explain(program: Program<Instruction>, count: number): string {
 describe('the cycle in words', () => {
   it('says where the line is fetched from', () => {
     expect(describeFetch(2)).toBe(
-      'IP points at L2. That line is read out of the program, and IP moves on to L3 before anything runs.'
+      'IP points at L2. That line is read out of the program, and IP will move on to L3: the registers on show change once the instruction has run.'
     );
   });
 

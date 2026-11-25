@@ -15,6 +15,11 @@ import type { StackWriters } from './stackWriters';
 /** Where SP starts: the stack is empty there, and grows down from it a word at a time. */
 export const X86_STACK_BASE = 0xfffe;
 const WORD = 2;
+/**
+ * How far past the top of the stack SP can be before it is read as having wrapped round: taking
+ * off more than was pushed moves SP from FFFE to 0000 and up, the bottom of the segment.
+ */
+const WRAPPED_BELOW = 0x0100;
 
 /** The words an instruction pushed, the first one pushed first: their physical addresses. */
 function pushedWords(record: ExecutionRecord): number[] {
@@ -59,8 +64,11 @@ export function x86Stack(
       returns: label.startsWith('return to')
     };
   };
+  // More taken off than was put on: SP wrapped past FFFF, and the words above it are not a stack.
+  const wrapped = sp < WRAPPED_BELOW;
   const { entries, hidden } = stackEntries({
-    live: sp <= X86_STACK_BASE ? cellsBetween(base + sp, base + X86_STACK_BASE, WORD) : [],
+    live:
+      sp <= X86_STACK_BASE && !wrapped ? cellsBetween(base + sp, base + X86_STACK_BASE, WORD) : [],
     popped: before < sp ? cellsBetween(base + before, base + sp, WORD) : [],
     history,
     writers,
@@ -71,6 +79,9 @@ export function x86Stack(
     pointer: `SS:SP ${formatHex(ss, 16)}:${formatHex(sp, 16)}`,
     entries,
     hidden,
-    empty: 'The stack is empty. PUSH and CALL put a word on it, and move SP down by 2.'
+    empty: 'The stack is empty. PUSH and CALL put a word on it, and move SP down by 2.',
+    note: wrapped
+      ? `More was taken off than was put on: SP went past FFFF and wrapped round to ${formatHex(sp, 16)}.`
+      : undefined
   };
 }
