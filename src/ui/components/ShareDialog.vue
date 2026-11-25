@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nextTick, watch } from 'vue';
 import { Check, Copy } from '@lucide/vue';
 import type { ProgramInstruction } from '@/core/shared/program';
 import { Button } from '@/components/ui/button';
@@ -24,8 +25,17 @@ const { open } = useShare();
 const { link, long, copied, failed, copy } = useShareLink(() => props, open);
 
 function selectAll(event: FocusEvent): void {
-  (event.target as HTMLInputElement).select();
+  if (event.target instanceof HTMLInputElement) event.target.select();
 }
+
+// The field takes the focus as the dialog opens, before the link is made: once the link is in it,
+// it is picked whole, so a copy by hand takes all of it.
+watch(link, async (value) => {
+  if (!value) return;
+  await nextTick();
+  const field = document.querySelector<HTMLInputElement>('[data-share-link]');
+  if (field && field === document.activeElement) field.select();
+});
 
 /** What opened the dialog may be gone by the time it closes (the palette, a phone's sheet). */
 function returnFocus(event: Event): void {
@@ -53,6 +63,7 @@ function returnFocus(event: Event): void {
           :model-value="link"
           readonly
           aria-label="Link to this program"
+          data-share-link
           class="font-mono text-xs pointer-coarse:h-11"
           @focus="selectAll"
         />
