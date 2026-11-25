@@ -32,11 +32,15 @@ describe('workedAddress', () => {
     expect(worked?.label).toBe('This byte');
     expect(worked?.sum.physical).toBe(0x20004);
     expect(worked?.isLastAccess).toBe(false);
+    expect(worked?.tone).toBe('plain');
   });
 
   it('falls back to the last access, or to nothing', () => {
-    expect(workedAddress(null, access)?.label).toBe('Last write');
-    expect(workedAddress(null, { ...access, write: false })?.label).toBe('Last read');
+    expect(workedAddress(null, access)).toMatchObject({ label: 'Last write', tone: 'write' });
+    expect(workedAddress(null, { ...access, write: false })).toMatchObject({
+      label: 'Last read',
+      tone: 'read'
+    });
     expect(workedAddress(null, null)).toBeNull();
   });
 });

@@ -135,3 +135,8 @@ export const CELL_INPUTS: Record<FreeCellId, readonly { signal: string; label: s
 
 export const UNSETTLED =
   'The latch cannot decide. Both inputs were let go at the same moment, so each gate waits for the other and they flip for ever; a real one falls to 0 or to 1 by chance. Press S or R to give it a bit again.';
+
+/** For each bit, bit 0 first, whether its write line is off: those bits keep what they held. */
+export function keptBits({ width, enabled }: RegisterRequest): boolean[] {
+  return Array.from({ length: width }, (_, bit) => ((enabled >>> bit) & 1) === 0);
+}

@@ -34,7 +34,14 @@ const note = computed(() => offsetNote(props.worked.offsetParts));
       >
       <span class="font-sans text-muted-foreground">wraps past 1MB to</span>
     </template>
-    <span class="font-semibold text-pointer">{{ formatPhysical(worked.sum.physical) }}h</span>
+    <span
+      class="font-semibold"
+      :class="{
+        'text-changed-foreground': worked.tone === 'write',
+        'text-pointer': worked.tone === 'read'
+      }"
+      >{{ formatPhysical(worked.sum.physical) }}h</span
+    >
   </span>
   <span v-if="note" class="font-sans text-muted-foreground lg:min-w-0 lg:truncate" :title="note"
     >· {{ note }}</span

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { written } from '@/core/registerLink';
 import {
+  keptBits,
   phaseText,
   cellLabel,
   equationText,
@@ -109,5 +110,20 @@ describe('phaseText', () => {
     expect(phaseText('after', { ...request, enabled: 0x0f })).toContain(
       'the others what they held'
     );
+  });
+});
+
+describe('keptBits', () => {
+  it('marks the bits whose write line is off, bit 0 first', () => {
+    expect(keptBits({ width: 8, held: 0, input: 0, enabled: 0x0f })).toEqual([
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]);
   });
 });

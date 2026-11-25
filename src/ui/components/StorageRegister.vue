@@ -5,7 +5,7 @@ import type { Bit } from '@/core/logic/gates';
 import { REGISTER } from '@/core/logic/register';
 import { Button } from '@/components/ui/button';
 import { bitsLeftToRight, startsDigit } from '@/ui/logicLayout';
-import { CLOCK_ACTION, phaseText } from '@/ui/storageView';
+import { CLOCK_ACTION, keptBits, phaseText } from '@/ui/storageView';
 import type { StorageLens } from '@/ui/useStorageLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
@@ -73,6 +73,7 @@ function wires(name: (bit: number) => string): Bit[] {
         label="Holds"
         name="The register"
         :tone="lens.written.value ? 'result' : 'plain'"
+        :plain="keptBits(lens.request.value)"
         :bits="wires(REGISTER.q)"
       />
     </div>
