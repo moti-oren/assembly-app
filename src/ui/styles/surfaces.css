@@ -20,6 +20,11 @@
     min-width: 0;
     min-height: 0;
   }
+  /*
+   * Another topic or CPU: its panes fade in while the header and the activity bar around them
+   * hold still, so it reads as the same shell with something else in it. Opacity alone: a
+   * transform would make the panes the containing block of what is fixed inside them.
+   */
   .workbench {
     position: relative;
     display: grid;
@@ -27,6 +32,15 @@
     grid-template-columns: minmax(0, 1fr);
     min-width: 0;
     min-height: 0;
+    animation: page-arrive 160ms ease-out;
+  }
+  @keyframes page-arrive {
+    from {
+      opacity: 0;
+    }
+  }
+  :root[data-motion='reduced'] .workbench {
+    animation: none;
   }
   /* --pane is the pane's own surface, for whatever must cover it (a panel being dragged). */
   .workbench-pane {
@@ -250,6 +264,60 @@
 [data-slot='dialog-overlay'],
 [data-slot='alert-dialog-overlay'] {
   background: var(--overlay);
+}
+
+/*
+ * How a dialog comes and goes. shadcn's 100ms is over before the eye sees where it came from:
+ * it comes in a little slower, and goes faster than it came so closing never keeps anyone
+ * waiting. The variables are the ones tw-animate-css reads.
+ */
+:is([data-slot='dialog-content'], [data-slot='alert-dialog-content']),
+:is([data-slot='dialog-overlay'], [data-slot='alert-dialog-overlay']) {
+  --tw-duration: 160ms;
+  --tw-ease: var(--ease-out-soft);
+}
+:is(
+  [data-slot='dialog-content'],
+  [data-slot='alert-dialog-content'],
+  [data-slot='dialog-overlay'],
+  [data-slot='alert-dialog-overlay']
+)[data-state='closed'] {
+  --tw-duration: 110ms;
+}
+/* The palette hangs from the top third, under its search field: it drops in from just above. */
+.command-palette {
+  --tw-enter-scale: 1;
+  --tw-exit-scale: 1;
+  --tw-enter-translate-y: -0.375rem;
+  --tw-exit-translate-y: -0.25rem;
+}
+/* On a phone the settings fill the screen, where a zoom reads as a jump: they rise instead. */
+@media (width < 48rem) {
+  .settings-dialog {
+    --tw-enter-scale: 1;
+    --tw-exit-scale: 1;
+    --tw-enter-translate-y: 1.5rem;
+    --tw-exit-translate-y: 1.5rem;
+  }
+}
+/*
+ * tw-animate-css knows nothing of the app's own Reduce motion setting, so what floats over the
+ * page (dialogs, menus, lists, tooltips) is told here. With no animation to wait for, reka-ui
+ * takes a closed one away at once.
+ */
+:root[data-motion='reduced']
+  :is(
+    [data-slot='dialog-content'],
+    [data-slot='dialog-overlay'],
+    [data-slot='alert-dialog-content'],
+    [data-slot='alert-dialog-overlay'],
+    [data-slot='dropdown-menu-content'],
+    [data-slot='dropdown-menu-sub-content'],
+    [data-slot='select-content'],
+    [data-slot='tooltip-content'],
+    [data-reka-popper-content-wrapper] > [data-state]
+  ) {
+  animation: none !important;
 }
 
 /* Everything that floats over the workbench: one surface, a hairline and a shadow. */
