@@ -8,6 +8,11 @@ import { useTopic } from '@/ui/useTopic';
 import { useTopicTabFocus } from '@/ui/useTopicTabFocus';
 import TopicIcon from './TopicIcon.vue';
 
+const props = defineProps<{
+  /** Stands in while a page loads: it takes the focus but leaves the request for the page's own. */
+  standIn?: boolean;
+}>();
+
 const { topic } = useTopic();
 const feedback = useFeedback();
 const settings = useSettings();
@@ -22,7 +27,7 @@ function choose(id: TopicId): void {
 // The button pressed was the last page's: this page's own button of the topic takes the focus.
 const topics = useTemplateRef<HTMLElement>('topics');
 function takeFocus(): void {
-  if (!tabFocus.take()) return;
+  if (!(props.standIn ? tabFocus.pending() : tabFocus.take())) return;
   topics.value?.querySelector<HTMLElement>('[aria-current="page"]')?.focus({ preventScroll: true });
 }
 onMounted(takeFocus);

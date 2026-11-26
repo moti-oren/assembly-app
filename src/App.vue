@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, nextTick, watch } from 'vue';
+import { computed, defineAsyncComponent, h, nextTick, onMounted, watch, type Component } from 'vue';
 import { MOS6502 } from '@/core/mos6502/architecture';
 import { formatInstruction as formatMos6502 } from '@/core/mos6502/instructions';
 import { mos6502AluLink } from '@/core/mos6502AluLink';
@@ -25,11 +25,12 @@ import { hasNumbers } from '@/core/numberLink';
 import { hasRegisters } from '@/core/registerLink';
 import type { ComparedId } from '@/core/comparison';
 import type { ComparisonTask } from '@/core/comparisonTasks';
+import PageSkeleton from '@/ui/components/PageSkeleton.vue';
 import ReplaceProgramDialog from '@/ui/components/ReplaceProgramDialog.vue';
 import SharedProgramDialog from '@/ui/components/SharedProgramDialog.vue';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { analytics } from '@/ui/analyticsClient';
-import type { ArchitectureId } from '@/ui/architectures';
+import { ARCHITECTURE_CHOICES, type ArchitectureId } from '@/ui/architectures';
 import type { SharedProgram } from '@/ui/shareLink';
 import { useAppAnalytics } from '@/ui/useAppAnalytics';
 import { startChallenge } from '@/ui/useChallenge';
@@ -47,26 +48,28 @@ import { useSidebarLayout } from '@/ui/useSidebarLayout';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
 import { useShare } from '@/ui/useShare';
 import { useSharedProgram } from '@/ui/useSharedProgram';
-import { useLoadedPage } from '@/ui/useLoadedPage';
 import { useTopic } from '@/ui/useTopic';
 
-// Each page is its own chunk, so the first one shown does not wait for the others.
-const pageLoaders = {
-  x86: () => import('@/ui/components/X86Workbench.vue'),
-  rv32: () => import('@/ui/components/Rv32Workbench.vue'),
-  mos6502: () => import('@/ui/components/Mos6502Workbench.vue'),
-  logic: () => import('@/ui/components/LogicWorkbench.vue'),
-  numbers: () => import('@/ui/components/NumbersWorkbench.vue'),
-  storage: () => import('@/ui/components/StorageWorkbench.vue'),
-  control: () => import('@/ui/components/ControlWorkbench.vue')
-};
-const X86Workbench = defineAsyncComponent(pageLoaders.x86);
-const Rv32Workbench = defineAsyncComponent(pageLoaders.rv32);
-const Mos6502Workbench = defineAsyncComponent(pageLoaders.mos6502);
-const LogicWorkbench = defineAsyncComponent(pageLoaders.logic);
-const NumbersWorkbench = defineAsyncComponent(pageLoaders.numbers);
-const StorageWorkbench = defineAsyncComponent(pageLoaders.storage);
-const ControlWorkbench = defineAsyncComponent(pageLoaders.control);
+// Each page is its own chunk, loaded the first time it is shown. Until it has arrived the page's
+// shell stands in its place, so a switch never leaves the window empty.
+const page = (loader: () => Promise<Component>, badge: string, topic = false) =>
+  defineAsyncComponent({
+    loader,
+    loadingComponent: { render: () => h(PageSkeleton, { badge, topic }) },
+    delay: 0
+  });
+const badgeOf = (id: ArchitectureId) =>
+  ARCHITECTURE_CHOICES.find((choice) => choice.id === id)?.badge ?? '';
+const loadX86 = () => import('@/ui/components/X86Workbench.vue');
+const loadRv32 = () => import('@/ui/components/Rv32Workbench.vue');
+const loadMos6502 = () => import('@/ui/components/Mos6502Workbench.vue');
+const X86Workbench = page(loadX86, badgeOf('x86'));
+const Rv32Workbench = page(loadRv32, badgeOf('rv32'));
+const Mos6502Workbench = page(loadMos6502, badgeOf('mos6502'));
+const LogicWorkbench = page(() => import('@/ui/components/LogicWorkbench.vue'), 'LG', true);
+const NumbersWorkbench = page(() => import('@/ui/components/NumbersWorkbench.vue'), 'NM', true);
+const StorageWorkbench = page(() => import('@/ui/components/StorageWorkbench.vue'), 'ST', true);
+const ControlWorkbench = page(() => import('@/ui/components/ControlWorkbench.vue'), 'CU', true);
 const ChallengesDialog = defineAsyncComponent(() => import('@/ui/components/ChallengesDialog.vue'));
 const CompareDialog = defineAsyncComponent(() => import('@/ui/components/CompareDialog.vue'));
 const FeedbackDialog = defineAsyncComponent(() => import('@/ui/components/FeedbackDialog.vue'));
@@ -89,11 +92,6 @@ const { wanted: feedbackWanted } = useFeedback();
 const { wanted: settingsWanted } = useSettings();
 const { wanted: shareWanted } = useShare();
 const replaceGuard = useReplaceGuard();
-/** The page on show: the topic's, or the chosen CPU's on the CPU topic. */
-const page = useLoadedPage(
-  () => (topic.value === 'cpu' ? architecture.value : topic.value),
-  pageLoaders
-);
 
 /** Opens a task's program on its CPU, from the comparison. */
 function loadSolution(task: ComparisonTask, id: ComparedId): void {
@@ -190,6 +188,13 @@ const { moment: controlMoment } = useCpuMoment({
   mos6502: followed(mos6502, mos6502Text, { link: mos6502ControlLink, shows: hasControl })
 });
 
+// The other CPUs are fetched once the page is idle, so switching between them seldom waits.
+onMounted(() => {
+  const prefetch = (): void => void Promise.all([loadX86(), loadRv32(), loadMos6502()]);
+  if ('requestIdleCallback' in window) requestIdleCallback(prefetch);
+  else setTimeout(prefetch, 1500);
+});
+
 // A program left running on a timer would keep stepping out of sight.
 watch([architecture, topic], () => {
   x86.pause();
@@ -206,31 +211,31 @@ watch([architecture, topic], () => {
       <!-- A workbench once shown is kept, so switching back to it is instant. -->
       <KeepAlive>
         <LogicWorkbench
-          v-if="page === 'logic'"
+          v-if="topic === 'logic'"
           :moment="circuitMoment"
           @seek="seekShown"
           @back="topic = 'cpu'"
         />
         <NumbersWorkbench
-          v-else-if="page === 'numbers'"
+          v-else-if="topic === 'numbers'"
           :moment="numberMoment"
           @seek="seekShown"
           @back="topic = 'cpu'"
         />
         <StorageWorkbench
-          v-else-if="page === 'storage'"
+          v-else-if="topic === 'storage'"
           :moment="registerMoment"
           @seek="seekShown"
           @back="topic = 'cpu'"
         />
         <ControlWorkbench
-          v-else-if="page === 'control'"
+          v-else-if="topic === 'control'"
           :moment="controlMoment"
           @seek="seekShown"
           @back="topic = 'cpu'"
         />
-        <X86Workbench v-else-if="page === 'x86'" :cpu="x86" />
-        <Rv32Workbench v-else-if="page === 'rv32'" :cpu="rv32" />
+        <X86Workbench v-else-if="architecture === 'x86'" :cpu="x86" />
+        <Rv32Workbench v-else-if="architecture === 'rv32'" :cpu="rv32" />
         <Mos6502Workbench v-else :cpu="mos6502" />
       </KeepAlive>
     </div>
