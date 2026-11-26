@@ -12,6 +12,13 @@
 @import './styles/splash.css';
 
 @custom-variant dark (&:is(.dark *));
+/*
+ * The generated components style an open or closed layer with data-open: and data-closed:, which
+ * Tailwind reads as [data-open]; reka-ui marks it with data-state instead. Without these their
+ * enter and exit animations never ran.
+ */
+@custom-variant data-open (&:where([data-state='open'], [data-state='delayed-open'], [data-state='instant-open'], [data-open]:not([data-open='false'])));
+@custom-variant data-closed (&:where([data-state='closed'], [data-closed]:not([data-closed='false'])));
 /* Animations cut down, by the system setting or the app's own; see usePreferences.ts. */
 @custom-variant calm (&:is([data-motion='reduced'] *));
 /* A screen worked by touch alone: no pointer to hover with, and no keyboard to hint at. */
@@ -172,6 +179,21 @@
   --z-drawer: 15;
   --z-sticky: 20;
   --z-flight: 40;
+  /*
+   * Motion: a hover or a state that flips, something that comes in or slides aside, and a value
+   * that rolls. ease-out-soft settles without a bounce; ease-spring overshoots a little.
+   */
+  --motion-quick: 150ms;
+  --motion-base: 220ms;
+  --motion-slow: 340ms;
+  --motion-slower: 420ms;
+  /* A layer or a page coming in, and a layer going: going is quicker, so it never holds anyone. */
+  --motion-enter: 160ms;
+  --motion-exit: 110ms;
+  /* A line drawn from its start to its end, slow enough to follow. */
+  --motion-draw: 520ms;
+  --ease-out-soft: cubic-bezier(0.3, 0.75, 0.2, 1);
+  --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
   --drag-shadow: 0 18px 40px -12px rgb(16 24 40 / 22%);
   /* A wire, LED or segment that was written: the orange accent, 3:1 on white as a line needs. */
   --written: #ea580c;
@@ -453,20 +475,21 @@
     pointer-events: none;
     opacity: 0;
     background: var(--changed-glow);
+    /*
+     * The glow is drawn once and only its opacity moves, which the compositor does alone: a fast
+     * run starts many of these at once, and an animated shadow would repaint each on every frame.
+     */
+    box-shadow:
+      0 0 0 2px var(--changed-glow),
+      0 0 16px 3px var(--changed-glow);
     animation: change-flash 1400ms ease-out;
   }
   @keyframes change-flash {
     from {
       opacity: 0.6;
-      box-shadow:
-        0 0 0 2px var(--changed-glow),
-        0 0 16px 3px var(--changed-glow);
     }
     to {
       opacity: 0;
-      box-shadow:
-        0 0 0 0 var(--changed-glow),
-        0 0 0 0 var(--changed-glow);
     }
   }
 
@@ -502,7 +525,7 @@
   .roll-up-leave-active,
   .roll-down-enter-active,
   .roll-down-leave-active {
-    transition: transform 340ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform var(--motion-slow) var(--ease-spring);
   }
   .roll-up-leave-active,
   .roll-down-leave-active,
@@ -520,7 +543,7 @@
     transform: translateY(-100%);
   }
   .flip-enter-active {
-    animation: bit-flip 420ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    animation: bit-flip var(--motion-slower) var(--ease-spring) backwards;
   }
   /* The old bit stays put until the new one starts turning, then goes at once. */
   .flip-leave-active {
@@ -588,7 +611,7 @@
   .sortable-lifted {
     z-index: var(--z-drag);
     scale: 1.01;
-    transition: scale 150ms ease-out;
+    transition: scale var(--motion-quick) ease-out;
   }
   /* Dropped: it glides into its place and settles back down. */
   .sortable-settling {

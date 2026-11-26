@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { solveArithmetic } from '@/core/representation/arithmetic';
-import { angleOf, bitsAt, WHEEL_SIZE, wheelOf } from './numbersWheel';
+import { angleOf, bitsAt, journeyKey, WHEEL_SIZE, wheelOf } from './numbersWheel';
 
 const wheels = (kind: 'add' | 'subtract', a: number, b: number, width: 8 | 16 | 32 = 8) => {
   const solution = solveArithmetic({ kind, width, a, b, extra: 0 });
@@ -96,5 +96,24 @@ describe('wheelOf', () => {
     const { unsigned } = wheels('subtract', 0, 1, 32);
     expect(unsigned.seam.crossed).toBe(true);
     expect(unsigned.end.x).toBeLessThan(WHEEL_SIZE / 2);
+  });
+});
+
+describe('journeyKey', () => {
+  const add = { kind: 'add', width: 8, a: 5, b: 3, extra: 0 } as const;
+
+  it('stays the same when only A moves', () => {
+    expect(journeyKey({ ...add, a: 200 })).toBe(journeyKey(add));
+  });
+
+  it('changes with the operation, B, the one more and the width', () => {
+    const keys = [
+      add,
+      { ...add, kind: 'subtract' as const },
+      { ...add, b: 4 },
+      { ...add, extra: 1 as const },
+      { ...add, width: 16 as const }
+    ].map(journeyKey);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });

@@ -295,7 +295,7 @@ function onEnter(event: KeyboardEvent): void {
         </button>
       </div>
 
-      <Alert v-if="shownError" variant="destructive" role="alert">
+      <Alert v-if="shownError" variant="destructive" role="alert" class="notice-arrive">
         <CircleAlert />
         <AlertDescription class="text-destructive">{{ shownError }}</AlertDescription>
       </Alert>

@@ -232,6 +232,7 @@ followBuilder(draft);
           :history="history"
           :future="future"
           :format="formatInstruction"
+          :running="running"
           @seek="cpu.seek"
         />
       </template>
@@ -282,7 +283,7 @@ followBuilder(draft);
         <Mos6502Flags :state="state" :record="lastRecord" :tick="history.length" />
       </template>
       <template #stack>
-        <StackPanel :view="stack" @memory="page.showStackTop" />
+        <StackPanel :view="stack" :running="running" @memory="page.showStackTop" />
       </template>
       <template #devices>
         <DevicesPanel :state="state" :access="MOS6502_DEVICE_ACCESS" @input="cpu.setInput" />

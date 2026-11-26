@@ -113,8 +113,8 @@ watch(
       :disabled="!running && finished"
       @click="running ? emit('pause') : emit('run')"
     >
-      <Pause v-if="running" />
-      <FastForward v-else />
+      <Pause v-if="running" class="face-swap" />
+      <FastForward v-else class="face-swap" />
       <span :class="{ 'sr-only': compact }">{{ running ? 'Pause' : 'Run' }}</span>
     </Button>
   </DisabledReason>

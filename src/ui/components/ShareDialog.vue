@@ -68,13 +68,13 @@ function returnFocus(event: Event): void {
           @focus="selectAll"
         />
         <Button class="shrink-0 pointer-coarse:h-11" :disabled="link === ''" @click="copy">
-          <component :is="copied ? Check : Copy" aria-hidden="true" />
+          <component :is="copied ? Check : Copy" class="face-swap" aria-hidden="true" />
           {{ copied ? 'Copied' : 'Copy link' }}
         </Button>
       </div>
 
       <p aria-live="polite" class="sr-only">{{ copied ? 'Link copied' : '' }}</p>
-      <p v-if="failed" role="alert" class="text-sm text-destructive">
+      <p v-if="failed" role="alert" class="notice-arrive text-sm text-destructive">
         It could not be copied. Select the link and copy it yourself.
       </p>
       <p v-if="long" class="text-xs text-muted-foreground">

@@ -5,7 +5,7 @@ import type { ArithmeticRequest, ArithmeticSolution } from '@/core/representatio
 import type { Scale } from '@/core/representation/readings';
 import { scaleSummary, scalesSaid } from '@/ui/numbersFlags';
 import { bitsOf, operandsText } from '@/ui/numbersView';
-import { wheelOf } from '@/ui/numbersWheel';
+import { journeyKey, wheelOf } from '@/ui/numbersWheel';
 import type { NumberLens } from '@/ui/useNumberLens';
 import { useScrollEnd } from '@/ui/useScrollEnd';
 import LogicBitNumbers from './LogicBitNumbers.vue';
@@ -60,6 +60,7 @@ const said = refDebounced(
         :a="request.a"
         :reading="each.a"
         :written="lens.written.value"
+        :journey-key="journeyKey(request)"
         @set="lens.setOperand('a', $event)"
       />
       <p class="font-mono text-sm font-semibold tabular-nums">

@@ -74,7 +74,12 @@ const news = computed(() => isNews(props.result));
           result.solved ? 'text-sm font-semibold text-foreground' : 'text-xs text-muted-foreground'
         "
       >
-        <Check v-if="result.solved" class="size-6 shrink-0 stroke-[3]" aria-hidden="true" />
+        <Check
+          v-if="result.solved"
+          class="size-6 shrink-0 stroke-[3]"
+          :class="{ 'solved-mark': news }"
+          aria-hidden="true"
+        />
         <span role="status">{{
           news ? solvedSaid(outcome, result.solved ? next : null) : ''
         }}</span>

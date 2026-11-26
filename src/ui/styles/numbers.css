@@ -47,8 +47,30 @@
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+  /*
+   * A new operation is drawn as a journey from A, so the eye follows it round the ring and sees
+   * where it crosses the seam; the arrow head lands as the line reaches it.
+   */
+  .wheel-journey {
+    stroke-dasharray: 1;
+    animation: journey-draw var(--motion-draw) ease-in-out backwards;
+  }
   .wheel-head {
     fill: var(--foreground);
+    animation: journey-land var(--motion-quick) ease-out calc(var(--motion-draw) - 80ms) backwards;
+  }
+  @keyframes journey-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+  @keyframes journey-land {
+    from {
+      opacity: 0;
+    }
+  }
+  :root[data-motion='reduced'] :is(.wheel-journey, .wheel-head) {
+    animation: none;
   }
   /* Where the journey ends: orange only when the CPU really wrote this result. */
   .wheel-end {

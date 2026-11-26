@@ -66,7 +66,7 @@ function returnFocus(event: Event): void {
 <template>
   <Dialog v-model:open="open">
     <DialogContent
-      class="grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 max-md:top-0 max-md:left-0 max-md:h-dvh max-md:max-w-none sm:max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:pt-[env(safe-area-inset-top)] max-md:pr-[env(safe-area-inset-right)] max-md:pb-[env(safe-area-inset-bottom)] max-md:pl-[env(safe-area-inset-left)] max-md:[&>button]:top-[calc(0.5rem+env(safe-area-inset-top))] max-md:[&>button]:right-[calc(0.5rem+env(safe-area-inset-right))] pointer-coarse:[&>button]:size-11 md:h-[min(34rem,calc(100svh-2rem))] md:max-w-[min(48rem,calc(100%-2rem))] md:p-0"
+      class="settings-dialog grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 max-md:top-0 max-md:left-0 max-md:h-dvh max-md:max-w-none sm:max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:pt-[env(safe-area-inset-top)] max-md:pr-[env(safe-area-inset-right)] max-md:pb-[env(safe-area-inset-bottom)] max-md:pl-[env(safe-area-inset-left)] max-md:[&>button]:top-[calc(0.5rem+env(safe-area-inset-top))] max-md:[&>button]:right-[calc(0.5rem+env(safe-area-inset-right))] pointer-coarse:[&>button]:size-11 md:h-[min(34rem,calc(100svh-2rem))] md:max-w-[min(48rem,calc(100%-2rem))] md:p-0"
       @close-auto-focus="returnFocus"
     >
       <DialogHeader class="border-b px-4 pt-4 pr-12 pb-4 md:px-6 md:pt-5">
@@ -102,8 +102,11 @@ function returnFocus(event: Event): void {
           aria-labelledby="settings-section"
         >
           <h3 id="settings-section" class="sr-only">{{ shown.name }}</h3>
-          <!-- A box of their own, so the first row is a first child and draws no line above it. -->
-          <div>
+          <!--
+            A box of their own, so the first row is a first child and draws no line above it;
+            keyed, so another section fades in rather than replacing this one at once.
+          -->
+          <div :key="shown.id" class="fade-arrive">
             <component :is="PANES[shown.id].pane" />
           </div>
         </section>

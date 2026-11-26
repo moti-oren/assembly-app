@@ -11,6 +11,8 @@ const props = defineProps<{
   reading: string;
   /** Whether the CPU wrote the result on show. */
   written: boolean;
+  /** When it changes, the journey is drawn again from A (`journeyKey` of numbersWheel.ts). */
+  journeyKey: string;
 }>();
 const emit = defineEmits<{ set: [bits: number] }>();
 
@@ -87,10 +89,10 @@ function nudge(event: KeyboardEvent): void {
       >
         {{ mark.label }}
       </text>
-      <template v-if="wheel.path">
-        <path class="wheel-journey" :d="wheel.path" />
+      <g v-if="wheel.path" :key="journeyKey">
+        <path class="wheel-journey" :d="wheel.path" pathLength="1" />
         <polygon class="wheel-head" :points="wheel.head" />
-      </template>
+      </g>
       <circle
         class="wheel-end"
         :data-written="written ? '' : undefined"

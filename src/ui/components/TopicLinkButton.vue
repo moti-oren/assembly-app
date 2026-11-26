@@ -61,7 +61,7 @@ const LINKS = {
     v-if="unavailable === null"
     variant="outline"
     size="sm"
-    class="h-7 gap-1.5 px-2 font-sans text-xs pointer-coarse:h-11"
+    class="topic-link h-7 gap-1.5 px-2 font-sans text-xs pointer-coarse:h-11"
     :aria-label="`${LINKS[topic].label}: ${what ?? LINKS[topic].title}`"
     @click="LINKS[topic].open()"
   >

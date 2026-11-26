@@ -11,6 +11,8 @@ const props = defineProps<{
   format: (instruction: Instruction) => string;
   /** Undone instructions, in the order they would run again. */
   future: ExecutionRecord<Instruction>[];
+  /** While a run goes, new rows come in without easing: at speed they would only flicker. */
+  running?: boolean;
 }>();
 const emit = defineEmits<{ seek: [position: number] }>();
 
@@ -77,7 +79,7 @@ watch(
         <p v-if="history.length > SHOWN" class="px-3 py-1 text-xs text-muted-foreground">
           {{ history.length - SHOWN }} earlier instructions are not shown.
         </p>
-        <ol class="font-mono text-code">
+        <ol class="font-mono text-code" :data-running="running ? '' : undefined">
           <template v-for="{ record, number } in shown" :key="number">
             <!-- Where the undone part begins: its rows are greyed, which alone is hard to see. -->
             <li
@@ -86,7 +88,7 @@ watch(
             >
               Undone: Redo runs these again
             </li>
-            <li :data-current="number === history.length ? '' : undefined">
+            <li class="row-arrive" :data-current="number === history.length ? '' : undefined">
               <button
                 type="button"
                 class="grid w-full grid-cols-[var(--number-column)_3.5rem_minmax(0,1fr)] content-center items-baseline px-3 py-0.5 text-left outline-none min-h-6 pointer-coarse:min-h-11 hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"

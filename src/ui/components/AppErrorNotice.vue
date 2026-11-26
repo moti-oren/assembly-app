@@ -8,7 +8,7 @@ const { appError } = useAppError();
 </script>
 
 <template>
-  <div v-if="appError" class="w-full flex-none px-4 pt-4">
+  <div v-if="appError" class="notice-arrive w-full flex-none px-4 pt-4">
     <Alert variant="destructive" role="alert">
       <CircleAlert />
       <AlertTitle>Something went wrong inside the playground.</AlertTitle>
