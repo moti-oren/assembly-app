@@ -329,6 +329,29 @@
   --tw-shadow: var(--shadow-overlay);
   background: var(--glass);
   backdrop-filter: blur(16px) saturate(1.4);
+  /*
+   * The blur is costly to work out again on every frame of the way in or out, and through a
+   * surface this opaque it hardly shows while the surface moves: it is put on once the layer has
+   * come in (the delay outlasts a dialog's way in) and taken off as it starts to go.
+   */
+  transition: backdrop-filter 0s linear calc(var(--motion-enter) + 10ms);
+}
+@starting-style {
+  [data-slot='dialog-content'],
+  [data-slot='alert-dialog-content'],
+  [data-slot='dropdown-menu-content'],
+  [data-slot='select-content'] {
+    backdrop-filter: none;
+  }
+}
+:is(
+  [data-slot='dialog-content'],
+  [data-slot='alert-dialog-content'],
+  [data-slot='dropdown-menu-content'],
+  [data-slot='select-content']
+)[data-state='closed'] {
+  backdrop-filter: none;
+  transition: none;
 }
 
 /*

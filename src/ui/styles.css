@@ -475,20 +475,21 @@
     pointer-events: none;
     opacity: 0;
     background: var(--changed-glow);
+    /*
+     * The glow is drawn once and only its opacity moves, which the compositor does alone: a fast
+     * run starts many of these at once, and an animated shadow would repaint each on every frame.
+     */
+    box-shadow:
+      0 0 0 2px var(--changed-glow),
+      0 0 16px 3px var(--changed-glow);
     animation: change-flash 1400ms ease-out;
   }
   @keyframes change-flash {
     from {
       opacity: 0.6;
-      box-shadow:
-        0 0 0 2px var(--changed-glow),
-        0 0 16px 3px var(--changed-glow);
     }
     to {
       opacity: 0;
-      box-shadow:
-        0 0 0 0 var(--changed-glow),
-        0 0 0 0 var(--changed-glow);
     }
   }
 
