@@ -20,7 +20,7 @@
   }
   /* Content that takes the place of other content (a section of the settings): a fade alone. */
   .fade-arrive {
-    transition: opacity 120ms ease-out;
+    transition: opacity var(--motion-exit) ease-out;
   }
   @starting-style {
     .fade-arrive {
@@ -37,12 +37,12 @@
     animation: verdict-pop var(--motion-slow) var(--ease-spring);
   }
   .verdict-miss {
-    animation: verdict-shake 320ms ease-out;
+    animation: verdict-shake var(--motion-slow) ease-out;
   }
   .verdict-mark.verdict-miss {
     animation:
       verdict-pop var(--motion-slow) var(--ease-spring),
-      verdict-shake 320ms ease-out;
+      verdict-shake var(--motion-slow) ease-out;
   }
   @keyframes verdict-pop {
     from {
@@ -67,11 +67,11 @@
 
   /* A challenge just solved: the tick is drawn stroke by stroke, then settles with a pop. */
   .solved-mark {
-    animation: verdict-pop 420ms var(--ease-spring) 280ms backwards;
+    animation: verdict-pop var(--motion-slower) var(--ease-spring) var(--motion-base) backwards;
   }
   .solved-mark path {
     stroke-dasharray: 24;
-    animation: tick-draw 360ms ease-out backwards;
+    animation: tick-draw var(--motion-slow) ease-out backwards;
   }
   @keyframes tick-draw {
     from {

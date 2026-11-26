@@ -53,11 +53,11 @@
    */
   .wheel-journey {
     stroke-dasharray: 1;
-    animation: journey-draw 520ms ease-in-out backwards;
+    animation: journey-draw var(--motion-draw) ease-in-out backwards;
   }
   .wheel-head {
     fill: var(--foreground);
-    animation: journey-land var(--motion-quick) ease-out 440ms backwards;
+    animation: journey-land var(--motion-quick) ease-out calc(var(--motion-draw) - 80ms) backwards;
   }
   @keyframes journey-draw {
     from {

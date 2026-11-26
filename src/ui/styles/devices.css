@@ -131,7 +131,7 @@
     border-radius: calc(var(--radius-sm) - 1px);
     background: var(--foreground);
     opacity: 0.75;
-    transition: translate 160ms var(--ease-out-soft);
+    transition: translate var(--motion-enter) var(--ease-out-soft);
   }
   /* The slot is 24px tall inside its padding and the slider 10px, so on is 14px up. */
   .device-switch-on .device-knob {
