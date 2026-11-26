@@ -57,8 +57,6 @@ const sections = computed(() => logicSections(mode.value === 'phone', lens.follo
 <template>
   <TopicWorkbench
     topic="logic"
-    badge="LG"
-    stage-label="Circuit"
     :commands="commands"
     :sections="sections"
     :moment="moment"

@@ -1,41 +1,24 @@
-<script setup lang="ts" generic="View extends string">
-import { useLayoutMode } from '@/ui/useLayoutMode';
+<script setup lang="ts">
+import { useShellFrame } from '@/ui/useShellFrame';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
-import ActivityBar from './ActivityBar.vue';
-import ViewTabs from './ViewTabs.vue';
 
-const props = defineProps<{
-  /** The views a phone switches between, in the order of their tabs. */
-  views: readonly View[];
-  labels: Record<View, string>;
-  /** The view that shows the sidebar; every other one shows the stage. */
-  sidebarView: View;
-}>();
-
-const view = defineModel<View>('view', { required: true });
-
-const mode = useLayoutMode();
+const { frame, view } = useShellFrame();
 // One drawer for every page, so a tablet's sidebar stays as it was left from topic to topic.
 const { drawerOpen } = useWorkbenchView();
 </script>
 
 <!--
-  The two panes of a workbench, the CPU's or a topic's, with the activity bar beside them on a
-  desktop, between the header and the bar under the page. Side by side on a desktop; on a tablet
-  the sidebar is a drawer over the stage, and on a phone the tabs pick which view is on show
-  (surfaces.css).
+  The two panes of a page, the CPU's or a topic's, in the shell's frame beside its activity bar.
+  Side by side on a desktop; on a tablet the sidebar is a drawer over the stage, and on a phone
+  the shell's view tabs pick which view is on show (surfaces.css).
 -->
 <template>
-  <ViewTabs v-if="mode === 'phone'" v-model:view="view" :views="views" :labels="labels" />
-  <div class="workbench-frame">
-    <ActivityBar v-if="mode === 'desktop'" />
-    <main
-      class="workbench"
-      :data-view="view"
-      :data-shows="view === props.sidebarView ? 'sidebar' : 'stage'"
-      :data-drawer="drawerOpen ? 'open' : 'closed'"
-    >
-      <slot />
-    </main>
-  </div>
+  <main
+    class="workbench"
+    :data-view="view"
+    :data-shows="view === frame.sidebarView ? 'sidebar' : 'stage'"
+    :data-drawer="drawerOpen ? 'open' : 'closed'"
+  >
+    <slot />
+  </main>
 </template>

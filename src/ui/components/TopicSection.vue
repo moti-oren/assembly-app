@@ -15,6 +15,7 @@ const sections = useTopicSections();
 <!-- One section of a topic's sidebar: a panel like the CPU's, which folds to its header. -->
 <template>
   <SidebarSection
+    class="topic-section"
     :label="label"
     :collapsed="sections.isCollapsed(storageKey)"
     :closable="false"
@@ -28,7 +29,6 @@ const sections = useTopicSections();
           <h2>{{ label }}</h2>
         </CardTitle>
       </CardHeader>
-      <!-- It scrolls when the section is short, and a browser then makes it a tab stop: named. -->
       <CardContent role="group" :aria-label="label">
         <slot />
       </CardContent>

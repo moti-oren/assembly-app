@@ -70,8 +70,6 @@ const sections = computed<TopicSectionInfo[]>(() => [
 <template>
   <TopicWorkbench
     topic="numbers"
-    badge="NM"
-    stage-label="Numbers"
     :commands="commands"
     :sections="sections"
     :moment="moment"
