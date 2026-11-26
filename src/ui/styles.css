@@ -179,6 +179,15 @@
   --z-drawer: 15;
   --z-sticky: 20;
   --z-flight: 40;
+  /*
+   * Motion: a hover or a state that flips, something that comes in or slides aside, and a value
+   * that rolls. ease-out-soft settles without a bounce; ease-spring overshoots a little.
+   */
+  --motion-quick: 150ms;
+  --motion-base: 220ms;
+  --motion-slow: 340ms;
+  --ease-out-soft: cubic-bezier(0.3, 0.75, 0.2, 1);
+  --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
   --drag-shadow: 0 18px 40px -12px rgb(16 24 40 / 22%);
   /* A wire, LED or segment that was written: the orange accent, 3:1 on white as a line needs. */
   --written: #ea580c;
@@ -509,7 +518,7 @@
   .roll-up-leave-active,
   .roll-down-enter-active,
   .roll-down-leave-active {
-    transition: transform 340ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform var(--motion-slow) var(--ease-spring);
   }
   .roll-up-leave-active,
   .roll-down-leave-active,
@@ -527,7 +536,7 @@
     transform: translateY(-100%);
   }
   .flip-enter-active {
-    animation: bit-flip 420ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    animation: bit-flip 420ms var(--ease-spring) backwards;
   }
   /* The old bit stays put until the new one starts turning, then goes at once. */
   .flip-leave-active {
@@ -595,7 +604,7 @@
   .sortable-lifted {
     z-index: var(--z-drag);
     scale: 1.01;
-    transition: scale 150ms ease-out;
+    transition: scale var(--motion-quick) ease-out;
   }
   /* Dropped: it glides into its place and settles back down. */
   .sortable-settling {

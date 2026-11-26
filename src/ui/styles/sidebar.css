@@ -62,8 +62,8 @@
   color: var(--muted-foreground);
   outline: none;
   transition:
-    color 150ms,
-    background-color 150ms;
+    color var(--motion-quick),
+    background-color var(--motion-quick);
 }
 .sidebar-section:has(> [data-slot='card'][data-size='sm']) > :is(.sidebar-toggle, .sidebar-close) {
   top: 0.75rem;
@@ -80,7 +80,7 @@
   height: 1rem;
 }
 .sidebar-toggle svg {
-  transition: rotate 150ms ease-out;
+  transition: rotate var(--motion-quick) ease-out;
 }
 .sidebar-section[data-state='open'] > .sidebar-toggle svg {
   rotate: 90deg;
@@ -174,7 +174,7 @@
     inset-inline: 0;
     top: calc(50% - 1px);
     height: 2px;
-    transition: background-color 150ms;
+    transition: background-color var(--motion-quick);
   }
   .sidebar-sash:hover::after,
   .sidebar-sash:focus-visible::after,

@@ -95,7 +95,7 @@
       var(--shadow-thumb),
       0 0 0 1px var(--muted-foreground);
     translate: calc(var(--active) * 100%) 0;
-    transition: translate 240ms cubic-bezier(0.3, 0.75, 0.2, 1);
+    transition: translate 240ms var(--ease-out-soft);
   }
 
   /*
@@ -134,7 +134,7 @@
     font-size: 0.8125rem;
     font-weight: 500;
     outline: none;
-    transition: color 150ms;
+    transition: color var(--motion-quick);
   }
   .view-tab::after {
     content: '';
@@ -192,7 +192,7 @@
     font-weight: 500;
     line-height: 1;
     outline: none;
-    transition: color 150ms;
+    transition: color var(--motion-quick);
   }
   .activity-item svg {
     width: 1.25rem;
@@ -252,8 +252,8 @@
     box-shadow: var(--shadow-overlay);
     font-size: var(--text-sm);
     outline: none;
-    animation-duration: 220ms;
-    animation-timing-function: cubic-bezier(0.3, 0.75, 0.2, 1);
+    animation-duration: var(--motion-base);
+    animation-timing-function: var(--ease-out-soft);
   }
   :root[data-motion='reduced'] .bottom-sheet {
     animation: none;
@@ -319,7 +319,7 @@
     border-radius: 1rem;
     background: var(--muted);
     box-shadow: inset 0 0 0 1px var(--wire);
-    transition: background-color 150ms;
+    transition: background-color var(--motion-quick);
   }
   .sheet-switch::after {
     content: '';
@@ -331,8 +331,8 @@
     border-radius: 50%;
     background: var(--muted-foreground);
     transition:
-      translate 150ms,
-      background-color 150ms;
+      translate var(--motion-quick),
+      background-color var(--motion-quick);
   }
   [aria-checked='true'] > .sheet-switch {
     background: var(--foreground);
