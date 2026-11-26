@@ -143,8 +143,10 @@
     bottom: -1px;
     height: 2px;
     border-radius: 2px 2px 0 0;
-    background: transparent;
-    transition: background-color 150ms;
+    background: var(--foreground);
+    /* It grows out from the middle of the tab chosen, so the eye follows where the view went. */
+    scale: 0 1;
+    transition: scale var(--motion-base) var(--ease-out-soft);
   }
   .view-tab:hover,
   .view-tab[aria-pressed='true'] {
@@ -154,7 +156,7 @@
     font-weight: 600;
   }
   .view-tab[aria-pressed='true']::after {
-    background: var(--foreground);
+    scale: 1;
   }
   .view-tab:focus-visible {
     box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--ring) 60%, transparent);
@@ -204,8 +206,9 @@
     inset-block: 0;
     left: 0;
     width: 2px;
-    background: transparent;
-    transition: background-color 150ms;
+    background: var(--foreground);
+    scale: 1 0;
+    transition: scale var(--motion-base) var(--ease-out-soft);
   }
   .activity-item:hover,
   .activity-item[aria-current='page'] {
@@ -215,7 +218,13 @@
     font-weight: 600;
   }
   .activity-item[aria-current='page']::before {
-    background: var(--foreground);
+    scale: 1;
+  }
+  /* Every page draws a bar of its own, so the stripe grows as the page it marks arrives. */
+  @starting-style {
+    .activity-item[aria-current='page']::before {
+      scale: 1 0;
+    }
   }
   /* The only sign of the focus here, so at full strength: 3:1 against the bar in both themes. */
   .activity-item:focus-visible {
@@ -226,7 +235,9 @@
     transition: none;
   }
 
-  :root[data-motion='reduced'] .segmented::before {
+  :root[data-motion='reduced'] .segmented::before,
+  :root[data-motion='reduced'] .view-tab,
+  :root[data-motion='reduced'] .view-tab::after {
     transition: none;
   }
 
@@ -422,5 +433,40 @@
     .settings-tab {
       min-height: 2.75rem;
     }
+  }
+
+  /*
+   * A button that changes its face (Run and Pause, Copy and Copied): the new icon turns in as it
+   * is drawn, so the change is seen even where the label is hidden.
+   */
+  .face-swap {
+    transition:
+      scale var(--motion-base) var(--ease-spring),
+      rotate var(--motion-base) var(--ease-spring),
+      opacity var(--motion-quick) ease-out;
+  }
+  @starting-style {
+    .face-swap {
+      opacity: 0;
+      scale: 0.6;
+      rotate: -45deg;
+    }
+  }
+
+  /* A way into another topic: its icon leans toward where the button goes. */
+  .topic-link svg {
+    transition: translate var(--motion-quick) var(--ease-out-soft);
+  }
+  .topic-link:focus-visible svg {
+    translate: 2px 0;
+  }
+  @media (hover: hover) {
+    .topic-link:hover svg {
+      translate: 2px 0;
+    }
+  }
+
+  :root[data-motion='reduced'] :is(.face-swap, .topic-link svg) {
+    transition: none;
   }
 }

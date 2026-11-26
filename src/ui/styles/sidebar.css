@@ -13,6 +13,26 @@
   :is([data-slot='card-content'], [data-slot='card-footer']) {
   display: none;
 }
+/*
+ * Unfolded, the body eases in under its header instead of appearing at once. Only opacity and a
+ * nudge: animating the height would fight the sizes the open panels share.
+ */
+.sidebar-section[data-state='open'] :is([data-slot='card-content'], [data-slot='card-footer']) {
+  transition:
+    opacity var(--motion-base) var(--ease-out-soft),
+    translate var(--motion-base) var(--ease-out-soft);
+}
+@starting-style {
+  .sidebar-section[data-state='open'] :is([data-slot='card-content'], [data-slot='card-footer']) {
+    opacity: 0;
+    translate: 0 -0.25rem;
+  }
+}
+:root[data-motion='reduced']
+  .sidebar-section
+  :is([data-slot='card-content'], [data-slot='card-footer']) {
+  transition: none;
+}
 /* On a phone a collapsed panel is its title alone: its summary line goes with its body. */
 @media (width < 48rem) {
   .sidebar-section[data-state='collapsed'] [data-slot='card-description'] {
