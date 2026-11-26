@@ -12,6 +12,13 @@
 @import './styles/splash.css';
 
 @custom-variant dark (&:is(.dark *));
+/*
+ * The generated components style an open or closed layer with data-open: and data-closed:, which
+ * Tailwind reads as [data-open]; reka-ui marks it with data-state instead. Without these their
+ * enter and exit animations never ran.
+ */
+@custom-variant data-open (&:where([data-state='open'], [data-state='delayed-open'], [data-state='instant-open'], [data-open]:not([data-open='false'])));
+@custom-variant data-closed (&:where([data-state='closed'], [data-closed]:not([data-closed='false'])));
 /* Animations cut down, by the system setting or the app's own; see usePreferences.ts. */
 @custom-variant calm (&:is([data-motion='reduced'] *));
 /* A screen worked by touch alone: no pointer to hover with, and no keyboard to hint at. */
