@@ -170,6 +170,13 @@
     overflow-y: auto;
   }
   /*
+   * A topic's sections do not share the pane's height: each is as tall as what it holds and the
+   * pane scrolls them all, so a section never scrolls inside itself.
+   */
+  .topic-section[data-state='open'] [data-slot='card-content'] {
+    overflow-y: visible;
+  }
+  /*
    * The list that takes what room the panel has; it scrolls, the panel around it does not. A
    * list may name the least it is of use at (--fill-min): below that the panel scrolls instead.
    */
