@@ -18,7 +18,7 @@ defineProps<{
   menuLabel: string;
 }>();
 defineEmits<{ commands: [] }>();
-/** The one menu below a desktop, which the page can also open. */
+/** The one menu below a desktop, which the page on show can also open. */
 const menuOpen = defineModel<boolean>('menuOpen', { default: false });
 
 const mode = useLayoutMode();
@@ -52,9 +52,11 @@ function settingsFromMenu(): void {
 </script>
 
 <!--
-  The bar every topic has: the mark and the name, and the commands; below a desktop also one menu
-  with the topics, feedback and the settings, which a desktop has in its activity bar. A topic puts its own switch in `context`, its buttons in `actions`, and below a desktop the rows of
-  its sheet: what it does in `menu-actions`, and what it lists under them in `menu`.
+  The shell's bar, one for the whole visit: the mark and the name, and the commands; below a
+  desktop also one menu with the topics, feedback and the settings, which a desktop has in its
+  activity bar. App.vue puts the drawer button in `lead` and the architecture switch in
+  `context`; the page on show fills `actions`, and below a desktop the rows of the sheet: what it
+  does in `menu-actions`, and what it lists under them in `menu` (ShellParts.vue).
 -->
 <template>
   <!-- Part of the shell, where only the panes scroll. -->

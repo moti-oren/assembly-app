@@ -59,90 +59,127 @@ function resetFromMore(): void {
 }
 </script>
 
+<!-- The controls of the bar under a CPU's panes, in the shell's frame for it (App.vue). -->
 <template>
-  <!-- The bottom of the shell: nothing scrolls behind it. -->
-  <footer class="transport">
-    <!-- Next to the buttons that ran the program, so a stop is seen where it was caused. -->
-    <p
-      v-if="error"
-      role="alert"
-      class="notice-arrive flex items-start gap-2 px-4 pt-2.5 text-sm text-destructive"
-    >
-      <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-      {{ error }}
-    </p>
-    <!--
-      Three zones: running the program, moving through its history, and the panels on show. One
-      row at every width: what a narrower bar has no room for moves behind its More button.
-    -->
+  <!-- Next to the buttons that ran the program, so a stop is seen where it was caused. -->
+  <p
+    v-if="error"
+    role="alert"
+    class="notice-arrive flex items-start gap-2 px-4 pt-2.5 text-sm text-destructive"
+  >
+    <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+    {{ error }}
+  </p>
+  <!--
+    Three zones: running the program, moving through its history, and the panels on show. One
+    row at every width: what a narrower bar has no room for moves behind its More button.
+  -->
+  <div
+    class="flex items-center gap-x-5 px-4 py-2 max-md:gap-x-1.5 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto]"
+    role="toolbar"
+    aria-label="Program and history controls"
+  >
+    <!-- TransportRun finds this group by `data-transport-run`, to keep the focus inside it. -->
     <div
-      class="flex items-center gap-x-5 px-4 py-2 max-md:gap-x-1.5 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto]"
-      role="toolbar"
-      aria-label="Program and history controls"
+      class="flex items-center gap-1.5"
+      :class="{ 'min-w-0 flex-1': mode === 'phone' }"
+      role="group"
+      aria-label="Run"
+      data-transport-run
     >
-      <!-- TransportRun finds this group by `data-transport-run`, to keep the focus inside it. -->
-      <div
-        class="flex items-center gap-1.5"
-        :class="{ 'min-w-0 flex-1': mode === 'phone' }"
-        role="group"
-        aria-label="Run"
-        data-transport-run
-      >
-        <TransportRun
-          :finished="finished"
-          :empty="empty"
-          :running="running"
-          :phase="phase"
-          :compact="mode === 'phone'"
-          @step="emit('step')"
-          @phase="emit('phase')"
-          @run="emit('run')"
-          @pause="emit('pause')"
-          @again="emit('again')"
-        />
-        <TransportSpeed
-          v-if="mode !== 'phone'"
-          :speed="speed"
-          @update:speed="emit('update:speed', $event)"
-        />
-        <Tooltip v-if="mode === 'desktop'">
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="sm"
-              class="text-muted-foreground pointer-coarse:h-11"
-              aria-label="Reset the CPU"
-              @click="emit('reset')"
-            >
-              <RotateCcw />
-              <span class="hidden xl:inline">Reset</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Clears registers, flags, memory and the history. The program is kept.
-          </TooltipContent>
-        </Tooltip>
-      </div>
+      <TransportRun
+        :finished="finished"
+        :empty="empty"
+        :running="running"
+        :phase="phase"
+        :compact="mode === 'phone'"
+        @step="emit('step')"
+        @phase="emit('phase')"
+        @run="emit('run')"
+        @pause="emit('pause')"
+        @again="emit('again')"
+      />
+      <TransportSpeed
+        v-if="mode !== 'phone'"
+        :speed="speed"
+        @update:speed="emit('update:speed', $event)"
+      />
+      <Tooltip v-if="mode === 'desktop'">
+        <TooltipTrigger as-child>
+          <Button
+            variant="ghost"
+            size="sm"
+            class="text-muted-foreground pointer-coarse:h-11"
+            aria-label="Reset the CPU"
+            @click="emit('reset')"
+          >
+            <RotateCcw />
+            <span class="hidden xl:inline">Reset</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Clears registers, flags, memory and the history. The program is kept.
+        </TooltipContent>
+      </Tooltip>
+    </div>
 
+    <div
+      class="flex items-center gap-1 lg:border-x lg:px-4"
+      :class="{ 'min-w-0 flex-1': mode !== 'phone' }"
+      role="group"
+      aria-label="History"
+    >
+      <TransportHistory
+        :executed="executed"
+        :undone="undone"
+        :parts="mode === 'phone' ? 'undo' : 'all'"
+        :framed="mode === 'phone'"
+        @undo="emit('undo')"
+        @redo="emit('redo')"
+        @seek="emit('seek', $event)"
+      />
+    </div>
+
+    <TransportPanels
+      v-if="mode === 'desktop'"
+      :history-shown="historyShown"
+      :devices-shown="devicesShown"
+      :bytes-shown="bytesShown"
+      @update:history-shown="emit('update:historyShown', $event)"
+      @update:devices-shown="emit('update:devicesShown', $event)"
+      @update:bytes-shown="emit('update:bytesShown', $event)"
+    />
+    <TransportMore v-else v-model:open="moreOpen" :sheet="mode === 'phone'">
       <div
-        class="flex items-center gap-1 lg:border-x lg:px-4"
-        :class="{ 'min-w-0 flex-1': mode !== 'phone' }"
+        v-if="mode === 'phone'"
+        class="flex items-center gap-1"
         role="group"
         aria-label="History"
       >
         <TransportHistory
           :executed="executed"
           :undone="undone"
-          :parts="mode === 'phone' ? 'undo' : 'all'"
-          :framed="mode === 'phone'"
-          @undo="emit('undo')"
+          parts="rest"
           @redo="emit('redo')"
           @seek="emit('seek', $event)"
         />
       </div>
-
+      <!-- A phone's sheet gives the two an equal half; a tablet has no speed here. -->
+      <div :class="mode === 'phone' ? 'grid grid-cols-2 gap-2' : 'flex justify-end'">
+        <TransportSpeed
+          v-if="mode === 'phone'"
+          :speed="speed"
+          named
+          @update:speed="emit('update:speed', $event)"
+        />
+        <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="resetFromMore">
+          <RotateCcw />
+          Reset the CPU
+        </Button>
+      </div>
       <TransportPanels
-        v-if="mode === 'desktop'"
+        named
+        :stacked="mode === 'phone'"
         :history-shown="historyShown"
         :devices-shown="devicesShown"
         :bytes-shown="bytesShown"
@@ -150,45 +187,6 @@ function resetFromMore(): void {
         @update:devices-shown="emit('update:devicesShown', $event)"
         @update:bytes-shown="emit('update:bytesShown', $event)"
       />
-      <TransportMore v-else v-model:open="moreOpen" :sheet="mode === 'phone'">
-        <div
-          v-if="mode === 'phone'"
-          class="flex items-center gap-1"
-          role="group"
-          aria-label="History"
-        >
-          <TransportHistory
-            :executed="executed"
-            :undone="undone"
-            parts="rest"
-            @redo="emit('redo')"
-            @seek="emit('seek', $event)"
-          />
-        </div>
-        <!-- A phone's sheet gives the two an equal half; a tablet has no speed here. -->
-        <div :class="mode === 'phone' ? 'grid grid-cols-2 gap-2' : 'flex justify-end'">
-          <TransportSpeed
-            v-if="mode === 'phone'"
-            :speed="speed"
-            named
-            @update:speed="emit('update:speed', $event)"
-          />
-          <Button variant="outline" size="sm" class="pointer-coarse:h-11" @click="resetFromMore">
-            <RotateCcw />
-            Reset the CPU
-          </Button>
-        </div>
-        <TransportPanels
-          named
-          :stacked="mode === 'phone'"
-          :history-shown="historyShown"
-          :devices-shown="devicesShown"
-          :bytes-shown="bytesShown"
-          @update:history-shown="emit('update:historyShown', $event)"
-          @update:devices-shown="emit('update:devicesShown', $event)"
-          @update:bytes-shown="emit('update:bytesShown', $event)"
-        />
-      </TransportMore>
-    </div>
-  </footer>
+    </TransportMore>
+  </div>
 </template>

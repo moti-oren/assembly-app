@@ -100,8 +100,6 @@ const SECTIONS: readonly TopicSectionInfo[] = [
 <template>
   <TopicWorkbench
     topic="storage"
-    badge="ST"
-    stage-label="Flip-flops"
     :commands="commands"
     :sections="SECTIONS"
     :moment="moment"

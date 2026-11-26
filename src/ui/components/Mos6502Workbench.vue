@@ -17,7 +17,6 @@ import { MOS6502_GRAMMAR } from '@/ui/mos6502Grammar';
 import { byteAt, mos6502MemoryPlaces, MOS6502_ADDRESSES } from '@/ui/mos6502View';
 import { mos6502Sounds } from '@/ui/sounds';
 import type { CpuOf } from '@/ui/useCpu';
-import { useLayoutMode } from '@/ui/useLayoutMode';
 import { PANEL_LABELS } from '@/ui/usePanelOrder';
 import { mos6502UsesDevices } from '@/ui/usesDevices';
 import { usePrediction } from '@/ui/usePrediction';
@@ -34,6 +33,7 @@ import DevicesPanel from './DevicesPanel.vue';
 import FlatMemory from './FlatMemory.vue';
 import HistoryLog from './HistoryLog.vue';
 import InstructionBuilder from './InstructionBuilder.vue';
+import PaneFrame from './PaneFrame.vue';
 import PredictionBar from './PredictionBar.vue';
 import ChallengePanel from './ChallengePanel.vue';
 import ProgramPanel from './ProgramPanel.vue';
@@ -48,7 +48,6 @@ import SidebarColumn from './SidebarColumn.vue';
 import StackPanel from './StackPanel.vue';
 import StageColumn from './StageColumn.vue';
 import TransportBar from './TransportBar.vue';
-import WorkbenchPanes from './WorkbenchPanes.vue';
 
 const props = defineProps<{
   cpu: CpuOf<Instruction, CpuState, ExecutionRecord>;
@@ -78,9 +77,6 @@ const {
   pending,
   speed
 } = cpu;
-
-// The result strip is shown only off a desktop; elsewhere it is not even worked out.
-const layout = useLayoutMode();
 
 const LABELS = { ...PANEL_LABELS, operation: 'ALU & cycles' };
 
@@ -150,19 +146,55 @@ followBuilder(draft);
     @load-example="cpu.loadExample"
     @clear-program="clearProgram"
     @reset-cpu="confirmReset"
-  />
-  <Mos6502ChangeStrip
-    v-if="layout !== 'desktop'"
-    :after="lastAfter"
-    :running="running"
-    :record="lastRecord"
-    :phase="pending?.phase ?? null"
-    :next="finished ? null : formatLabel(nextLine)"
-    :empty="program.length === 0"
-  />
+  >
+    <template #strip>
+      <Mos6502ChangeStrip
+        :after="lastAfter"
+        :running="running"
+        :record="lastRecord"
+        :phase="pending?.phase ?? null"
+        :next="finished ? null : formatLabel(nextLine)"
+        :empty="program.length === 0"
+      />
+    </template>
+    <template #above>
+      <PredictionBar
+        :asking="asking"
+        :last="last"
+        :skipped="skipped"
+        :tally="tally"
+        @answer="answer"
+        @skip="skip"
+      />
+    </template>
+    <template #bar>
+      <TransportBar
+        v-model:speed="speed"
+        v-model:history-shown="historyShown"
+        v-model:devices-shown="devicesShown"
+        v-model:bytes-shown="bytesShown"
+        :finished="finished"
+        :empty="program.length === 0"
+        :running="running"
+        :error="errorFrom === 'program' ? error : null"
+        :phase="pending?.phase ?? null"
+        :executed="history.length"
+        :undone="future.length"
+        @step="controls.stepProgram"
+        @phase="controls.stepPhase"
+        @run="controls.runProgram"
+        @pause="controls.pause"
+        @undo="cpu.undoLast"
+        @redo="cpu.redo"
+        @reset="askReset"
+        @again="runAgain"
+        @seek="cpu.seek"
+      />
+    </template>
+  </AppChrome>
 
   <!-- Left: what you write. Right: the machine: the CPU, then what is on its bus. -->
-  <WorkbenchPanes>
+  <PaneFrame>
     <!-- Each pane's panels can be dragged into any order, but never into the other pane. -->
     <SidebarColumn
       class="workbench-pane"
@@ -304,36 +336,5 @@ followBuilder(draft);
         />
       </template>
     </StageColumn>
-  </WorkbenchPanes>
-
-  <PredictionBar
-    :asking="asking"
-    :last="last"
-    :skipped="skipped"
-    :tally="tally"
-    @answer="answer"
-    @skip="skip"
-  />
-  <TransportBar
-    v-model:speed="speed"
-    v-model:history-shown="historyShown"
-    v-model:devices-shown="devicesShown"
-    v-model:bytes-shown="bytesShown"
-    :finished="finished"
-    :empty="program.length === 0"
-    :running="running"
-    :error="errorFrom === 'program' ? error : null"
-    :phase="pending?.phase ?? null"
-    :executed="history.length"
-    :undone="future.length"
-    @step="controls.stepProgram"
-    @phase="controls.stepPhase"
-    @run="controls.runProgram"
-    @pause="controls.pause"
-    @undo="cpu.undoLast"
-    @redo="cpu.redo"
-    @reset="askReset"
-    @again="runAgain"
-    @seek="cpu.seek"
-  />
+  </PaneFrame>
 </template>
