@@ -1,4 +1,4 @@
-import type { ScaleSolution } from '@/core/representation/arithmetic';
+import type { ArithmeticRequest, ScaleSolution } from '@/core/representation/arithmetic';
 import { span, wrap, type Scale } from '@/core/representation/readings';
 
 /** The drawing is square; its lengths are in the units of its viewBox. */
@@ -128,6 +128,14 @@ function stretchedStart(from: number, sweep: number, seamAngle: number): number 
   const kept =
     sweep < 0 ? Math.max(fromSeam, SEAM_GAP - sweep) : Math.min(fromSeam, 360 - SEAM_GAP - sweep);
   return seamAngle + kept;
+}
+
+/**
+ * Names an operation apart from A: the wheel draws its journey again when this changes, so a new
+ * operation is followed round the ring while A dragged round it is not redrawn at every move.
+ */
+export function journeyKey(request: ArithmeticRequest): string {
+  return `${request.kind} ${request.b} ${request.extra} ${request.width}`;
 }
 
 /** One scale's reading of an operation, as a journey round the ring of that scale. */
