@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { BookOpen, Columns3, PanelLeft, Puzzle, Share2 } from '@lucide/vue';
+import { BookOpen, Columns3, Ellipsis, PanelLeft, Puzzle, Share2 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ARCHITECTURE_CHOICES } from '@/ui/architectures';
 import { useChallenges } from '@/ui/useChallenges';
 import { useComparison } from '@/ui/useComparison';
@@ -15,7 +15,6 @@ import { usePreferences } from '@/ui/usePreferences';
 import { useShare } from '@/ui/useShare';
 import { useWorkbenchView } from '@/ui/useWorkbenchView';
 import ArchitectureSwitch from './ArchitectureSwitch.vue';
-import DisabledReason from './DisabledReason.vue';
 import HeaderExampleItems from './HeaderExampleItems.vue';
 import HeaderShell from './HeaderShell.vue';
 import SheetExamples from './SheetExamples.vue';
@@ -88,55 +87,50 @@ function loadFromMenu(index: number): void {
       <ArchitectureSwitch />
     </template>
     <template #actions>
-      <DisabledReason
-        :reason="programLength === 0 ? 'The program is empty: there is nothing to share yet' : null"
-        label="Share this program"
-        hint="A link that opens this program"
-      >
-        <Button
-          variant="ghost"
-          size="sm"
-          class="pointer-coarse:h-11 pointer-coarse:min-w-11"
-          aria-label="Share this program"
-          aria-haspopup="dialog"
-          data-share-opener
-          :disabled="programLength === 0"
-          @click="shareOpen = true"
-        >
-          <Share2 />
-          <span class="hidden xl:inline">Share</span>
-        </Button>
-      </DisabledReason>
-      <Tooltip>
-        <TooltipTrigger as-child>
+      <!-- What is done now and then sits in one menu, so the bar keeps to the examples. -->
+      <DropdownMenu :modal="false">
+        <DropdownMenuTrigger as-child>
           <Button
             variant="ghost"
             size="sm"
             class="pointer-coarse:h-11 pointer-coarse:min-w-11"
-            aria-label="Compare the CPUs"
-            @click="comparisonOpen = true"
+            aria-label="More: share, compare and challenges"
+            data-share-opener
           >
+            <Ellipsis />
+            <span class="hidden xl:inline">More</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" class="w-64">
+          <DropdownMenuItem
+            class="items-start [&_svg]:mt-0.5"
+            :disabled="programLength === 0"
+            @select="shareOpen = true"
+          >
+            <Share2 />
+            <span class="flex flex-col">
+              Share this program
+              <span class="text-xs text-muted-foreground">{{
+                programLength === 0 ? 'The program is empty' : 'A link that opens this program'
+              }}</span>
+            </span>
+          </DropdownMenuItem>
+          <DropdownMenuItem class="items-start [&_svg]:mt-0.5" @select="comparisonOpen = true">
             <Columns3 />
-            <span class="hidden xl:inline">Compare</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>The same task on all three CPUs, side by side</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <Button
-            variant="ghost"
-            size="sm"
-            class="pointer-coarse:h-11 pointer-coarse:min-w-11"
-            aria-label="Challenges"
-            @click="challengesOpen = true"
-          >
+            <span class="flex flex-col">
+              Compare the CPUs
+              <span class="text-xs text-muted-foreground">One task on all three CPUs</span>
+            </span>
+          </DropdownMenuItem>
+          <DropdownMenuItem class="items-start [&_svg]:mt-0.5" @select="challengesOpen = true">
             <Puzzle />
-            <span class="hidden xl:inline">Challenges</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Small tasks to write a program for, checked as you go</TooltipContent>
-      </Tooltip>
+            <span class="flex flex-col">
+              Challenges
+              <span class="text-xs text-muted-foreground">Small tasks, checked as you go</span>
+            </span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <DropdownMenu v-model:open="examplesOpen" :modal="false">
         <DropdownMenuTrigger as-child>
           <Button

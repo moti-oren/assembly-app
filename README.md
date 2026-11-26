@@ -358,7 +358,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## Challenges
 
-- **Challenges** at the top of the page (in the **⋯** menu on a phone), or **Open the challenges…**
+- **Challenges** in the **More** menu at the top of the page (in the **⋯** menu on a phone), or **Open the challenges…**
   in the command palette, lists five small tasks for the CPU on show: set the overflow flag without
   the carry, multiply by ten with no multiply instruction, swap two registers with nothing to
   spare, and others. **Start** replaces that CPU's program with the task's given lines, as an
@@ -378,7 +378,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## Comparing the CPUs
 
-- **Compare** at the top of the page (in the **⋯** menu on a phone), or **Compare the CPUs on the same task…**
+- **Compare the CPUs** in the **More** menu at the top of the page (in the **⋯** menu on a phone), or **Compare the CPUs on the same task…**
   in the command palette, opens the same task written for all three CPUs: adding 1 to 10, a 16-bit
   sum, multiplying, filling memory, calling a function, and lighting the LEDs.
 - A table sets side by side the program's lines and machine code bytes, the instructions it runs,
@@ -611,7 +611,7 @@ the NMOS chip's N, V and Z, so BCD sums are compared on A and the carry only.
 
 ## Sharing a program
 
-- **Share** at the top of the page (**Share this program** in the **⋯** menu on a phone, or
+- **Share this program** in the **More** menu at the top of the page (in the **⋯** menu on a phone, or
   **Share this program…** in the command palette) opens a link to the program on show. Whoever
   opens it gets the same program on the same CPU, ready to run.
 - The link carries the CPU and the program, nothing else: no registers, memory, history or device
@@ -986,7 +986,7 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## אתגרים
 
-- **Challenges** בראש העמוד (בטלפון: בתפריט **⋯**), או **Open the challenges…** בפלטת הפקודות, מציג
+- **Challenges** בתפריט **More** בראש העמוד (בטלפון: בתפריט **⋯**), או **Open the challenges…** בפלטת הפקודות, מציג
   חמש משימות קטנות למעבד שעל המסך: להדליק את דגל ה-overflow בלי ה-carry, להכפיל בעשר בלי הוראת
   כפל, להחליף שני רגיסטרים בלי מקום נוסף, ועוד. **Start** מחליף את התוכנית של אותו מעבד בשורות
   הנתונות של המשימה, כמו דוגמה.
@@ -1003,7 +1003,7 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## השוואת המעבדים
 
-- **Compare** בראש העמוד (בטלפון: בתפריט **⋯**), או **Compare the CPUs on the same task…** בפלטת הפקודות,
+- **Compare the CPUs** בתפריט **More** בראש העמוד (בטלפון: בתפריט **⋯**), או **Compare the CPUs on the same task…** בפלטת הפקודות,
   פותח את אותה משימה כתובה לשלושת המעבדים: חיבור 1 עד 10, סכום של 16 סיביות, כפל, מילוי זיכרון,
   קריאה לפונקציה והדלקת הנורות.
 - טבלה מעמידה זו מול זו את מספר השורות ובתי קוד המכונה של התוכנית, את ההוראות שהיא מריצה, את
@@ -1209,7 +1209,7 @@ npm run verify:6502 # check the 6502 core against py65
 
 ## שיתוף תוכנית
 
-- **Share** בראש העמוד (**Share this program** בתפריט **⋯** בטלפון, או **Share this program…**
+- **Share this program** בתפריט **More** בראש העמוד (בטלפון: בתפריט **⋯**, או **Share this program…**
   בלוח הפקודות) פותח קישור לתוכנית המוצגת. מי שפותח אותו מקבל את אותה תוכנית על אותו מעבד,
   מוכנה להרצה.
 - הקישור נושא את המעבד ואת התוכנית בלבד: בלי אוגרים, זיכרון, היסטוריה או מתגי ההתקנים. התוכנית
