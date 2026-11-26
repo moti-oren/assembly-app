@@ -7,6 +7,8 @@ import InfoTip from './InfoTip.vue';
 
 defineProps<{
   view: StackView;
+  /** While a run goes, new rows come in without easing: at speed they would only flicker. */
+  running?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -61,6 +63,7 @@ const emit = defineEmits<{
         <table
           class="w-full border-separate border-spacing-y-0.5 text-sm"
           aria-label="Stack, top first"
+          :data-running="running ? '' : undefined"
         >
           <thead>
             <tr class="text-left text-xs text-muted-foreground">
@@ -75,6 +78,7 @@ const emit = defineEmits<{
             <tr
               v-for="entry in view.entries"
               :key="entry.key"
+              class="row-arrive"
               :class="{ 'text-muted-foreground': entry.popped }"
             >
               <td class="font-mono text-xs text-muted-foreground">

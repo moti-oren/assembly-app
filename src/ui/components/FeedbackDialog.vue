@@ -57,7 +57,12 @@ function returnFocus(event: Event): void {
       </DialogHeader>
 
       <template v-if="status === 'sent'">
-        <p :ref="focusWhenShown" role="status" tabindex="-1" class="text-sm outline-none">
+        <p
+          :ref="focusWhenShown"
+          role="status"
+          tabindex="-1"
+          class="notice-arrive text-sm outline-none"
+        >
           Thank you. Your feedback was sent.
         </p>
         <DialogFooter>
@@ -140,10 +145,14 @@ function returnFocus(event: Event): void {
           and the app's version. Your program is not sent.
         </p>
 
-        <p v-if="status === 'failed'" role="alert" class="text-sm text-destructive">
+        <p v-if="status === 'failed'" role="alert" class="notice-arrive text-sm text-destructive">
           It could not be sent. Check your connection and try again.
         </p>
-        <p v-else-if="status === 'incomplete'" role="alert" class="text-sm text-destructive">
+        <p
+          v-else-if="status === 'incomplete'"
+          role="alert"
+          class="notice-arrive text-sm text-destructive"
+        >
           Write a message first, and check the email address if you gave one.
         </p>
 

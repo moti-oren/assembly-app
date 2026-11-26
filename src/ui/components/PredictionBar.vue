@@ -78,10 +78,13 @@ usePredictionFocus(bar, () => props.asking);
       <template v-if="!asking && last">
         <component
           :is="last.outcome.correct ? Check : X"
-          class="size-4 shrink-0 self-center"
+          class="verdict-mark size-4 shrink-0 self-center"
+          :class="{ 'verdict-miss': !last.outcome.correct }"
           aria-hidden="true"
         />
-        <span class="font-medium">{{ verdict(last.outcome) }}</span>
+        <span class="font-medium" :class="{ 'verdict-miss': !last.outcome.correct }">{{
+          verdict(last.outcome)
+        }}</span>
         <span v-if="last.outcome.why" class="text-muted-foreground">{{ last.outcome.why }}</span>
         <span class="text-xs text-muted-foreground tabular-nums max-md:basis-full md:ml-auto">
           {{ tallyText(tally) }}

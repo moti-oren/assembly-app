@@ -66,7 +66,7 @@ function resetFromMore(): void {
     <p
       v-if="error"
       role="alert"
-      class="flex items-start gap-2 px-4 pt-2.5 text-sm text-destructive"
+      class="notice-arrive flex items-start gap-2 px-4 pt-2.5 text-sm text-destructive"
     >
       <CircleAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       {{ error }}

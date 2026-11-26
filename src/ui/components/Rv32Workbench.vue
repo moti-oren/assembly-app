@@ -245,6 +245,7 @@ followBuilder(draft);
           :history="history"
           :future="future"
           :format="formatInstruction"
+          :running="running"
           @seek="cpu.seek"
         />
       </template>
@@ -307,7 +308,7 @@ followBuilder(draft);
         <Rv32Compare :state="state" :program="program" :record="lastRecord" />
       </template>
       <template #stack>
-        <StackPanel :view="stack" @memory="page.showStackTop" />
+        <StackPanel :view="stack" :running="running" @memory="page.showStackTop" />
       </template>
       <template #devices>
         <DevicesPanel :state="state" :access="RV32_DEVICE_ACCESS" @input="cpu.setInput" />
